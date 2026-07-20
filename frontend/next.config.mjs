@@ -1,6 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: "standalone",
+  // "standalone" es necesario para Docker/Railway/Netlify, pero rompe el
+  // empaquetado serverless de Vercel (produce 404 en todas las rutas).
+  // Vercel define process.env.VERCEL=1 automáticamente en build.
+  output: process.env.VERCEL ? undefined : "standalone",
   reactStrictMode: true,
   swcMinify: true,
   compress: true,
