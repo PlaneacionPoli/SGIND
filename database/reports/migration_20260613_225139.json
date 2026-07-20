@@ -1,0 +1,19 @@
+{
+  "timestamp": "2026-06-13T22:51:39.198860+00:00",
+  "sqlite_path": "C:\\Users\\ximen\\OneDrive\\Proyectos_DS\\Sistema_Indicadores_Poli\\data\\db\\registros_om.db",
+  "dry_run": false,
+  "source": {
+    "registros_om": 0,
+    "acciones": 113
+  },
+  "migrated": {
+    "registros_om": 0,
+    "acciones": 113
+  },
+  "validation": {
+    "registros_om": 0,
+    "acciones": 113,
+    "duplicates": 0
+  },
+  "status": "ok"
+}

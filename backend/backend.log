@@ -1,0 +1,71 @@
+INFO:     Will watch for changes in these directories: ['c:\\Users\\ximen\\OneDrive\\Proyectos_DS\\Sistema_Indicadores_Poli\\sgind-v2\\backend']
+INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+INFO:     Started reloader process [54436] using StatReload
+INFO:     Started server process [23252]
+INFO:     Waiting for application startup.
+INFO:root:SGIND v2 backend iniciado — entorno: development
+INFO:     Application startup complete.
+INFO:     127.0.0.1:63102 - "GET /api/v1/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52010 - "OPTIONS /api/v1/cmi/filtros HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61409 - "OPTIONS /api/v1/cmi/estrategico-dashboard?anio=2025&corte=Diciembre HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61409 - "GET /api/v1/cmi/filtros HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52010 - "GET /api/v1/cmi/estrategico-dashboard?anio=2025&corte=Diciembre HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63353 - "GET /api/v1/cmi/filtros HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55838 - "GET /api/v1/cmi/estrategico-dashboard?anio=2025&corte=Diciembre HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55838 - "GET /api/v1/cmi/filtros HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55838 - "GET /api/v1/cmi/estrategico-dashboard?anio=2025&corte=Diciembre HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51256 - "OPTIONS /api/v1/cmi/procesos/filtros HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56245 - "OPTIONS /api/v1/informe/dashboard?anio=2026&mes=12 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56245 - "GET /api/v1/cmi/procesos/filtros HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51256 - "GET /api/v1/informe/dashboard?anio=2026&mes=12 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56245 - "OPTIONS /api/v1/informe/dashboard?anio=2025&mes=12 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62549 - "OPTIONS /api/v1/cmi/procesos/filtros?anio=2025 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56245 - "GET /api/v1/informe/dashboard?anio=2025&mes=12 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62549 - "GET /api/v1/cmi/procesos/filtros?anio=2025 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56977 - "OPTIONS /api/v1/informe/dashboard?anio=2025&mes=12&proceso=DIRECCIONAMIENTO+ESTRAT%C3%89GICO HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56977 - "GET /api/v1/informe/dashboard?anio=2025&mes=12&proceso=DIRECCIONAMIENTO+ESTRAT%C3%89GICO HTTP/1.1" 200 OK
+WARNING:  StatReload detected changes in 'app\domain\procesos_builders.py'. Reloading...
+ INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:root:SGIND v2 backend detenido
+INFO:     Application shutdown complete.
+INFO:     Finished server process [23252]
+INFO:     Started server process [54284]
+INFO:     Waiting for application startup.
+INFO:root:SGIND v2 backend iniciado — entorno: development
+INFO:     Application startup complete.
+INFO:     127.0.0.1:64142 - "GET /api/v1/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65460 - "GET /api/v1/dashboard/resumen-completo?anio=2025&vista=indicadores HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65497 - "GET /api/v1/dashboard/filtros HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63923 - "GET /api/v1/informe/dashboard?anio=2025&mes=12&proceso=DIRECCIONAMIENTO+ESTRAT%C3%89GICO HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52259 - "GET /api/v1/cmi/procesos/filtros?anio=2025 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61010 - "GET /api/v1/informe/dashboard?anio=2026&mes=12 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51428 - "GET /api/v1/cmi/procesos/filtros HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51428 - "GET /api/v1/informe/dashboard?anio=2025&mes=12 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61010 - "GET /api/v1/cmi/procesos/filtros?anio=2025 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49792 - "GET /api/v1/informe/dashboard?anio=2025&mes=12&proceso=DIRECCIONAMIENTO+ESTRAT%C3%89GICO HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55171 - "GET /api/v1/cmi/procesos/filtros HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55171 - "GET /api/v1/cmi/procesos/filtros?anio=2025 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55171 - "OPTIONS /api/v1/cmi/procesos-dashboard?anio=2025&mes=12 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55171 - "GET /api/v1/cmi/procesos-dashboard?anio=2025&mes=12 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63766 - "GET /api/v1/cmi/procesos/filtros?anio=2025 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62277 - "GET /api/v1/cmi/procesos-dashboard?anio=2025&mes=12 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58580 - "OPTIONS /api/v1/cmi/procesos-dashboard?anio=2025&mes=12&proceso=DIRECCIONAMIENTO+ESTRAT%C3%89GICO HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58580 - "GET /api/v1/cmi/procesos-dashboard?anio=2025&mes=12&proceso=DIRECCIONAMIENTO+ESTRAT%C3%89GICO HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64877 - "OPTIONS /api/v1/cmi/procesos/filtros?anio=2025 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58016 - "GET /api/v1/cmi/procesos-dashboard?anio=2025&mes=12&proceso=DIRECCIONAMIENTO+ESTRAT%C3%89GICO HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65506 - "OPTIONS /api/v1/cmi/procesos/filtros HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65506 - "GET /api/v1/cmi/procesos/filtros HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65506 - "GET /api/v1/cmi/procesos/filtros?anio=2025 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65506 - "GET /api/v1/cmi/procesos-dashboard?anio=2025&mes=12 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65233 - "GET /api/v1/cmi/procesos-dashboard?anio=2025&mes=12 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63554 - "GET /api/v1/cmi/procesos/filtros?anio=2025 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55195 - "OPTIONS /api/v1/dashboard/filtros HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55195 - "OPTIONS /api/v1/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55195 - "OPTIONS /api/v1/dashboard/resumen-completo?anio=2025&vista=indicadores HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55504 - "GET /api/v1/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57384 - "GET /api/v1/dashboard/filtros HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55195 - "GET /api/v1/dashboard/resumen-completo?anio=2025&vista=indicadores HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53695 - "OPTIONS /api/v1/cmi/procesos-dashboard?anio=2025&mes=12 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51690 - "GET /api/v1/cmi/procesos/filtros?anio=2025 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53695 - "GET /api/v1/cmi/procesos-dashboard?anio=2025&mes=12 HTTP/1.1" 200 OK

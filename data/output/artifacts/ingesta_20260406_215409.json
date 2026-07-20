@@ -1,0 +1,417 @@
+{
+  "resumen": {
+    "fecha": "2026-04-06T21:54:09.067651",
+    "total_archivos": 25,
+    "exitosos": 3,
+    "fallidos": 22,
+    "total_registros": 28944,
+    "total_validaciones": 17
+  },
+  "detalle": [
+    {
+      "plantilla": "Acciones de Mejora",
+      "archivo": "acciones_mejora.xlsx",
+      "fecha_ingesta": "2026-04-06T21:54:06.101035",
+      "registros_leidos": 401,
+      "registros_validos": 401,
+      "exitosa": true,
+      "errores": [],
+      "validaciones": [
+        {
+          "tipo": "valores_invalidos",
+          "campo": "ESTADO",
+          "estado": "WARNING",
+          "mensaje": "Campo ESTADO tiene 401 valores no válidos. Válidos: ['Abierto', 'Cerrado', 'En proceso', 'Pendiente']"
+        }
+      ]
+    },
+    {
+      "plantilla": "Dataset Unificado",
+      "archivo": "Dataset_Unificado.xlsx",
+      "fecha_ingesta": "2026-04-06T21:54:06.499797",
+      "registros_leidos": 2990,
+      "registros_validos": 2989,
+      "exitosa": false,
+      "errores": [
+        "duplicado: Campo Id tiene 2405 valores duplicados"
+      ],
+      "validaciones": [
+        {
+          "tipo": "duplicado",
+          "campo": "Id",
+          "estado": "ERROR",
+          "mensaje": "Campo Id tiene 2405 valores duplicados"
+        },
+        {
+          "tipo": "valores_invalidos",
+          "campo": "Periodicidad",
+          "estado": "WARNING",
+          "mensaje": "Campo Periodicidad tiene 84 valores no válidos. Válidos: ['Mensual', 'Trimestral', 'Semestral', 'Anual']"
+        },
+        {
+          "tipo": "valores_invalidos",
+          "campo": "Sentido",
+          "estado": "WARNING",
+          "mensaje": "Campo Sentido tiene 2990 valores no válidos. Válidos: ['Ascendente', 'Descendente']"
+        }
+      ]
+    },
+    {
+      "plantilla": "Ficha Técnica",
+      "archivo": "Ficha_Tecnica.xlsx",
+      "fecha_ingesta": "2026-04-06T21:54:06.693757",
+      "registros_leidos": 481,
+      "registros_validos": 481,
+      "exitosa": true,
+      "errores": [],
+      "validaciones": []
+    },
+    {
+      "plantilla": "Dataset Unificado",
+      "archivo": "Indicadores por CMI.xlsx",
+      "fecha_ingesta": "2026-04-06T21:54:06.732781",
+      "registros_leidos": 0,
+      "registros_validos": 0,
+      "exitosa": false,
+      "errores": [
+        "Worksheet named 'Unificado' not found"
+      ],
+      "validaciones": []
+    },
+    {
+      "plantilla": "Dataset Unificado",
+      "archivo": "lmi_reporte.xlsx",
+      "fecha_ingesta": "2026-04-06T21:54:06.761476",
+      "registros_leidos": 0,
+      "registros_validos": 0,
+      "exitosa": false,
+      "errores": [
+        "Worksheet named 'Unificado' not found"
+      ],
+      "validaciones": []
+    },
+    {
+      "plantilla": "DESCONOCIDA",
+      "archivo": "OM.xls",
+      "fecha_ingesta": "2026-04-06T21:54:06.778570",
+      "registros_leidos": 0,
+      "registros_validos": 0,
+      "exitosa": false,
+      "errores": [
+        "Plantilla no reconocida para OM.xls"
+      ],
+      "validaciones": []
+    },
+    {
+      "plantilla": "DESCONOCIDA",
+      "archivo": "OM.xlsx",
+      "fecha_ingesta": "2026-04-06T21:54:06.792663",
+      "registros_leidos": 0,
+      "registros_validos": 0,
+      "exitosa": false,
+      "errores": [
+        "Plantilla no reconocida para OM.xlsx"
+      ],
+      "validaciones": []
+    },
+    {
+      "plantilla": "Dataset Unificado",
+      "archivo": "Resultados_Consolidados_Fuente.xlsx",
+      "fecha_ingesta": "2026-04-06T21:54:06.875822",
+      "registros_leidos": 0,
+      "registros_validos": 0,
+      "exitosa": false,
+      "errores": [
+        "Worksheet named 'Unificado' not found"
+      ],
+      "validaciones": []
+    },
+    {
+      "plantilla": "Salidas No Conformes",
+      "archivo": "salidas_no_conformes.xlsx",
+      "fecha_ingesta": "2026-04-06T21:54:06.889816",
+      "registros_leidos": 34,
+      "registros_validos": 33,
+      "exitosa": false,
+      "errores": [
+        "duplicado: Campo id_salida tiene 10 valores duplicados"
+      ],
+      "validaciones": [
+        {
+          "tipo": "duplicado",
+          "campo": "id_salida",
+          "estado": "ERROR",
+          "mensaje": "Campo id_salida tiene 10 valores duplicados"
+        },
+        {
+          "tipo": "booleano",
+          "campo": "activo",
+          "estado": "WARNING",
+          "mensaje": "Campo activo tiene valores booleanos inválidos: ['Activo', 'Eliminado']"
+        }
+      ]
+    },
+    {
+      "plantilla": "DESCONOCIDA",
+      "archivo": "Subproceso-Proceso-Area.xlsx",
+      "fecha_ingesta": "2026-04-06T21:54:06.903175",
+      "registros_leidos": 0,
+      "registros_validos": 0,
+      "exitosa": false,
+      "errores": [
+        "Plantilla no reconocida para Subproceso-Proceso-Area.xlsx"
+      ],
+      "validaciones": []
+    },
+    {
+      "plantilla": "Indicadores API",
+      "archivo": "2022.xlsx",
+      "fecha_ingesta": "2026-04-06T21:54:07.227461",
+      "registros_leidos": 4511,
+      "registros_validos": 4510,
+      "exitosa": false,
+      "errores": [
+        "duplicado: Campo ID tiene 4213 valores duplicados"
+      ],
+      "validaciones": [
+        {
+          "tipo": "duplicado",
+          "campo": "ID",
+          "estado": "ERROR",
+          "mensaje": "Campo ID tiene 4213 valores duplicados"
+        },
+        {
+          "tipo": "valores_invalidos",
+          "campo": "sentido",
+          "estado": "WARNING",
+          "mensaje": "Campo sentido tiene 4511 valores no válidos. Válidos: ['Ascendente', 'Descendente']"
+        }
+      ]
+    },
+    {
+      "plantilla": "Indicadores API",
+      "archivo": "2023.xlsx",
+      "fecha_ingesta": "2026-04-06T21:54:08.072765",
+      "registros_leidos": 11997,
+      "registros_validos": 11996,
+      "exitosa": false,
+      "errores": [
+        "duplicado: Campo ID tiene 11700 valores duplicados"
+      ],
+      "validaciones": [
+        {
+          "tipo": "duplicado",
+          "campo": "ID",
+          "estado": "ERROR",
+          "mensaje": "Campo ID tiene 11700 valores duplicados"
+        },
+        {
+          "tipo": "valores_invalidos",
+          "campo": "sentido",
+          "estado": "WARNING",
+          "mensaje": "Campo sentido tiene 11997 valores no válidos. Válidos: ['Ascendente', 'Descendente']"
+        }
+      ]
+    },
+    {
+      "plantilla": "Indicadores API",
+      "archivo": "2024.xlsx",
+      "fecha_ingesta": "2026-04-06T21:54:08.399795",
+      "registros_leidos": 3873,
+      "registros_validos": 3872,
+      "exitosa": false,
+      "errores": [
+        "duplicado: Campo ID tiene 3576 valores duplicados"
+      ],
+      "validaciones": [
+        {
+          "tipo": "duplicado",
+          "campo": "ID",
+          "estado": "ERROR",
+          "mensaje": "Campo ID tiene 3576 valores duplicados"
+        },
+        {
+          "tipo": "valores_invalidos",
+          "campo": "sentido",
+          "estado": "WARNING",
+          "mensaje": "Campo sentido tiene 3873 valores no válidos. Válidos: ['Ascendente', 'Descendente']"
+        }
+      ]
+    },
+    {
+      "plantilla": "Indicadores API",
+      "archivo": "2025.xlsx",
+      "fecha_ingesta": "2026-04-06T21:54:08.745828",
+      "registros_leidos": 3565,
+      "registros_validos": 3564,
+      "exitosa": false,
+      "errores": [
+        "duplicado: Campo ID tiene 3269 valores duplicados"
+      ],
+      "validaciones": [
+        {
+          "tipo": "duplicado",
+          "campo": "ID",
+          "estado": "ERROR",
+          "mensaje": "Campo ID tiene 3269 valores duplicados"
+        },
+        {
+          "tipo": "valores_invalidos",
+          "campo": "sentido",
+          "estado": "WARNING",
+          "mensaje": "Campo sentido tiene 3565 valores no válidos. Válidos: ['Ascendente', 'Descendente']"
+        }
+      ]
+    },
+    {
+      "plantilla": "Indicadores API",
+      "archivo": "2026.xlsx",
+      "fecha_ingesta": "2026-04-06T21:54:08.817527",
+      "registros_leidos": 592,
+      "registros_validos": 591,
+      "exitosa": false,
+      "errores": [
+        "duplicado: Campo ID tiene 296 valores duplicados"
+      ],
+      "validaciones": [
+        {
+          "tipo": "duplicado",
+          "campo": "ID",
+          "estado": "ERROR",
+          "mensaje": "Campo ID tiene 296 valores duplicados"
+        },
+        {
+          "tipo": "valores_invalidos",
+          "campo": "sentido",
+          "estado": "WARNING",
+          "mensaje": "Campo sentido tiene 592 valores no válidos. Válidos: ['Ascendente', 'Descendente']"
+        }
+      ]
+    },
+    {
+      "plantilla": "Indicadores API",
+      "archivo": "Consolidado_API_Kawak.xlsx",
+      "fecha_ingesta": "2026-04-06T21:54:08.831829",
+      "registros_leidos": 0,
+      "registros_validos": 0,
+      "exitosa": false,
+      "errores": [
+        "Worksheet named 'Indicadores' not found"
+      ],
+      "validaciones": []
+    },
+    {
+      "plantilla": "Dataset Unificado",
+      "archivo": "Indicadores Kawak.xlsx",
+      "fecha_ingesta": "2026-04-06T21:54:08.842807",
+      "registros_leidos": 0,
+      "registros_validos": 0,
+      "exitosa": false,
+      "errores": [
+        "Worksheet named 'Unificado' not found"
+      ],
+      "validaciones": []
+    },
+    {
+      "plantilla": "DESCONOCIDA",
+      "archivo": "2022.xlsx",
+      "fecha_ingesta": "2026-04-06T21:54:08.851792",
+      "registros_leidos": 0,
+      "registros_validos": 0,
+      "exitosa": false,
+      "errores": [
+        "Plantilla no reconocida para 2022.xlsx"
+      ],
+      "validaciones": []
+    },
+    {
+      "plantilla": "Dataset Unificado",
+      "archivo": "2023.xlsx",
+      "fecha_ingesta": "2026-04-06T21:54:08.868853",
+      "registros_leidos": 0,
+      "registros_validos": 0,
+      "exitosa": false,
+      "errores": [
+        "Worksheet named 'Unificado' not found"
+      ],
+      "validaciones": []
+    },
+    {
+      "plantilla": "Dataset Unificado",
+      "archivo": "2024.xlsx",
+      "fecha_ingesta": "2026-04-06T21:54:08.888010",
+      "registros_leidos": 0,
+      "registros_validos": 0,
+      "exitosa": false,
+      "errores": [
+        "Worksheet named 'Unificado' not found"
+      ],
+      "validaciones": []
+    },
+    {
+      "plantilla": "Dataset Unificado",
+      "archivo": "2025.xlsx",
+      "fecha_ingesta": "2026-04-06T21:54:08.915761",
+      "registros_leidos": 0,
+      "registros_validos": 0,
+      "exitosa": false,
+      "errores": [
+        "Worksheet named 'Unificado' not found"
+      ],
+      "validaciones": []
+    },
+    {
+      "plantilla": "Dataset Unificado",
+      "archivo": "2026.xlsx",
+      "fecha_ingesta": "2026-04-06T21:54:08.942928",
+      "registros_leidos": 0,
+      "registros_validos": 0,
+      "exitosa": false,
+      "errores": [
+        "Worksheet named 'Unificado' not found"
+      ],
+      "validaciones": []
+    },
+    {
+      "plantilla": "DESCONOCIDA",
+      "archivo": "PA_1.xls",
+      "fecha_ingesta": "2026-04-06T21:54:08.946473",
+      "registros_leidos": 0,
+      "registros_validos": 0,
+      "exitosa": false,
+      "errores": [
+        "Plantilla no reconocida para PA_1.xls"
+      ],
+      "validaciones": []
+    },
+    {
+      "plantilla": "Plan de Acción",
+      "archivo": "PA_1.xlsx",
+      "fecha_ingesta": "2026-04-06T21:54:09.064389",
+      "registros_leidos": 500,
+      "registros_validos": 500,
+      "exitosa": true,
+      "errores": [],
+      "validaciones": [
+        {
+          "tipo": "valores_invalidos",
+          "campo": "Estado (Plan de Acción)",
+          "estado": "WARNING",
+          "mensaje": "Campo Estado (Plan de Acción) tiene 500 valores no válidos. Válidos: ['Abierto', 'Cerrado', 'En proceso', 'Pendiente']"
+        }
+      ]
+    },
+    {
+      "plantilla": "DESCONOCIDA",
+      "archivo": "PA_2.xls",
+      "fecha_ingesta": "2026-04-06T21:54:09.067474",
+      "registros_leidos": 0,
+      "registros_validos": 0,
+      "exitosa": false,
+      "errores": [
+        "Plantilla no reconocida para PA_2.xls"
+      ],
+      "validaciones": []
+    }
+  ]
+}

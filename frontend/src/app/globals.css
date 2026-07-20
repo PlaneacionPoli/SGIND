@@ -1,0 +1,120 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── Tokens CSS ─────────────────────────────────────────────────────────── */
+:root {
+  /* Superficie */
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  --surface:    #ffffff;
+  --border:     #e2e8f0;   /* slate-200 */
+  --muted:      #f1f5f9;   /* slate-100 */
+  --muted-fg:   #64748b;   /* slate-500 */
+
+  /* Marca Poli */
+  --poli-navy:       #1a2b4a;
+  --poli-navy-700:   #243554;
+  --poli-blue:       #2563eb;
+  --poli-blue-dark:  #1d4ed8;
+  --poli-gold:       #c9a227;
+
+  /* Semáforo (fuente única de colores de estado) */
+  --semaforo-peligro:          #ef4444;
+  --semaforo-peligro-bg:       #fef2f2;
+  --semaforo-alerta:           #f59e0b;
+  --semaforo-alerta-bg:        #fffbeb;
+  --semaforo-cumplimiento:     #22c55e;
+  --semaforo-cumplimiento-bg:  #f0fdf4;
+  --semaforo-sobre:            #3b82f6;
+  --semaforo-sobre-bg:         #eff6ff;
+
+  /* Skeleton shimmer */
+  --shimmer-from: #f1f5f9;
+  --shimmer-via:  #e2e8f0;
+  --shimmer-to:   #f1f5f9;
+}
+
+/* ─── Base ───────────────────────────────────────────────────────────────── */
+@layer base {
+  *,
+  *::before,
+  *::after {
+    border-color: var(--border);
+  }
+
+  body {
+    color: var(--foreground);
+    background: var(--background);
+    font-feature-settings: "cv11", "ss01";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Focus ring accesible */
+  :focus-visible {
+    outline: 2px solid var(--poli-blue);
+    outline-offset: 2px;
+  }
+
+  /* Headings con color consistente */
+  h1, h2, h3 {
+    color: var(--poli-navy);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+}
+
+/* ─── Utilidades de componentes ──────────────────────────────────────────── */
+@layer components {
+  /* Tarjeta base reutilizable */
+  .card {
+    @apply bg-white rounded-xl border border-slate-200 shadow-card;
+  }
+
+  /* Skeleton de carga */
+  .skeleton {
+    background: linear-gradient(
+      90deg,
+      var(--shimmer-from) 0%,
+      var(--shimmer-via) 50%,
+      var(--shimmer-to) 100%
+    );
+    background-size: 800px 100%;
+    @apply animate-shimmer rounded;
+  }
+
+  /* Botón primario Poli */
+  .btn-primary {
+    @apply inline-flex items-center gap-2 px-4 py-2 rounded-lg
+           bg-poli-blue text-white text-sm font-medium
+           hover:bg-poli-blue-dark active:scale-[0.98]
+           transition-all duration-250 focus-visible:ring-2 focus-visible:ring-poli-blue;
+  }
+
+  /* Botón secundario */
+  .btn-secondary {
+    @apply inline-flex items-center gap-2 px-4 py-2 rounded-lg
+           bg-white text-slate-700 text-sm font-medium border border-slate-200
+           hover:bg-slate-50 active:scale-[0.98]
+           transition-all duration-250;
+  }
+
+  /* Badge de semáforo */
+  .badge-peligro      { @apply text-xs font-semibold px-2 py-0.5 rounded-full bg-semaforo-peligro-bg text-semaforo-peligro; }
+  .badge-alerta       { @apply text-xs font-semibold px-2 py-0.5 rounded-full bg-semaforo-alerta-bg text-semaforo-alerta; }
+  .badge-cumplimiento { @apply text-xs font-semibold px-2 py-0.5 rounded-full bg-semaforo-cumplimiento-bg text-semaforo-cumplimiento; }
+  .badge-sobre        { @apply text-xs font-semibold px-2 py-0.5 rounded-full bg-semaforo-sobre-bg text-semaforo-sobre; }
+}
+
+/* ─── Scrollbar personalizado ────────────────────────────────────────────── */
+@layer utilities {
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 transparent;
+  }
+  .scrollbar-thin::-webkit-scrollbar       { width: 6px; height: 6px; }
+  .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
+  .scrollbar-thin::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+}

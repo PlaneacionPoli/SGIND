@@ -1,0 +1,102 @@
+{
+  "timestamp": "2026-06-19T00:54:42.472332+00:00",
+  "checks": {
+    "resultados_excel": {
+      "source": "C:\\Users\\ximen\\OneDrive\\Proyectos_DS\\Sistema_Indicadores_Poli\\data\\output\\Resultados Consolidados.xlsx",
+      "total_rows": 2705,
+      "anios_disponibles": [
+        2022,
+        2023,
+        2024,
+        2025,
+        2026
+      ],
+      "n_procesos": 61,
+      "n_indicadores_unicos": 388,
+      "columnas": [
+        "Id",
+        "Indicador",
+        "Proceso",
+        "Periodicidad",
+        "Sentido",
+        "Fecha",
+        "Año",
+        "Mes",
+        "Semestre",
+        "Meta",
+        "Ejecucion",
+        "Cumplimiento",
+        "Cumplimiento Real",
+        "Meta_Signo",
+        "Ejecucion_Signo",
+        "Decimales_Meta",
+        "Decimales_Ejecucion",
+        "LLAVE",
+        "Tipo_Registro"
+      ],
+      "kpi_baseline": {}
+    },
+    "acciones_excel": {
+      "source": "C:\\Users\\ximen\\OneDrive\\Proyectos_DS\\Sistema_Indicadores_Poli\\data\\raw\\acciones_mejora.xlsx",
+      "total_rows": 401,
+      "estados": {
+        "Cerrada": 361,
+        "Ejecución": 40
+      },
+      "tipos_accion": {
+        "Acción Correctiva": 204,
+        "Acción de Mejora": 137,
+        "Corrección": 33,
+        "Acción Preventiva": 23
+      },
+      "columnas": [
+        "ID",
+        "FECHA_IDENTIFICACION",
+        "DESCRIPCION",
+        "AVANCE",
+        "ESTADO",
+        "TIPO_ACCION",
+        "TIPO_HALLAZGO",
+        "PROCESOS",
+        "SEDE",
+        "FUENTE",
+        "NORMA",
+        "NUMERAL",
+        "CREADOR",
+        "TIPO_ANALISIS_CAUSAS",
+        "RESPONSABLE_DEFINE_PLANACCION",
+        "RESPONSABLE_APROBAR_PLANACCION",
+        "RESPONSABLE_ANALISIS_CAUSAS",
+        "OTROS_RESPONSABLES",
+        "RESPONSABLE_CIERRE",
+        "FECHA_ESTIMADA_CIERRE",
+        "FECHA_CIERRE",
+        "FECHA_CREACION",
+        "TIENE_PLAN_ACCION",
+        "DIAS_TRAMITE",
+        "DIAS_VENCIDA",
+        "MESES_SIN_AVANCE",
+        "EFICAZ",
+        "EFICIENTE",
+        "ADECUADO",
+        "COMENTARIO",
+        "FECHA_VERIFICAR_EFICACIA",
+        "COMENTARIO_POSTERIOR_CIERRE"
+      ]
+    },
+    "sqlite": {
+      "source": "C:\\Users\\ximen\\OneDrive\\Proyectos_DS\\Sistema_Indicadores_Poli\\data\\db\\registros_om.db",
+      "tables": {
+        "acciones": {
+          "rows": 118
+        },
+        "registros_om": {
+          "rows": 0
+        }
+      }
+    }
+  },
+  "comparisons": {},
+  "status": "ok",
+  "issues": []
+}

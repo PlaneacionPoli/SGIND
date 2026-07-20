@@ -1,0 +1,86 @@
+================================================================================
+REPORTE DE CALIDAD - INGESTA DE PLANTILLAS
+================================================================================
+Fecha: 2026-04-06 21:54:09
+
+Total archivos procesados: 25
+Exitosos: 3
+Fallidos: 22
+
+--------------------------------------------------------------------------------
+ARCHIVOS CON ERRORES:
+--------------------------------------------------------------------------------
+  Dataset_Unificado.xlsx (Dataset Unificado)
+    - duplicado: Campo Id tiene 2405 valores duplicados
+  Indicadores por CMI.xlsx (Dataset Unificado)
+    - Worksheet named 'Unificado' not found
+  lmi_reporte.xlsx (Dataset Unificado)
+    - Worksheet named 'Unificado' not found
+  OM.xls (DESCONOCIDA)
+    - Plantilla no reconocida para OM.xls
+  OM.xlsx (DESCONOCIDA)
+    - Plantilla no reconocida para OM.xlsx
+  Resultados_Consolidados_Fuente.xlsx (Dataset Unificado)
+    - Worksheet named 'Unificado' not found
+  salidas_no_conformes.xlsx (Salidas No Conformes)
+    - duplicado: Campo id_salida tiene 10 valores duplicados
+  Subproceso-Proceso-Area.xlsx (DESCONOCIDA)
+    - Plantilla no reconocida para Subproceso-Proceso-Area.xlsx
+  2022.xlsx (Indicadores API)
+    - duplicado: Campo ID tiene 4213 valores duplicados
+  2023.xlsx (Indicadores API)
+    - duplicado: Campo ID tiene 11700 valores duplicados
+  2024.xlsx (Indicadores API)
+    - duplicado: Campo ID tiene 3576 valores duplicados
+  2025.xlsx (Indicadores API)
+    - duplicado: Campo ID tiene 3269 valores duplicados
+  2026.xlsx (Indicadores API)
+    - duplicado: Campo ID tiene 296 valores duplicados
+  Consolidado_API_Kawak.xlsx (Indicadores API)
+    - Worksheet named 'Indicadores' not found
+  Indicadores Kawak.xlsx (Dataset Unificado)
+    - Worksheet named 'Unificado' not found
+  2022.xlsx (DESCONOCIDA)
+    - Plantilla no reconocida para 2022.xlsx
+  2023.xlsx (Dataset Unificado)
+    - Worksheet named 'Unificado' not found
+  2024.xlsx (Dataset Unificado)
+    - Worksheet named 'Unificado' not found
+  2025.xlsx (Dataset Unificado)
+    - Worksheet named 'Unificado' not found
+  2026.xlsx (Dataset Unificado)
+    - Worksheet named 'Unificado' not found
+  PA_1.xls (DESCONOCIDA)
+    - Plantilla no reconocida para PA_1.xls
+  PA_2.xls (DESCONOCIDA)
+    - Plantilla no reconocida para PA_2.xls
+
+--------------------------------------------------------------------------------
+RESUMEN DE VALIDACIONES:
+--------------------------------------------------------------------------------
+Total validaciones: 17
+  Errores: 7
+  Warnings: 10
+
+ERRORES DETECTADOS:
+  [Dataset_Unificado.xlsx] Id: Campo Id tiene 2405 valores duplicados
+  [salidas_no_conformes.xlsx] id_salida: Campo id_salida tiene 10 valores duplicados
+  [2022.xlsx] ID: Campo ID tiene 4213 valores duplicados
+  [2023.xlsx] ID: Campo ID tiene 11700 valores duplicados
+  [2024.xlsx] ID: Campo ID tiene 3576 valores duplicados
+  [2025.xlsx] ID: Campo ID tiene 3269 valores duplicados
+  [2026.xlsx] ID: Campo ID tiene 296 valores duplicados
+
+ADVERTENCIAS DETECTADAS:
+  [acciones_mejora.xlsx] ESTADO: Campo ESTADO tiene 401 valores no válidos. Válidos: ['Abierto', 'Cerrado', 'En proceso', 'Pendiente']
+  [Dataset_Unificado.xlsx] Periodicidad: Campo Periodicidad tiene 84 valores no válidos. Válidos: ['Mensual', 'Trimestral', 'Semestral', 'Anual']
+  [Dataset_Unificado.xlsx] Sentido: Campo Sentido tiene 2990 valores no válidos. Válidos: ['Ascendente', 'Descendente']
+  [salidas_no_conformes.xlsx] activo: Campo activo tiene valores booleanos inválidos: ['Activo', 'Eliminado']
+  [2022.xlsx] sentido: Campo sentido tiene 4511 valores no válidos. Válidos: ['Ascendente', 'Descendente']
+  [2023.xlsx] sentido: Campo sentido tiene 11997 valores no válidos. Válidos: ['Ascendente', 'Descendente']
+  [2024.xlsx] sentido: Campo sentido tiene 3873 valores no válidos. Válidos: ['Ascendente', 'Descendente']
+  [2025.xlsx] sentido: Campo sentido tiene 3565 valores no válidos. Válidos: ['Ascendente', 'Descendente']
+  [2026.xlsx] sentido: Campo sentido tiene 592 valores no válidos. Válidos: ['Ascendente', 'Descendente']
+  [PA_1.xlsx] Estado (Plan de Acción): Campo Estado (Plan de Acción) tiene 500 valores no válidos. Válidos: ['Abierto', 'Cerrado', 'En proceso', 'Pendiente']
+
+================================================================================

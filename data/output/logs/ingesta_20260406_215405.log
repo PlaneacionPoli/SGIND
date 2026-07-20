@@ -1,0 +1,56 @@
+2026-04-06 21:54:05,725 - __main__ - INFO - === INICIO DE INGESTA TOTAL ===
+2026-04-06 21:54:05,725 - __main__ - INFO - Procesando archivo: data\raw\acciones_mejora.xlsx
+2026-04-06 21:54:06,101 - __main__ - INFO - Archivo acciones_mejora.xlsx: 401 registros, 1 validaciones, exitosa=True
+2026-04-06 21:54:06,101 - __main__ - INFO - Procesando archivo: data\raw\Dataset_Unificado.xlsx
+2026-04-06 21:54:06,499 - __main__ - INFO - Archivo Dataset_Unificado.xlsx: 2990 registros, 3 validaciones, exitosa=False
+2026-04-06 21:54:06,500 - __main__ - INFO - Procesando archivo: data\raw\Ficha_Tecnica.xlsx
+2026-04-06 21:54:06,693 - __main__ - INFO - Archivo Ficha_Tecnica.xlsx: 481 registros, 0 validaciones, exitosa=True
+2026-04-06 21:54:06,694 - __main__ - INFO - Procesando archivo: data\raw\Indicadores por CMI.xlsx
+2026-04-06 21:54:06,732 - __main__ - ERROR - Error procesando Indicadores por CMI.xlsx: Worksheet named 'Unificado' not found
+2026-04-06 21:54:06,732 - __main__ - INFO - Procesando archivo: data\raw\lmi_reporte.xlsx
+2026-04-06 21:54:06,761 - __main__ - ERROR - Error procesando lmi_reporte.xlsx: Worksheet named 'Unificado' not found
+2026-04-06 21:54:06,761 - __main__ - INFO - Procesando archivo: data\raw\OM.xls
+2026-04-06 21:54:06,778 - __main__ - ERROR - Error detectando plantilla para data\raw\OM.xls: Workbook corruption: seen[2] == 4
+2026-04-06 21:54:06,778 - __main__ - WARNING - No se detectó plantilla para: data\raw\OM.xls
+2026-04-06 21:54:06,778 - __main__ - INFO - Procesando archivo: data\raw\OM.xlsx
+2026-04-06 21:54:06,792 - __main__ - WARNING - No se detectó plantilla para: data\raw\OM.xlsx
+2026-04-06 21:54:06,792 - __main__ - INFO - Procesando archivo: data\raw\Resultados_Consolidados_Fuente.xlsx
+2026-04-06 21:54:06,875 - __main__ - ERROR - Error procesando Resultados_Consolidados_Fuente.xlsx: Worksheet named 'Unificado' not found
+2026-04-06 21:54:06,875 - __main__ - INFO - Procesando archivo: data\raw\salidas_no_conformes.xlsx
+2026-04-06 21:54:06,889 - __main__ - INFO - Archivo salidas_no_conformes.xlsx: 34 registros, 2 validaciones, exitosa=False
+2026-04-06 21:54:06,890 - __main__ - INFO - Procesando archivo: data\raw\Subproceso-Proceso-Area.xlsx
+2026-04-06 21:54:06,902 - __main__ - WARNING - No se detectó plantilla para: data\raw\Subproceso-Proceso-Area.xlsx
+2026-04-06 21:54:06,903 - __main__ - INFO - Procesando archivo: data\raw\API\2022.xlsx
+2026-04-06 21:54:07,227 - __main__ - INFO - Archivo 2022.xlsx: 4511 registros, 2 validaciones, exitosa=False
+2026-04-06 21:54:07,227 - __main__ - INFO - Procesando archivo: data\raw\API\2023.xlsx
+2026-04-06 21:54:08,072 - __main__ - INFO - Archivo 2023.xlsx: 11997 registros, 2 validaciones, exitosa=False
+2026-04-06 21:54:08,073 - __main__ - INFO - Procesando archivo: data\raw\API\2024.xlsx
+2026-04-06 21:54:08,399 - __main__ - INFO - Archivo 2024.xlsx: 3873 registros, 2 validaciones, exitosa=False
+2026-04-06 21:54:08,400 - __main__ - INFO - Procesando archivo: data\raw\API\2025.xlsx
+2026-04-06 21:54:08,745 - __main__ - INFO - Archivo 2025.xlsx: 3565 registros, 2 validaciones, exitosa=False
+2026-04-06 21:54:08,746 - __main__ - INFO - Procesando archivo: data\raw\API\2026.xlsx
+2026-04-06 21:54:08,817 - __main__ - INFO - Archivo 2026.xlsx: 592 registros, 2 validaciones, exitosa=False
+2026-04-06 21:54:08,818 - __main__ - INFO - Procesando archivo: data\raw\Fuentes Consolidadas\Consolidado_API_Kawak.xlsx
+2026-04-06 21:54:08,831 - __main__ - ERROR - Error procesando Consolidado_API_Kawak.xlsx: Worksheet named 'Indicadores' not found
+2026-04-06 21:54:08,831 - __main__ - INFO - Procesando archivo: data\raw\Fuentes Consolidadas\Indicadores Kawak.xlsx
+2026-04-06 21:54:08,842 - __main__ - ERROR - Error procesando Indicadores Kawak.xlsx: Worksheet named 'Unificado' not found
+2026-04-06 21:54:08,843 - __main__ - INFO - Procesando archivo: data\raw\Kawak\2022.xlsx
+2026-04-06 21:54:08,851 - __main__ - WARNING - No se detectó plantilla para: data\raw\Kawak\2022.xlsx
+2026-04-06 21:54:08,851 - __main__ - INFO - Procesando archivo: data\raw\Kawak\2023.xlsx
+2026-04-06 21:54:08,868 - __main__ - ERROR - Error procesando 2023.xlsx: Worksheet named 'Unificado' not found
+2026-04-06 21:54:08,868 - __main__ - INFO - Procesando archivo: data\raw\Kawak\2024.xlsx
+2026-04-06 21:54:08,887 - __main__ - ERROR - Error procesando 2024.xlsx: Worksheet named 'Unificado' not found
+2026-04-06 21:54:08,888 - __main__ - INFO - Procesando archivo: data\raw\Kawak\2025.xlsx
+2026-04-06 21:54:08,915 - __main__ - ERROR - Error procesando 2025.xlsx: Worksheet named 'Unificado' not found
+2026-04-06 21:54:08,915 - __main__ - INFO - Procesando archivo: data\raw\Kawak\2026.xlsx
+2026-04-06 21:54:08,942 - __main__ - ERROR - Error procesando 2026.xlsx: Worksheet named 'Unificado' not found
+2026-04-06 21:54:08,943 - __main__ - INFO - Procesando archivo: data\raw\Plan de accion\PA_1.xls
+2026-04-06 21:54:08,946 - __main__ - ERROR - Error detectando plantilla para data\raw\Plan de accion\PA_1.xls: Workbook corruption: seen[2] == 4
+2026-04-06 21:54:08,946 - __main__ - WARNING - No se detectó plantilla para: data\raw\Plan de accion\PA_1.xls
+2026-04-06 21:54:08,946 - __main__ - INFO - Procesando archivo: data\raw\Plan de accion\PA_1.xlsx
+2026-04-06 21:54:09,064 - __main__ - INFO - Archivo PA_1.xlsx: 500 registros, 1 validaciones, exitosa=True
+2026-04-06 21:54:09,064 - __main__ - INFO - Procesando archivo: data\raw\Plan de accion\PA_2.xls
+2026-04-06 21:54:09,067 - __main__ - ERROR - Error detectando plantilla para data\raw\Plan de accion\PA_2.xls: Workbook corruption: seen[2] == 4
+2026-04-06 21:54:09,067 - __main__ - WARNING - No se detectó plantilla para: data\raw\Plan de accion\PA_2.xls
+2026-04-06 21:54:09,067 - __main__ - INFO - === FIN DE INGESTA: 25 archivos procesados ===
+2026-04-06 21:54:09,068 - __main__ - INFO - Artefacto de ingesta guardado: data\output\artifacts\ingesta_20260406_215409.json

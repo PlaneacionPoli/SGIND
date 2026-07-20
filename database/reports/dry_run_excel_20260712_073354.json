@@ -1,0 +1,106 @@
+{
+  "timestamp": "2026-07-12T07:33:54.065696+00:00",
+  "dry_run": true,
+  "fuentes": {
+    "acciones_excel": "C:\\Users\\ximen\\OneDrive\\Proyectos_DS\\Sistema_Indicadores_Poli\\data\\raw\\acciones_mejora.xlsx"
+  },
+  "analisis": {
+    "acciones": {
+      "total_rows": 401,
+      "estados": {
+        "Cerrada": 361,
+        "Ejecución": 40
+      },
+      "tipos_accion": {
+        "Acción Correctiva": 204,
+        "Acción de Mejora": 137,
+        "Corrección": 33,
+        "Acción Preventiva": 23
+      },
+      "nulls_por_columna": {
+        "ID": 0,
+        "FECHA_IDENTIFICACION": 0,
+        "DESCRIPCION": 42,
+        "AVANCE": 16,
+        "ESTADO": 0,
+        "TIPO_ACCION": 4,
+        "TIPO_HALLAZGO": 4,
+        "PROCESOS": 0,
+        "SEDE": 17,
+        "FUENTE": 101,
+        "NORMA": 0,
+        "NUMERAL": 339,
+        "CREADOR": 1,
+        "TIPO_ANALISIS_CAUSAS": 0,
+        "RESPONSABLE_DEFINE_PLANACCION": 0,
+        "RESPONSABLE_APROBAR_PLANACCION": 0,
+        "RESPONSABLE_ANALISIS_CAUSAS": 112,
+        "OTROS_RESPONSABLES": 198,
+        "RESPONSABLE_CIERRE": 0,
+        "FECHA_ESTIMADA_CIERRE": 50,
+        "FECHA_CIERRE": 40,
+        "FECHA_CREACION": 0,
+        "TIENE_PLAN_ACCION": 0,
+        "DIAS_TRAMITE": 0,
+        "DIAS_VENCIDA": 361,
+        "MESES_SIN_AVANCE": 361,
+        "EFICAZ": 0,
+        "EFICIENTE": 0,
+        "ADECUADO": 0,
+        "COMENTARIO": 42,
+        "FECHA_VERIFICAR_EFICACIA": 40,
+        "COMENTARIO_POSTERIOR_CIERRE": 358
+      },
+      "columnas": [
+        "ID",
+        "FECHA_IDENTIFICACION",
+        "DESCRIPCION",
+        "AVANCE",
+        "ESTADO",
+        "TIPO_ACCION",
+        "TIPO_HALLAZGO",
+        "PROCESOS",
+        "SEDE",
+        "FUENTE",
+        "NORMA",
+        "NUMERAL",
+        "CREADOR",
+        "TIPO_ANALISIS_CAUSAS",
+        "RESPONSABLE_DEFINE_PLANACCION",
+        "RESPONSABLE_APROBAR_PLANACCION",
+        "RESPONSABLE_ANALISIS_CAUSAS",
+        "OTROS_RESPONSABLES",
+        "RESPONSABLE_CIERRE",
+        "FECHA_ESTIMADA_CIERRE",
+        "FECHA_CIERRE",
+        "FECHA_CREACION",
+        "TIENE_PLAN_ACCION",
+        "DIAS_TRAMITE",
+        "DIAS_VENCIDA",
+        "MESES_SIN_AVANCE",
+        "EFICAZ",
+        "EFICIENTE",
+        "ADECUADO",
+        "COMENTARIO",
+        "FECHA_VERIFICAR_EFICACIA",
+        "COMENTARIO_POSTERIOR_CIERRE"
+      ]
+    }
+  },
+  "issues": [
+    {
+      "type": "acciones_vencidas",
+      "count": 32,
+      "description": "Acciones en ejecución con fecha estimada de cierre vencida",
+      "severity": "warning"
+    }
+  ],
+  "migrated": {
+    "acciones": {
+      "planned": 401,
+      "estimated_skip": 0
+    }
+  },
+  "validation": {},
+  "status": "ok"
+}

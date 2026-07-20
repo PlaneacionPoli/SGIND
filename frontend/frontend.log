@@ -1,0 +1,109 @@
+
+> frontend@0.1.0 dev
+> next dev
+
+  ▲ Next.js 14.2.35
+  - Local:        http://localhost:3000
+
+ ✓ Starting...
+ ✓ Ready in 2.2s
+ ○ Compiling / ...
+ ✓ Compiled / in 4.7s (811 modules)
+ GET / 200 in 4990ms
+ ✓ Compiled in 341ms (352 modules)
+<w> [webpack.cache.PackFileCacheStrategy/webpack.FileSystemInfo] Resolving '../../../typescript/lib/typescript' in c:\Users\ximen\OneDrive\Proyectos_DS\Sistema_Indicadores_Poli\sgind-v2\frontend\node_modules\next\dist\build for build dependencies doesn't lead to expected result 'C:\Users\ximen\OneDrive\Proyectos_DS\Sistema_Indicadores_Poli\sgind-v2\frontend\node_modules\typescript\lib\typescript.js', but to 'c:\Users\ximen\OneDrive\Proyectos_DS\Sistema_Indicadores_Poli\sgind-v2\frontend\node_modules\typescript\lib\typescript.js' instead. Resolving dependencies are ignored for this path.
+<w>  at resolve commonjs file ../../../typescript/lib/typescript (expected C:\Users\ximen\OneDrive\Proyectos_DS\Sistema_Indicadores_Poli\sgind-v2\frontend\node_modules\typescript\lib\typescript.js)
+<w>  at file dependencies c:\Users\ximen\OneDrive\Proyectos_DS\Sistema_Indicadores_Poli\sgind-v2\frontend\node_modules\next\dist\build\load-jsconfig.js
+<w>  at file c:\Users\ximen\OneDrive\Proyectos_DS\Sistema_Indicadores_Poli\sgind-v2\frontend\node_modules\next\dist\build\load-jsconfig.js
+<w>  at file dependencies c:\Users\ximen\OneDrive\Proyectos_DS\Sistema_Indicadores_Poli\sgind-v2\frontend\node_modules\next\dist\build\webpack-config.js
+<w>  at file c:\Users\ximen\OneDrive\Proyectos_DS\Sistema_Indicadores_Poli\sgind-v2\frontend\node_modules\next\dist\build\webpack-config.js
+<w>  at file dependencies c:\Users\ximen\OneDrive\Proyectos_DS\Sistema_Indicadores_Poli\sgind-v2\frontend\node_modules\next\dist\build\webpack\loaders\next-swc-loader.js
+<w>  at file c:\Users\ximen\OneDrive\Proyectos_DS\Sistema_Indicadores_Poli\sgind-v2\frontend\node_modules\next\dist\build\webpack\loaders\next-swc-loader.js
+<w>  at resolve commonjs c:\Users\ximen\OneDrive\Proyectos_DS\Sistema_Indicadores_Poli\sgind-v2\frontend\node_modules\next\dist\build\webpack\loaders\next-swc-loader.js
+<w> [webpack.cache.PackFileCacheStrategy/webpack.FileSystemInfo] Resolving '../../../typescript/lib/typescript' in c:\Users\ximen\OneDrive\Proyectos_DS\Sistema_Indicadores_Poli\sgind-v2\frontend\node_modules\next\dist\build for build dependencies doesn't lead to expected result 'C:\Users\ximen\OneDrive\Proyectos_DS\Sistema_Indicadores_Poli\sgind-v2\frontend\node_modules\typescript\lib\typescript.js', but to 'c:\Users\ximen\OneDrive\Proyectos_DS\Sistema_Indicadores_Poli\sgind-v2\frontend\node_modules\typescript\lib\typescript.js' instead. Resolving dependencies are ignored for this path.
+<w>  at resolve commonjs file ../../../typescript/lib/typescript (expected C:\Users\ximen\OneDrive\Proyectos_DS\Sistema_Indicadores_Poli\sgind-v2\frontend\node_modules\typescript\lib\typescript.js)
+<w>  at file dependencies c:\Users\ximen\OneDrive\Proyectos_DS\Sistema_Indicadores_Poli\sgind-v2\frontend\node_modules\next\dist\build\load-jsconfig.js
+<w>  at file c:\Users\ximen\OneDrive\Proyectos_DS\Sistema_Indicadores_Poli\sgind-v2\frontend\node_modules\next\dist\build\load-jsconfig.js
+<w>  at file dependencies c:\Users\ximen\OneDrive\Proyectos_DS\Sistema_Indicadores_Poli\sgind-v2\frontend\node_modules\next\dist\build\webpack-config.js
+<w>  at file c:\Users\ximen\OneDrive\Proyectos_DS\Sistema_Indicadores_Poli\sgind-v2\frontend\node_modules\next\dist\build\webpack-config.js
+<w>  at file dependencies c:\Users\ximen\OneDrive\Proyectos_DS\Sistema_Indicadores_Poli\sgind-v2\frontend\node_modules\next\dist\build\webpack\loaders\next-swc-loader.js
+<w>  at file c:\Users\ximen\OneDrive\Proyectos_DS\Sistema_Indicadores_Poli\sgind-v2\frontend\node_modules\next\dist\build\webpack\loaders\next-swc-loader.js
+<w>  at resolve commonjs c:\Users\ximen\OneDrive\Proyectos_DS\Sistema_Indicadores_Poli\sgind-v2\frontend\node_modules\next\dist\build\webpack\loaders\next-swc-loader.js
+ GET / 200 in 76ms
+ GET / 200 in 44ms
+ ○ Compiling /resumen-general ...
+ ✓ Compiled /resumen-general in 8.8s (907 modules)
+ ○ Compiling /login ...
+ ✓ Compiled /login in 2.7s (913 modules)
+ GET /login 200 in 3024ms
+ GET / 200 in 73ms
+ GET /login 200 in 22ms
+ GET /login 200 in 72ms
+ ○ Compiling /cmi-estrategico ...
+ ✓ Compiled /cmi-estrategico in 4.7s (1911 modules)
+<w> [webpack.cache.PackFileCacheStrategy/webpack.FileSystemInfo] Resolving '../../../typescript/lib/typescript' in c:\Users\ximen\OneDrive\Proyectos_DS\Sistema_Indicadores_Poli\sgind-v2\frontend\node_modules\next\dist\build for build dependencies doesn't lead to expected result 'C:\Users\ximen\OneDrive\Proyectos_DS\Sistema_Indicadores_Poli\sgind-v2\frontend\node_modules\typescript\lib\typescript.js', but to 'c:\Users\ximen\OneDrive\Proyectos_DS\Sistema_Indicadores_Poli\sgind-v2\frontend\node_modules\typescript\lib\typescript.js' instead. Resolving dependencies are ignored for this path.
+<w>  at resolve commonjs file ../../../typescript/lib/typescript (expected C:\Users\ximen\OneDrive\Proyectos_DS\Sistema_Indicadores_Poli\sgind-v2\frontend\node_modules\typescript\lib\typescript.js)
+<w>  at file dependencies c:\Users\ximen\OneDrive\Proyectos_DS\Sistema_Indicadores_Poli\sgind-v2\frontend\node_modules\next\dist\build\load-jsconfig.js
+<w>  at file c:\Users\ximen\OneDrive\Proyectos_DS\Sistema_Indicadores_Poli\sgind-v2\frontend\node_modules\next\dist\build\load-jsconfig.js
+<w>  at file dependencies c:\Users\ximen\OneDrive\Proyectos_DS\Sistema_Indicadores_Poli\sgind-v2\frontend\node_modules\next\dist\build\webpack-config.js
+<w>  at file c:\Users\ximen\OneDrive\Proyectos_DS\Sistema_Indicadores_Poli\sgind-v2\frontend\node_modules\next\dist\build\webpack-config.js
+<w>  at file dependencies c:\Users\ximen\OneDrive\Proyectos_DS\Sistema_Indicadores_Poli\sgind-v2\frontend\node_modules\next\dist\build\handle-externals.js
+<w>  at file c:\Users\ximen\OneDrive\Proyectos_DS\Sistema_Indicadores_Poli\sgind-v2\frontend\node_modules\next\dist\build\handle-externals.js
+<w>  at file dependencies c:\Users\ximen\OneDrive\Proyectos_DS\Sistema_Indicadores_Poli\sgind-v2\frontend\node_modules\next\dist\build\webpack\loaders\next-swc-loader.js
+<w>  at file c:\Users\ximen\OneDrive\Proyectos_DS\Sistema_Indicadores_Poli\sgind-v2\frontend\node_modules\next\dist\build\webpack\loaders\next-swc-loader.js
+<w>  at file dependencies c:\Users\ximen\OneDrive\Proyectos_DS\Sistema_Indicadores_Poli\sgind-v2\frontend\node_modules\next\dist\compiled\loader-runner\LoaderRunner.js
+<w>  at file c:\Users\ximen\OneDrive\Proyectos_DS\Sistema_Indicadores_Poli\sgind-v2\frontend\node_modules\next\dist\compiled\loader-runner\LoaderRunner.js
+<w>  at file dependencies c:\Users\ximen\OneDrive\Proyectos_DS\Sistema_Indicadores_Poli\sgind-v2\frontend\node_modules\next\dist\compiled\webpack\bundle5.js
+<w>  at file c:\Users\ximen\OneDrive\Proyectos_DS\Sistema_Indicadores_Poli\sgind-v2\frontend\node_modules\next\dist\compiled\webpack\bundle5.js
+<w>  at file dependencies c:\Users\ximen\OneDrive\Proyectos_DS\Sistema_Indicadores_Poli\sgind-v2\frontend\node_modules\next\dist\compiled\webpack\webpack.js
+<w>  at file c:\Users\ximen\OneDrive\Proyectos_DS\Sistema_Indicadores_Poli\sgind-v2\frontend\node_modules\next\dist\compiled\webpack\webpack.js
+<w>  at file dependencies c:\Users\ximen\OneDrive\Proyectos_DS\Sistema_Indicadores_Poli\sgind-v2\frontend\node_modules\next\dist\build\webpack\plugins\define-env-plugin.js
+<w>  at file c:\Users\ximen\OneDrive\Proyectos_DS\Sistema_Indicadores_Poli\sgind-v2\frontend\node_modules\next\dist\build\webpack\plugins\define-env-plugin.js
+<w>  at file dependencies c:\Users\ximen\OneDrive\Proyectos_DS\Sistema_Indicadores_Poli\sgind-v2\frontend\node_modules\next\dist\build\swc\index.js
+<w>  at file c:\Users\ximen\OneDrive\Proyectos_DS\Sistema_Indicadores_Poli\sgind-v2\frontend\node_modules\next\dist\build\swc\index.js
+<w>  at file dependencies c:\Users\ximen\OneDrive\Proyectos_DS\Sistema_Indicadores_Poli\sgind-v2\frontend\node_modules\next\dist\build\webpack\loaders\next-barrel-loader.js
+<w>  at file c:\Users\ximen\OneDrive\Proyectos_DS\Sistema_Indicadores_Poli\sgind-v2\frontend\node_modules\next\dist\build\webpack\loaders\next-barrel-loader.js
+<w>  at resolve commonjs c:\Users\ximen\OneDrive\Proyectos_DS\Sistema_Indicadores_Poli\sgind-v2\frontend\node_modules\next\dist\build\webpack\loaders\next-barrel-loader.js
+<w> [webpack.cache.PackFileCacheStrategy/webpack.FileSystemInfo] Resolving '../../../typescript/lib/typescript' in c:\Users\ximen\OneDrive\Proyectos_DS\Sistema_Indicadores_Poli\sgind-v2\frontend\node_modules\next\dist\build for build dependencies doesn't lead to expected result 'C:\Users\ximen\OneDrive\Proyectos_DS\Sistema_Indicadores_Poli\sgind-v2\frontend\node_modules\typescript\lib\typescript.js', but to 'c:\Users\ximen\OneDrive\Proyectos_DS\Sistema_Indicadores_Poli\sgind-v2\frontend\node_modules\typescript\lib\typescript.js' instead. Resolving dependencies are ignored for this path.
+<w>  at resolve commonjs file ../../../typescript/lib/typescript (expected C:\Users\ximen\OneDrive\Proyectos_DS\Sistema_Indicadores_Poli\sgind-v2\frontend\node_modules\typescript\lib\typescript.js)
+<w>  at file dependencies c:\Users\ximen\OneDrive\Proyectos_DS\Sistema_Indicadores_Poli\sgind-v2\frontend\node_modules\next\dist\build\load-jsconfig.js
+<w>  at file c:\Users\ximen\OneDrive\Proyectos_DS\Sistema_Indicadores_Poli\sgind-v2\frontend\node_modules\next\dist\build\load-jsconfig.js
+<w>  at file dependencies c:\Users\ximen\OneDrive\Proyectos_DS\Sistema_Indicadores_Poli\sgind-v2\frontend\node_modules\next\dist\build\webpack-config.js
+<w>  at file c:\Users\ximen\OneDrive\Proyectos_DS\Sistema_Indicadores_Poli\sgind-v2\frontend\node_modules\next\dist\build\webpack-config.js
+<w>  at file dependencies c:\Users\ximen\OneDrive\Proyectos_DS\Sistema_Indicadores_Poli\sgind-v2\frontend\node_modules\next\dist\build\handle-externals.js
+<w>  at file c:\Users\ximen\OneDrive\Proyectos_DS\Sistema_Indicadores_Poli\sgind-v2\frontend\node_modules\next\dist\build\handle-externals.js
+<w>  at file dependencies c:\Users\ximen\OneDrive\Proyectos_DS\Sistema_Indicadores_Poli\sgind-v2\frontend\node_modules\next\dist\build\webpack\loaders\next-swc-loader.js
+<w>  at file c:\Users\ximen\OneDrive\Proyectos_DS\Sistema_Indicadores_Poli\sgind-v2\frontend\node_modules\next\dist\build\webpack\loaders\next-swc-loader.js
+<w>  at file dependencies c:\Users\ximen\OneDrive\Proyectos_DS\Sistema_Indicadores_Poli\sgind-v2\frontend\node_modules\next\dist\compiled\loader-runner\LoaderRunner.js
+<w>  at file c:\Users\ximen\OneDrive\Proyectos_DS\Sistema_Indicadores_Poli\sgind-v2\frontend\node_modules\next\dist\compiled\loader-runner\LoaderRunner.js
+<w>  at file dependencies c:\Users\ximen\OneDrive\Proyectos_DS\Sistema_Indicadores_Poli\sgind-v2\frontend\node_modules\next\dist\compiled\webpack\bundle5.js
+<w>  at file c:\Users\ximen\OneDrive\Proyectos_DS\Sistema_Indicadores_Poli\sgind-v2\frontend\node_modules\next\dist\compiled\webpack\bundle5.js
+<w>  at file dependencies c:\Users\ximen\OneDrive\Proyectos_DS\Sistema_Indicadores_Poli\sgind-v2\frontend\node_modules\next\dist\compiled\webpack\webpack.js
+<w>  at file c:\Users\ximen\OneDrive\Proyectos_DS\Sistema_Indicadores_Poli\sgind-v2\frontend\node_modules\next\dist\compiled\webpack\webpack.js
+<w>  at file dependencies c:\Users\ximen\OneDrive\Proyectos_DS\Sistema_Indicadores_Poli\sgind-v2\frontend\node_modules\next\dist\build\webpack\plugins\define-env-plugin.js
+<w>  at file c:\Users\ximen\OneDrive\Proyectos_DS\Sistema_Indicadores_Poli\sgind-v2\frontend\node_modules\next\dist\build\webpack\plugins\define-env-plugin.js
+<w>  at file dependencies c:\Users\ximen\OneDrive\Proyectos_DS\Sistema_Indicadores_Poli\sgind-v2\frontend\node_modules\next\dist\build\swc\index.js
+<w>  at file c:\Users\ximen\OneDrive\Proyectos_DS\Sistema_Indicadores_Poli\sgind-v2\frontend\node_modules\next\dist\build\swc\index.js
+<w>  at file dependencies c:\Users\ximen\OneDrive\Proyectos_DS\Sistema_Indicadores_Poli\sgind-v2\frontend\node_modules\next\dist\build\webpack\loaders\next-barrel-loader.js
+<w>  at file c:\Users\ximen\OneDrive\Proyectos_DS\Sistema_Indicadores_Poli\sgind-v2\frontend\node_modules\next\dist\build\webpack\loaders\next-barrel-loader.js
+<w>  at resolve commonjs c:\Users\ximen\OneDrive\Proyectos_DS\Sistema_Indicadores_Poli\sgind-v2\frontend\node_modules\next\dist\build\webpack\loaders\next-barrel-loader.js
+ GET /cmi-estrategico 200 in 935ms
+ ○ Compiling /favicon.ico ...
+ ✓ Compiled /favicon.ico in 1036ms (1041 modules)
+ GET /favicon.ico 200 in 1148ms
+ ○ Compiling /informe-procesos ...
+ ✓ Compiled /informe-procesos in 1013ms (1953 modules)
+ ✓ Compiled in 514ms (916 modules)
+ ✓ Compiled in 190ms (916 modules)
+ ✓ Compiled in 284ms (916 modules)
+ GET /informe-procesos 200 in 375ms
+ GET /favicon.ico 200 in 39ms
+ ○ Compiling /cmi-procesos ...
+ ✓ Compiled /cmi-procesos in 2.6s (1987 modules)
+ ✓ Compiled in 1083ms (1955 modules)
+ ✓ Compiled in 759ms (1955 modules)
+ ✓ Compiled in 391ms (1955 modules)
+ GET /cmi-procesos 200 in 388ms
+ ✓ Compiled /favicon.ico in 397ms (1062 modules)
+ GET /favicon.ico 200 in 527ms
+ ✓ Compiled in 721ms (1955 modules)

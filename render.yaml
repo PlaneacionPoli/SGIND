@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: sgind-v2-backend
+    runtime: docker
+    plan: free
+    dockerfilePath: ./backend/Dockerfile.render
+    dockerContext: .
+    healthCheckPath: /api/v1/health
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: LOG_LEVEL
+        value: INFO
+      - key: DATABASE_URL
+        sync: false
+      - key: SECRET_KEY
+        sync: false
+      - key: JWT_ALGORITHM
+        value: HS256
+      - key: JWT_EXPIRE_MINUTES
+        value: "480"
+      - key: CORS_ORIGINS
+        sync: false
+      - key: SGIND_DATA_PATH
+        value: /app/data
+      - key: EXCEL_CACHE_TTL_SECONDS
+        value: "300"
+      - key: ALLOWED_EMAILS
+        sync: false
