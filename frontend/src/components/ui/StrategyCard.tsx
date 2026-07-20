@@ -9,7 +9,7 @@ import {
   BarChart3,
 } from "lucide-react";
 
-const ICON_MAP: Record<string, ({ size, style, className }: { size: number; style?: React.CSSProperties; className?: string }) => ReactNode> = {
+const ICON_MAP: Record<string, ({ size, style, className, strokeWidth }: { size: number; style?: React.CSSProperties; className?: string; strokeWidth?: number }) => ReactNode> = {
   rocket: TrendingUp,
   chart: BarChart3,
   medal: Target,

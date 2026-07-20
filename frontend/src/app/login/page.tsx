@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuthReady } from "@/stores/auth-store";
 import { isDevLoginEnabled, useDevLogin } from "@/hooks/use-dev-login";
@@ -15,6 +15,20 @@ const ERROR_MESSAGES: Record<string, string> = {
 };
 
 export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center bg-slate-50">
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-poli-blue border-t-transparent" />
+        </div>
+      }
+    >
+      <LoginPageContent />
+    </Suspense>
+  );
+}
+
+function LoginPageContent() {
   const { ready, isAuthenticated } = useAuthReady();
   const { login, loading, error: devLoginError } = useDevLogin();
   const emailLogin = useEmailLogin();

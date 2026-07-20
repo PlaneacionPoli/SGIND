@@ -1,6 +1,6 @@
 "use client";
 
-import type { CMIProcesosVistaGlobal, CMIProcesoBar } from "@/lib/types";
+import type { CMIProcesosVistaGlobal } from "@/lib/types";
 import { CmiCatalogChartsPlotly } from "@/components/cmi/CmiCatalogChartsPlotly";
 import { CmiDonutNivelPlotly } from "@/components/cmi/CmiDonutNivelPlotly";
 import { CmiMetricCard } from "@/components/cmi/CmiMetricCard";
