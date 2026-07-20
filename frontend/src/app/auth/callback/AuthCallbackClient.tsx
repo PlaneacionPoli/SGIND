@@ -3,17 +3,7 @@
 import { useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuthStore } from "@/stores/auth-store";
-
-/** Decodifica el payload de un JWT sin verificar la firma (solo lectura de claims). */
-function decodeJwtPayload(token: string): Record<string, unknown> {
-  try {
-    const [, payload] = token.split(".");
-    const json = atob(payload.replace(/-/g, "+").replace(/_/g, "/"));
-    return JSON.parse(json) as Record<string, unknown>;
-  } catch {
-    return {};
-  }
-}
+import { decodeJwtPayload } from "@/lib/jwt";
 
 export default function AuthCallbackClient() {
   const searchParams = useSearchParams();

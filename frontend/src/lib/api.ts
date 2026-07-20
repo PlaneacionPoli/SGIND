@@ -84,6 +84,11 @@ export async function fetchDevToken(
   return data;
 }
 
+export async function fetchEmailLogin(email: string): Promise<DevTokenResponse> {
+  const { data } = await api.post<DevTokenResponse>("/auth/email-login", { email });
+  return data;
+}
+
 export async function fetchKPIs(params?: {
   anio?: number;
   periodo?: string;

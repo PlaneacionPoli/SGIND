@@ -5,7 +5,13 @@ from app.core.config import Settings, get_settings
 from app.core.database import get_db
 from app.core.security import get_current_user, require_reader
 from app.models.user import User
-from app.schemas.common import LoginResponse, MessageResponse, TokenResponse, UserResponse
+from app.schemas.common import (
+    EmailLoginRequest,
+    LoginResponse,
+    MessageResponse,
+    TokenResponse,
+    UserResponse,
+)
 from app.services.auth_service import AuthService
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -42,6 +48,18 @@ async def callback(
     token, _user = await auth.handle_callback(code, db)
     frontend = settings.cors_origins_list[0] if settings.cors_origins_list else "http://localhost:3000"
     return RedirectResponse(url=f"{frontend}/auth/callback?token={token}")
+
+
+@router.post("/email-login", response_model=TokenResponse)
+async def email_login(
+    payload: EmailLoginRequest,
+    db: AsyncSession = Depends(get_db),
+    auth: AuthService = Depends(_auth_service),
+    settings: Settings = Depends(get_settings),
+) -> TokenResponse:
+    """Login temporal sin Azure AD: valida solo el dominio del correo institucional."""
+    token, _user = await auth.email_login(db, email=payload.email)
+    return TokenResponse(access_token=token, expires_in=settings.jwt_expire_minutes * 60)
 
 
 @router.get("/me", response_model=UserResponse)

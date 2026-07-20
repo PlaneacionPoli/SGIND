@@ -116,6 +116,23 @@ class AuthService:
         await db.refresh(user, attribute_names=["role"])
         return user
 
+    async def email_login(self, db: AsyncSession, *, email: str) -> tuple[str, User]:
+        """Login sin OIDC: cualquier correo del dominio institucional entra con rol de lectura."""
+        email = email.lower().strip()
+        if not email.endswith(f"@{self.settings.email_login_domain}"):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Solo se permiten correos @{self.settings.email_login_domain}",
+            )
+
+        user = await self._get_or_create_user(db, email=email, name=None, azure_oid=None)
+        token = create_access_token(
+            email,
+            settings=self.settings,
+            extra={"role": user.role.name, "name": user.name},
+        )
+        return token, user
+
     async def ensure_dev_user(
         self,
         db: AsyncSession,

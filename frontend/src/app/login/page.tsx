@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuthReady } from "@/stores/auth-store";
 import { isDevLoginEnabled, useDevLogin } from "@/hooks/use-dev-login";
+import { isEmailLoginMode, useEmailLogin } from "@/hooks/use-email-login";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
@@ -16,9 +17,12 @@ const ERROR_MESSAGES: Record<string, string> = {
 export default function LoginPage() {
   const { ready, isAuthenticated } = useAuthReady();
   const { login, loading, error: devLoginError } = useDevLogin();
+  const emailLogin = useEmailLogin();
+  const [email, setEmail] = useState("");
   const router = useRouter();
   const searchParams = useSearchParams();
   const showDevLogin = isDevLoginEnabled();
+  const emailMode = isEmailLoginMode();
 
   const errorParam = searchParams.get("error");
   const authError = errorParam
@@ -45,6 +49,12 @@ export default function LoginPage() {
     if (ok) router.replace("/resumen-general");
   }
 
+  async function handleEmailLogin(e: React.FormEvent) {
+    e.preventDefault();
+    const ok = await emailLogin.login(email);
+    if (ok) router.replace("/resumen-general");
+  }
+
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-slate-50 to-slate-100 px-4">
       <div className="w-full max-w-sm rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
@@ -59,19 +69,45 @@ export default function LoginPage() {
           </p>
         </div>
 
-        {/* Botón principal: Microsoft / Azure AD */}
-        <a
-          href={`${API_URL}/api/v1/auth/login`}
-          className="flex w-full items-center justify-center gap-3 rounded-lg bg-[#2563eb] px-4 py-3 text-sm font-medium text-white transition hover:bg-[#1d4ed8] focus:outline-none focus:ring-2 focus:ring-[#2563eb] focus:ring-offset-2"
-        >
-          <svg className="h-5 w-5" viewBox="0 0 21 21" fill="none" aria-hidden="true">
-            <rect x="1" y="1" width="9" height="9" fill="#f25022" />
-            <rect x="11" y="1" width="9" height="9" fill="#7fba00" />
-            <rect x="1" y="11" width="9" height="9" fill="#00a4ef" />
-            <rect x="11" y="11" width="9" height="9" fill="#ffb900" />
-          </svg>
-          Iniciar sesión con Microsoft
-        </a>
+        {emailMode ? (
+          <form onSubmit={handleEmailLogin}>
+            <label htmlFor="email" className="mb-1 block text-xs font-medium text-slate-600">
+              Correo institucional
+            </label>
+            <input
+              id="email"
+              type="email"
+              required
+              placeholder="nombre@poligran.edu.co"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full rounded-lg border border-slate-300 px-4 py-3 text-sm focus:border-poli-blue focus:outline-none focus:ring-2 focus:ring-poli-blue/30"
+            />
+            <button
+              type="submit"
+              disabled={emailLogin.loading}
+              className="mt-3 flex w-full items-center justify-center gap-3 rounded-lg bg-[#2563eb] px-4 py-3 text-sm font-medium text-white transition hover:bg-[#1d4ed8] focus:outline-none focus:ring-2 focus:ring-[#2563eb] focus:ring-offset-2 disabled:opacity-50"
+            >
+              {emailLogin.loading ? "Ingresando…" : "Ingresar"}
+            </button>
+            {emailLogin.error && (
+              <p className="mt-2 text-center text-xs text-red-600">{emailLogin.error}</p>
+            )}
+          </form>
+        ) : (
+          <a
+            href={`${API_URL}/api/v1/auth/login`}
+            className="flex w-full items-center justify-center gap-3 rounded-lg bg-[#2563eb] px-4 py-3 text-sm font-medium text-white transition hover:bg-[#1d4ed8] focus:outline-none focus:ring-2 focus:ring-[#2563eb] focus:ring-offset-2"
+          >
+            <svg className="h-5 w-5" viewBox="0 0 21 21" fill="none" aria-hidden="true">
+              <rect x="1" y="1" width="9" height="9" fill="#f25022" />
+              <rect x="11" y="1" width="9" height="9" fill="#7fba00" />
+              <rect x="1" y="11" width="9" height="9" fill="#00a4ef" />
+              <rect x="11" y="11" width="9" height="9" fill="#ffb900" />
+            </svg>
+            Iniciar sesión con Microsoft
+          </a>
+        )}
 
         <p className="mt-3 text-center text-xs text-slate-400">
           Usa tu cuenta institucional @poligran.edu.co

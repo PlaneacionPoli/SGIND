@@ -31,6 +31,8 @@ class Settings(BaseSettings):
     azure_redirect_uri: str = "http://localhost:8000/api/v1/auth/callback"
     allowed_emails: str = ""
 
+    email_login_domain: str = "poligran.edu.co"
+
     sgind_data_path: str = "../data"
     excel_cache_ttl_seconds: int = 300
 

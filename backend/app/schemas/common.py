@@ -39,6 +39,10 @@ class LoginResponse(BaseModel):
     authorization_url: str
 
 
+class EmailLoginRequest(BaseModel):
+    email: EmailStr
+
+
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
