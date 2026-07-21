@@ -557,13 +557,13 @@ def generate_narrative_indicadores(
     return {"texto": texto, "estado_color": color, "estado_icon": icon, "health_rate": health_rate}
 
 
-RETOS_UMBRAL_CUMPLIMIENTO = 95.0
+RETOS_UMBRAL_CUMPLIMIENTO = 100.0
 RETOS_UMBRAL_ALERTA = 80.0
 RETOS_UMBRAL_SOBRECUMPLIMIENTO = 105.0
 
 
 def _retos_category(pct: float | None) -> str:
-    """Categoría Plan de Retos: cumple desde 95% (régimen PA)."""
+    """Categoría Plan de Retos: cumple desde 100% (igual al Streamlit original)."""
     if pd.isna(pct):
         return "Sin dato"
     pct = float(pct)

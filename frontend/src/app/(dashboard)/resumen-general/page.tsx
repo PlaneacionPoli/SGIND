@@ -191,7 +191,7 @@ export default function ResumenGeneralPage() {
             </div>
           )}
 
-          {vista === "indicadores" && (
+          {(vista === "indicadores" || vista === "proyectos") && (
             <TrendVariationTables
               mejoraron={resumenQuery.data.mejoraron}
               enRiesgo={resumenQuery.data.en_riesgo}

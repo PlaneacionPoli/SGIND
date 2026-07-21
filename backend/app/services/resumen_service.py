@@ -36,6 +36,10 @@ from app.services.retos_loaders import RetosLoaders
 
 VISTAS = ("consolidado", "retos", "proyectos", "indicadores")
 
+# Rango fijo usado por el Streamlit original para "Consolidado 2022-2025"
+# (usar_consolidado_rango) — aplica por igual a todas las vistas, no solo Consolidado.
+ANIOS_RANGO = [2022, 2023, 2024, 2025]
+
 _LINE_COLORS = {
     "Talento Humano": "#E63946",
     "Investigación": "#1D3557",
@@ -56,6 +60,44 @@ class ResumenService:
 
     def _load_cierres(self) -> pd.DataFrame:
         return self._etl.leer_cierres()
+
+    def _pdi_multi_anio(self, anios: list[int]) -> pd.DataFrame:
+        parts = [
+            ensure_nivel_cumplimiento(self._strategic.preparar_pdi_con_cierre(y, 12)) for y in anios
+        ]
+        parts = [p for p in parts if p is not None and not p.empty]
+        df = pd.concat(parts, ignore_index=True) if parts else pd.DataFrame()
+        if not df.empty and "Id" in df.columns:
+            df = df.drop_duplicates(subset=["Id"], keep="last")
+        return df
+
+    def _proyectos_multi_anio(self, anios: list[int]) -> pd.DataFrame:
+        parts = [
+            ensure_nivel_cumplimiento(self._strategic.preparar_proyectos_con_cierre(y, 12)) for y in anios
+        ]
+        parts = [p for p in parts if p is not None and not p.empty]
+        df = pd.concat(parts, ignore_index=True) if parts else pd.DataFrame()
+        if not df.empty and "Id" in df.columns:
+            df = df.drop_duplicates(subset=["Id"], keep="last")
+        return df
+
+    def _retos_multi_anio(
+        self, anios: list[int]
+    ) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+        linea_parts, obj_parts, planes_parts = [], [], []
+        for y in anios:
+            ld, od = self._retos.load_retos_data(y)
+            if ld is not None and not ld.empty:
+                linea_parts.append(ld)
+            if od is not None and not od.empty:
+                obj_parts.append(od)
+            pl = self._retos.load_planes(y)
+            if pl is not None and not pl.empty:
+                planes_parts.append(pl)
+        linea_df = pd.concat(linea_parts, ignore_index=True) if linea_parts else pd.DataFrame()
+        obj_df = pd.concat(obj_parts, ignore_index=True) if obj_parts else pd.DataFrame()
+        planes_df = pd.concat(planes_parts, ignore_index=True) if planes_parts else pd.DataFrame()
+        return linea_df, obj_df, planes_df
 
     def _anio_column(self, df: pd.DataFrame) -> str | None:
         for col in ("Anio", "Año", "anio"):
@@ -396,7 +438,11 @@ class ResumenService:
                  7: "Julio", 8: "Agosto", 9: "Septiembre", 10: "Octubre", 11: "Noviembre", 12: "Diciembre"}
 
         if vista_norm == "indicadores":
-            pdi_df = ensure_nivel_cumplimiento(self._strategic.preparar_pdi_con_cierre(anio, 12))
+            pdi_df = (
+                self._pdi_multi_anio(ANIOS_RANGO)
+                if rango
+                else ensure_nivel_cumplimiento(self._strategic.preparar_pdi_con_cierre(anio, 12))
+            )
             chips = get_chip_config_indicadores(pdi_df)
             linea_summary = build_linea_summary(pdi_df, unique_count_col="Id")
             historico_df = self._strategic.load_historico_por_linea()
@@ -433,7 +479,11 @@ class ResumenService:
 
         if vista_norm == "proyectos":
             proy_all = self._strategic.load_proyectos()
-            proy_df = ensure_nivel_cumplimiento(self._strategic.preparar_proyectos_con_cierre(anio, 12))
+            proy_df = (
+                self._proyectos_multi_anio(ANIOS_RANGO)
+                if rango
+                else ensure_nivel_cumplimiento(self._strategic.preparar_proyectos_con_cierre(anio, 12))
+            )
             chips = get_chip_config_proyectos(proy_df)
             linea_summary = build_linea_summary(proy_df, unique_count_col="Id", count_col_name="N_Proyectos")
             historico_df = proy_df
@@ -444,6 +494,18 @@ class ResumenService:
             narrativa = generate_narrative_proyectos(proy_df, linea_summary)
             gantt = build_proyectos_gantt(proy_all)
 
+            prev_month_p = self._strategic.latest_month_for_year(anio - 1)
+            best_p, worst_p = [], []
+            periodo_txt_p = f"Solo datos de {anio} — sin período anterior disponible"
+            if prev_month_p:
+                prev_proy_df = ensure_nivel_cumplimiento(
+                    self._strategic.preparar_proyectos_con_cierre(anio - 1, prev_month_p)
+                )
+                best_p, worst_p = compute_trends(proy_df, prev_proy_df)
+                periodo_txt_p = (
+                    f"Comparando {anio} (cierre anual) vs {anio - 1} ({meses.get(prev_month_p, prev_month_p)})"
+                )
+
             return {
                 "anio": anio,
                 "vista": vista_norm,
@@ -451,17 +513,20 @@ class ResumenService:
                 "fichas": cards,
                 "sunburst": sunburst,
                 "narrativa": narrativa,
-                "mejoraron": [],
-                "en_riesgo": [],
-                "periodo_comparacion": "",
+                "mejoraron": best_p,
+                "en_riesgo": worst_p,
+                "periodo_comparacion": periodo_txt_p,
                 "gantt_proyectos": gantt,
                 "total_indicadores": chips[0]["value"] if chips else 0,
                 "tabla_detalle": build_proyectos_tabla(proy_df),
             }
 
         if vista_norm == "retos":
-            linea_df, obj_df = self._retos.load_retos_data(anio)
-            planes_df = self._retos.load_planes(anio)
+            if rango:
+                linea_df, obj_df, planes_df = self._retos_multi_anio(ANIOS_RANGO)
+            else:
+                linea_df, obj_df = self._retos.load_retos_data(anio)
+                planes_df = self._retos.load_planes(anio)
             area_count = self._retos.load_area_count(anio)
             linea_summary = build_linea_summary_retos(linea_df, obj_df, planes_df)
             chips = get_chip_config_retos(linea_summary, area_count)
@@ -485,36 +550,9 @@ class ResumenService:
 
         if vista_norm == "consolidado":
             if rango:
-                anios_rango = [2022, 2023, 2024, 2025]
-                pdi_parts = [
-                    ensure_nivel_cumplimiento(self._strategic.preparar_pdi_con_cierre(y, 12)) for y in anios_rango
-                ]
-                pdi_parts = [p for p in pdi_parts if p is not None and not p.empty]
-                pdi_df = pd.concat(pdi_parts, ignore_index=True) if pdi_parts else pd.DataFrame()
-                if not pdi_df.empty and "Id" in pdi_df.columns:
-                    pdi_df = pdi_df.drop_duplicates(subset=["Id"], keep="last")
-
-                proy_parts = [
-                    ensure_nivel_cumplimiento(self._strategic.preparar_proyectos_con_cierre(y, 12)) for y in anios_rango
-                ]
-                proy_parts = [p for p in proy_parts if p is not None and not p.empty]
-                proy_df = pd.concat(proy_parts, ignore_index=True) if proy_parts else pd.DataFrame()
-                if not proy_df.empty and "Id" in proy_df.columns:
-                    proy_df = proy_df.drop_duplicates(subset=["Id"], keep="last")
-
-                ret_linea_parts, ret_obj_parts, ret_planes_parts = [], [], []
-                for y in anios_rango:
-                    ld, od = self._retos.load_retos_data(y)
-                    if ld is not None and not ld.empty:
-                        ret_linea_parts.append(ld)
-                    if od is not None and not od.empty:
-                        ret_obj_parts.append(od)
-                    pl = self._retos.load_planes(y)
-                    if pl is not None and not pl.empty:
-                        ret_planes_parts.append(pl)
-                ret_linea_df = pd.concat(ret_linea_parts, ignore_index=True) if ret_linea_parts else pd.DataFrame()
-                ret_obj_df = pd.concat(ret_obj_parts, ignore_index=True) if ret_obj_parts else pd.DataFrame()
-                ret_planes_df = pd.concat(ret_planes_parts, ignore_index=True) if ret_planes_parts else pd.DataFrame()
+                pdi_df = self._pdi_multi_anio(ANIOS_RANGO)
+                proy_df = self._proyectos_multi_anio(ANIOS_RANGO)
+                ret_linea_df, ret_obj_df, ret_planes_df = self._retos_multi_anio(ANIOS_RANGO)
             else:
                 pdi_df = ensure_nivel_cumplimiento(self._strategic.preparar_pdi_con_cierre(anio, 12))
                 proy_df = ensure_nivel_cumplimiento(self._strategic.preparar_proyectos_con_cierre(anio, 12))
