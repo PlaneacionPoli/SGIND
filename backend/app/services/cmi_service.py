@@ -154,6 +154,15 @@ class CMIService:
         df = ensure_nivel_cumplimiento(df)
         return self._enrich_ficha(df)
 
+    def _prepare_df_cierre_pdi(self) -> pd.DataFrame:
+        """Rango "Cierre PDI 2022-2025": resultado final por indicador (hoja
+        'Cierre PDI'), sin arrastrar valores de anios anteriores."""
+        df = self._strategic.preparar_pdi_cierre_final()
+        if df.empty:
+            return df
+        df = ensure_nivel_cumplimiento(df)
+        return self._enrich_ficha(df)
+
     def get_filtros(self) -> dict[str, Any]:
         anios = self._available_anios()
         anio_def = default_anio(anios)
@@ -164,13 +173,20 @@ class CMIService:
             "cortes": list(CORTE_SEMESTRAL.keys()),
         }
 
-    def get_dashboard(self, *, anio: int | None = None, mes: int | None = None, corte: str | None = None) -> dict[str, Any]:
+    def get_dashboard(
+        self,
+        *,
+        anio: int | None = None,
+        mes: int | None = None,
+        corte: str | None = None,
+        rango: bool = False,
+    ) -> dict[str, Any]:
         anios = self._available_anios()
         anio_eff = int(anio) if anio is not None else default_anio(anios)
         mes_eff = self._resolve_mes(mes, corte)
-        corte_label = CORTE_POR_MES.get(mes_eff, "Diciembre")
+        corte_label = "Cierre PDI 2022-2025" if rango else CORTE_POR_MES.get(mes_eff, "Diciembre")
 
-        df = self._prepare_df(anio=anio_eff, mes=mes_eff)
+        df = self._prepare_df_cierre_pdi() if rango else self._prepare_df(anio=anio_eff, mes=mes_eff)
         pdi_catalog = self._loaders.load_pdi_catalog()
         cierres = self._loaders.load_cierres()
 
@@ -193,8 +209,10 @@ class CMIService:
             }
 
         kpis = calcular_kpis(df)
-        prev_anio, prev_mes = previous_corte(anio_eff, mes_eff)
-        df_previous = self._prepare_df(anio=prev_anio, mes=prev_mes)
+        df_previous = pd.DataFrame()
+        if not rango:
+            prev_anio, prev_mes = previous_corte(anio_eff, mes_eff)
+            df_previous = self._prepare_df(anio=prev_anio, mes=prev_mes)
 
         return {
             "anio": anio_eff,

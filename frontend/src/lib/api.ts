@@ -179,6 +179,7 @@ export async function fetchCMIDashboard(params: {
   anio: number;
   corte?: string;
   mes?: number;
+  rango?: boolean;
 }): Promise<CMIDashboardResponse> {
   const { data } = await api.get<CMIDashboardResponse>("/cmi/estrategico-dashboard", { params });
   return data;

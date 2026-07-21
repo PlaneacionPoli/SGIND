@@ -116,6 +116,55 @@ class StrategicProcessors:
 
         return self._cmi.filter_estrategico(result.reset_index(drop=True))
 
+    def preparar_pdi_cierre_final(self) -> pd.DataFrame:
+        """Resultado final por indicador (hoja 'Cierre PDI'), para el rango
+        "Cierre PDI 2022-2025" — a diferencia de preparar_pdi_con_cierre, no
+        arrastra el ultimo valor disponible de anios anteriores cuando un
+        indicador no tiene resultado final cargado."""
+        base = self._loaders.load_worksheet_flags()
+        catalog = self._loaders.load_pdi_catalog()
+        cierre_pdi = self._loaders.load_cierre_pdi_final()
+        if base.empty or cierre_pdi.empty:
+            return pd.DataFrame()
+        if "FlagPlanEstrategico" not in base.columns:
+            return pd.DataFrame()
+
+        flag_vals = _normalize_flag_series(base["FlagPlanEstrategico"])
+        indicators = base[flag_vals == 1].copy()
+        if "Proyecto" in indicators.columns:
+            proyecto_vals = _normalize_flag_series(indicators["Proyecto"])
+            indicators = indicators[proyecto_vals != 1].copy()
+        if indicators.empty:
+            return pd.DataFrame()
+
+        merge_cols = ["Id", "Indicador"]
+        if "Linea" in indicators.columns:
+            merge_cols.append("Linea")
+        if "Objetivo" in indicators.columns:
+            merge_cols.append("Objetivo")
+
+        indicators["Id"] = indicators["Id"].apply(_normalize_id_value)
+        cierre_pdi = cierre_pdi.copy()
+        cierre_pdi["Id"] = cierre_pdi["Id"].apply(_normalize_id_value)
+
+        # Solo indicadores con resultado final registrado en la hoja Cierre PDI
+        # (inner join, no left) — evita mostrar indicadores sin cierre real.
+        result = indicators[merge_cols].merge(cierre_pdi, on="Id", how="inner", suffixes=("", "_cierre"))
+        if "Indicador_cierre" in result.columns:
+            result["Indicador"] = result["Indicador"].where(
+                result["Indicador"].notna() & (result["Indicador"].astype(str).str.strip() != ""),
+                result["Indicador_cierre"],
+            )
+            result = result.drop(columns=["Indicador_cierre"])
+
+        if not catalog.empty and "Linea" in result.columns and "Objetivo" in result.columns:
+            result = result.merge(catalog, on=["Linea", "Objetivo"], how="left", suffixes=("", "_cat"))
+
+        if "Nivel de cumplimiento" in result.columns:
+            result["Nivel de cumplimiento"] = result["Nivel de cumplimiento"].fillna(PENDIENTE_STR)
+
+        return self._cmi.filter_estrategico(result.reset_index(drop=True))
+
     def preparar_cna_con_cierre(self, anio: int, mes: int = 12) -> pd.DataFrame:
         base = self._loaders.load_worksheet_flags()
         catalog = self._loaders.load_cna_catalog()

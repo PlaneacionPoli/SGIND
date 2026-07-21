@@ -37,10 +37,11 @@ async def cmi_estrategico_dashboard(
     anio: int | None = Query(None),
     mes: int | None = Query(None, ge=1, le=12),
     corte: str | None = Query(None, description="Junio o Diciembre"),
+    rango: bool = Query(False, description="Cierre PDI 2022-2025 (resultado final por indicador)"),
     _user: User = Depends(require_reader),
     service: CMIService = Depends(_cmi_service),
 ) -> CMIDashboardResponse:
-    return CMIDashboardResponse(**service.get_dashboard(anio=anio, mes=mes, corte=corte))
+    return CMIDashboardResponse(**service.get_dashboard(anio=anio, mes=mes, corte=corte, rango=rango))
 
 
 @router.get("/indicador/{indicador_id}", response_model=FichaIndicadorResponse)

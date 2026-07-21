@@ -34,6 +34,7 @@ function CMIEstrategicoContent() {
   const searchParams = useSearchParams();
   const [anio, setAnio] = useState<number | null>(null);
   const [corte, setCorte] = useState<string>("Diciembre");
+  const [rango, setRango] = useState(false);
   const [tab, setTab] = useState<TabId>("resumen");
   const [expandLineaKey, setExpandLineaKey] = useState<string | null>(null);
   const [fichaId, setFichaId] = useState<string | null>(null);
@@ -63,8 +64,8 @@ function CMIEstrategicoContent() {
   const anioEfectivo = anio ?? filtrosQuery.data?.anio_default ?? new Date().getFullYear();
 
   const dashboardQuery = useQuery({
-    queryKey: ["cmi-dashboard", anioEfectivo, corte],
-    queryFn: () => fetchCMIDashboard({ anio: anioEfectivo, corte }),
+    queryKey: ["cmi-dashboard", anioEfectivo, corte, rango],
+    queryFn: () => fetchCMIDashboard({ anio: anioEfectivo, corte, rango }),
     enabled: isAuthenticated && anio != null,
   });
 
@@ -93,6 +94,7 @@ function CMIEstrategicoContent() {
     if (filtrosQuery.data) {
       setAnio(filtrosQuery.data.anio_default);
       setCorte(filtrosQuery.data.corte_default);
+      setRango(false);
     }
   };
 
@@ -115,9 +117,14 @@ function CMIEstrategicoContent() {
           corte={corte}
           anios={anios}
           cortes={cortes}
-          onAnioChange={setAnio}
+          onAnioChange={(y) => {
+            setRango(false);
+            setAnio(y);
+          }}
           onCorteChange={setCorte}
           onReset={handleReset}
+          rango={rango}
+          onSelectRango={() => setRango(true)}
         />
       )}
 
@@ -146,7 +153,8 @@ function CMIEstrategicoContent() {
         <p className="text-sm text-red-600">No se pudieron cargar los datos del CMI.</p>
       ) : !data || data.total_indicadores === 0 ? (
         <p className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
-          No hay indicadores para los filtros seleccionados (año {anioEfectivo}, corte {corte}).
+          No hay indicadores para los filtros seleccionados (
+          {rango ? "Cierre PDI 2022-2025" : `año ${anioEfectivo}, corte ${corte}`}).
         </p>
       ) : tab === "resumen" ? (
         <CmiResumenTab data={data} onVerLinea={handleVerLinea} />

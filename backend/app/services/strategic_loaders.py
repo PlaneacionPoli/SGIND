@@ -220,6 +220,61 @@ class StrategicLoaders:
 
         return self._cached("cierres", _load)
 
+    def load_cierre_pdi_final(self) -> pd.DataFrame:
+        """Hoja 'Cierre PDI': resultado final por indicador/proyecto (no es
+        historico por anio — Año/Mes/Periodo vienen fijos como 'Avance' en la
+        fuente). Se usa solo para el rango "Cierre PDI 2022-2025"."""
+
+        def _load() -> pd.DataFrame:
+            path = self._resolve_consolidado()
+            if not path:
+                return pd.DataFrame()
+            try:
+                df = self._excel.read_excel(path, sheet_name="Cierre PDI")
+            except (ValueError, KeyError):
+                return pd.DataFrame()
+
+            df.columns = [str(c).strip() for c in df.columns]
+            c_id = find_col(df, ["Id", "ID"])
+            if not c_id:
+                return pd.DataFrame()
+
+            out = pd.DataFrame()
+            out["Id"] = df[c_id].apply(id_a_str)
+            for src, dst, transform in [
+                (find_col(df, ["Indicador"]), "Indicador", lambda s: s.astype(str).str.strip()),
+                (find_col(df, ["Meta"]), "Meta", lambda s: pd.to_numeric(s, errors="coerce")),
+                (find_col(df, ["Ejecucion", "Ejecución"]), "Ejecucion", lambda s: pd.to_numeric(s, errors="coerce")),
+                (find_col(df, ["Sentido"]), "Sentido", lambda s: s.astype(str).str.strip()),
+                (find_col(df, ["Linea", "Línea"]), "Linea", lambda s: repair_linea_encoding(s.astype(str).str.strip())),
+                (find_col(df, ["Objetivo"]), "Objetivo", lambda s: s.astype(str).str.strip()),
+            ]:
+                if src:
+                    out[dst] = transform(df[src])
+            out = out[out["Id"] != ""].copy()
+
+            c_cumpl = find_col(df, ["Cumplimiento", "cumplimiento_dec"])
+            out["cumplimiento_dec"] = pd.to_numeric(df[c_cumpl], errors="coerce") if c_cumpl else pd.NA
+            mask = out["cumplimiento_dec"].isna() & out.get("Meta", pd.Series(dtype=float)).notna() & out.get(
+                "Ejecucion", pd.Series(dtype=float)
+            ).notna()
+            if mask.any():
+                out.loc[mask, "cumplimiento_dec"] = out.loc[mask].apply(
+                    lambda r: recalcular_cumplimiento_faltante(
+                        r["Meta"], r["Ejecucion"], r.get("Sentido", "Positivo"), r.get("Id")
+                    ),
+                    axis=1,
+                )
+            out["cumplimiento_pct"] = pd.to_numeric(out["cumplimiento_dec"], errors="coerce") * 100
+            out["Nivel de cumplimiento"] = out.apply(
+                lambda r: categorizar_cumplimiento(r["cumplimiento_dec"], id_indicador=r.get("Id")),
+                axis=1,
+            )
+            out.loc[out["cumplimiento_pct"].isna(), "Nivel de cumplimiento"] = PENDIENTE
+            return out.reset_index(drop=True)
+
+        return self._cached("cierre_pdi_final", _load)
+
     def load_proyectos_consolidados(self) -> pd.DataFrame:
         """Consolidado Cierres con IDs de proyectos (fuente raw, no output ETL)."""
 
