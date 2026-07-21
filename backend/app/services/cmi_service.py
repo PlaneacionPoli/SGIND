@@ -288,7 +288,7 @@ class CMIService:
             )
             return ensure_nivel_cumplimiento(prepared)
 
-        return cache_get(_YEAR_PREPARED_CACHE, key, _load)
+        return cache_get(_YEAR_PREPARED_CACHE, key, _load, ttl=self._excel.ttl)
 
     @staticmethod
     def _slice_by_mes(year_prepared: pd.DataFrame, *, anio: int, mes: int) -> pd.DataFrame:

@@ -19,7 +19,7 @@ def get_tracking_dataframe(excel: ExcelReaderService, *, historico: bool = False
         etl = ETLPipelineService(excel)
         return etl.ejecutar(historico=historico)
 
-    return cache_get(_TRACKING_CACHE, key, _load)
+    return cache_get(_TRACKING_CACHE, key, _load, ttl=excel.ttl)
 
 
 def clear_tracking_cache() -> None:

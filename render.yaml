@@ -26,7 +26,7 @@ services:
       - key: SGIND_DATA_PATH
         value: /app/data
       - key: EXCEL_CACHE_TTL_SECONDS
-        value: "300"
+        value: "21600"
       - key: ALLOWED_EMAILS
         sync: false
       - key: EMAIL_LOGIN_DOMAIN

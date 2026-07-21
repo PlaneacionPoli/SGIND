@@ -28,6 +28,10 @@ class ExcelReaderService:
     def data_root(self) -> Path:
         return self._root
 
+    @property
+    def ttl(self) -> int:
+        return self._ttl
+
     def _resolve(self, relative_path: str) -> Path:
         path = (self._root / relative_path).resolve()
         if not str(path).startswith(str(self._root)):

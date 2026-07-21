@@ -35,7 +35,7 @@ class Settings(BaseSettings):
     email_login_domain: str = "poligran.edu.co"
 
     sgind_data_path: str = "../data"
-    excel_cache_ttl_seconds: int = 300
+    excel_cache_ttl_seconds: int = 21600
 
     anthropic_api_key: str = ""
 
