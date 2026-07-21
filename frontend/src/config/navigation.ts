@@ -13,20 +13,23 @@ import {
 
 export type Role = "procesos" | "calidad" | "desempeno";
 
+// Ocultas temporalmente del menú principal y del sidebar (pedido explícito).
+// Las rutas siguen activas — solo no aparecen en la navegación. Para
+// reactivarlas, mover la entrada de vuelta a NAV_ITEMS/BETA_ITEMS.
+// { href: "/plan-mejoramiento", label: "Plan de Mejoramiento", icon: "◐" },
+// { href: "/seguimiento-operativo", label: "Seguimiento Operativo", icon: "◧" },
+// { href: "/gestion-om", label: "Gestión OM", icon: "◈" },
+// { href: "/pdi-acreditacion", label: "PDI Acreditación" },
+// { href: "/diagnostico", label: "Diagnóstico" },
+
 export const NAV_ITEMS = [
   { href: "/resumen-general", label: "Resumen General", icon: "◫" },
   { href: "/cmi-estrategico", label: "CMI Estratégico", icon: "⌂" },
   { href: "/cmi-procesos", label: "CMI por Procesos", icon: "◷" },
   { href: "/informe-procesos", label: "Informe por Procesos", icon: "◯" },
-  { href: "/plan-mejoramiento", label: "Plan de Mejoramiento", icon: "◐" },
-  { href: "/seguimiento-operativo", label: "Seguimiento Operativo", icon: "◧" },
-  { href: "/gestion-om", label: "Gestión OM", icon: "◈" },
 ] as const;
 
-export const BETA_ITEMS = [
-  { href: "/pdi-acreditacion", label: "PDI Acreditación" },
-  { href: "/diagnostico", label: "Diagnóstico" },
-] as const;
+export const BETA_ITEMS: ReadonlyArray<{ href: string; label: string }> = [];
 
 /** Paleta de acento del launcher — claves con clases Tailwind literales en LauncherCard. */
 export type AccentKey =

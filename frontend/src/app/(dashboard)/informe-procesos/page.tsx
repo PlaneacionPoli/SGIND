@@ -288,6 +288,9 @@ function InformeContent() {
 
               {tab === "auditoria" && (
                 <section className="space-y-6">
+                  <p className="inline-flex w-fit items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">
+                    📅 Resultados de auditoría 2025 — no varían con el filtro de año
+                  </p>
                   {data?.auditoria_error ? (
                     <p className="text-sm text-amber-700">{data.auditoria_error}</p>
                   ) : (
