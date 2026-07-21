@@ -153,7 +153,7 @@ function LoginPageContent() {
         )}
 
         <p className="mt-3 text-center text-xs text-slate-500">
-          Usa tu cuenta institucional @poligran.edu.co
+          Usa tu cuenta institucional Poli
         </p>
 
         {/* Error de autenticación */}
