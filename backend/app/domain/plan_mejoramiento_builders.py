@@ -53,6 +53,20 @@ def load_acciones_mejora(excel) -> pd.DataFrame:
     for col in ["DIAS_VENCIDA", "MESES_SIN_AVANCE", "AVANCE"]:
         if col in df.columns:
             df[col] = pd.to_numeric(df[col], errors="coerce").fillna(0)
+    return _estado_tiempo_acciones(df)
+
+
+def _estado_tiempo_acciones(df: pd.DataFrame) -> pd.DataFrame:
+    """Deriva Estado_Tiempo — paridad exacta con core/calculos.py:estado_tiempo_acciones."""
+    df = df.copy()
+    df["Estado_Tiempo"] = "A tiempo"
+    if "DIAS_VENCIDA" in df.columns and "ESTADO" in df.columns:
+        df.loc[df["DIAS_VENCIDA"] > 0, "Estado_Tiempo"] = "Vencida"
+        df.loc[
+            (df["DIAS_VENCIDA"] >= -30) & (df["DIAS_VENCIDA"] <= 0) & (df["ESTADO"] != "Cerrada"),
+            "Estado_Tiempo",
+        ] = "Por vencer"
+        df.loc[df["ESTADO"] == "Cerrada", "Estado_Tiempo"] = "Cerrada"
     return df
 
 
@@ -241,7 +255,7 @@ def build_acciones_section(df_acc: pd.DataFrame, ids_cna: set[str] | None = None
     estado_col = find_col(df, ["ESTADO", "Estado"])
     avance_col = find_col(df, ["AVANCE", "Avance"])
     accion_col = find_col(df, ["ACCION", "Acción", "Accion"])
-    tiempo_col = find_col(df, ["ESTADO_TIEMPO", "Estado tiempo", "Estado Tiempo"])
+    tiempo_col = find_col(df, ["Estado_Tiempo", "ESTADO_TIEMPO", "Estado tiempo", "Estado Tiempo"])
     fecha_col = find_col(df, ["FECHA_ESTIMADA_CIERRE", "Fecha compromiso", "Fecha estimada cierre"])
     resp_col = find_col(df, ["RESPONSABLE", "Responsable"])
 
@@ -249,8 +263,7 @@ def build_acciones_section(df_acc: pd.DataFrame, ids_cna: set[str] | None = None
     cerradas = 0
     abiertas = 0
     if estado_col:
-        estados = df[estado_col].astype(str).str.lower()
-        cerradas = int(estados.str.contains("cerrad|complet|finaliz", na=False).sum())
+        cerradas = int((df[estado_col].astype(str) == "Cerrada").sum())
         abiertas = total - cerradas
 
     avance_prom = 0.0

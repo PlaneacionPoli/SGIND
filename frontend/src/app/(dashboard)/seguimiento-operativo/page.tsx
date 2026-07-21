@@ -22,12 +22,13 @@ export default function SeguimientoOperativoPage() {
   const [proceso, setProceso] = useState("Todos");
   const [estado, setEstado] = useState("Todos");
   const [exporting, setExporting] = useState(false);
+  const [anioTodos, setAnioTodos] = useState(false);
 
   const query = useQuery({
-    queryKey: ["seguimiento", anio, mes, proceso, estado],
+    queryKey: ["seguimiento", anio, mes, proceso, estado, anioTodos],
     queryFn: () =>
       fetchSeguimientoDashboard({
-        ...(anio != null ? { anio } : {}),
+        ...(anio != null && !anioTodos ? { anio } : {}),
         ...(mes != null ? { mes } : {}),
         ...(proceso !== "Todos" ? { proceso } : {}),
         ...(estado !== "Todos" ? { estado } : {}),
@@ -43,7 +44,6 @@ export default function SeguimientoOperativoPage() {
   }, [query.data, anio]);
 
   const anioEff = anio ?? query.data?.filtros.anio_default ?? new Date().getFullYear();
-  const mesEff = mes ?? query.data?.filtros.mes_default ?? 12;
   const data = query.data;
 
   const chartData = data?.estado_por_proceso ?? [];
@@ -60,8 +60,8 @@ export default function SeguimientoOperativoPage() {
     setExporting(true);
     try {
       await downloadSeguimientoExport({
-        anio: anioEff,
-        mes: mesEff,
+        ...(anioTodos ? {} : { anio: anioEff }),
+        ...(mes != null ? { mes } : {}),
         ...(proceso !== "Todos" ? { proceso } : {}),
         ...(estado !== "Todos" ? { estado } : {}),
       });
@@ -93,17 +93,26 @@ export default function SeguimientoOperativoPage() {
               {data?.filtros.anios?.length ? (
                 <div>
                   <p className="mb-1 text-xs text-slate-500">Año</p>
-                  <YearSegmentedControl years={data.filtros.anios} anio={anioEff} onChange={setAnio} />
+                  <YearSegmentedControl
+                    years={data.filtros.anios}
+                    anio={anioEff}
+                    onChange={(y) => {
+                      setAnioTodos(false);
+                      setAnio(y);
+                    }}
+                    allSelected={anioTodos}
+                    onSelectAll={() => setAnioTodos(true)}
+                  />
                 </div>
               ) : null}
               <div>
                 <p className="mb-1 text-xs text-slate-500">Mes</p>
                 <select
                   className="rounded-lg border border-slate-200 px-3 py-2 text-sm"
-                  value={mesEff}
-                  onChange={(e) => setMes(Number(e.target.value))}
+                  value={mes ?? ""}
+                  onChange={(e) => setMes(e.target.value === "" ? null : Number(e.target.value))}
                 >
-                  <option value={0}>Todos</option>
+                  <option value="">Todos</option>
                   {(data?.filtros.meses ?? []).map((m) => (
                     <option key={m} value={m}>
                       {MESES[m - 1]}
@@ -267,6 +276,8 @@ function AlertTable({
             <tr className="text-left text-slate-500">
               <th className="py-1">Id</th>
               <th>Indicador</th>
+              <th>Proceso</th>
+              <th>Periodicidad</th>
               <th>Meses</th>
             </tr>
           </thead>
@@ -275,6 +286,8 @@ function AlertTable({
               <tr key={i} className="border-t border-white/50">
                 <td className="py-1 font-mono">{String(r.Id ?? "")}</td>
                 <td className="max-w-[180px] truncate">{String(r.Indicador ?? "")}</td>
+                <td className="max-w-[140px] truncate">{String(r.Proceso ?? "")}</td>
+                <td>{String(r.Periodicidad ?? "")}</td>
                 <td>{String(r.diff_meses ?? "")}</td>
               </tr>
             ))}

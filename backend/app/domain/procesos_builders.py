@@ -295,6 +295,11 @@ def build_banner(
     variacion = None
     if cumpl_global is not None and cumpl_base is not None:
         variacion = round(cumpl_global - cumpl_base, 1)
+    pct_saludable = None
+    if not df.empty and "cumplimiento_pct" in df.columns:
+        valores = pd.to_numeric(df["cumplimiento_pct"], errors="coerce").dropna()
+        if len(valores):
+            pct_saludable = round(float((valores >= 100).sum()) / len(valores) * 100, 1)
     return {
         "titulo": "CMI por Procesos",
         "anio": anio,
@@ -306,6 +311,7 @@ def build_banner(
         "variacion_pp": variacion,
         "total_indicadores": len(df),
         "en_riesgo": en_riesgo,
+        "pct_saludable": pct_saludable,
     }
 
 
@@ -368,6 +374,11 @@ def build_proceso_bars(df: pd.DataFrame, df_prev: pd.DataFrame | None = None) ->
             prev_g = df_prev[df_prev[col].astype(str) == str(proceso)]
             if not prev_g.empty:
                 anterior = _safe_float(prev_g["cumplimiento_pct"].mean())
+        nivel = None
+        if "Nivel de cumplimiento" in group.columns:
+            modas = group["Nivel de cumplimiento"].dropna()
+            if not modas.empty:
+                nivel = modas.mode().iloc[0]
         bars.append(
             {
                 "proceso": str(proceso),
@@ -375,6 +386,7 @@ def build_proceso_bars(df: pd.DataFrame, df_prev: pd.DataFrame | None = None) ->
                 "cumplimiento_anterior": round(anterior, 1) if anterior is not None else None,
                 "n_indicadores": len(group),
                 "color": cumplimiento_semaforo_color(actual),
+                "nivel": nivel,
             }
         )
     bars.sort(key=lambda x: x["cumplimiento"] or 0)

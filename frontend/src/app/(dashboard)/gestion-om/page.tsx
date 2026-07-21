@@ -29,6 +29,7 @@ export default function GestionOMPage() {
   const [editingOmId, setEditingOmId] = useState<number | null>(null);
   const [tipoAccion, setTipoAccion] = useState("OM Kawak");
   const [numeroOm, setNumeroOm] = useState("");
+  const [observacion, setObservacion] = useState("");
 
   const query = useQuery({
     queryKey: ["om-matriz", anio, mes, proceso, subproceso, mostrarAlerta],
@@ -57,6 +58,7 @@ export default function GestionOMPage() {
     setEditingOmId(null);
     setTipoAccion("OM Kawak");
     setNumeroOm("");
+    setObservacion("");
   };
 
   const createMutation = useMutation({
@@ -68,8 +70,13 @@ export default function GestionOMPage() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, tipo_accion, numero_om }: { id: number; tipo_accion: string; numero_om?: string }) =>
-      updateOM(id, { tipo_accion, numero_om, comentario: numero_om }),
+    mutationFn: ({
+      id,
+      tipo_accion,
+      numero_om,
+      comentario,
+    }: { id: number; tipo_accion: string; numero_om?: string; comentario?: string }) =>
+      updateOM(id, { tipo_accion, numero_om, comentario }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["om-matriz"] });
       resetForm();
@@ -91,13 +98,19 @@ export default function GestionOMPage() {
     setEditingOmId(row.om_id);
     setTipoAccion(row.tipo_accion !== "Sin acción" ? row.tipo_accion : "OM Kawak");
     setNumeroOm(row.numero_om);
+    setObservacion(row.comentario ?? "");
     setFormOpen(true);
   };
 
   const handleSubmit = () => {
     if (!selectedRow) return;
     if (editingOmId != null) {
-      updateMutation.mutate({ id: editingOmId, tipo_accion: tipoAccion, numero_om: numeroOm || undefined });
+      updateMutation.mutate({
+        id: editingOmId,
+        tipo_accion: tipoAccion,
+        numero_om: numeroOm || undefined,
+        comentario: observacion || undefined,
+      });
       return;
     }
     createMutation.mutate({
@@ -109,7 +122,7 @@ export default function GestionOMPage() {
       tiene_om: 1,
       tipo_accion: tipoAccion,
       numero_om: numeroOm || undefined,
-      comentario: numeroOm || undefined,
+      comentario: observacion || undefined,
     });
   };
 
@@ -266,6 +279,16 @@ export default function GestionOMPage() {
                       value={numeroOm}
                       onChange={(e) => setNumeroOm(e.target.value)}
                       placeholder="Identificador OM"
+                    />
+                  </div>
+                  <div className="min-w-[240px] flex-1">
+                    <p className="mb-1 text-xs text-slate-500">Observación</p>
+                    <textarea
+                      className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                      rows={2}
+                      value={observacion}
+                      onChange={(e) => setObservacion(e.target.value)}
+                      placeholder="Describe la situación o justificación…"
                     />
                   </div>
                   <button

@@ -119,6 +119,7 @@ export interface CMIProcesoBar {
   cumplimiento_anterior: number | null;
   n_indicadores: number;
   color?: string;
+  nivel?: string | null;
 }
 
 export interface CMIProcesoComparativa {
@@ -190,6 +191,10 @@ export interface CMIProcesosVistaGlobal {
   unidades_detalle: CMIUnidadDetalle[];
   comparativa_procesos: CMIProcesoComparativa[];
   variacion: CMIProcesosDashboardResponse["variacion"];
+  variacion_procesos: {
+    mejoraron: Array<{ name: string; change: number }>;
+    empeoraron: Array<{ name: string; change: number }>;
+  };
   alertas_criticas: CMIAlertaCritica[];
 }
 
@@ -223,6 +228,7 @@ export interface CMIProcesosDashboardResponse {
     variacion_pp: number | null;
     total_indicadores: number;
     en_riesgo: number;
+    pct_saludable: number | null;
   };
   distribucion_nivel: Array<{ nivel: string; cantidad: number; porcentaje: number; color: string }>;
   tipo_proceso_cards: CMIProcesoTipoCard[];
@@ -740,6 +746,7 @@ export interface OMMatrizResponse {
     tipo_accion_color: string;
     tiene_om: number;
     numero_om: string;
+    comentario: string;
     om_id: number | null;
     avance_om: number | null;
     row_bg: string;

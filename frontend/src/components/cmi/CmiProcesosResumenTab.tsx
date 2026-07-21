@@ -24,23 +24,37 @@ const NIVEL_BG: Record<string, string> = {
   peligro: "#FFF1F2",
 };
 
-function nivelKey(pct: number | null): string {
+// Fallback solo si el backend no envía "nivel" (ya clasificado por indicador
+// respetando regímenes especiales, ej. Plan Anual alerta<95%/tope 100%).
+function nivelKeyFallback(pct: number | null): string {
   if (pct == null) return "pendiente";
-  if (pct >= 100) return "sobrecumplimiento";
-  if (pct >= 95) return "cumplimiento";
+  if (pct >= 105) return "sobrecumplimiento";
+  if (pct >= 100) return "cumplimiento";
   if (pct >= 80) return "alerta";
   return "peligro";
 }
-function nivelLabel(pct: number | null): string {
-  if (pct == null) return "Sin dato";
-  if (pct >= 100) return "Sobrecumplimiento";
-  if (pct >= 95) return "Cumplimiento";
-  if (pct >= 80) return "Alerta";
-  return "Peligro";
+
+function nivelKey(d: { nivel?: string | null; cumplimiento: number | null }): string {
+  if (d.nivel) return d.nivel.toLowerCase();
+  return nivelKeyFallback(d.cumplimiento);
+}
+function nivelLabel(d: { nivel?: string | null; cumplimiento: number | null }): string {
+  if (d.nivel) return d.nivel;
+  const key = nivelKeyFallback(d.cumplimiento);
+  if (key === "pendiente") return "Sin dato";
+  return key.charAt(0).toUpperCase() + key.slice(1);
 }
 
 export function CmiProcesosResumenTab({ vista, baseAnio }: CmiProcesosResumenTabProps) {
-  const { kpis, banner, distribucion_nivel, proceso_bars, catalog_charts, variacion } = vista;
+  const { kpis, banner, distribucion_nivel, proceso_bars, catalog_charts, variacion_procesos } = vista;
+  const mejoraronProcesos = (variacion_procesos?.mejoraron ?? []).map((r) => ({
+    indicador: r.name,
+    variacion: r.change,
+  }));
+  const empeoraronProcesos = (variacion_procesos?.empeoraron ?? []).map((r) => ({
+    indicador: r.name,
+    variacion: r.change,
+  }));
 
   const conteo = kpis.conteo_estados ?? {};
   const nAlerta = conteo["Alerta"] ?? 0;
@@ -56,7 +70,12 @@ export function CmiProcesosResumenTab({ vista, baseAnio }: CmiProcesosResumenTab
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
             <p className="text-[10px] font-bold uppercase tracking-widest text-white/60">CMI por Procesos</p>
-            <h3 className="text-xl font-bold sm:text-2xl">{banner.anio} · {banner.mes}</h3>
+            <h3 className="text-xl font-bold sm:text-2xl">
+              {banner.pct_saludable != null
+                ? `${fmtNum(banner.pct_saludable)}% de los indicadores opera en niveles saludables`
+                : `${banner.anio} · ${banner.mes}`}
+            </h3>
+            <p className="mt-0.5 text-xs text-white/60">{banner.anio} · {banner.mes}</p>
           </div>
           <div className="flex flex-wrap gap-2">
             <Chip label="Subprocesos = 1" />
@@ -77,7 +96,7 @@ export function CmiProcesosResumenTab({ vista, baseAnio }: CmiProcesosResumenTab
       {/* KPI cards */}
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <CmiMetricCard title="Cumplimiento promedio" value={fmtPct(kpis.promedio)} subtitle={`Corte ${vista.mes_nombre}`} icon="📈" color="#1D4ED8" />
-        <CmiMetricCard title="En alerta" value={String(nAlerta)} subtitle="80% – 94%" icon="⚠️" color="#B45309" />
+        <CmiMetricCard title="En alerta" value={String(nAlerta)} subtitle="80% – 99%" icon="⚠️" color="#B45309" />
         <CmiMetricCard title="En peligro" value={String(nPeligro)} subtitle="Menor a 80%" icon="🚨" color="#B71C1C" />
         <CmiMetricCard title="Procesos activos" value={String(kpis.n_procesos)} subtitle={`${kpis.n_subprocesos} subprocesos · ${kpis.n_unidades} unidades`} icon="🏢" color="#1A3A5C" />
       </div>
@@ -114,7 +133,7 @@ export function CmiProcesosResumenTab({ vista, baseAnio }: CmiProcesosResumenTab
               </thead>
               <tbody>
                 {sorted.map((d, i) => {
-                  const key = nivelKey(d.cumplimiento);
+                  const key = nivelKey(d);
                   const color = NIVEL_COLOR[key] ?? "#94A3B8";
                   const bg = NIVEL_BG[key] ?? "#F8FAFC";
                   const delta = d.cumplimiento != null && d.cumplimiento_anterior != null
@@ -150,7 +169,7 @@ export function CmiProcesosResumenTab({ vista, baseAnio }: CmiProcesosResumenTab
                           className="inline-block rounded-full px-2 py-0.5 text-[10px] font-bold"
                           style={{ backgroundColor: bg, color }}
                         >
-                          {nivelLabel(d.cumplimiento)}
+                          {nivelLabel(d)}
                         </span>
                       </td>
 
@@ -218,11 +237,11 @@ export function CmiProcesosResumenTab({ vista, baseAnio }: CmiProcesosResumenTab
             <CmiDonutNivelPlotly data={distribucion_nivel} total={kpis.total} />
           </div>
 
-          {/* Variación */}
-          {(variacion.mejoraron.length > 0 || variacion.empeoraron.length > 0) && (
+          {/* Variación por proceso (paridad: comparación vs año base, no a nivel de indicador) */}
+          {(mejoraronProcesos.length > 0 || empeoraronProcesos.length > 0) && (
             <div className="flex flex-col gap-3">
-              <VarTable title="Mayor mejora" rows={variacion.mejoraron} positive />
-              <VarTable title="Mayor riesgo" rows={variacion.empeoraron} positive={false} />
+              <VarTable title="Procesos con mayor mejora" rows={mejoraronProcesos} positive />
+              <VarTable title="Procesos en mayor riesgo" rows={empeoraronProcesos} positive={false} />
             </div>
           )}
         </div>

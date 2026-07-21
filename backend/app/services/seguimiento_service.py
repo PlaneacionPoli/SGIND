@@ -50,11 +50,8 @@ class SeguimientoService:
         df = load_tracking(self._excel)
         if df.empty:
             return {"error": "No se encontró Tracking Mensual en Seguimiento_Reporte.xlsx", "kpis": {}}
-        filtros = build_dashboard(df, anio=anio, mes=mes, proceso=proceso, estado=estado)
-        if anio is None:
-            anio = filtros["filtros"].get("anio_default")
-        if mes is None:
-            mes = filtros["filtros"].get("mes_default")
+        # anio/mes = None es un valor explícito de "Todos" (el frontend siempre
+        # envía un valor concreto una vez carga los filtros por defecto).
         return build_dashboard(df, anio=anio, mes=mes, proceso=proceso, estado=estado)
 
     def export_excel(

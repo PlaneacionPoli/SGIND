@@ -572,6 +572,35 @@ class CMIService:
             },
         }
 
+    def get_procesos_historico_anual(
+        self,
+        *,
+        anio_actual: int,
+        mes: int,
+        proceso: str | None = None,
+        subproceso: str | None = None,
+        n_years: int = 4,
+    ) -> list[dict[str, Any]]:
+        """Cumplimiento promedio del mismo corte (mes) en hasta n_years anios,
+        filtrado solo por proceso/subproceso (paridad con el Streamlit original:
+        _render_year_comparison no aplica unidad/clasificacion/frecuencia aqui)."""
+        tracking = self._load_tracking()
+        map_df = load_process_map(self._excel)
+        if tracking.empty:
+            return []
+        anios = self._available_anios()
+        anios_rango = [a for a in anios if a <= anio_actual][-n_years:]
+        historico = []
+        for a in anios_rango:
+            year_prep = self._get_year_prepared(tracking, map_df, anio=a)
+            df_mes = self._slice_by_mes(year_prep, anio=a, mes=mes)
+            df_mes = apply_ui_filters(df_mes, proceso=proceso, subproceso=subproceso)
+            latest = latest_per_indicator(df_mes)
+            cumpl = avg_cumplimiento(latest)
+            if cumpl is not None:
+                historico.append({"anio": a, "cumplimiento": cumpl})
+        return historico
+
     def _ultimo_filtrado_procesos(self, *, anio: int | None = None) -> pd.DataFrame:
         tracking = self._load_tracking()
         map_df = load_process_map(self._excel)

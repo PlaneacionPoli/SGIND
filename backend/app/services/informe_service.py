@@ -52,21 +52,19 @@ class InformeService:
         prev_year = anio - 1
         base_indicadores: list[dict[str, Any]] = []
         if prev_year in dash.get("anios_disponibles", []):
+            # Paridad con el original: el año base solo aplica el filtro
+            # organizacional por defecto (año/mes), no los filtros de UI
+            # seleccionados (proceso/subproceso/clasificacion/frecuencia/unidad).
             base_indicadores = self._cmi.get_procesos_indicators_light(
                 anio=prev_year,
                 mes=mes,
-                unidad=unidad,
-                proceso=proceso,
-                subproceso=subproceso,
-                clasificacion=clasificacion,
-                frecuencia=frecuencia,
             )
 
         resumen = build_resumen_ejecutivo(indicadores, base_indicadores)
-        vista_global = dash.get("vista_global", {})
-        comparativa = vista_global.get("comparativa_anual") or build_comparativa_anual(
-            vista_global.get("historico", []), mes
+        historico_anual = self._cmi.get_procesos_historico_anual(
+            anio_actual=anio, mes=mes, proceso=proceso, subproceso=subproceso
         )
+        comparativa = build_comparativa_anual(historico_anual, mes)
         propuestas, prop_err = load_propuestas(self._excel, proceso or "Todos", subproceso or "Todos")
         auditoria, aud_err = load_auditoria(self._excel, proceso or "Todos")
 

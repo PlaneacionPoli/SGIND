@@ -45,6 +45,49 @@ def _mes_a_nombre(val) -> str:
         return str(val)
 
 
+def _id_str(v: Any) -> str:
+    """Normaliza identificadores tipo '440.0' / ' 440 ' -> '440'."""
+    s = str(v).strip()
+    if not s:
+        return ""
+    try:
+        f = float(s)
+        if f.is_integer():
+            return str(int(f))
+        return str(f)
+    except (TypeError, ValueError):
+        return s
+
+
+def _extraer_digitos(v: str) -> str:
+    """Extrae el primer grupo de digitos, ej. 'OM 440'/'OM440' -> '440'."""
+    import re
+
+    match = re.search(r"\d+", v)
+    return match.group(0) if match else ""
+
+
+def _buscar_avance(avances_om: dict[str, float], numero_om: str) -> float | None:
+    """Matching robusto de numero_om -> avance: exacto, normalizado, por digitos, sin mayus/minus."""
+    if not numero_om:
+        return None
+    candidatos = [str(numero_om).strip()]
+    normalizado = _id_str(numero_om)
+    if normalizado:
+        candidatos.append(normalizado)
+    digitos = _extraer_digitos(str(numero_om))
+    if digitos:
+        candidatos.append(digitos)
+
+    avances_lower = {k.lower(): v for k, v in avances_om.items()}
+    for cand in candidatos:
+        if cand in avances_om:
+            return avances_om[cand]
+        if cand.lower() in avances_lower:
+            return avances_lower[cand.lower()]
+    return None
+
+
 def _parse_avance(v) -> float | None:
     if v is None or (isinstance(v, float) and pd.isna(v)):
         return None
@@ -172,11 +215,12 @@ def merge_om_registros(
 
         cat = str(row.get("Categoria", row.get("Nivel de cumplimiento", "Sin dato")))
         tipo_accion = om.get("tipo_accion") or "Sin acción"
-        numero_om = om.get("numero_om") or om.get("comentario") or ""
+        numero_om = om.get("numero_om") or ""
+        comentario = om.get("comentario") or ""
         tiene_om = int(om.get("tiene_om", 0) or 0)
-        avance_om = avances_om.get(str(numero_om).strip()) if numero_om else None
+        avance_om = _buscar_avance(avances_om, numero_om)
         if avance_om is None and tiene_om:
-            avance_om = avances_om.get(rid)
+            avance_om = _buscar_avance(avances_om, rid)
 
         rows.append({
             "id": rid,
@@ -193,6 +237,7 @@ def merge_om_registros(
             "tipo_accion_color": TIPO_ACCION_COLORS.get(tipo_accion, TIPO_ACCION_COLORS["Sin acción"]),
             "tiene_om": tiene_om,
             "numero_om": str(numero_om) if numero_om else "",
+            "comentario": str(comentario) if comentario else "",
             "om_id": om.get("id"),
             "avance_om": avance_om,
             "row_bg": "#FFF5F5" if cat == "Peligro" else ("#FFFBEB" if cat == "Alerta" else "#FFFFFF"),

@@ -8,6 +8,7 @@ import pandas as pd
 
 from app.domain.categorization import categorizar_cumplimiento
 from app.domain.linea_order import linea_sort_key
+from app.domain.loader_utils import repair_linea_encoding
 from app.services.excel_reader import ExcelReaderService
 from app.services.tracking_cache import get_tracking_dataframe
 
@@ -50,25 +51,52 @@ class PDIService:
         if df.empty:
             return df
 
-        if "Clasificacion" not in df.columns:
-            return pd.DataFrame()
-        df = df[df["Clasificacion"].str.contains("acredit", case=False, na=False)].copy()
-        if df.empty:
-            return df
-
-        # Enrich with directorio maestro (Catalogo Indicadores) for Linea/Objetivo columns
+        # Enriquece primero con el directorio maestro (Catalogo Indicadores) para
+        # traer Linea/Objetivo/Factor/Caracteristica/CNA_SNIES antes de filtrar.
+        # "Clasificacion" solo distingue Estratégico/Operativo — NUNCA contiene
+        # "acreditación" (bug heredado del Streamlit original que dejaba esta
+        # sección siempre vacía). Los indicadores de acreditación se identifican
+        # por tener Factor/Caracteristica CNA asignados o CNA_SNIES=true.
         for path in _CNA_PATHS:
             try:
                 df_cna = self._excel.read_excel(path, sheet_name=_CNA_SHEET)
                 df_cna = df_cna.rename(columns={
                     "Linea_Estrategica": "Linea", "Objetivo_Estrategico": "Objetivo",
                 })
-                for col in ["Linea", "Objetivo"]:
-                    if col not in df.columns and col in df_cna.columns and "Id" in df_cna.columns:
-                        df = df.merge(df_cna[["Id", col]].drop_duplicates("Id"), on="Id", how="left")
+                merge_cols = [
+                    c for c in ["Linea", "Objetivo", "Factor", "Caracteristica", "CNA_SNIES"]
+                    if c in df_cna.columns
+                ]
+                if merge_cols and "Id" in df.columns and "Id" in df_cna.columns:
+                    df = df.merge(
+                        df_cna[["Id"] + merge_cols].drop_duplicates("Id"),
+                        on="Id",
+                        how="left",
+                        suffixes=("", "_cna"),
+                    )
+                    # Coalesce: el catalogo CNA es la fuente de verdad para
+                    # Linea/Objetivo de estos indicadores (el tracking general
+                    # puede traer la columna vacia o con otro criterio).
+                    for col in merge_cols:
+                        cna_col = f"{col}_cna"
+                        if cna_col in df.columns:
+                            df[col] = df[cna_col].combine_first(df[col]) if col in df.columns else df[cna_col]
+                            df = df.drop(columns=[cna_col])
+                    if "Linea" in df.columns:
+                        df["Linea"] = repair_linea_encoding(df["Linea"])
                 break
             except Exception:
                 continue
+
+        tiene_factor = df["Factor"].notna() if "Factor" in df.columns else pd.Series(False, index=df.index)
+        tiene_cna_snies = (
+            df["CNA_SNIES"].astype(str).str.strip().str.lower().isin({"true", "1", "1.0"})
+            if "CNA_SNIES" in df.columns
+            else pd.Series(False, index=df.index)
+        )
+        df = df[tiene_factor | tiene_cna_snies].copy()
+        if df.empty:
+            return df
 
         # Compute cumplimiento_pct
         col_cumpl = None
