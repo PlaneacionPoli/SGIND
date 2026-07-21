@@ -47,9 +47,9 @@ function CMIEstrategicoContent() {
   });
 
   useEffect(() => {
+    // Corte semestral oculto por ahora — se muestra solo Diciembre.
     if (anio == null && filtrosQuery.data?.anio_default) {
       setAnio(filtrosQuery.data.anio_default);
-      setCorte(filtrosQuery.data.corte_default);
     }
   }, [anio, filtrosQuery.data]);
 
@@ -93,7 +93,7 @@ function CMIEstrategicoContent() {
   const handleReset = () => {
     if (filtrosQuery.data) {
       setAnio(filtrosQuery.data.anio_default);
-      setCorte(filtrosQuery.data.corte_default);
+      setCorte("Diciembre");
       setRango(false);
     }
   };

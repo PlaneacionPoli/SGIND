@@ -4,11 +4,13 @@ import { RotateCcw } from "lucide-react";
 
 interface CmiFiltersProps {
   anio: number;
-  corte: string;
+  /** Se conservan por compatibilidad con el llamador; el corte semestral
+   * (Junio/Diciembre) esta oculto por ahora — siempre se usa Diciembre. */
+  corte?: string;
   anios: number[];
-  cortes: string[];
+  cortes?: string[];
   onAnioChange: (anio: number) => void;
-  onCorteChange: (corte: string) => void;
+  onCorteChange?: (corte: string) => void;
   onReset?: () => void;
   /** "Cierre PDI 2022-2025" — resultado final por indicador (hoja Cierre PDI). */
   rango?: boolean;
@@ -17,11 +19,8 @@ interface CmiFiltersProps {
 
 export function CmiFilters({
   anio,
-  corte,
   anios,
-  cortes,
   onAnioChange,
-  onCorteChange,
   onReset,
   rango = false,
   onSelectRango,
@@ -41,90 +40,42 @@ export function CmiFilters({
           </button>
         )}
       </div>
-      <div className="grid gap-5 sm:grid-cols-2">
-        <div>
-          <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-slate-500">Año de corte</p>
-          <div className="inline-flex flex-wrap gap-1 rounded-xl bg-slate-100 p-1">
-            {anios.map((y) => {
-              const active = !rango && anio === y;
-              return (
-                <button
-                  key={y}
-                  type="button"
-                  onClick={() => onAnioChange(y)}
-                  className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
-                    active
-                      ? "bg-poli-navy text-white shadow-md"
-                      : "text-slate-600 hover:bg-white hover:text-slate-900"
-                  }`}
-                >
-                  {y}
-                </button>
-              );
-            })}
-            {onSelectRango && (
+      <div>
+        <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-slate-500">Año de corte</p>
+        <div className="inline-flex flex-wrap gap-1 rounded-xl bg-slate-100 p-1">
+          {anios.map((y) => {
+            const active = !rango && anio === y;
+            return (
               <button
+                key={y}
                 type="button"
-                onClick={onSelectRango}
+                onClick={() => onAnioChange(y)}
                 className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
-                  rango
+                  active
                     ? "bg-poli-navy text-white shadow-md"
                     : "text-slate-600 hover:bg-white hover:text-slate-900"
                 }`}
               >
-                Cierre PDI 2022-2025
+                {y}
               </button>
-            )}
-          </div>
-        </div>
-        <SegmentedGroup
-          label="Corte semestral"
-          value={corte}
-          options={cortes.map((c) => ({ value: c, label: c }))}
-          onChange={onCorteChange}
-          disabled={rango}
-        />
-      </div>
-    </div>
-  );
-}
-
-function SegmentedGroup<T extends string | number>({
-  label,
-  value,
-  options,
-  onChange,
-  disabled = false,
-}: {
-  label: string;
-  value: T;
-  options: { value: T; label: string }[];
-  onChange: (v: T) => void;
-  disabled?: boolean;
-}) {
-  return (
-    <div className={disabled ? "opacity-40" : undefined}>
-      <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-slate-500">{label}</p>
-      <div className="inline-flex flex-wrap gap-1 rounded-xl bg-slate-100 p-1">
-        {options.map((opt) => {
-          const active = !disabled && opt.value === value;
-          return (
+            );
+          })}
+          {onSelectRango && (
             <button
-              key={String(opt.value)}
               type="button"
-              disabled={disabled}
-              onClick={() => onChange(opt.value)}
+              onClick={onSelectRango}
               className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
-                active
+                rango
                   ? "bg-poli-navy text-white shadow-md"
                   : "text-slate-600 hover:bg-white hover:text-slate-900"
-              } ${disabled ? "cursor-not-allowed" : ""}`}
+              }`}
             >
-              {opt.label}
+              Cierre PDI 2022-2025
             </button>
-          );
-        })}
+          )}
+        </div>
       </div>
+      {/* Corte semestral (Junio/Diciembre) oculto por ahora — se usa siempre Diciembre. */}
     </div>
   );
 }
