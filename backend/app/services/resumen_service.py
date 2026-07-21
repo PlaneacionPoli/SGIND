@@ -69,16 +69,6 @@ class ResumenService:
     def _load_cierres(self) -> pd.DataFrame:
         return self._etl.leer_cierres()
 
-    def _pdi_multi_anio(self, anios: list[int]) -> pd.DataFrame:
-        parts = [
-            ensure_nivel_cumplimiento(self._strategic.preparar_pdi_con_cierre(y, 12)) for y in anios
-        ]
-        parts = [p for p in parts if p is not None and not p.empty]
-        df = pd.concat(parts, ignore_index=True) if parts else pd.DataFrame()
-        if not df.empty and "Id" in df.columns:
-            df = df.drop_duplicates(subset=["Id"], keep="last")
-        return df
-
     def _proyectos_multi_anio(self, anios: list[int]) -> pd.DataFrame:
         parts = [
             ensure_nivel_cumplimiento(self._strategic.preparar_proyectos_con_cierre(y, 12)) for y in anios
@@ -458,7 +448,7 @@ class ResumenService:
 
         if vista_norm == "indicadores":
             pdi_df = (
-                self._pdi_multi_anio(ANIOS_RANGO)
+                ensure_nivel_cumplimiento(self._strategic.preparar_pdi_cierre_final())
                 if rango
                 else ensure_nivel_cumplimiento(self._strategic.preparar_pdi_con_cierre(anio, 12))
             )
@@ -575,7 +565,7 @@ class ResumenService:
 
         if vista_norm == "consolidado":
             if rango:
-                pdi_df = self._pdi_multi_anio(ANIOS_RANGO)
+                pdi_df = ensure_nivel_cumplimiento(self._strategic.preparar_pdi_cierre_final())
                 proy_df = self._proyectos_multi_anio(ANIOS_RANGO)
                 ret_linea_df, ret_obj_df, ret_planes_df = self._retos_multi_anio(ANIOS_RANGO)
             else:
