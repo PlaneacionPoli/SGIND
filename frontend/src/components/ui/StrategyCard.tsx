@@ -103,7 +103,7 @@ export function StrategyCard({ card }: StrategyCardProps) {
 
 export function StrategyCardGrid({ cards }: { cards: StrategyCardData[] }) {
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 animate-in fade-in-50 duration-500">
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 animate-in fade-in-50 duration-500">
       {cards.map((card, idx) => (
         <div
           key={card.linea}
