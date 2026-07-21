@@ -51,56 +51,52 @@ export function StrategyCard({ card }: StrategyCardProps) {
 
   return (
     <div
-      className="group relative flex min-h-[13rem] flex-col overflow-hidden rounded-2xl p-5 shadow-md transition-all duration-300 hover:shadow-2xl hover:scale-[1.02]"
-      style={{ background: card.color }}
+      className="group relative flex flex-col overflow-hidden rounded-lg p-3 transition-shadow duration-200 hover:shadow-md"
+      style={{
+        borderLeft: `4px solid ${card.color}`,
+        background: `linear-gradient(140deg, #fff, ${card.color}1E)`,
+      }}
     >
-      <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-10 transition-opacity duration-300" />
-
-      <div className="relative z-10 flex flex-1 flex-col text-white">
-        <div className="flex items-start justify-between gap-2">
-          <div className="transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6">
-            {IconComponent && <IconComponent size={32} strokeWidth={1.5} />}
-          </div>
-          <div className="text-right">
-            <div className="text-2xl font-bold leading-none">
-              {card.cumplimiento.toFixed(1)}%
-            </div>
-            <div className="mt-1 text-xs text-white/80">
-              {card.count} {card.unit_label}
-            </div>
-          </div>
+      <div className="mb-2 flex items-center gap-2.5">
+        <div className="shrink-0" style={{ color: card.color }}>
+          {IconComponent && <IconComponent size={28} strokeWidth={1.75} />}
         </div>
-
-        {detailParts.length > 0 && (
-          <p className="mt-2 text-xs text-white/70">{detailParts.join(" · ")}</p>
-        )}
-
-        <h3 className="mt-3 text-base font-bold leading-tight">{card.linea}</h3>
-
-        {card.historico.length > 0 && (
-          <div className="mt-auto h-12 w-full pt-2">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={card.historico}>
-                <Tooltip
-                  formatter={((value: number) => [`${Number(value ?? 0).toFixed(1)}%`, "Cumplimiento"]) as never}
-                  labelFormatter={(anio) => `Año ${anio}`}
-                  contentStyle={{ fontSize: 12 }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="cumplimiento"
-                  stroke="#ffffff"
-                  strokeWidth={2}
-                  dot={{ r: 3, fill: "#ffffff", strokeWidth: 0 }}
-                  isAnimationActive={false}
-                />
-              </LineChart>
-            </ResponsiveContainer>
+        <div className="flex-1 text-right">
+          <div className="text-[22px] font-bold leading-none" style={{ color: card.color }}>
+            {card.cumplimiento.toFixed(1)}%
           </div>
-        )}
+          <div className="mt-1 text-[11px] text-slate-500">
+            {card.count} {card.unit_label}
+          </div>
+          {detailParts.length > 0 && (
+            <div className="mt-1 text-[11px] text-slate-600">{detailParts.join(" · ")}</div>
+          )}
+        </div>
       </div>
 
-      <div className="absolute bottom-0 left-0 right-0 h-1 bg-white opacity-0 group-hover:opacity-30 transition-opacity duration-300" />
+      <h3 className="mb-2 text-[13px] font-bold leading-tight text-slate-700">{card.linea}</h3>
+
+      {card.historico.length > 0 && (
+        <div className="h-10 w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={card.historico}>
+              <Tooltip
+                formatter={((value: number) => [`${Number(value ?? 0).toFixed(1)}%`, "Cumplimiento"]) as never}
+                labelFormatter={(anio) => `Año ${anio}`}
+                contentStyle={{ fontSize: 12 }}
+              />
+              <Line
+                type="monotone"
+                dataKey="cumplimiento"
+                stroke={card.color}
+                strokeWidth={2}
+                dot={{ r: 3, fill: card.color, strokeWidth: 0 }}
+                isAnimationActive={false}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      )}
     </div>
   );
 }
