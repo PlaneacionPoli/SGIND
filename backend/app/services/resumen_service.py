@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from typing import Any
 
 import pandas as pd
@@ -36,9 +37,16 @@ from app.services.retos_loaders import RetosLoaders
 
 VISTAS = ("consolidado", "retos", "proyectos", "indicadores")
 
-# Rango fijo usado por el Streamlit original para "Consolidado 2022-2025"
+# Rango fijo usado por el Streamlit original para "Cierre PDI 2022-2025"
 # (usar_consolidado_rango) — aplica por igual a todas las vistas, no solo Consolidado.
 ANIOS_RANGO = [2022, 2023, 2024, 2025]
+
+# El catálogo de indicadores se amplió (2026-07) con PRY-45..PRY-54 para el
+# siguiente ciclo; esos proyectos aún no tienen cierres registrados. El total
+# vigente del ciclo PDI 2022-2025 es 44 (PRY-1..PRY-44) — ver
+# legacy-reference/ (Indicadores por CMI.bak_pre_pry45_54.xlsx).
+PROYECTOS_CICLO_2022_2025_MAX = 44
+_PROYECTO_NUM_RE = re.compile(r"PRY-(\d+)", re.IGNORECASE)
 
 _LINE_COLORS = {
     "Talento Humano": "#E63946",
@@ -98,6 +106,17 @@ class ResumenService:
         obj_df = pd.concat(obj_parts, ignore_index=True) if obj_parts else pd.DataFrame()
         planes_df = pd.concat(planes_parts, ignore_index=True) if planes_parts else pd.DataFrame()
         return linea_df, obj_df, planes_df
+
+    def _count_proyectos_ciclo_vigente(self) -> int:
+        """Total de proyectos declarados en el ciclo PDI 2022-2025 (44), sin
+        depender de si ya tienen cierres cargados (ver PROYECTOS_CICLO_2022_2025_MAX)."""
+        ids = self._cmi.get_proyectos_ids()
+        total = 0
+        for pid in ids:
+            match = _PROYECTO_NUM_RE.search(str(pid))
+            if match and int(match.group(1)) <= PROYECTOS_CICLO_2022_2025_MAX:
+                total += 1
+        return total
 
     def _anio_column(self, df: pd.DataFrame) -> str | None:
         for col in ("Anio", "Año", "anio"):
@@ -200,7 +219,7 @@ class ResumenService:
             if anio_col
             else []
         )
-        allowed = [y for y in anios if y in {2022, 2023, 2024, 2025, 2026}]
+        allowed = [y for y in anios if y in {2022, 2023, 2024, 2025}]
         anios_out = allowed or anios
         periodos: list[str] = []
         for col in ("Mes", "Periodo"):
@@ -485,6 +504,12 @@ class ResumenService:
                 else ensure_nivel_cumplimiento(self._strategic.preparar_proyectos_con_cierre(anio, 12))
             )
             chips = get_chip_config_proyectos(proy_df)
+            if rango:
+                vigente_total = self._count_proyectos_ciclo_vigente()
+                con_cierre = int(proy_df["Id"].nunique()) if not proy_df.empty and "Id" in proy_df.columns else 0
+                chips[0]["value"] = vigente_total
+                # Proyectos del ciclo sin cierres cargados aun: se cuentan como Planeacion.
+                chips[3]["value"] = chips[3]["value"] + max(vigente_total - con_cierre, 0)
             linea_summary = build_linea_summary(proy_df, unique_count_col="Id", count_col_name="N_Proyectos")
             historico_df = proy_df
             cards = build_strategy_cards(linea_summary, historico_df, vista=vista_norm)
@@ -527,7 +552,7 @@ class ResumenService:
             else:
                 linea_df, obj_df = self._retos.load_retos_data(anio)
                 planes_df = self._retos.load_planes(anio)
-            area_count = self._retos.load_area_count(anio)
+            area_count = self._retos.load_area_count(max(ANIOS_RANGO) if rango else anio)
             linea_summary = build_linea_summary_retos(linea_df, obj_df, planes_df)
             chips = get_chip_config_retos(linea_summary, area_count)
             cards = build_strategy_cards(linea_summary, linea_df, vista=vista_norm)
@@ -572,10 +597,15 @@ class ResumenService:
             linea_summary, objetivo_df = merge_consolidado_summaries(s1, s2, s3, o1, o2, o3)
 
             ind_count = int(pdi_df["Id"].nunique()) if not pdi_df.empty and "Id" in pdi_df.columns else 0
-            proy_count = int(proy_df["Id"].nunique()) if not proy_df.empty and "Id" in proy_df.columns else 0
+            proy_count = (
+                self._count_proyectos_ciclo_vigente()
+                if rango
+                else (int(proy_df["Id"].nunique()) if not proy_df.empty and "Id" in proy_df.columns else 0)
+            )
             retos_count = int(linea_summary["N_Retos"].sum()) if not linea_summary.empty and "N_Retos" in linea_summary.columns else 0
+            area_count = self._retos.load_area_count(max(ANIOS_RANGO) if rango else anio)
 
-            chips = get_chip_config_consolidado(linea_summary, ind_count, proy_count, retos_count)
+            chips = get_chip_config_consolidado(linea_summary, ind_count, proy_count, area_count)
             cards = build_strategy_cards(linea_summary, None, vista=vista_norm)
             sunburst = build_sunburst_plotly(objetivo_df)
             narrativa = generate_narrative_consolidado(

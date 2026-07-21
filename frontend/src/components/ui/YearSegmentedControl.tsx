@@ -59,7 +59,7 @@ export function YearSegmentedControl({
               : "bg-slate-100 text-slate-600 hover:bg-slate-200"
           }`}
         >
-          Consolidado 2022-2025
+          Cierre PDI 2022-2025
         </button>
       )}
     </div>

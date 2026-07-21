@@ -718,14 +718,14 @@ def get_chip_config_consolidado(
     linea_summary: pd.DataFrame,
     ind_count: int,
     proy_count: int,
-    retos_count: int,
+    area_count: int,
 ) -> list[dict]:
     cumpl_pdi = float(linea_summary["Cumpl_Promedio"].mean()) if not linea_summary.empty else 0.0
     return [
         {"value": f"{cumpl_pdi:.1f}%", "label": "Cumplimiento PDI %", "color": "#0B5FFF"},
         {"value": ind_count, "label": "Indicadores", "color": "#173D66"},
         {"value": proy_count, "label": "Proyectos", "color": "#16A34A"},
-        {"value": retos_count, "label": "Plan de Retos", "color": "#7C3AED"},
+        {"value": area_count, "label": "Áreas con Retos", "color": "#7C3AED"},
     ]
 
 
