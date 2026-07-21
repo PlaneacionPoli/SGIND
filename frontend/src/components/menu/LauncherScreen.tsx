@@ -10,6 +10,7 @@ import {
 } from "@/config/navigation";
 import { useAuthStore } from "@/stores/auth-store";
 import { LauncherCard } from "@/components/menu/LauncherCard";
+import { LauncherTimelineItem } from "@/components/menu/LauncherTimelineItem";
 import { useGreeting } from "@/components/menu/useGreeting";
 
 function isHighlighted(roles: Role[] | undefined, currentRole: string | null) {
@@ -66,26 +67,17 @@ export function LauncherScreen() {
           )}
         </header>
 
-        <section>
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {items.map((item, index) => (
-              <div key={item.href} className="relative">
-                <span
-                  aria-hidden="true"
-                  className="absolute -left-2 -top-2 z-10 flex h-6 w-6 items-center justify-center rounded-full border border-white bg-white text-2xs font-bold text-muted-fg shadow-card"
-                >
-                  {String(index + 1).padStart(2, "0")}
-                </span>
-                <LauncherCard
-                  href={item.href}
-                  label={item.label}
-                  meta={item.meta}
-                  index={index}
-                  highlighted={item.highlighted}
-                />
-              </div>
-            ))}
-          </div>
+        <section className="space-y-6 py-2">
+          {items.map((item, index) => (
+            <LauncherTimelineItem
+              key={item.href}
+              href={item.href}
+              label={item.label}
+              meta={item.meta}
+              index={index}
+              highlighted={item.highlighted}
+            />
+          ))}
         </section>
 
         {BETA_ITEMS.length > 0 && (

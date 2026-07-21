@@ -52,6 +52,8 @@ export interface NavItemMeta {
   accent: AccentKey;
   /** Métrica corta opcional mostrada en la tarjeta destacada (ej. "8 procesos"). */
   highlight?: string;
+  /** Color hex sólido para el menú de inicio en formato "línea de tiempo". */
+  pillColor: string;
 }
 
 // Metadatos usados solo por el menú de inicio (launcher) — no afecta al Sidebar.
@@ -61,6 +63,7 @@ export const NAV_ITEM_META: Record<string, NavItemMeta> = {
     description: "Vista consolidada de indicadores institucionales",
     accent: "blue",
     highlight: "Vista general",
+    pillColor: "#0B5D75",
   },
   "/cmi-estrategico": {
     Icon: Target,
@@ -68,6 +71,7 @@ export const NAV_ITEM_META: Record<string, NavItemMeta> = {
     roles: ["calidad"],
     accent: "violet",
     highlight: "Estratégico",
+    pillColor: "#0E7A81",
   },
   "/cmi-procesos": {
     Icon: Workflow,
@@ -75,6 +79,7 @@ export const NAV_ITEM_META: Record<string, NavItemMeta> = {
     roles: ["procesos"],
     accent: "teal",
     highlight: "Por proceso",
+    pillColor: "#10967D",
   },
   "/informe-procesos": {
     Icon: FileText,
@@ -82,6 +87,7 @@ export const NAV_ITEM_META: Record<string, NavItemMeta> = {
     roles: ["procesos"],
     accent: "sky",
     highlight: "Informes",
+    pillColor: "#14B489",
   },
   "/plan-mejoramiento": {
     Icon: TrendingUp,
@@ -89,6 +95,7 @@ export const NAV_ITEM_META: Record<string, NavItemMeta> = {
     roles: ["calidad"],
     accent: "amber",
     highlight: "Mejora continua",
+    pillColor: "#D97706",
   },
   "/seguimiento-operativo": {
     Icon: Activity,
@@ -96,6 +103,7 @@ export const NAV_ITEM_META: Record<string, NavItemMeta> = {
     roles: ["desempeno"],
     accent: "rose",
     highlight: "Tiempo real",
+    pillColor: "#E11D48",
   },
   "/gestion-om": {
     Icon: ClipboardList,
@@ -103,6 +111,7 @@ export const NAV_ITEM_META: Record<string, NavItemMeta> = {
     roles: ["desempeno"],
     accent: "emerald",
     highlight: "Oportunidades",
+    pillColor: "#059669",
   },
 };
 
@@ -111,10 +120,12 @@ export const BETA_ITEM_META: Record<string, NavItemMeta> = {
     Icon: Award,
     description: "Plan de desarrollo institucional para acreditación",
     accent: "indigo",
+    pillColor: "#4338CA",
   },
   "/diagnostico": {
     Icon: Search,
     description: "Diagnóstico institucional",
     accent: "slate",
+    pillColor: "#475569",
   },
 };
