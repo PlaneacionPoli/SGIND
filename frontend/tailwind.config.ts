@@ -79,11 +79,22 @@ const config: Config = {
           "0%":   { opacity: "0", transform: "translateX(-8px)" },
           "100%": { opacity: "1", transform: "translateX(0)" },
         },
+        blob: {
+          "0%, 100%": { transform: "translate(0px, 0px) scale(1)" },
+          "33%":      { transform: "translate(4%, -6%) scale(1.1)" },
+          "66%":      { transform: "translate(-3%, 4%) scale(0.95)" },
+        },
+        "blob-slow": {
+          "0%, 100%": { transform: "translate(0px, 0px) scale(1)" },
+          "50%":      { transform: "translate(-5%, 5%) scale(1.08)" },
+        },
       },
       animation: {
         shimmer:  "shimmer 1.6s ease-in-out infinite",
         "fade-in":"fade-in 0.2s ease-out",
         "slide-in":"slide-in 0.18s ease-out",
+        blob:     "blob 16s ease-in-out infinite",
+        "blob-slow": "blob-slow 22s ease-in-out infinite",
       },
 
       // ─── Transiciones ──────────────────────────────────────────────────────
