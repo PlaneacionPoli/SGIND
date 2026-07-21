@@ -15,7 +15,6 @@ export function Sidebar() {
           Politécnico Grancolombiano
         </div>
         <h1 className="mt-1 text-lg font-bold leading-tight">Sistema de Indicadores</h1>
-        <p className="mt-1 text-xs text-slate-300">SGIND v2 — Migración</p>
       </div>
 
       <nav className="flex-1 overflow-y-auto px-3 py-4">

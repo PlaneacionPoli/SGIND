@@ -67,7 +67,7 @@ export function LauncherScreen() {
           )}
         </header>
 
-        <section className="space-y-6 py-2">
+        <section className="mx-auto max-w-3xl space-y-5 py-2">
           {items.map((item, index) => (
             <LauncherTimelineItem
               key={item.href}
