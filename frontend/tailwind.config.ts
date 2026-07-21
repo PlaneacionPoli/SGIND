@@ -80,21 +80,22 @@ const config: Config = {
           "100%": { opacity: "1", transform: "translateX(0)" },
         },
         blob: {
-          "0%, 100%": { transform: "translate(0px, 0px) scale(1)" },
-          "33%":      { transform: "translate(4%, -6%) scale(1.1)" },
-          "66%":      { transform: "translate(-3%, 4%) scale(0.95)" },
+          "0%, 100%": { transform: "translate(0%, 0%) scale(1)" },
+          "25%":      { transform: "translate(22%, -18%) scale(1.25)" },
+          "50%":      { transform: "translate(-15%, 12%) scale(0.85)" },
+          "75%":      { transform: "translate(-25%, -14%) scale(1.15)" },
         },
         "blob-slow": {
-          "0%, 100%": { transform: "translate(0px, 0px) scale(1)" },
-          "50%":      { transform: "translate(-5%, 5%) scale(1.08)" },
+          "0%, 100%": { transform: "translate(0%, 0%) scale(1)" },
+          "50%":      { transform: "translate(-28%, 20%) scale(1.3)" },
         },
       },
       animation: {
         shimmer:  "shimmer 1.6s ease-in-out infinite",
         "fade-in":"fade-in 0.2s ease-out",
         "slide-in":"slide-in 0.18s ease-out",
-        blob:     "blob 16s ease-in-out infinite",
-        "blob-slow": "blob-slow 22s ease-in-out infinite",
+        blob:     "blob 12s ease-in-out infinite",
+        "blob-slow": "blob-slow 16s ease-in-out infinite",
       },
 
       // ─── Transiciones ──────────────────────────────────────────────────────

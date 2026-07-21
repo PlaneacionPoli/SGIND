@@ -18,9 +18,9 @@ const ERROR_MESSAGES: Record<string, string> = {
 function AnimatedBackground() {
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden">
-      <div className="absolute -left-32 -top-32 h-[28rem] w-[28rem] animate-blob rounded-full bg-poli-blue/30 blur-3xl" />
-      <div className="absolute -right-24 top-1/3 h-[24rem] w-[24rem] animate-blob-slow rounded-full bg-cyan-500/20 blur-3xl [animation-delay:-6s]" />
-      <div className="absolute bottom-[-10rem] left-1/4 h-[26rem] w-[26rem] animate-blob rounded-full bg-poli-navy/40 blur-3xl [animation-delay:-11s]" />
+      <div className="absolute -left-32 -top-32 h-[32rem] w-[32rem] animate-blob rounded-full bg-poli-blue/45 blur-2xl" />
+      <div className="absolute -right-24 top-1/3 h-[28rem] w-[28rem] animate-blob-slow rounded-full bg-cyan-400/35 blur-2xl [animation-delay:-6s]" />
+      <div className="absolute bottom-[-12rem] left-1/4 h-[30rem] w-[30rem] animate-blob rounded-full bg-poli-blue/30 blur-2xl [animation-delay:-9s]" />
       <div
         className="absolute inset-0 opacity-[0.04]"
         style={{
