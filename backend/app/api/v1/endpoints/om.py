@@ -5,6 +5,7 @@ from app.api.deps import get_excel_service
 from app.core.config import Settings, get_settings
 from app.core.database import get_db
 from app.core.security import require_admin, require_reader
+from app.domain.om_builders import load_plan_accion_para_om
 from app.models.user import User
 from app.schemas.common import RegistroOMCerrar, RegistroOMCreate, RegistroOMResponse, RegistroOMUpdate
 from app.services.excel_reader import ExcelReaderService
@@ -42,6 +43,19 @@ async def om_matriz(
         subproceso=subproceso,
         mostrar_alerta=mostrar_alerta,
     )
+
+
+@router.get("/plan-accion")
+async def om_plan_accion(
+    numero_om: str = Query(...),
+    _user: User = Depends(require_reader),
+    excel: ExcelReaderService = Depends(_excel),
+) -> list[dict]:
+    """Actividades del plan de acción asociadas a un numero_om/identificador.
+
+    Paridad con el detalle 'Ver más' de streamlit_app/pages/gestion_om.py.
+    """
+    return load_plan_accion_para_om(excel, numero_om)
 
 
 @router.get("", response_model=list[RegistroOMResponse])

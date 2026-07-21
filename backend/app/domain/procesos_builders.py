@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import math
+import re
 import unicodedata
 from datetime import date
 from typing import Any
@@ -313,6 +314,40 @@ def build_banner(
         "en_riesgo": en_riesgo,
         "pct_saludable": pct_saludable,
     }
+
+
+AMBIENTAL_PATTERN = re.compile(
+    r"ambiental|medio ambiente|sostenibilidad|sustentabilidad", re.IGNORECASE
+)
+
+
+def build_brecha_ambiental(df: pd.DataFrame) -> dict[str, Any]:
+    """Paridad con Streamlit: insight de 'Brecha ambiental crítica' del corte actual.
+
+    Filtra indicadores cuyo proceso coincide con temática ambiental/sostenibilidad
+    y reporta su cumplimiento promedio, o un mensaje por defecto si no hay datos.
+    """
+    default_text = "No se identificó una brecha ambiental crítica clara en los indicadores activos."
+    if df.empty:
+        return {"n_indicadores": 0, "cumplimiento_promedio": None, "texto": default_text}
+
+    col = "Proceso_padre" if "Proceso_padre" in df.columns else "Proceso"
+    if col not in df.columns:
+        return {"n_indicadores": 0, "cumplimiento_promedio": None, "texto": default_text}
+
+    mask = df[col].astype(str).str.contains(AMBIENTAL_PATTERN, na=False)
+    env_df = df[mask]
+    if env_df.empty or "cumplimiento_pct" not in env_df.columns:
+        return {"n_indicadores": 0, "cumplimiento_promedio": None, "texto": default_text}
+
+    valores = pd.to_numeric(env_df["cumplimiento_pct"], errors="coerce").dropna()
+    if valores.empty:
+        return {"n_indicadores": 0, "cumplimiento_promedio": None, "texto": default_text}
+
+    count = int(len(valores))
+    promedio = round(float(valores.mean()), 1)
+    texto = f"Los {count} indicadores de Gestión Ambiental reportan {promedio}% de cumplimiento en el periodo actual."
+    return {"n_indicadores": count, "cumplimiento_promedio": promedio, "texto": texto}
 
 
 def _normalize_tipo(tipo: str) -> str:
@@ -689,6 +724,7 @@ def build_vista_global(
         "comparativa_procesos": build_comparativa_procesos(latest, df_base_year),
         "variacion": build_variacion_analisis(latest, df_base_year if not df_base_year.empty else df_global),
         "alertas_criticas": build_alertas_criticas(latest),
+        "brecha_ambiental": build_brecha_ambiental(latest),
     }
 
 

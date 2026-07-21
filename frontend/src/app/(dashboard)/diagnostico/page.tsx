@@ -95,16 +95,26 @@ function useSystemChecks(isAuthenticated: boolean) {
 }
 
 const MODULOS = [
-  { modulo: "Resumen General", ruta: "/resumen-general" },
-  { modulo: "CMI Estratégico", ruta: "/cmi-estrategico" },
-  { modulo: "CMI Procesos", ruta: "/cmi-procesos" },
-  { modulo: "Gestión OM", ruta: "/gestion-om" },
-  { modulo: "Plan de Mejoramiento", ruta: "/plan-mejoramiento" },
-  { modulo: "Seguimiento Operativo", ruta: "/seguimiento-operativo" },
-  { modulo: "Informe por Procesos", ruta: "/informe-procesos" },
-  { modulo: "PDI / Acreditación", ruta: "/pdi-acreditacion" },
-  { modulo: "Diagnóstico", ruta: "/diagnostico" },
-];
+  { modulo: "Resumen General", ruta: "/resumen-general", check: "Datos CMI" },
+  { modulo: "CMI Estratégico", ruta: "/cmi-estrategico", check: "Datos CMI" },
+  { modulo: "CMI Procesos", ruta: "/cmi-procesos", check: "Datos CMI" },
+  { modulo: "Gestión OM", ruta: "/gestion-om", check: "Backend API" },
+  { modulo: "Plan de Mejoramiento", ruta: "/plan-mejoramiento", check: "Plan de Mejoramiento" },
+  { modulo: "Seguimiento Operativo", ruta: "/seguimiento-operativo", check: "Datos Seguimiento" },
+  { modulo: "Informe por Procesos", ruta: "/informe-procesos", check: "Datos CMI" },
+  { modulo: "PDI / Acreditación", ruta: "/pdi-acreditacion", check: "Backend API" },
+  { modulo: "Diagnóstico", ruta: "/diagnostico", check: "Backend API" },
+] as const;
+
+const MODULE_STATUS_STYLES: Record<
+  CheckResult["status"],
+  { label: string; badge: string }
+> = {
+  ok: { label: "Conectado", badge: "bg-green-100 text-green-800" },
+  warn: { label: "Sin datos", badge: "bg-amber-100 text-amber-800" },
+  error: { label: "Desconectado", badge: "bg-red-100 text-red-800" },
+  loading: { label: "Verificando…", badge: "bg-slate-100 text-slate-600" },
+};
 
 export default function DiagnosticoPage() {
   const { isAuthenticated } = useAuthReady();
@@ -194,17 +204,21 @@ export default function DiagnosticoPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {MODULOS.map((row) => (
-              <tr key={row.ruta} className="hover:bg-slate-50">
-                <td className="px-3 py-2 font-medium text-slate-800">{row.modulo}</td>
-                <td className="px-3 py-2 font-mono text-xs text-slate-500">{row.ruta}</td>
-                <td className="px-3 py-2">
-                  <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">
-                    Conectado
-                  </span>
-                </td>
-              </tr>
-            ))}
+            {MODULOS.map((row) => {
+              const status = checks.find((c) => c.label === row.check)?.status ?? "loading";
+              const m = MODULE_STATUS_STYLES[status];
+              return (
+                <tr key={row.ruta} className="hover:bg-slate-50">
+                  <td className="px-3 py-2 font-medium text-slate-800">{row.modulo}</td>
+                  <td className="px-3 py-2 font-mono text-xs text-slate-500">{row.ruta}</td>
+                  <td className="px-3 py-2">
+                    <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${m.badge}`}>
+                      {m.label}
+                    </span>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>

@@ -46,6 +46,14 @@ export default function SeguimientoOperativoPage() {
   const anioEff = anio ?? query.data?.filtros.anio_default ?? new Date().getFullYear();
   const data = query.data;
 
+  const detalle = data?.detalle ?? [];
+  const DETALLE_DISPLAY_LIMIT = 200;
+  const detalleVisible = detalle.slice(0, DETALLE_DISPLAY_LIMIT);
+  const totalRegistros = data?.kpis.registros ?? detalle.length;
+  const isTruncated = detalle.length > DETALLE_DISPLAY_LIMIT || totalRegistros > detalleVisible.length;
+  const FALLBACK_COLUMNS = ["Id", "Indicador", "Proceso", "Año", "Mes", "Estado", "Periodicidad"];
+  const columnas = detalle.length > 0 ? Object.keys(detalle[0]) : FALLBACK_COLUMNS;
+
   const chartData = data?.estado_por_proceso ?? [];
   const estadosUnicos = Array.from(new Set(chartData.flatMap((p) => p.estados.map((e) => e.estado))));
   const traces = estadosUnicos.map((est) => ({
@@ -182,29 +190,38 @@ export default function SeguimientoOperativoPage() {
             </button>
           </div>
 
+          {isTruncated ? (
+            <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+              Mostrando {detalleVisible.length} de {totalRegistros} registros — usa &quot;Descargar Excel&quot;
+              para exportar el conjunto completo.
+            </p>
+          ) : null}
+
           <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
             <table className="min-w-full text-left text-sm">
               <thead className="bg-slate-50 text-xs uppercase text-slate-500">
                 <tr>
-                  {["Id", "Indicador", "Proceso", "Año", "Mes", "Estado", "Periodicidad"].map((h) => (
-                    <th key={h} className="px-3 py-2">
+                  {columnas.map((h) => (
+                    <th key={h} className="whitespace-nowrap px-3 py-2">
                       {h}
                     </th>
                   ))}
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {(data?.detalle ?? []).slice(0, 200).map((row, i) => (
+                {detalleVisible.map((row, i) => (
                   <tr key={i} className="hover:bg-slate-50">
-                    <td className="px-3 py-2 font-mono text-xs">{String(row.Id ?? "")}</td>
-                    <td className="px-3 py-2">{String(row.Indicador ?? "")}</td>
-                    <td className="px-3 py-2">{String(row.Proceso ?? "")}</td>
-                    <td className="px-3 py-2">{String(row["Año"] ?? "")}</td>
-                    <td className="px-3 py-2">{String(row.Mes ?? "")}</td>
-                    <td className="px-3 py-2">
-                      <EstadoBadge estado={String(row.Estado ?? "")} colores={data?.estado_colores} />
-                    </td>
-                    <td className="px-3 py-2">{String(row.Periodicidad ?? "")}</td>
+                    {columnas.map((col) => (
+                      <td key={col} className="whitespace-nowrap px-3 py-2">
+                        {col === "Id" ? (
+                          <span className="font-mono text-xs">{String(row[col] ?? "")}</span>
+                        ) : col === "Estado" ? (
+                          <EstadoBadge estado={String(row[col] ?? "")} colores={data?.estado_colores} />
+                        ) : (
+                          String(row[col] ?? "")
+                        )}
+                      </td>
+                    ))}
                   </tr>
                 ))}
               </tbody>

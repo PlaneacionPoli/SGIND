@@ -196,6 +196,11 @@ export interface CMIProcesosVistaGlobal {
     empeoraron: Array<{ name: string; change: number }>;
   };
   alertas_criticas: CMIAlertaCritica[];
+  brecha_ambiental: {
+    n_indicadores: number;
+    cumplimiento_promedio: number | null;
+    texto: string;
+  };
 }
 
 export interface CMIProcesosDashboardResponse {
@@ -507,6 +512,11 @@ export interface CMIFichaIndicador extends Indicator {
     cumplimiento?: number;
   }>;
   linea_color?: string;
+  tendencia?: string;
+  "Responsable del calculo"?: string;
+  "Fuente V1"?: string;
+  Formula?: string;
+  Frecuencia?: string;
   narrativa_ia?: {
     diagnostico: string;
     riesgo: string;
@@ -786,6 +796,7 @@ export interface InformeDashboardResponse extends CMIProcesosDashboardResponse {
         campo: string;
         label: string;
         valor: string;
+        items: string[];
         pill_bg: string;
         pill_text: string;
         dot_color: string;
@@ -798,6 +809,8 @@ export interface InformeDashboardResponse extends CMIProcesosDashboardResponse {
     conteos: { peligro: number; alerta: number; saludables: number };
     top_peligro: Array<Record<string, unknown>>;
     top_alerta: Array<Record<string, unknown>>;
+    mostrados_peligro: number;
+    mostrados_alerta: number;
   };
 }
 
@@ -862,4 +875,13 @@ export interface RegistroOMUpdate {
 
 export interface RegistroOMCerrar {
   comentario?: string;
+}
+
+export interface OMPlanAccionActividad {
+  id_accion: string;
+  accion: string;
+  responsable: string;
+  avance: string;
+  estado_plan: string;
+  estado_om: string;
 }

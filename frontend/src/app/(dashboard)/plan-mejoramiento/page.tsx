@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { CmiCumplimientoHorizBarPlotly } from "@/components/cmi/CmiCumplimientoHorizBarPlotly";
 import { CmiDonutNivelPlotly } from "@/components/cmi/CmiDonutNivelPlotly";
+import { PmFactorNivelStackedChart } from "@/components/cmi/PmFactorNivelStackedChart";
+import { PmFactorCaracteristicaTreemap } from "@/components/cmi/PmFactorCaracteristicaTreemap";
 import { KPICard } from "@/components/ui/KPICard";
 import { YearSegmentedControl } from "@/components/ui/YearSegmentedControl";
 import { fetchPlanMejoramientoDashboard } from "@/lib/api";
@@ -42,6 +44,20 @@ export default function PlanMejoramientoPage() {
 
   const data = query.data;
   const anioEff = anio ?? data?.filtros_corte.anio_default ?? new Date().getFullYear();
+
+  const resetFiltros = () => {
+    setAnio(data?.filtros_corte.anio_default ?? null);
+    setCorte(data?.filtros_corte.corte_default ?? "Diciembre");
+    setFactor("Todos");
+    setCaracteristica("Todas");
+    setNombre("");
+  };
+
+  const filtrosActivos: string[] = [];
+  if (factor !== "Todos") filtrosActivos.push(`Factor: ${factor}`);
+  if (caracteristica !== "Todas") filtrosActivos.push(`Característica: ${caracteristica}`);
+  if (nombre.trim()) filtrosActivos.push(`Indicador contiene: ${nombre.trim()}`);
+
   const donutData = (data?.graficos.nivel_donut ?? []).map((d) => ({
     nivel: d.nivel,
     cantidad: d.cantidad,
@@ -68,7 +84,16 @@ export default function PlanMejoramientoPage() {
       ) : (
         <>
           <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-            <p className="mb-3 text-xs font-bold uppercase tracking-wide text-slate-500">Filtros de corte</p>
+            <div className="flex items-start justify-between gap-3">
+              <p className="mb-3 text-xs font-bold uppercase tracking-wide text-slate-500">Filtros de corte</p>
+              <button
+                type="button"
+                onClick={resetFiltros}
+                className="rounded-lg border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 hover:bg-slate-50"
+              >
+                Restablecer filtros
+              </button>
+            </div>
             <div className="flex flex-wrap gap-4">
               {data?.filtros_corte.anios?.length ? (
                 <YearSegmentedControl years={data.filtros_corte.anios} anio={anioEff} onChange={setAnio} />
@@ -88,46 +113,63 @@ export default function PlanMejoramientoPage() {
                 ))}
               </div>
             </div>
+            <p className="mt-2 text-xs text-slate-500">
+              Seleccione el año y el corte semestral (Junio o Diciembre) para calcular el cumplimiento.
+            </p>
           </div>
 
           <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
             <p className="mb-3 text-xs font-bold uppercase tracking-wide text-slate-500">Filtros CNA</p>
             <div className="grid gap-3 sm:grid-cols-3">
-              <select
-                className="rounded-lg border border-slate-200 px-3 py-2 text-sm"
-                value={factor}
-                onChange={(e) => {
-                  setFactor(e.target.value);
-                  setCaracteristica("Todas");
-                }}
-              >
-                <option value="Todos">Todos los factores</option>
-                {(data?.filtros_cna.factores ?? []).map((f) => (
-                  <option key={f} value={f}>
-                    {f}
-                  </option>
-                ))}
-              </select>
-              <select
-                className="rounded-lg border border-slate-200 px-3 py-2 text-sm"
-                value={caracteristica}
-                onChange={(e) => setCaracteristica(e.target.value)}
-              >
-                <option value="Todas">Todas las características</option>
-                {(data?.filtros_cna.caracteristicas ?? []).map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </select>
-              <input
-                type="search"
-                placeholder="Buscar indicador…"
-                className="rounded-lg border border-slate-200 px-3 py-2 text-sm"
-                value={nombre}
-                onChange={(e) => setNombre(e.target.value)}
-              />
+              <div>
+                <select
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                  value={factor}
+                  onChange={(e) => {
+                    setFactor(e.target.value);
+                    setCaracteristica("Todas");
+                  }}
+                >
+                  <option value="Todos">Todos los factores</option>
+                  {(data?.filtros_cna.factores ?? []).map((f) => (
+                    <option key={f} value={f}>
+                      {f}
+                    </option>
+                  ))}
+                </select>
+                <p className="mt-1 text-xs text-slate-500">Filtra los indicadores por Factor del CNA.</p>
+              </div>
+              <div>
+                <select
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                  value={caracteristica}
+                  onChange={(e) => setCaracteristica(e.target.value)}
+                >
+                  <option value="Todas">Todas las características</option>
+                  {(data?.filtros_cna.caracteristicas ?? []).map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
+                <p className="mt-1 text-xs text-slate-500">
+                  Depende del Factor seleccionado; muestra solo sus características.
+                </p>
+              </div>
+              <div>
+                <input
+                  type="search"
+                  placeholder="Buscar indicador…"
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                  value={nombre}
+                  onChange={(e) => setNombre(e.target.value)}
+                />
+                <p className="mt-1 text-xs text-slate-500">Busca coincidencias de texto en el nombre del indicador.</p>
+              </div>
             </div>
+            {filtrosActivos.length ? (
+              <p className="mt-2 text-xs text-slate-500">Filtros activos: {filtrosActivos.join(" · ")}</p>
+            ) : null}
             <p className="mt-2 text-xs text-slate-500">
               Corte seleccionado: {corte} {anioEff}
             </p>
@@ -155,6 +197,22 @@ export default function PlanMejoramientoPage() {
             <div className="rounded-xl border border-slate-200 bg-white p-4">
               <h3 className="mb-2 text-sm font-bold text-slate-800">Distribución de niveles</h3>
               <CmiDonutNivelPlotly data={donutData} total={donutTotal} />
+            </div>
+          </div>
+
+          <div>
+            <h3 className="mb-3 text-lg font-semibold text-slate-800">Gráficas adicionales</h3>
+            <div className="grid gap-4 lg:grid-cols-2">
+              <div className="rounded-xl border border-slate-200 bg-white p-4">
+                <h4 className="mb-2 text-sm font-bold text-slate-800">Indicadores por factor y nivel</h4>
+                <PmFactorNivelStackedChart data={data?.graficos.factor_nivel_stacked ?? []} />
+              </div>
+              <div className="rounded-xl border border-slate-200 bg-white p-4">
+                <h4 className="mb-2 text-sm font-bold text-slate-800">
+                  Mapa de indicadores por factor y característica
+                </h4>
+                <PmFactorCaracteristicaTreemap data={data?.graficos.treemap ?? []} />
+              </div>
             </div>
           </div>
 

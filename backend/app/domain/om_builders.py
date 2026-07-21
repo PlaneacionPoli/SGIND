@@ -151,6 +151,108 @@ def load_avance_om(excel) -> dict[str, float]:
     return df_all.groupby("Id_OM")["Avance"].mean().round(1).to_dict()
 
 
+def load_plan_accion_para_om(excel, numero_om: str) -> list[dict[str, Any]]:
+    """Carga las actividades del plan de acción asociadas a un numero_om/identificador.
+
+    Paridad con streamlit_app/pages/gestion_om.py::_cargar_plan_accion_para_om +
+    _normalizar_campos_plan_accion. Retorna una lista de dicts con las columnas
+    Id Acción, Acción, Responsable de ejecución, Avance (%), Estado (Plan de Acción)
+    y Estado (Oportunidad de mejora).
+    """
+    if not numero_om:
+        return []
+    base = excel.data_root / _PLAN_ACCION_DIR
+    if not base.exists():
+        return []
+
+    candidatos = [str(numero_om).strip()]
+    normalizado = _id_str(numero_om)
+    if normalizado and normalizado not in candidatos:
+        candidatos.append(normalizado)
+    digitos = _extraer_digitos(str(numero_om))
+    if digitos and digitos not in candidatos:
+        candidatos.append(digitos)
+
+    rows: list[dict[str, Any]] = []
+    for f in base.glob("*.xlsx"):
+        try:
+            df = pd.read_excel(f, dtype=str, na_filter=False)
+        except Exception:
+            continue
+        cols = df.columns.tolist()
+        id_col = next((c for c in cols if "Id Oportunidad de mejora" in c), None)
+        if not id_col:
+            id_col = next((c for c in cols if c.startswith("Id ") and "Oportunidad" in c), None)
+        if not id_col or id_col not in df.columns:
+            continue
+
+        serie_id = df[id_col].astype(str).str.strip()
+        mask = serie_id.isin(candidatos)
+        if not mask.any():
+            serie_norm = serie_id.apply(_id_str)
+            mask = serie_norm.isin(candidatos)
+        subset = df.loc[mask, :]
+        if subset.empty:
+            continue
+
+        for _, row in subset.iterrows():
+            id_accion = str(row.get("Id Acción", "")).strip() or str(row.get("Id Accion", "")).strip()
+            accion = str(row.get("Acción", "")).strip() or str(row.get("Accion", "")).strip()
+            if not accion:
+                accion = (
+                    str(row.get("Descripción", "")).strip()
+                    or str(row.get("Descripcion", "")).strip()
+                )
+            resp = (
+                str(row.get("Responsable de ejecución", ""))
+                or str(row.get("Responsable", ""))
+                or str(row.get("Fuente de Identificación", ""))
+            )
+            avance = row.get("Avance (%)", row.get("Avance", ""))
+            if avance is None or (isinstance(avance, float) and pd.isna(avance)):
+                avance = ""
+            estado_plan = str(row.get("Estado (Plan de Acción)", "")) or str(
+                row.get("Estado (Plan Acción)", "")
+            )
+            estado_om = str(row.get("Estado (Oportunidad de mejora)", "")) or str(
+                row.get("Estado de Oportunidad", "")
+            )
+            rows.append(
+                {
+                    "id_accion": id_accion,
+                    "accion": accion,
+                    "responsable": resp.strip(),
+                    "avance": _formatear_avance_plan(avance),
+                    "estado_plan": estado_plan.strip(),
+                    "estado_om": estado_om.strip(),
+                }
+            )
+
+    if not rows:
+        return []
+
+    # Deduplicar por Id Acción (o por Acción si no hay id)
+    vistos: set[str] = set()
+    dedupe: list[dict[str, Any]] = []
+    for r in rows:
+        key = r["id_accion"] or r["accion"]
+        if not key or key in vistos:
+            continue
+        vistos.add(key)
+        dedupe.append(r)
+    return dedupe
+
+
+def _formatear_avance_plan(avance: Any) -> str:
+    n = pd.to_numeric(avance, errors="coerce")
+    if pd.isna(n):
+        return "-"
+    n = float(n)
+    if n <= 1.5:
+        n *= 100
+    return f"{n:.1f}%"
+
+
 def filter_indicadores_riesgo(
     df: pd.DataFrame,
     *,

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { KPICard } from "@/components/ui/KPICard";
-import { cerrarOM, createOM, fetchOMMatriz, updateOM } from "@/lib/api";
+import { cerrarOM, createOM, fetchOMMatriz, fetchOMPlanAccion, updateOM } from "@/lib/api";
 import { useAuthReady, useAuthStore } from "@/stores/auth-store";
 
 const MESES = [
@@ -12,6 +12,14 @@ const MESES = [
 ];
 
 const TIPOS_ACCION = ["OM Kawak", "Reto Plan Anual", "Proyecto Institucional", "Otro"];
+
+// Placeholder contextual por tipo de acción — paridad con streamlit_app/pages/gestion_om.py
+const PLACEHOLDERS_TIPO_ACCION: Record<string, string> = {
+  "OM Kawak": "N° OM Kawak",
+  "Reto Plan Anual": "Nombre del reto",
+  "Proyecto Institucional": "Nombre del proyecto",
+  Otro: "Descripción de la acción",
+};
 
 export default function GestionOMPage() {
   const { isAuthenticated } = useAuthReady();
@@ -30,6 +38,13 @@ export default function GestionOMPage() {
   const [tipoAccion, setTipoAccion] = useState("OM Kawak");
   const [numeroOm, setNumeroOm] = useState("");
   const [observacion, setObservacion] = useState("");
+  const [verMasOmId, setVerMasOmId] = useState<string | null>(null);
+
+  const planAccionQuery = useQuery({
+    queryKey: ["om-plan-accion", verMasOmId],
+    queryFn: () => fetchOMPlanAccion(verMasOmId as string),
+    enabled: isAuthenticated && !!verMasOmId,
+  });
 
   const query = useQuery({
     queryKey: ["om-matriz", anio, mes, proceso, subproceso, mostrarAlerta],
@@ -278,7 +293,7 @@ export default function GestionOMPage() {
                       className="rounded-lg border border-slate-200 px-3 py-2 text-sm"
                       value={numeroOm}
                       onChange={(e) => setNumeroOm(e.target.value)}
-                      placeholder="Identificador OM"
+                      placeholder={PLACEHOLDERS_TIPO_ACCION[tipoAccion] ?? "Identificador OM"}
                     />
                   </div>
                   <div className="min-w-[240px] flex-1">
@@ -336,6 +351,7 @@ export default function GestionOMPage() {
                       "Tipo de Acción",
                       "OM",
                       "Avance OM",
+                      "Plan de Acción",
                       ...(canEdit ? ["Acciones"] : []),
                     ].map((h) => (
                       <th key={h} className="whitespace-nowrap px-3 py-2">
@@ -390,6 +406,19 @@ export default function GestionOMPage() {
                           "—"
                         )}
                       </td>
+                      <td className="whitespace-nowrap px-3 py-2">
+                        {row.tiene_om === 1 && row.numero_om ? (
+                          <button
+                            type="button"
+                            onClick={() => setVerMasOmId(row.numero_om)}
+                            className="rounded border border-slate-300 px-2 py-1 text-xs font-medium text-slate-700 hover:bg-slate-100"
+                          >
+                            Ver más
+                          </button>
+                        ) : (
+                          "—"
+                        )}
+                      </td>
                       {canEdit && (
                         <td className="whitespace-nowrap px-3 py-2">
                           <div className="flex gap-2">
@@ -424,6 +453,55 @@ export default function GestionOMPage() {
             </div>
           )}
         </>
+      )}
+
+      {verMasOmId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="max-h-[80vh] w-full max-w-3xl overflow-y-auto rounded-xl bg-white p-5 shadow-xl">
+            <div className="mb-3 flex items-center justify-between">
+              <h4 className="text-lg font-semibold text-slate-900">
+                Plan de Acción — OM {verMasOmId}
+              </h4>
+              <button
+                type="button"
+                onClick={() => setVerMasOmId(null)}
+                className="rounded border border-slate-300 px-2 py-1 text-xs font-medium text-slate-600 hover:bg-slate-100"
+              >
+                Cerrar
+              </button>
+            </div>
+            {planAccionQuery.isLoading ? (
+              <div className="h-24 animate-pulse rounded-lg bg-slate-200" />
+            ) : !planAccionQuery.data?.length ? (
+              <p className="text-sm text-slate-500">OM {verMasOmId} sin actividades asociadas.</p>
+            ) : (
+              <div className="overflow-x-auto rounded-lg border border-slate-200">
+                <table className="min-w-full text-left text-sm">
+                  <thead className="bg-slate-100 text-xs uppercase text-slate-600">
+                    <tr>
+                      <th className="px-3 py-2">Acción</th>
+                      <th className="px-3 py-2">Responsable</th>
+                      <th className="px-3 py-2">Avance</th>
+                      <th className="px-3 py-2">Estado (Plan)</th>
+                      <th className="px-3 py-2">Estado (OM)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {planAccionQuery.data.map((act, idx) => (
+                      <tr key={act.id_accion || idx} className="border-t border-slate-200">
+                        <td className="px-3 py-2">{act.accion || "—"}</td>
+                        <td className="px-3 py-2">{act.responsable || "—"}</td>
+                        <td className="px-3 py-2">{act.avance || "—"}</td>
+                        <td className="px-3 py-2">{act.estado_plan || "—"}</td>
+                        <td className="px-3 py-2">{act.estado_om || "—"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </div>
       )}
     </div>
   );

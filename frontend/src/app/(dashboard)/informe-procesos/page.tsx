@@ -311,7 +311,17 @@ function InformeContent() {
                                       <span className="font-bold">
                                         {cat.emoji} {cat.label}
                                       </span>
-                                      <p className="mt-1 whitespace-pre-wrap">{cat.valor}</p>
+                                      <ul className="mt-1 space-y-1">
+                                        {(cat.items?.length ? cat.items : [cat.valor]).map((item, k) => (
+                                          <li key={k} className="flex items-start gap-2">
+                                            <span
+                                              className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full"
+                                              style={{ backgroundColor: cat.dot_color }}
+                                            />
+                                            <span className="whitespace-pre-wrap">{item}</span>
+                                          </li>
+                                        ))}
+                                      </ul>
                                     </div>
                                   ))}
                                 </div>
@@ -344,8 +354,16 @@ function InformeContent() {
                     <strong>{data.analisis_ia.conteos.alerta}</strong> en alerta ·{" "}
                     <strong>{data.analisis_ia.conteos.saludables}</strong> saludables
                   </p>
-                  <IATable title="Top riesgos (peligro)" rows={data.analisis_ia.top_peligro} />
-                  <IATable title="Top alertas" rows={data.analisis_ia.top_alerta} />
+                  <IATable
+                    title="Top riesgos (peligro)"
+                    rows={data.analisis_ia.top_peligro}
+                    total={data.analisis_ia.conteos.peligro}
+                  />
+                  <IATable
+                    title="Top alertas"
+                    rows={data.analisis_ia.top_alerta}
+                    total={data.analisis_ia.conteos.alerta}
+                  />
                 </section>
               )}
             </>
@@ -375,6 +393,8 @@ function DistCard({ label, value, color }: { label: string; value: number; color
   );
 }
 
+const PROPUESTAS_FUENTES = ["Retos", "Proyectos", "Plan de mejoramiento", "Calidad"] as const;
+
 function PropuestasGrid({
   propuestas,
 }: {
@@ -385,44 +405,75 @@ function PropuestasGrid({
     return acc;
   }, {});
   return (
-    <div className="space-y-6">
-      {Object.entries(byProceso).map(([proc, items]) => (
-        <div key={proc}>
-          <h4 className="mb-2 font-bold text-slate-800">{proc}</h4>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {["Retos", "Proyectos", "Plan de mejoramiento", "Calidad"].map((fuente) => {
-              const subset = items.filter((i) => i.fuente === fuente);
-              const style = subset[0]?.style ?? {};
-              return (
-                <div
-                  key={fuente}
-                  className="rounded-xl border-2 p-3"
-                  style={{ backgroundColor: style.bg, borderColor: style.border }}
-                >
-                  <p className="mb-2 text-sm font-bold" style={{ color: style.title }}>
-                    {fuente}
-                  </p>
-                  <ul className="space-y-1 text-xs">
-                    {subset.map((s, i) => (
-                      <li key={i}>
-                        <span className="text-slate-500">{s.subproceso}:</span> {s.indicador}
-                      </li>
-                    ))}
-                  </ul>
+    <div className="space-y-8">
+      {Object.entries(byProceso).map(([proc, procItems]) => {
+        const bySubproceso = procItems.reduce<Record<string, typeof procItems>>((acc, p) => {
+          (acc[p.subproceso] ??= []).push(p);
+          return acc;
+        }, {});
+        return (
+          <div key={proc}>
+            <h4 className="mb-3 text-base font-bold text-slate-900">{proc}</h4>
+            <div className="space-y-5 border-l-2 border-slate-200 pl-4">
+              {Object.entries(bySubproceso).map(([sub, items]) => (
+                <div key={sub}>
+                  <h5 className="mb-2 text-sm font-semibold text-slate-700">{sub}</h5>
+                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                    {PROPUESTAS_FUENTES.map((fuente) => {
+                      const subset = items.filter((i) => i.fuente === fuente);
+                      const style = subset[0]?.style ?? {};
+                      return (
+                        <div
+                          key={fuente}
+                          className="rounded-xl border-2 p-3"
+                          style={{ backgroundColor: style.bg, borderColor: style.border }}
+                        >
+                          <p className="mb-2 text-sm font-bold" style={{ color: style.title }}>
+                            {fuente}
+                          </p>
+                          {subset.length === 0 ? (
+                            <p className="text-xs text-slate-400">Sin propuestas</p>
+                          ) : (
+                            <ul className="space-y-1 text-xs">
+                              {subset.map((s, i) => (
+                                <li key={i}>{s.indicador}</li>
+                              ))}
+                            </ul>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
-              );
-            })}
+              ))}
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
 
-function IATable({ title, rows }: { title: string; rows: Array<Record<string, unknown>> }) {
+function IATable({
+  title,
+  rows,
+  total,
+}: {
+  title: string;
+  rows: Array<Record<string, unknown>>;
+  total?: number;
+}) {
+  const isTruncated = typeof total === "number" && total > rows.length;
   return (
     <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
-      <h4 className="border-b px-4 py-2 text-sm font-bold">{title}</h4>
+      <div className="flex items-center justify-between border-b px-4 py-2">
+        <h4 className="text-sm font-bold">{title}</h4>
+        {isTruncated && (
+          <span className="text-xs text-slate-500">
+            Mostrando {rows.length} de {total}
+          </span>
+        )}
+      </div>
       <table className="min-w-full text-sm">
         <thead className="bg-slate-50 text-xs uppercase text-slate-500">
           <tr>

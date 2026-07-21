@@ -18,6 +18,7 @@ import type {
   NarrativaResponse,
   InformeDashboardResponse,
   OMMatrizResponse,
+  OMPlanAccionActividad,
   PDIDashboardResponse,
   PlanMejoramientoDashboardResponse,
   RegistroOM,
@@ -296,6 +297,13 @@ export async function fetchOMMatriz(params: {
   mostrar_alerta?: boolean;
 }): Promise<OMMatrizResponse> {
   const { data } = await api.get<OMMatrizResponse>("/om/matriz", { params });
+  return data;
+}
+
+export async function fetchOMPlanAccion(numeroOm: string): Promise<OMPlanAccionActividad[]> {
+  const { data } = await api.get<OMPlanAccionActividad[]>("/om/plan-accion", {
+    params: { numero_om: numeroOm },
+  });
   return data;
 }
 

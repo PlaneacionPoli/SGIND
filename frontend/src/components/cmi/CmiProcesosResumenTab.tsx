@@ -46,7 +46,7 @@ function nivelLabel(d: { nivel?: string | null; cumplimiento: number | null }): 
 }
 
 export function CmiProcesosResumenTab({ vista, baseAnio }: CmiProcesosResumenTabProps) {
-  const { kpis, banner, distribucion_nivel, proceso_bars, catalog_charts, variacion_procesos } = vista;
+  const { kpis, banner, distribucion_nivel, proceso_bars, catalog_charts, variacion_procesos, brecha_ambiental } = vista;
   const mejoraronProcesos = (variacion_procesos?.mejoraron ?? []).map((r) => ({
     indicador: r.name,
     variacion: r.change,
@@ -94,11 +94,13 @@ export function CmiProcesosResumenTab({ vista, baseAnio }: CmiProcesosResumenTab
       </div>
 
       {/* KPI cards */}
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <CmiMetricCard title="Cumplimiento promedio" value={fmtPct(kpis.promedio)} subtitle={`Corte ${vista.mes_nombre}`} icon="📈" color="#1D4ED8" />
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <CmiMetricCard title="Indicadores activos" value={String(kpis.total)} subtitle={`Proceso: Todos · ${kpis.n_procesos} procesos · ${kpis.n_subprocesos} subprocesos`} icon="📌" color="#1D4ED8" />
+        <CmiMetricCard title="Cumplimiento promedio" value={fmtPct(kpis.promedio)} subtitle={`Corte ${vista.mes_nombre}`} icon="✔️" color="#047857" />
         <CmiMetricCard title="En alerta" value={String(nAlerta)} subtitle="80% – 99%" icon="⚠️" color="#B45309" />
         <CmiMetricCard title="En peligro" value={String(nPeligro)} subtitle="Menor a 80%" icon="🚨" color="#B71C1C" />
-        <CmiMetricCard title="Procesos activos" value={String(kpis.n_procesos)} subtitle={`${kpis.n_subprocesos} subprocesos · ${kpis.n_unidades} unidades`} icon="🏢" color="#1A3A5C" />
+        <CmiMetricCard title="Procesos activos" value={String(kpis.n_procesos)} subtitle={`${kpis.n_unidades} unidades organizacionales`} icon="🏢" color="#1A3A5C" />
+        <CmiMetricCard title="Subprocesos activos" value={String(kpis.n_subprocesos)} subtitle="Subprocesos válidos según filtro CMI por Procesos" icon="🧩" color="#B45309" />
       </div>
 
       {/* Gráficas de catálogo */}
@@ -236,6 +238,17 @@ export function CmiProcesosResumenTab({ vista, baseAnio }: CmiProcesosResumenTab
             <h4 className="mb-3 text-sm font-bold text-slate-800">Distribución por nivel</h4>
             <CmiDonutNivelPlotly data={distribucion_nivel} total={kpis.total} />
           </div>
+
+          {/* Brecha ambiental crítica (paridad con insight de Streamlit) */}
+          {brecha_ambiental && (
+            <div className="rounded-xl border border-emerald-200 bg-emerald-50/60 p-3 shadow-sm">
+              <div className="mb-1 flex items-center gap-1.5">
+                <span className="text-sm">🌱</span>
+                <h4 className="text-xs font-bold text-emerald-800">Brecha ambiental crítica</h4>
+              </div>
+              <p className="text-[11px] leading-snug text-emerald-900/80">{brecha_ambiental.texto}</p>
+            </div>
+          )}
 
           {/* Variación por proceso (paridad: comparación vs año base, no a nivel de indicador) */}
           {(mejoraronProcesos.length > 0 || empeoraronProcesos.length > 0) && (

@@ -89,11 +89,12 @@ def build_criticos(indicadores: list[dict[str, Any]], limit: int = 3) -> list[di
     return crit[:limit]
 
 
-def build_analisis_ia(indicadores: list[dict[str, Any]]) -> dict[str, Any]:
+def build_analisis_ia(indicadores: list[dict[str, Any]], limit: int = 20) -> dict[str, Any]:
     peligro = [i for i in indicadores if (i.get("cumplimiento_pct") or 100) < 80]
     alerta = [i for i in indicadores if 80 <= (i.get("cumplimiento_pct") or 0) < 100]
     saludables = [i for i in indicadores if (i.get("cumplimiento_pct") or 0) >= 100]
-    def _pick(lst, n=20):
+
+    def _pick(lst, n=limit):
         out = []
         for i in lst[:n]:
             out.append({
@@ -103,10 +104,15 @@ def build_analisis_ia(indicadores: list[dict[str, Any]]) -> dict[str, Any]:
                 "cumplimiento_pct": i.get("cumplimiento_pct"),
             })
         return out
+
+    top_peligro = _pick(sorted(peligro, key=lambda x: x.get("cumplimiento_pct") or 0))
+    top_alerta = _pick(sorted(alerta, key=lambda x: x.get("cumplimiento_pct") or 0))
     return {
         "conteos": {"peligro": len(peligro), "alerta": len(alerta), "saludables": len(saludables)},
-        "top_peligro": _pick(sorted(peligro, key=lambda x: x.get("cumplimiento_pct") or 0)),
-        "top_alerta": _pick(sorted(alerta, key=lambda x: x.get("cumplimiento_pct") or 0)),
+        "top_peligro": top_peligro,
+        "top_alerta": top_alerta,
+        "mostrados_peligro": len(top_peligro),
+        "mostrados_alerta": len(top_alerta),
     }
 
 
@@ -195,10 +201,14 @@ def load_auditoria(excel, proceso: str = "Todos") -> tuple[list[dict[str, Any]],
                 valor = str(row.get(col_name, "")).strip()
                 if valor:
                     label, pill_bg, pill_text, dot_color, emoji = estilo
+                    items = [v.strip() for v in valor.replace("\n", " | ").split(" | ") if v.strip()]
+                    if not items:
+                        continue
                     categorias.append({
                         "campo": campo,
                         "label": label,
                         "valor": valor,
+                        "items": items,
                         "pill_bg": pill_bg,
                         "pill_text": pill_text,
                         "dot_color": dot_color,

@@ -257,6 +257,16 @@ class CMIService:
             cumplimiento=cump_f,
             proceso=str(row.get("Linea", "")) or None,
         )
+        tendencia = "Estable"
+        if len(historico) >= 2:
+            vals = [h["cumplimiento"] for h in historico if h.get("cumplimiento") is not None]
+            if len(vals) >= 2:
+                delta = float(vals[-1]) - float(vals[-2])
+                if delta > 2:
+                    tendencia = "Al alza"
+                elif delta < -2:
+                    tendencia = "A la baja"
+        record["tendencia"] = tendencia
         return record
 
     def _load_tracking(self) -> pd.DataFrame:
