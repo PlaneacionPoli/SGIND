@@ -10,7 +10,7 @@ import {
 } from "@/config/navigation";
 import { useAuthStore } from "@/stores/auth-store";
 import { LauncherCard } from "@/components/menu/LauncherCard";
-import { LauncherTimelineItem } from "@/components/menu/LauncherTimelineItem";
+import { LauncherVerticalCard } from "@/components/menu/LauncherVerticalCard";
 import { useGreeting } from "@/components/menu/useGreeting";
 
 function isHighlighted(roles: Role[] | undefined, currentRole: string | null) {
@@ -67,9 +67,9 @@ export function LauncherScreen() {
           )}
         </header>
 
-        <section className="mx-auto max-w-3xl space-y-5 py-2">
+        <section className="grid grid-cols-1 gap-5 py-2 sm:grid-cols-2 lg:grid-cols-4">
           {items.map((item, index) => (
-            <LauncherTimelineItem
+            <LauncherVerticalCard
               key={item.href}
               href={item.href}
               label={item.label}

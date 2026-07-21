@@ -63,7 +63,7 @@ export const NAV_ITEM_META: Record<string, NavItemMeta> = {
     description: "Vista consolidada de indicadores institucionales",
     accent: "blue",
     highlight: "Vista general",
-    pillColor: "#0B5D75",
+    pillColor: "#0F2A4A",
   },
   "/cmi-estrategico": {
     Icon: Target,
@@ -71,7 +71,7 @@ export const NAV_ITEM_META: Record<string, NavItemMeta> = {
     roles: ["calidad"],
     accent: "violet",
     highlight: "Estratégico",
-    pillColor: "#0E7A81",
+    pillColor: "#153F6E",
   },
   "/cmi-procesos": {
     Icon: Workflow,
@@ -79,7 +79,7 @@ export const NAV_ITEM_META: Record<string, NavItemMeta> = {
     roles: ["procesos"],
     accent: "teal",
     highlight: "Por proceso",
-    pillColor: "#10967D",
+    pillColor: "#1A5391",
   },
   "/informe-procesos": {
     Icon: FileText,
@@ -87,7 +87,7 @@ export const NAV_ITEM_META: Record<string, NavItemMeta> = {
     roles: ["procesos"],
     accent: "sky",
     highlight: "Informes",
-    pillColor: "#14B489",
+    pillColor: "#2563EB",
   },
   "/plan-mejoramiento": {
     Icon: TrendingUp,
