@@ -10,6 +10,10 @@ from app.domain.loader_utils import find_col, id_a_str
 
 CORTE_SEMESTRAL = {"Junio": 6, "Diciembre": 12}
 
+# 2026 pertenece al siguiente ciclo del PDI y aun no tiene datos completos —
+# se excluye de los filtros de anio por ahora (ver cmi_service.MAX_ANIO_FILTROS).
+MAX_ANIO_FILTROS = 2025
+
 NIVEL_COLOR_EXT = {
     "Peligro": "#D32F2F",
     "Alerta": "#FBAF17",
@@ -72,7 +76,9 @@ def _estado_tiempo_acciones(df: pd.DataFrame) -> pd.DataFrame:
 
 def build_filtros_corte(cierres: pd.DataFrame) -> dict[str, Any]:
     anios = sorted(
-        pd.to_numeric(cierres["Anio"], errors="coerce").dropna().astype(int).unique().tolist()
+        a
+        for a in pd.to_numeric(cierres["Anio"], errors="coerce").dropna().astype(int).unique().tolist()
+        if a <= MAX_ANIO_FILTROS
     ) if not cierres.empty and "Anio" in cierres.columns else []
     default_year = 2025 if 2025 in anios else (anios[-1] if anios else None)
     return {

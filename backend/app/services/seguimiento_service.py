@@ -8,6 +8,7 @@ from typing import Any
 import pandas as pd
 
 from app.domain.seguimiento_builders import apply_filters, build_dashboard, load_tracking
+from app.services.cmi_service import MAX_ANIO_FILTROS
 from app.services.excel_reader import ExcelReaderService
 
 
@@ -21,7 +22,12 @@ class SeguimientoService:
         if df.empty:
             return {"anios": [], "meses": [], "procesos": [], "estados": []}
         anios: list[int] = sorted(
-            [int(a) for a in df["Año"].dropna().unique().tolist() if str(a).isdigit()], reverse=True
+            [
+                int(a)
+                for a in df["Año"].dropna().unique().tolist()
+                if str(a).isdigit() and int(a) <= MAX_ANIO_FILTROS
+            ],
+            reverse=True,
         ) if "Año" in df.columns else []
         meses: list[int] = sorted(
             [int(m) for m in df["Mes"].dropna().unique().tolist() if str(m).isdigit()]

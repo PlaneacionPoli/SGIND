@@ -735,8 +735,12 @@ def build_filtros_options(
     *,
     anio: int,
 ) -> dict[str, Any]:
+    # 2026 pertenece al siguiente ciclo del PDI y aun no tiene datos completos —
+    # se excluye de los filtros de anio por ahora (ver cmi_service.MAX_ANIO_FILTROS).
     anios = sorted(
-        pd.to_numeric(tracking["Anio"], errors="coerce").dropna().astype(int).unique().tolist()
+        a
+        for a in pd.to_numeric(tracking["Anio"], errors="coerce").dropna().astype(int).unique().tolist()
+        if a <= 2025
     ) if "Anio" in tracking.columns else [anio]
 
     prepared = prepare_tracking(tracking, map_df)

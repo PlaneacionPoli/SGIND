@@ -881,7 +881,9 @@ def build_proyectos_gantt(
     proy_df: pd.DataFrame,
     *,
     anio_min: int = 2022,
-    anio_max: int = 2026,
+    # 2026 pertenece al siguiente ciclo del PDI y aun no tiene datos completos —
+    # se excluye por ahora (ver cmi_service.MAX_ANIO_FILTROS).
+    anio_max: int = 2025,
 ) -> dict[str, Any]:
     """Cronograma de proyectos: vigencia activa por año dentro del horizonte PDI."""
     empty = {"anio_min": anio_min, "anio_max": anio_max, "items": []}

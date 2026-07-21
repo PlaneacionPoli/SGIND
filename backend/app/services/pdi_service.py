@@ -22,7 +22,11 @@ NIVEL_COLOR: dict[str, str] = {
 
 ESTADOS_DEFAULT = ["Peligro", "Alerta", "Cumplimiento", "Sobrecumplimiento", "Sin dato"]
 MACROS_DEFAULT = ["Docencia", "Investigación", "Extensión", "Gobierno"]
-HORIZONTES_DEFAULT = ["2026-1", "2026-2", "2027-1"]
+HORIZONTES_DEFAULT = ["2025-1", "2025-2"]
+
+# 2026 pertenece al siguiente ciclo del PDI y aun no tiene datos completos —
+# se excluye de los horizontes por ahora (ver cmi_service.MAX_ANIO_FILTROS).
+MAX_ANIO_FILTROS = 2025
 
 # Desde la fusión 2026-07-14, el catálogo de clasificación vive en la hoja
 # "Catalogo Indicadores" del directorio maestro dedicado (Catalogo de
@@ -137,7 +141,11 @@ class PDIService:
             df = pd.DataFrame()
 
         horizontes = (
-            sorted(df["Periodo"].dropna().astype(str).unique().tolist())
+            sorted(
+                p
+                for p in df["Periodo"].dropna().astype(str).unique().tolist()
+                if not p[:4].isdigit() or int(p[:4]) <= MAX_ANIO_FILTROS
+            )
             if not df.empty and "Periodo" in df.columns
             else HORIZONTES_DEFAULT
         )
@@ -150,7 +158,7 @@ class PDIService:
             "estados": ESTADOS_DEFAULT,
             "macros": macros or MACROS_DEFAULT,
             "horizontes": horizontes or HORIZONTES_DEFAULT,
-            "horizonte_default": horizontes[0] if horizontes else "2026-1",
+            "horizonte_default": horizontes[0] if horizontes else "2025-1",
         }
 
     def get_dashboard(
@@ -164,7 +172,7 @@ class PDIService:
             "estados": ESTADOS_DEFAULT,
             "macros": MACROS_DEFAULT,
             "horizontes": HORIZONTES_DEFAULT,
-            "horizonte_default": "2026-1",
+            "horizonte_default": "2025-1",
         }
 
         try:

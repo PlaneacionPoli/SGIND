@@ -78,6 +78,11 @@ _FICHA_SHEET = "Ficha Tecnica Detalle"
 
 _YEAR_PREPARED_CACHE: dict[tuple[str, int, bool], tuple[float, pd.DataFrame]] = {}
 
+# 2026 pertenece al siguiente ciclo del PDI y aun no tiene datos completos
+# cargados — se excluye de los filtros de anio en todas las secciones por
+# ahora (ver tambien app/services/resumen_service.py::ANIOS_RANGO).
+MAX_ANIO_FILTROS = 2025
+
 
 class CMIService:
     def __init__(self, excel: ExcelReaderService) -> None:
@@ -89,12 +94,15 @@ class CMIService:
 
     def _available_anios(self) -> list[int]:
         cierres = self._loaders.load_cierres()
+        fallback = min(date.today().year, MAX_ANIO_FILTROS)
         if cierres.empty or "Anio" not in cierres.columns:
-            return [date.today().year]
+            return [fallback]
         anios = sorted(
-            pd.to_numeric(cierres["Anio"], errors="coerce").dropna().astype(int).unique().tolist()
+            a
+            for a in pd.to_numeric(cierres["Anio"], errors="coerce").dropna().astype(int).unique().tolist()
+            if a <= MAX_ANIO_FILTROS
         )
-        return anios or [date.today().year]
+        return anios or [fallback]
 
     def _resolve_mes(self, mes: int | None, corte: str | None) -> int:
         if corte and corte in CORTE_SEMESTRAL:

@@ -348,9 +348,15 @@ def merge_om_registros(
 
 
 def build_filtros(df: pd.DataFrame) -> dict[str, Any]:
-    anios = ["2026"]
+    # 2026 pertenece al siguiente ciclo del PDI y aun no tiene datos completos —
+    # se excluye de los filtros de anio por ahora.
+    anios = ["2025"]
     if "Anio" in df.columns:
-        available = sorted(pd.to_numeric(df["Anio"], errors="coerce").dropna().astype(int).unique().tolist())
+        available = sorted(
+            y
+            for y in pd.to_numeric(df["Anio"], errors="coerce").dropna().astype(int).unique().tolist()
+            if y <= 2025
+        )
         anios = [str(y) for y in available] or anios
         if 2025 in available and "2025" not in anios:
             anios = ["2025"] + [a for a in anios if a != "2025"]
