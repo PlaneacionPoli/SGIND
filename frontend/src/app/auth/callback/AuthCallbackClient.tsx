@@ -24,7 +24,7 @@ export default function AuthCallbackClient() {
       const email = typeof payload.sub === "string" ? payload.sub : undefined;
       const role = typeof payload.role === "string" ? payload.role : undefined;
       setSession(token, email, role);
-      router.replace("/resumen-general");
+      router.replace("/menu");
     } else {
       router.replace("/login?error=missing_token");
     }

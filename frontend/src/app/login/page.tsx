@@ -65,7 +65,7 @@ function LoginPageContent() {
   // Si ya está autenticado, redirigir al dashboard
   useEffect(() => {
     if (ready && isAuthenticated) {
-      router.replace("/resumen-general");
+      router.replace("/menu");
     }
   }, [ready, isAuthenticated, router]);
 
@@ -80,13 +80,13 @@ function LoginPageContent() {
 
   async function handleDevLogin() {
     const ok = await login();
-    if (ok) router.replace("/resumen-general");
+    if (ok) router.replace("/menu");
   }
 
   async function handleEmailLogin(e: React.FormEvent) {
     e.preventDefault();
     const ok = await emailLogin.login(email);
-    if (ok) router.replace("/resumen-general");
+    if (ok) router.replace("/menu");
   }
 
   return (

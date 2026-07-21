@@ -11,7 +11,7 @@ export default function Home() {
   useEffect(() => {
     if (!ready) return;
     if (isAuthenticated) {
-      router.replace("/resumen-general");
+      router.replace("/menu");
     } else {
       router.replace("/login");
     }
