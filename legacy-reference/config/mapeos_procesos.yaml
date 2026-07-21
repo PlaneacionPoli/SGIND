@@ -1,0 +1,99 @@
+# config/mapeos_procesos.yaml
+# Mapeo de subprocesos → procesos padre
+# Fuente original: Subproceso-Proceso-Area.xlsx
+#
+# Estructura:
+#   PROCESO_PADRE_EN_MAYUSCULAS:
+#     - "Subproceso Nombre 1"
+#     - "Subproceso Nombre 2"
+#     ...
+#
+# Notas:
+# - Los nombres en YAML deben coincidir exactamente (se normalizan en tiempo de ejecución)
+# - Se valida contra archivo Excel si disponible
+# - Cambios aquí NO requieren redeploy (caché se invalida automáticamente)
+#
+# =============================================================================
+# AUDIT TRAIL — Historial de cambios (formato: YYYY-MM-DD | autor | descripción)
+# =============================================================================
+# 2026-04-11 | equipo SGIND    | Creación inicial desde Subproceso-Proceso-Area.xlsx
+# 2026-05-09 | sistema/copilot | Agregado bloque audit trail para trazabilidad
+# -----------------------------------------------------------------------------
+# INSTRUCCIONES: Al modificar este archivo, agregar una línea al audit trail:
+#   YYYY-MM-DD | tu.nombre | qué cambió y por qué
+# =============================================================================
+
+DIRECCIONAMIENTO ESTRATEGICO:
+  - "Gestion de Proyectos"
+  - "Planeacion Estrategica"
+  - "Desempeno Institucional"
+  - "Gerencia de Estrategia"
+
+PLANIFICACION Y MEJORA DEL SISTEMA INTEGRADO:
+  - "Gestion de calidad"
+  - "Gestion de Calidad"
+  - "Planificacion POLISIGS"
+
+COMUNICACION Y POSICIONAMIENTO ESTRATEGICO:
+  - "Comunicaciones Externas"
+  - "Comunicaciones Internas"
+  - "Gestion de campanas integradas de marketing"
+
+AUTOEVALUACION Y AUTOREGULACION:
+  - "Autoevaluacion de programas academicos"
+  - "Autoevaluacion institucional"
+
+GESTION DE PORTAFOLIO INSTITUCIONAL:
+  - "Gestion, Evaluacion e Innovacion Curricular"
+  - "Creacion, modificacion y cierre de programas academicos"
+  - "Diseno de Contenido Virtual"
+
+DOCENCIA:
+  - "Gestion Docente"
+  - "Gestion de Unidades Academicas"
+  - "Operaciones Academicas"
+  - "Operacion de Educacion no Formal"
+  - "Operaciones Academica pregrado y posgrado presencial."
+  - "Operaciones Academica pregrado y posgrado virtual"
+  - "Operacion de nuevos negocios y CI"
+
+EXTENSION:
+  - "Gestion de Graduados"
+  - "Practicas"
+  - "Emprendimiento"
+  - "Gestion de la Responsabilidad Social"
+
+INVESTIGACION, INNOVACION Y CREACION:
+  - "Investigacion, desarrollo tecnologico, innovacion y creacion"
+  - "Investigacion, desarrollo tecnologico e innovacion"
+  - "Formacion para la investigacion, creacion e innovacion"
+
+RECURSOS ACADEMICOS Y DE INVESTIGACION:
+  - "Biblioteca Institucional"
+  - "Editorial y Publicaciones"
+  - "Centro de Medios Audiovisuales"
+  - "LEI"
+
+MERCADEO, ADMISIONES Y MATRICULA:
+  - "Inscripcion, admision y matricula de estudiantes nuevos"
+  - "Mercadeo de programas academicos"
+  - "Mercadeo y venta de educacion para la vida"
+
+BIENESTAR INSTITUCIONAL:
+  - "Cultura y Deporte"
+  - "Servicio de Salud"
+
+SERVICIO Y PERMANENCIA:
+  - "Servicio"
+  - "Permanencia"
+  - "Registro y Control"
+  - "Rematricula"
+
+GESTION FINANCIERA:
+  - "Planeacion Financiera"
+  - "Contabilidad"
+  - "Tesoreria"
+
+INFRAESTRUCTURA Y SERVICIOS ADMINISTRATIVOS:
+  - "Gestion Infraestructura Fisica"
+  - "Administracion de Servicios Generales"

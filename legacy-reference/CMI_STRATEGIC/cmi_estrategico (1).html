@@ -1,0 +1,1645 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CMI Estratégico · Politécnica Grancolombiana</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0b0e17;
+    --surface: #141825;
+    --surface2: #1c2235;
+    --border: rgba(255,255,255,0.07);
+    --text: #e8eaf2;
+    --muted: #7a80a0;
+    --accent: #4f8ef7;
+
+    --expansion: #f5a623;
+    --calidad: #e63d6f;
+    --experiencia: #00c2d1;
+    --sostenibilidad: #5bc97a;
+    --educacion: #a855f7;
+    --transformacion: #38bdf8;
+
+    --sobrecumplimiento: #5bc97a;
+    --cumplimiento: #4f8ef7;
+    --alerta: #f5a623;
+    --riesgo: #e63d6f;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    position: fixed; left:0; top:0; bottom:0; width:220px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex; flex-direction: column;
+    z-index: 100;
+    padding: 24px 0;
+  }
+  .sidebar-logo {
+    padding: 0 20px 24px;
+    border-bottom: 1px solid var(--border);
+  }
+  .sidebar-logo span {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 13px;
+    letter-spacing: .05em;
+    color: var(--accent);
+    display: block;
+    line-height: 1.3;
+  }
+  .sidebar-logo small {
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: .08em;
+    text-transform: uppercase;
+  }
+  .sidebar-nav { padding: 16px 0; flex:1; }
+  .nav-label {
+    font-size: 10px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 8px 20px 4px;
+  }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 20px;
+    font-size: 13px;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all .2s;
+    border-left: 3px solid transparent;
+  }
+  .nav-item:hover { color: var(--text); background: rgba(79,142,247,.05); }
+  .nav-item.active { color: var(--accent); border-left-color: var(--accent); background: rgba(79,142,247,.08); }
+  .nav-item .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .sidebar-footer {
+    padding: 16px 20px;
+    border-top: 1px solid var(--border);
+  }
+  .sidebar-footer .date {
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .sidebar-footer .cut {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text);
+    margin-top: 2px;
+  }
+
+  /* ── MAIN ── */
+  .main {
+    margin-left: 220px;
+    padding: 32px 40px;
+    min-height: 100vh;
+  }
+
+  /* ── PAGE HEADER ── */
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 32px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border);
+  }
+  .page-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 32px;
+    font-weight: 800;
+    background: linear-gradient(135deg, #e8eaf2 0%, #7a80a0 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .page-subtitle {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+  .badge-corte {
+    background: rgba(79,142,247,.12);
+    border: 1px solid rgba(79,142,247,.3);
+    color: var(--accent);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+
+  /* ── VIEW TABS ── */
+  .view-tabs {
+    display: flex;
+    gap: 4px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 4px;
+    margin-bottom: 28px;
+    width: fit-content;
+  }
+  .view-tab {
+    padding: 8px 20px;
+    border-radius: 9px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all .2s;
+    color: var(--muted);
+    border: none;
+    background: transparent;
+  }
+  .view-tab.active {
+    background: var(--accent);
+    color: #fff;
+  }
+  .view-tab:hover:not(.active) { color: var(--text); }
+
+  /* ── VIEWS ── */
+  .view { display: none; }
+  .view.active { display: block; }
+
+  /* ── KPI CARDS ── */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+  .kpi-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px 24px;
+    position: relative;
+    overflow: hidden;
+    transition: transform .2s, box-shadow .2s;
+  }
+  .kpi-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 32px rgba(0,0,0,.4);
+  }
+  .kpi-card::before {
+    content: '';
+    position: absolute; top:0; left:0; right:0; height:3px;
+    border-radius: 16px 16px 0 0;
+  }
+  .kpi-card.accent-blue::before { background: var(--accent); }
+  .kpi-card.accent-green::before { background: var(--sobrecumplimiento); }
+  .kpi-card.accent-orange::before { background: var(--alerta); }
+  .kpi-card.accent-pink::before { background: var(--riesgo); }
+  .kpi-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .kpi-value {
+    font-family: 'Syne', sans-serif;
+    font-size: 36px;
+    font-weight: 800;
+    line-height: 1;
+  }
+  .kpi-sub {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 6px;
+  }
+  .kpi-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-top: 8px;
+  }
+  .kpi-badge.green { background: rgba(91,201,122,.15); color: var(--sobrecumplimiento); }
+  .kpi-badge.orange { background: rgba(245,166,35,.15); color: var(--alerta); }
+  .kpi-badge.red { background: rgba(230,61,111,.15); color: var(--riesgo); }
+
+  /* ── CHARTS ROW ── */
+  .charts-row {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+  .chart-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+  }
+  .chart-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: var(--text);
+  }
+  .bar-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .bar-label {
+    font-size: 11px;
+    color: var(--muted);
+    width: 160px;
+    flex-shrink: 0;
+    text-align: right;
+    line-height: 1.3;
+  }
+  .bar-track {
+    flex: 1;
+    height: 26px;
+    background: rgba(255,255,255,.05);
+    border-radius: 6px;
+    overflow: hidden;
+    position: relative;
+  }
+  .bar-fill {
+    height: 100%;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    padding-right: 8px;
+    justify-content: flex-end;
+    font-size: 11px;
+    font-weight: 600;
+    color: rgba(0,0,0,.7);
+    transition: width 1s cubic-bezier(.4,0,.2,1);
+    position: relative;
+  }
+  .bar-fill::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(90deg, rgba(255,255,255,0) 60%, rgba(255,255,255,.2));
+    border-radius: 6px;
+  }
+  .bar-pct { font-size: 11px; font-weight: 600; color: var(--muted); width: 44px; flex-shrink:0; }
+
+  /* ── DONUT ── */
+  .donut-wrap {
+    display: flex;
+    gap: 24px;
+    align-items: center;
+    justify-content: center;
+  }
+  .donut-svg { flex-shrink:0; }
+  .donut-legend { display: flex; flex-direction: column; gap: 10px; }
+  .legend-item { display: flex; align-items: center; gap: 8px; font-size: 12px; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink:0; }
+  .legend-pct { font-weight: 700; color: var(--text); }
+  .legend-label { color: var(--muted); }
+
+  /* ── LINEAS GRID ── */
+  .lineas-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+  .linea-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform .2s, box-shadow .2s;
+  }
+  .linea-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 40px rgba(0,0,0,.4);
+  }
+  .linea-header {
+    padding: 16px 20px;
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: #0b0e17;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .linea-body { padding: 16px 20px; }
+  .linea-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+  .linea-stat { text-align: center; }
+  .linea-stat-val {
+    font-family: 'Syne', sans-serif;
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--text);
+  }
+  .linea-stat-lbl { font-size: 10px; color: var(--muted); }
+  .linea-progress-track {
+    height: 6px;
+    background: rgba(255,255,255,.08);
+    border-radius: 3px;
+    margin-top: 4px;
+    overflow: hidden;
+  }
+  .linea-progress-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 1.2s cubic-bezier(.4,0,.2,1);
+  }
+  .mini-dist {
+    display: flex;
+    gap: 3px;
+    margin-top: 10px;
+  }
+  .mini-dist-seg {
+    height: 4px;
+    border-radius: 2px;
+    transition: width .8s ease;
+  }
+  .linea-action {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    transition: color .2s;
+  }
+  .linea-card:hover .linea-action { color: var(--accent); }
+
+  /* ── SECTION TITLE ── */
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* ── DETAIL VIEW ── */
+  .linea-detail {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    margin-bottom: 24px;
+    overflow: hidden;
+  }
+  .linea-detail-header {
+    padding: 20px 28px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    transition: opacity .2s;
+  }
+  .linea-detail-header:hover { opacity: .85; }
+  .linea-detail-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 18px;
+    font-weight: 800;
+    color: #0b0e17;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .linea-chevron {
+    font-size: 18px;
+    color: rgba(0,0,0,.5);
+    transition: transform .3s;
+  }
+  .linea-detail.open .linea-chevron { transform: rotate(90deg); }
+  .linea-detail-body {
+    display: none;
+    padding: 0 28px 28px;
+  }
+  .linea-detail.open .linea-detail-body { display: block; }
+
+  /* Inner tabs */
+  .inner-tabs {
+    display: flex;
+    gap: 4px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 20px;
+    margin-top: 4px;
+  }
+  .inner-tab {
+    padding: 10px 16px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    color: var(--muted);
+    border-bottom: 2px solid transparent;
+    transition: all .2s;
+    background: none;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+  }
+  .inner-tab.active { color: var(--text); border-bottom-color: var(--accent); }
+  .inner-tab:hover:not(.active) { color: var(--text); }
+  .inner-pane { display: none; }
+  .inner-pane.active { display: block; }
+
+  /* Objetivo block */
+  .objetivo-block {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 12px;
+    overflow: hidden;
+  }
+  .objetivo-header {
+    padding: 14px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+  }
+  .objetivo-header:hover { background: rgba(255,255,255,.02); }
+  .objetivo-badge-wrap { display: flex; gap: 6px; align-items: center; }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 9px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: .04em;
+  }
+  .badge.sb { background: rgba(91,201,122,.15); color: #5bc97a; }
+  .badge.cu { background: rgba(79,142,247,.15); color: #4f8ef7; }
+  .badge.al { background: rgba(245,166,35,.15); color: #f5a623; }
+  .badge.ri { background: rgba(230,61,111,.15); color: #e63d6f; }
+  .objetivo-body { display: none; padding: 0 20px 16px; }
+  .objetivo-block.open .objetivo-body { display: block; }
+
+  /* Indicadores table */
+  .ind-table { width: 100%; border-collapse: collapse; }
+  .ind-table th {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--muted);
+    padding: 10px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    font-weight: 500;
+  }
+  .ind-table td {
+    padding: 12px 12px;
+    font-size: 12px;
+    border-bottom: 1px solid rgba(255,255,255,.04);
+    vertical-align: middle;
+  }
+  .ind-table tr:last-child td { border-bottom: none; }
+  .ind-table tr:hover td { background: rgba(255,255,255,.02); }
+  .ind-name { font-weight: 500; color: var(--text); }
+  .ind-meta, .ind-exec { color: var(--muted); }
+  .pct-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .pct-pill.sb { background: rgba(91,201,122,.12); color: #5bc97a; }
+  .pct-pill.cu { background: rgba(79,142,247,.12); color: #4f8ef7; }
+  .pct-pill.al { background: rgba(245,166,35,.12); color: #f5a623; }
+  .pct-pill.ri { background: rgba(230,61,111,.12); color: #e63d6f; }
+  .pct-arrow { font-size: 10px; }
+  .sparkbar {
+    width: 80px; height: 6px;
+    background: rgba(255,255,255,.07);
+    border-radius: 3px;
+    overflow: hidden;
+    display: inline-block;
+    vertical-align: middle;
+    margin-left: 8px;
+  }
+  .sparkbar-fill {
+    height: 100%; border-radius: 3px;
+  }
+
+  /* Resumen tab in linea */
+  .resumen-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .resumen-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    text-align: center;
+  }
+  .resumen-val {
+    font-family: 'Syne', sans-serif;
+    font-size: 28px;
+    font-weight: 800;
+    line-height: 1;
+  }
+  .resumen-lbl { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+  /* Analysis card */
+  .analysis-item {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 10px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  .analysis-icon {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+  .analysis-text { font-size: 12px; color: var(--muted); line-height: 1.6; }
+  .analysis-text strong { color: var(--text); font-weight: 500; }
+
+  /* Ranking view */
+  .ranking-table { width: 100%; border-collapse: collapse; }
+  .ranking-table th {
+    font-size: 10px; text-transform: uppercase; letter-spacing: .1em;
+    color: var(--muted); padding: 10px 16px; text-align: left;
+    border-bottom: 1px solid var(--border); font-weight: 500;
+  }
+  .ranking-table td {
+    padding: 14px 16px; font-size: 13px;
+    border-bottom: 1px solid rgba(255,255,255,.04);
+    vertical-align: middle;
+  }
+  .ranking-table tr:last-child td { border-bottom: none; }
+  .ranking-table tr:hover td { background: rgba(255,255,255,.02); }
+  .rank-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--muted);
+    width: 40px;
+  }
+  .rank-linea-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 8px;
+    flex-shrink: 0;
+  }
+  .progress-inline {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .progress-bar-sm {
+    flex: 1;
+    height: 6px;
+    background: rgba(255,255,255,.07);
+    border-radius: 3px;
+    overflow: hidden;
+    max-width: 120px;
+  }
+  .progress-bar-sm-fill { height: 100%; border-radius: 3px; }
+
+  /* Filter bar */
+  .filter-bar {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .filter-select {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    padding: 7px 12px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    cursor: pointer;
+  }
+  .filter-search {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    padding: 7px 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    width: 220px;
+  }
+  .filter-search::placeholder { color: var(--muted); }
+  .filter-search:focus, .filter-select:focus {
+    outline: none;
+    border-color: rgba(79,142,247,.5);
+  }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+  .view.active { animation: fadeIn .3s ease; }
+  .kpi-card { animation: fadeIn .4s ease both; }
+  .kpi-card:nth-child(2) { animation-delay: .05s; }
+  .kpi-card:nth-child(3) { animation-delay: .1s; }
+  .kpi-card:nth-child(4) { animation-delay: .15s; }
+
+  /* Scroll */
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+
+  /* Tooltip */
+  [data-tip] { position: relative; cursor: help; }
+  [data-tip]:hover::after {
+    content: attr(data-tip);
+    position: absolute;
+    bottom: 120%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1c2235;
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-size: 11px;
+    white-space: nowrap;
+    z-index: 999;
+    pointer-events: none;
+  }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <span>Sistema de Indicadores</span>
+    <small>Politécnica Grancolombiana</small>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-label">Principal</div>
+    <div class="nav-item" onclick="setView('macro')">
+      <div class="dot" style="background:#4f8ef7"></div> Resumen General
+    </div>
+    <div class="nav-item active" onclick="setView('macro')">
+      <div class="dot" style="background:#5bc97a"></div> Resumen Estratégico
+    </div>
+    <div class="nav-item" onclick="setView('lineas')">
+      <div class="dot" style="background:#f5a623"></div> Análisis por Línea
+    </div>
+    <div class="nav-item" onclick="setView('indicadores')">
+      <div class="dot" style="background:#e63d6f"></div> Todos los Indicadores
+    </div>
+    <div class="nav-label" style="margin-top:8px;">Líneas</div>
+    <div class="nav-item" onclick="setView('lineas');scrollToLinea('expansion')">
+      <div class="dot" style="background:var(--expansion)"></div> Expansión
+    </div>
+    <div class="nav-item" onclick="setView('lineas');scrollToLinea('calidad')">
+      <div class="dot" style="background:var(--calidad)"></div> Calidad
+    </div>
+    <div class="nav-item" onclick="setView('lineas');scrollToLinea('experiencia')">
+      <div class="dot" style="background:var(--experiencia)"></div> Experiencia
+    </div>
+    <div class="nav-item" onclick="setView('lineas');scrollToLinea('sostenibilidad')">
+      <div class="dot" style="background:var(--sostenibilidad)"></div> Sostenibilidad
+    </div>
+    <div class="nav-item" onclick="setView('lineas');scrollToLinea('educacion')">
+      <div class="dot" style="background:var(--educacion)"></div> Educación para toda la vida
+    </div>
+    <div class="nav-item" onclick="setView('lineas');scrollToLinea('transformacion')">
+      <div class="dot" style="background:var(--transformacion)"></div> Transformación Org.
+    </div>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="date">Corte:</div>
+    <div class="cut">Diciembre 2023</div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">CMI Estratégico</h1>
+      <p class="page-subtitle">Plan de Desarrollo Institucional (PDI) · 44 indicadores · 6 líneas · 10 objetivos</p>
+    </div>
+    <span class="badge-corte">📅 Diciembre 2023</span>
+  </div>
+
+  <!-- View Tabs -->
+  <div class="view-tabs">
+    <button class="view-tab active" onclick="setView('macro')">📊 Resumen</button>
+    <button class="view-tab" onclick="setView('lineas')">📋 Por Línea</button>
+    <button class="view-tab" onclick="setView('indicadores')">📈 Indicadores</button>
+    <button class="view-tab" onclick="setView('heatmap')">🗺️ Mapa de Calor</button>
+    <button class="view-tab" onclick="setView('alertas')">⚠️ Alertas</button>
+  </div>
+
+  <!-- ══════════════ VIEW: MACRO ══════════════ -->
+  <div id="view-macro" class="view active">
+
+    <!-- KPIs -->
+    <div class="kpi-grid">
+      <div class="kpi-card accent-blue">
+        <div class="kpi-label">Indicadores PDI</div>
+        <div class="kpi-value">44</div>
+        <div class="kpi-sub">Con cumplimiento: 43</div>
+        <span class="kpi-badge green">✓ 97.7% activos</span>
+      </div>
+      <div class="kpi-card accent-green">
+        <div class="kpi-label">Promedio de Cumplimiento</div>
+        <div class="kpi-value" style="color:var(--sobrecumplimiento)">109.1%</div>
+        <div class="kpi-sub">Sobre la meta institucional</div>
+        <span class="kpi-badge green">↑ Sobrecumplimiento</span>
+      </div>
+      <div class="kpi-card accent-orange">
+        <div class="kpi-label">Nivel Predominante</div>
+        <div class="kpi-value" style="font-size:20px; padding-top:6px; -webkit-text-fill-color: var(--text)">Sobrecumplimiento</div>
+        <div class="kpi-sub">52.3% de indicadores</div>
+        <span class="kpi-badge green">23 de 44 indicadores</span>
+      </div>
+      <div class="kpi-card accent-pink">
+        <div class="kpi-label">Indicadores en Riesgo</div>
+        <div class="kpi-value" style="color:var(--riesgo)">2</div>
+        <div class="kpi-sub">Requieren atención</div>
+        <span class="kpi-badge red">⚠ 4.5% del total</span>
+      </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="charts-row">
+      <!-- Bar chart -->
+      <div class="chart-card">
+        <div class="chart-title">Cumplimiento promedio por línea estratégica</div>
+        <div id="bar-chart"></div>
+      </div>
+      <!-- Donut -->
+      <div class="chart-card">
+        <div class="chart-title">Distribución por nivel</div>
+        <div class="donut-wrap">
+          <svg class="donut-svg" width="160" height="160" viewBox="0 0 160 160">
+            <circle cx="80" cy="80" r="60" fill="none" stroke="#1c2235" stroke-width="28"/>
+            <!-- Sobrecumplimiento 52.3% -->
+            <circle cx="80" cy="80" r="60" fill="none" stroke="#5bc97a" stroke-width="28"
+              stroke-dasharray="197.4 376.8" stroke-dashoffset="94.2" transform="rotate(-90 80 80)"/>
+            <!-- Cumplimiento 29% -->
+            <circle cx="80" cy="80" r="60" fill="none" stroke="#4f8ef7" stroke-width="28"
+              stroke-dasharray="109.5 376.8" stroke-dashoffset="-103.2" transform="rotate(-90 80 80)"/>
+            <!-- Alerta 11.4% -->
+            <circle cx="80" cy="80" r="60" fill="none" stroke="#f5a623" stroke-width="28"
+              stroke-dasharray="43.1 376.8" stroke-dashoffset="-212.7" transform="rotate(-90 80 80)"/>
+            <!-- Riesgo 4.5% -->
+            <circle cx="80" cy="80" r="60" fill="none" stroke="#e63d6f" stroke-width="28"
+              stroke-dasharray="17 376.8" stroke-dashoffset="-255.8" transform="rotate(-90 80 80)"/>
+            <!-- Pendiente 2.8% -->
+            <circle cx="80" cy="80" r="60" fill="none" stroke="#3d4566" stroke-width="28"
+              stroke-dasharray="10.6 376.8" stroke-dashoffset="-272.8" transform="rotate(-90 80 80)"/>
+            <text x="80" y="76" text-anchor="middle" fill="#e8eaf2" font-family="Syne,sans-serif" font-size="20" font-weight="800">109%</text>
+            <text x="80" y="92" text-anchor="middle" fill="#7a80a0" font-size="10">Promedio</text>
+          </svg>
+          <div class="donut-legend">
+            <div class="legend-item">
+              <div class="legend-dot" style="background:#5bc97a"></div>
+              <span class="legend-pct">52.3%</span>
+              <span class="legend-label">Sobrecumplimiento</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-dot" style="background:#4f8ef7"></div>
+              <span class="legend-pct">29.0%</span>
+              <span class="legend-label">Cumplimiento</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-dot" style="background:#f5a623"></div>
+              <span class="legend-pct">11.4%</span>
+              <span class="legend-label">Alerta</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-dot" style="background:#e63d6f"></div>
+              <span class="legend-pct">4.5%</span>
+              <span class="legend-label">Riesgo</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-dot" style="background:#3d4566"></div>
+              <span class="legend-pct">2.8%</span>
+              <span class="legend-label">Pendiente</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lineas cards -->
+    <div class="section-title">Vista rápida por línea</div>
+    <div class="lineas-grid" id="lineas-summary"></div>
+
+  </div><!-- /view-macro -->
+
+
+  <!-- ══════════════ VIEW: LINEAS ══════════════ -->
+  <div id="view-lineas" class="view">
+    <div id="lineas-detail-container"></div>
+  </div>
+
+
+  <!-- ══════════════ VIEW: HEATMAP ══════════════ -->
+  <div id="view-heatmap" class="view">
+    <div class="chart-card" style="margin-bottom:0">
+      <div class="chart-title">🗺️ Mapa de Calor — Todos los indicadores por línea estratégica</div>
+      <p style="font-size:12px;color:var(--muted);margin-bottom:20px">Haz clic en cualquier celda para ver la ficha detallada del indicador.</p>
+      <div id="heatmap-container"></div>
+    </div>
+    <!-- Legend -->
+    <div style="display:flex;gap:16px;align-items:center;margin-top:16px;padding:14px 20px;background:var(--surface);border:1px solid var(--border);border-radius:12px">
+      <span style="font-size:11px;color:var(--muted)">Leyenda:</span>
+      <span style="display:flex;align-items:center;gap:6px;font-size:12px"><span style="width:12px;height:12px;border-radius:3px;background:#5bc97a33;border:1px solid #5bc97a66;display:inline-block"></span>Sobrecumplimiento</span>
+      <span style="display:flex;align-items:center;gap:6px;font-size:12px"><span style="width:12px;height:12px;border-radius:3px;background:#4f8ef733;border:1px solid #4f8ef766;display:inline-block"></span>Cumplimiento</span>
+      <span style="display:flex;align-items:center;gap:6px;font-size:12px"><span style="width:12px;height:12px;border-radius:3px;background:#f5a62333;border:1px solid #f5a62366;display:inline-block"></span>Alerta</span>
+      <span style="display:flex;align-items:center;gap:6px;font-size:12px"><span style="width:12px;height:12px;border-radius:3px;background:#e63d6f33;border:1px solid #e63d6f66;display:inline-block"></span>Riesgo</span>
+    </div>
+  </div>
+
+  <!-- ══════════════ VIEW: ALERTAS ══════════════ -->
+  <div id="view-alertas" class="view">
+    <div class="chart-card">
+      <div id="alertas-container"></div>
+    </div>
+  </div>
+
+  <!-- ══════════════ VIEW: INDICADORES ══════════════ -->
+  <div id="view-indicadores" class="view">
+    <div class="filter-bar">
+      <input class="filter-search" type="text" placeholder="🔍  Buscar indicador..." id="ind-search" oninput="renderIndicadoresTable()">
+      <select class="filter-select" id="ind-linea-filter" onchange="renderIndicadoresTable()">
+        <option value="">Todas las líneas</option>
+        <option value="Expansión">Expansión</option>
+        <option value="Calidad">Calidad</option>
+        <option value="Experiencia">Experiencia</option>
+        <option value="Sostenibilidad">Sostenibilidad</option>
+        <option value="Educación para toda la vida">Educación para toda la vida</option>
+        <option value="Transformación Organizacional">Transformación Organizacional</option>
+      </select>
+      <select class="filter-select" id="ind-nivel-filter" onchange="renderIndicadoresTable()">
+        <option value="">Todos los niveles</option>
+        <option value="sb">Sobrecumplimiento</option>
+        <option value="cu">Cumplimiento</option>
+        <option value="al">Alerta</option>
+        <option value="ri">Riesgo</option>
+      </select>
+    </div>
+    <div class="chart-card" style="padding:0; overflow:hidden;">
+      <table class="ranking-table" id="ind-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Indicador</th>
+            <th>Línea</th>
+            <th>Objetivo</th>
+            <th>Meta</th>
+            <th>Ejecución</th>
+            <th>Cumplimiento</th>
+            <th>Nivel</th>
+            <th>Detalle</th>
+          </tr>
+        </thead>
+        <tbody id="ind-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+</main>
+
+<script>
+// ══════════════════════════════════════════
+//  DATA
+// ══════════════════════════════════════════
+const DATA = {
+  lineas: [
+    {
+      id: 'expansion',
+      nombre: 'Expansión',
+      color: '#f5a623',
+      cumplimiento: 110.5,
+      indicadores: 5,
+      objetivos: [
+        {
+          nombre: 'Crecer con compromiso social',
+          indicadores: [
+            { nombre: 'Total Población', meta: '55,756', exec: '56,807', pct: 101.9, nivel: 'sb' },
+            { nombre: 'Cumplimiento total estudiantes antiguos', meta: '44,737', exec: '45,583', pct: 101.9, nivel: 'sb' },
+            { nombre: 'Total estudiantes nuevos', meta: '24,628', exec: '25,365', pct: 103.0, nivel: 'sb' },
+            { nombre: 'Brand equity', meta: '12.3', exec: '15.1', pct: 122.8, nivel: 'sb' },
+            { nombre: 'Conocimiento espontáneo', meta: '9', exec: '11', pct: 122.2, nivel: 'sb' },
+          ]
+        }
+      ]
+    },
+    {
+      id: 'calidad',
+      nombre: 'Calidad',
+      color: '#e63d6f',
+      cumplimiento: 108.2,
+      indicadores: 10,
+      objetivos: [
+        {
+          nombre: 'Asegurar la alta calidad a nivel institucional',
+          indicadores: [
+            { nombre: 'Productos de investigación, innovación y creación', meta: '509', exec: '565', pct: 111.0, nivel: 'sb' },
+            { nombre: 'Estudiantes vinculados a investigación', meta: '4.5%', exec: '5.4%', pct: 120.7, nivel: 'sb' },
+            { nombre: 'Relación Estudiante-Docente Tiempo Completo', meta: '81', exec: '83', pct: 97.8, nivel: 'al' },
+            { nombre: 'Relación estudiante-docente TC Equivalente', meta: '71', exec: '68.4', pct: 103.8, nivel: 'sb' },
+            { nombre: 'Programas acreditados Sede Bogotá', meta: '30.0%', exec: '35.3%', pct: 117.6, nivel: 'sb' },
+          ]
+        },
+        {
+          nombre: 'Fortalecer la oferta educativa y la innovación curricular',
+          indicadores: [
+            { nombre: 'Número de renovaciones de registro calificado', meta: '200', exec: '200', pct: 100.0, nivel: 'cu' },
+            { nombre: 'Número de programas nuevos con registro calificado aprobado', meta: '12', exec: '200', pct: 130.0, nivel: 'sb' },
+            { nombre: '% de profesores con plan de desarrollo docente', meta: '80.0%', exec: '84.2%', pct: 105.2, nivel: 'sb' },
+            { nombre: 'Programas con resultados de aprendizaje definidos', meta: '100', exec: '100', pct: 100.0, nivel: 'cu' },
+          ]
+        }
+      ]
+    },
+    {
+      id: 'experiencia',
+      nombre: 'Experiencia',
+      color: '#00c2d1',
+      cumplimiento: 104.6,
+      indicadores: 4,
+      objetivos: [
+        {
+          nombre: 'Garantizar una experiencia significativa a la comunidad POLI',
+          indicadores: [
+            { nombre: 'Mejor flujo de atención (ANS)', meta: '93.5%', exec: '95.6%', pct: 102.3, nivel: 'sb' },
+            { nombre: 'Índice de satisfacción del estudiante (ISE)', meta: '81', exec: '89', pct: 109.9, nivel: 'sb' },
+            { nombre: 'Permanencia Intersemestral', meta: '100.0%', exec: '100.1%', pct: 100.1, nivel: 'cu' },
+            { nombre: 'NPS Estudiantes', meta: '55', exec: '58.6', pct: 106.5, nivel: 'sb' },
+          ]
+        }
+      ]
+    },
+    {
+      id: 'sostenibilidad',
+      nombre: 'Sostenibilidad',
+      color: '#5bc97a',
+      cumplimiento: 107.4,
+      indicadores: 13,
+      objetivos: [
+        {
+          nombre: 'Contribuir a la inclusión, la proyección social y el cuidado del medio ambiente',
+          indicadores: [
+            { nombre: 'Compensación de Gases de Efecto Invernadero', meta: '100 tCO2e', exec: '3,531 tCO2e', pct: 130.0, nivel: 'sb' },
+            { nombre: 'GreenMetric - Nacional', meta: '25', exec: '13', pct: 130.0, nivel: 'sb' },
+            { nombre: 'Nivel de empleabilidad del graduado', meta: '0', exec: '82%', pct: 0, nivel: 'al' },
+            { nombre: 'Índice de Inclusión', meta: '4.60', exec: '4.78', pct: 103.9, nivel: 'sb' },
+            { nombre: 'Impacto de actividades de Responsabilidad y proyección', meta: '200', exec: '172', pct: 116.3, nivel: 'sb' },
+            { nombre: 'Estudiantes con Becas', meta: '5.00%', exec: '3.62%', pct: 75.4, nivel: 'ri' },
+            { nombre: 'Participación de POLI-voluntarios', meta: '200', exec: '197', pct: 98.6, nivel: 'cu' },
+          ]
+        },
+        {
+          nombre: 'Promover una cultura de optimización de recursos financieros',
+          indicadores: [
+            { nombre: 'Optimización de Ingresos', meta: '$95', exec: '$111', pct: 117.2, nivel: 'sb' },
+            { nombre: 'Caja', meta: '$95', exec: '$152', pct: 130.0, nivel: 'sb' },
+            { nombre: 'Utilidad Neta', meta: '$95', exec: '$123', pct: 129.5, nivel: 'sb' },
+            { nombre: 'Inversión en CAPEX de la utilidad anterior', meta: '1.00%', exec: '2.14%', pct: 130.0, nivel: 'sb' },
+            { nombre: 'Nivel de Cumplimiento Opex', meta: '$100', exec: '$111', pct: 90.8, nivel: 'al' },
+            { nombre: 'Cumplimiento EBITDA', meta: '$95', exec: '$118', pct: 123.7, nivel: 'sb' },
+            { nombre: 'CAPEX', meta: '$100', exec: '$107', pct: 107.1, nivel: 'sb' },
+          ]
+        }
+      ]
+    },
+    {
+      id: 'educacion',
+      nombre: 'Educación para toda la vida',
+      color: '#a855f7',
+      cumplimiento: 108.9,
+      indicadores: 1,
+      objetivos: [
+        {
+          nombre: 'Impulsar y potenciar la educación continua',
+          indicadores: [
+            { nombre: 'Ingresos totales de educación para la vida', meta: '$100', exec: '$109', pct: 108.9, nivel: 'sb' },
+          ]
+        }
+      ]
+    },
+    {
+      id: 'transformacion',
+      nombre: 'Transformación Organizacional',
+      color: '#38bdf8',
+      cumplimiento: 107.2,
+      indicadores: 11,
+      objetivos: [
+        {
+          nombre: 'Asegurar una arquitectura tecnológica institucional centrada en la experiencia',
+          indicadores: [
+            { nombre: 'Disponibilidad de servicios tecnológicos', meta: '97.0%', exec: '95.7%', pct: 98.7, nivel: 'al' },
+          ]
+        },
+        {
+          nombre: 'Contar con un equipo humano feliz y apasionado',
+          indicadores: [
+            { nombre: 'Nivel de Satisfacción Servicios - Comunicaciones Internas', meta: '80%', exec: '94%', pct: 117.5, nivel: 'sb' },
+            { nombre: 'Nivel de efectividad de las capacitaciones', meta: '87.0%', exec: '90.8%', pct: 104.4, nivel: 'sb' },
+            { nombre: 'Great Place to Work', meta: '69', exec: '81', pct: 117.9, nivel: 'sb' },
+            { nombre: 'Índice de rotación', meta: '1.18', exec: '1.09', pct: 130.0, nivel: 'sb' },
+            { nombre: 'Resultado de la evaluación 360 (por competencias)', meta: '89', exec: '90', pct: 101.2, nivel: 'sb' },
+            { nombre: 'Cumplimiento de diagnóstico necesidades de capacitación por área', meta: '82%', exec: '81%', pct: 98.7, nivel: 'al' },
+            { nombre: 'Cumplimiento de las acciones del Plan de mejoramiento GPW', meta: '100%', exec: '100%', pct: 100.0, nivel: 'cu' },
+          ]
+        },
+        {
+          nombre: 'Fortalecer la gestión por procesos y la toma de decisiones',
+          indicadores: [
+            { nombre: 'Cobertura de tableros BI en procesos', meta: '15', exec: '40', pct: 115.4, nivel: 'sb' },
+            { nombre: '% de depuración histórico SNES', meta: '100%', exec: '57%', pct: 56.8, nivel: 'ri' },
+            { nombre: 'Cobertura de Recolección de Variables ADA', meta: '100%', exec: '100%', pct: 100.0, nivel: 'cu' },
+          ]
+        }
+      ]
+    }
+  ]
+};
+
+function getNivelClass(pct) {
+  if (pct >= 100) return 'sb';
+  if (pct >= 90) return 'cu';
+  if (pct >= 75) return 'al';
+  return 'ri';
+}
+function getNivelLabel(cls) {
+  return { sb: 'Sobrecumplimiento', cu: 'Cumplimiento', al: 'Alerta', ri: 'Riesgo' }[cls];
+}
+function getPctArrow(pct) {
+  if (pct >= 100) return '▲';
+  return '▼';
+}
+
+// ══════════════════════════════════════════
+//  VIEW SWITCHING
+// ══════════════════════════════════════════
+function setView(name) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.view-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('view-' + name).classList.add('active');
+  const tabMap = { macro: 0, lineas: 1, indicadores: 2, heatmap: 3, alertas: 4 };
+  document.querySelectorAll('.view-tab')[tabMap[name]]?.classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+}
+
+function scrollToLinea(id) {
+  setTimeout(() => {
+    const el = document.getElementById('linea-' + id);
+    if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); openLinea(id); }
+  }, 50);
+}
+
+// ══════════════════════════════════════════
+//  BAR CHART
+// ══════════════════════════════════════════
+function renderBarChart() {
+  const container = document.getElementById('bar-chart');
+  container.innerHTML = '';
+  DATA.lineas.forEach(l => {
+    const pct = Math.min(l.cumplimiento, 130);
+    const width = (pct / 130 * 100).toFixed(1);
+    const nombre = l.nombre.length > 24 ? l.nombre.substring(0, 22) + '…' : l.nombre;
+    container.innerHTML += `
+      <div class="bar-row">
+        <div class="bar-label">${nombre}</div>
+        <div class="bar-track">
+          <div class="bar-fill" style="width:${width}%; background:${l.color};">
+            <span style="color:rgba(0,0,0,.6); font-size:10px; padding-right:6px;">${l.cumplimiento}%</span>
+          </div>
+        </div>
+        <div class="bar-pct">${l.cumplimiento}%</div>
+      </div>`;
+  });
+}
+
+// ══════════════════════════════════════════
+//  LINEAS SUMMARY CARDS
+// ══════════════════════════════════════════
+function renderLineasSummary() {
+  const container = document.getElementById('lineas-summary');
+  container.innerHTML = '';
+  DATA.lineas.forEach(l => {
+    const allInds = l.objetivos.flatMap(o => o.indicadores);
+    const sb = allInds.filter(i => i.nivel === 'sb').length;
+    const cu = allInds.filter(i => i.nivel === 'cu').length;
+    const al = allInds.filter(i => i.nivel === 'al').length;
+    const ri = allInds.filter(i => i.nivel === 'ri').length;
+    const total = allInds.length;
+    container.innerHTML += `
+      <div class="linea-card" onclick="setView('lineas');scrollToLinea('${l.id}')">
+        <div class="linea-header" style="background:${l.color}">
+          <span>${l.nombre}</span>
+          <span style="font-size:20px;opacity:.7">→</span>
+        </div>
+        <div class="linea-body">
+          <div class="linea-stats">
+            <div class="linea-stat">
+              <div class="linea-stat-val" style="color:${l.color}">${l.cumplimiento}%</div>
+              <div class="linea-stat-lbl">Cumplimiento</div>
+            </div>
+            <div class="linea-stat">
+              <div class="linea-stat-val">${total}</div>
+              <div class="linea-stat-lbl">Indicadores</div>
+            </div>
+            <div class="linea-stat">
+              <div class="linea-stat-val">${l.objetivos.length}</div>
+              <div class="linea-stat-lbl">Objetivos</div>
+            </div>
+          </div>
+          <div class="linea-progress-track">
+            <div class="linea-progress-fill" style="width:${Math.min(l.cumplimiento,130)/130*100}%; background:${l.color}"></div>
+          </div>
+          <div class="mini-dist">
+            ${sb > 0 ? `<div class="mini-dist-seg" style="width:${sb/total*100}%; background:#5bc97a" data-tip="${sb} Sobrecumplimiento"></div>` : ''}
+            ${cu > 0 ? `<div class="mini-dist-seg" style="width:${cu/total*100}%; background:#4f8ef7" data-tip="${cu} Cumplimiento"></div>` : ''}
+            ${al > 0 ? `<div class="mini-dist-seg" style="width:${al/total*100}%; background:#f5a623" data-tip="${al} Alerta"></div>` : ''}
+            ${ri > 0 ? `<div class="mini-dist-seg" style="width:${ri/total*100}%; background:#e63d6f" data-tip="${ri} Riesgo"></div>` : ''}
+          </div>
+          <div class="linea-action">Ver análisis detallado →</div>
+        </div>
+      </div>`;
+  });
+}
+
+// ══════════════════════════════════════════
+//  LINEAS DETAIL
+// ══════════════════════════════════════════
+function renderLineasDetail() {
+  const container = document.getElementById('lineas-detail-container');
+  container.innerHTML = '';
+  DATA.lineas.forEach(l => {
+    const allInds = l.objetivos.flatMap(o => o.indicadores);
+    const sb = allInds.filter(i => i.nivel === 'sb').length;
+    const cu = allInds.filter(i => i.nivel === 'cu').length;
+    const al = allInds.filter(i => i.nivel === 'al').length;
+    const ri = allInds.filter(i => i.nivel === 'ri').length;
+    const total = allInds.length;
+    const avgPct = (allInds.reduce((s,i) => s + Math.min(i.pct,130), 0) / total).toFixed(1);
+
+    const objetivosHtml = l.objetivos.map((obj, oi) => {
+      const indsHtml = obj.indicadores.map(ind => `
+        <tr>
+          <td class="ind-name">${ind.nombre}</td>
+          <td class="ind-meta">${ind.meta}</td>
+          <td class="ind-exec">${ind.exec}</td>
+          <td>
+            <span class="pct-pill ${ind.nivel}">
+              <span class="pct-arrow">${getPctArrow(ind.pct)}</span>
+              ${ind.pct}%
+            </span>
+            <span class="sparkbar"><span class="sparkbar-fill" style="width:${Math.min(ind.pct,130)/130*100}%; background:${ind.nivel==='sb'?'#5bc97a':ind.nivel==='cu'?'#4f8ef7':ind.nivel==='al'?'#f5a623':'#e63d6f'}"></span></span>
+          </td>
+          <td><span class="badge ${ind.nivel}">${getNivelLabel(ind.nivel)}</span></td>
+        </tr>`).join('');
+
+      return `
+        <div class="objetivo-block" id="obj-${l.id}-${oi}">
+          <div class="objetivo-header" onclick="toggleObj('${l.id}-${oi}')">
+            <span>${obj.nombre}</span>
+            <div class="objetivo-badge-wrap">
+              <span class="badge sb">${obj.indicadores.filter(i=>i.nivel==='sb').length} SB</span>
+              <span style="color:var(--muted); font-size:12px">▶</span>
+            </div>
+          </div>
+          <div class="objetivo-body">
+            <table class="ind-table">
+              <thead>
+                <tr>
+                  <th>Indicador</th><th>Meta</th><th>Ejecución</th><th>Cumplimiento</th><th>Nivel</th>
+                </tr>
+              </thead>
+              <tbody>${indsHtml}</tbody>
+            </table>
+          </div>
+        </div>`;
+    }).join('');
+
+    // Insights
+    const riInds = allInds.filter(i => i.nivel === 'ri');
+    const alInds = allInds.filter(i => i.nivel === 'al');
+    const topInd = allInds.reduce((a, b) => a.pct > b.pct ? a : b);
+    const insights = [
+      { icon: '🏆', bg: 'rgba(91,201,122,.1)', text: `<strong>Mejor indicador:</strong> ${topInd.nombre} con <strong>${topInd.pct}%</strong> de cumplimiento.` },
+      ...(riInds.map(i => ({ icon: '🔴', bg: 'rgba(230,61,111,.1)', text: `<strong>En riesgo:</strong> "${i.nombre}" con <strong>${i.pct}%</strong> — requiere atención inmediata.` }))),
+      ...(alInds.map(i => ({ icon: '🟠', bg: 'rgba(245,166,35,.1)', text: `<strong>En alerta:</strong> "${i.nombre}" con <strong>${i.pct}%</strong> — monitoreo activo recomendado.` }))),
+      { icon: '📊', bg: 'rgba(79,142,247,.1)', text: `<strong>${sb} de ${total}</strong> indicadores superan la meta (${(sb/total*100).toFixed(0)}% de sobrecumplimiento).` },
+    ];
+    const insightsHtml = insights.map(ins => `
+      <div class="analysis-item">
+        <div class="analysis-icon" style="background:${ins.bg}">${ins.icon}</div>
+        <div class="analysis-text">${ins.text}</div>
+      </div>`).join('');
+
+    const tabId = `lt-${l.id}`;
+    container.innerHTML += `
+      <div class="linea-detail" id="linea-${l.id}">
+        <div class="linea-detail-header" onclick="toggleLinea('${l.id}')" style="background:${l.color}20; border-bottom: 2px solid ${l.color}40">
+          <div class="linea-detail-title" style="color:${l.color}">
+            <div style="width:14px;height:14px;border-radius:50%;background:${l.color};flex-shrink:0"></div>
+            ${l.nombre}
+            <span style="font-size:13px;font-weight:400;color:rgba(255,255,255,.5)">${total} indicadores · ${l.objetivos.length} objetivos</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:16px">
+            <span class="pct-pill sb" style="font-size:16px;padding:6px 14px">${avgPct}%</span>
+            <span class="linea-chevron">▶</span>
+          </div>
+        </div>
+        <div class="linea-detail-body">
+          <div class="inner-tabs">
+            <button class="inner-tab active" onclick="switchTab('${tabId}','resumen',this)">Resumen</button>
+            <button class="inner-tab" onclick="switchTab('${tabId}','objetivos',this)">Objetivos e Indicadores</button>
+            <button class="inner-tab" onclick="switchTab('${tabId}','insights',this)">Análisis</button>
+          </div>
+
+          <!-- RESUMEN PANE -->
+          <div class="inner-pane active" id="${tabId}-resumen">
+            <div class="resumen-grid">
+              <div class="resumen-card">
+                <div class="resumen-val" style="color:${l.color}">${avgPct}%</div>
+                <div class="resumen-lbl">Promedio de cumplimiento</div>
+              </div>
+              <div class="resumen-card">
+                <div class="resumen-val" style="color:#5bc97a">${sb}</div>
+                <div class="resumen-lbl">En Sobrecumplimiento</div>
+              </div>
+              <div class="resumen-card">
+                <div class="resumen-val" style="color:#4f8ef7">${cu}</div>
+                <div class="resumen-lbl">En Cumplimiento</div>
+              </div>
+              <div class="resumen-card">
+                <div class="resumen-val" style="color:#f5a623">${al}</div>
+                <div class="resumen-lbl">En Alerta</div>
+              </div>
+              <div class="resumen-card">
+                <div class="resumen-val" style="color:#e63d6f">${ri}</div>
+                <div class="resumen-lbl">En Riesgo</div>
+              </div>
+              <div class="resumen-card">
+                <div class="resumen-val">${total}</div>
+                <div class="resumen-lbl">Total indicadores</div>
+              </div>
+            </div>
+            <!-- Mini bar for each indicator -->
+            <div style="margin-top:8px">
+              ${allInds.map(ind => `
+                <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+                  <div style="font-size:11px;color:var(--muted);width:240px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${ind.nombre}</div>
+                  <div style="flex:1;height:8px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden">
+                    <div style="width:${Math.min(ind.pct,130)/130*100}%;height:100%;border-radius:4px;background:${ind.nivel==='sb'?'#5bc97a':ind.nivel==='cu'?'#4f8ef7':ind.nivel==='al'?'#f5a623':'#e63d6f'}"></div>
+                  </div>
+                  <div style="font-size:11px;font-weight:600;color:${ind.nivel==='sb'?'#5bc97a':ind.nivel==='cu'?'#4f8ef7':ind.nivel==='al'?'#f5a623':'#e63d6f'};width:44px;text-align:right">${ind.pct}%</div>
+                </div>`).join('')}
+            </div>
+          </div>
+
+          <!-- OBJETIVOS PANE -->
+          <div class="inner-pane" id="${tabId}-objetivos">
+            ${objetivosHtml}
+          </div>
+
+          <!-- INSIGHTS PANE -->
+          <div class="inner-pane" id="${tabId}-insights">
+            ${insightsHtml}
+          </div>
+        </div>
+      </div>`;
+  });
+}
+
+function toggleLinea(id) {
+  const el = document.getElementById('linea-' + id);
+  el.classList.toggle('open');
+}
+function openLinea(id) {
+  const el = document.getElementById('linea-' + id);
+  if (!el.classList.contains('open')) el.classList.add('open');
+}
+function toggleObj(id) {
+  const el = document.getElementById('obj-' + id);
+  el.classList.toggle('open');
+  const arr = el.querySelector('.objetivo-header span:last-child');
+  if (arr) arr.textContent = el.classList.contains('open') ? '▼' : '▶';
+}
+function switchTab(prefix, pane, btn) {
+  document.querySelectorAll(`[id^="${prefix}-"]`).forEach(p => p.classList.remove('active'));
+  document.getElementById(`${prefix}-${pane}`).classList.add('active');
+  btn.closest('.inner-tabs').querySelectorAll('.inner-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// ══════════════════════════════════════════
+//  INDICADORES TABLE
+// ══════════════════════════════════════════
+function getAllIndicadores() {
+  const all = [];
+  DATA.lineas.forEach(l => {
+    l.objetivos.forEach(obj => {
+      obj.indicadores.forEach(ind => {
+        all.push({ ...ind, linea: l.nombre, lineaColor: l.color, objetivo: obj.nombre });
+      });
+    });
+  });
+  return all;
+}
+
+function renderIndicadoresTable() {
+  const search = document.getElementById('ind-search').value.toLowerCase();
+  const lineaFilter = document.getElementById('ind-linea-filter').value;
+  const nivelFilter = document.getElementById('ind-nivel-filter').value;
+
+  let all = getAllIndicadores();
+  if (search) all = all.filter(i => i.nombre.toLowerCase().includes(search) || i.objetivo.toLowerCase().includes(search));
+  if (lineaFilter) all = all.filter(i => i.linea === lineaFilter);
+  if (nivelFilter) all = all.filter(i => i.nivel === nivelFilter);
+
+  // Sort by pct desc
+  all.sort((a,b) => b.pct - a.pct);
+
+  const tbody = document.getElementById('ind-tbody');
+  tbody.innerHTML = all.map((ind, i) => `
+    <tr>
+      <td class="rank-num">${i + 1}</td>
+      <td><span style="font-size:13px;font-weight:500">${ind.nombre}</span></td>
+      <td>
+        <span style="display:inline-flex;align-items:center;gap:6px;font-size:12px">
+          <span class="rank-linea-dot" style="background:${ind.lineaColor}"></span>
+          ${ind.linea}
+        </span>
+      </td>
+      <td style="font-size:11px;color:var(--muted);max-width:200px">${ind.objetivo}</td>
+      <td style="font-size:12px">${ind.meta}</td>
+      <td style="font-size:12px;font-weight:500">${ind.exec}</td>
+      <td>
+        <div class="progress-inline">
+          <span class="pct-pill ${ind.nivel}">${getPctArrow(ind.pct)} ${ind.pct}%</span>
+          <div class="progress-bar-sm"><div class="progress-bar-sm-fill" style="width:${Math.min(ind.pct,130)/130*100}%;background:${ind.nivel==='sb'?'#5bc97a':ind.nivel==='cu'?'#4f8ef7':ind.nivel==='al'?'#f5a623':'#e63d6f'}"></div></div>
+        </div>
+      </td>
+      <td>
+        <span class="badge ${ind.nivel}">${getNivelLabel(ind.nivel)}</span>
+      </td>
+      <td>
+        <button onclick='openModal(${JSON.stringify(ind).replace(/'/g,"\\'")})'
+          style="background:rgba(79,142,247,.1);border:1px solid rgba(79,142,247,.2);color:#4f8ef7;padding:4px 10px;border-radius:6px;font-size:11px;cursor:pointer;font-family:inherit">
+          Ver ficha
+        </button>
+      </td>
+    </tr>`).join('');
+}
+
+// ══════════════════════════════════════════
+//  MODAL FICHA INDICADOR
+// ══════════════════════════════════════════
+function openModal(ind) {
+  const overlay = document.getElementById('modal-overlay');
+  const cls = ind.nivel;
+  const color = cls==='sb'?'#5bc97a':cls==='cu'?'#4f8ef7':cls==='al'?'#f5a623':'#e63d6f';
+  const pctCapped = Math.min(ind.pct, 130);
+  const gauge = (pctCapped / 130 * 251.2).toFixed(1);
+
+  document.getElementById('modal-content').innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px">
+      <div>
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px">
+          ${ind.linea} · ${ind.objetivo}
+        </div>
+        <h2 style="font-family:Syne,sans-serif;font-size:20px;font-weight:800;color:var(--text);line-height:1.3;max-width:480px">${ind.nombre}</h2>
+      </div>
+      <button onclick="closeModal()" style="background:rgba(255,255,255,.06);border:1px solid var(--border);color:var(--muted);width:36px;height:36px;border-radius:8px;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;flex-shrink:0">×</button>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:24px">
+      <div style="background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:16px;text-align:center">
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px">Meta</div>
+        <div style="font-family:Syne,sans-serif;font-size:24px;font-weight:800">${ind.meta}</div>
+      </div>
+      <div style="background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:16px;text-align:center">
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px">Ejecución</div>
+        <div style="font-family:Syne,sans-serif;font-size:24px;font-weight:800;color:${color}">${ind.exec}</div>
+      </div>
+      <div style="background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:16px;text-align:center">
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px">Cumplimiento</div>
+        <div style="font-family:Syne,sans-serif;font-size:24px;font-weight:800;color:${color}">${ind.pct}%</div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:auto 1fr;gap:24px;align-items:center;margin-bottom:24px">
+      <svg width="140" height="140" viewBox="0 0 100 100">
+        <circle cx="50" cy="50" r="40" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="12"/>
+        <circle cx="50" cy="50" r="40" fill="none" stroke="${color}" stroke-width="12"
+          stroke-dasharray="${gauge} 251.2" stroke-dashoffset="62.8"
+          stroke-linecap="round" transform="rotate(-90 50 50)"
+          style="transition:stroke-dasharray 1s ease"/>
+        <text x="50" y="46" text-anchor="middle" fill="${color}" font-family="Syne,sans-serif" font-size="18" font-weight="800">${ind.pct}%</text>
+        <text x="50" y="60" text-anchor="middle" fill="#7a80a0" font-size="8">cumplimiento</text>
+      </svg>
+      <div>
+        <div style="margin-bottom:14px">
+          <div style="font-size:11px;color:var(--muted);margin-bottom:6px">Nivel de cumplimiento</div>
+          <span class="badge ${cls}" style="font-size:13px;padding:5px 14px">${getNivelLabel(cls)}</span>
+        </div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.7">
+          ${cls==='sb' ? `✅ <strong style="color:var(--text)">Excelente desempeño.</strong> El indicador supera la meta institucional en <strong style="color:#5bc97a">${(ind.pct-100).toFixed(1)} puntos porcentuales</strong>. Mantener las estrategias actuales y documentar buenas prácticas.`
+            : cls==='cu' ? `✅ <strong style="color:var(--text)">Cumplimiento en rango objetivo.</strong> El indicador se encuentra dentro del umbral esperado. Monitorear para mantener el nivel.`
+            : cls==='al' ? `⚠️ <strong style="color:var(--text)">Requiere atención.</strong> El indicador está por debajo de la meta con <strong style="color:#f5a623">${(100-ind.pct).toFixed(1)}pp</strong> de brecha. Se recomienda revisar el plan de acción.`
+            : `🔴 <strong style="color:var(--text)">En riesgo crítico.</strong> El indicador presenta una brecha de <strong style="color:#e63d6f">${(100-ind.pct).toFixed(1)}pp</strong> respecto a la meta. Requiere intervención inmediata y reporte a dirección.`}
+        </div>
+      </div>
+    </div>
+
+    <div style="background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:16px">
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:10px">Progreso hacia la meta</div>
+      <div style="height:10px;background:rgba(255,255,255,.06);border-radius:5px;overflow:hidden;margin-bottom:8px">
+        <div style="width:${Math.min(ind.pct,130)/130*100}%;height:100%;background:${color};border-radius:5px;transition:width 1s ease"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted)">
+        <span>0%</span><span style="color:${color};font-weight:600">${ind.pct}% alcanzado</span><span>Meta: 100%</span>
+      </div>
+    </div>
+  `;
+  overlay.classList.add('open');
+}
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('open');
+}
+
+// ══════════════════════════════════════════
+//  HEATMAP VIEW
+// ══════════════════════════════════════════
+function renderHeatmap() {
+  const container = document.getElementById('heatmap-container');
+  if (!container) return;
+  container.innerHTML = '';
+  DATA.lineas.forEach(l => {
+    const allInds = l.objetivos.flatMap(o => o.indicadores);
+    const cells = allInds.map(ind => {
+      const color = ind.nivel==='sb'?'#5bc97a':ind.nivel==='cu'?'#4f8ef7':ind.nivel==='al'?'#f5a623':'#e63d6f';
+      return `<div onclick='openModal(${JSON.stringify(ind).replace(/'/g,"\\'")})' style="
+        background:${color}22;border:1px solid ${color}44;
+        border-radius:8px;padding:10px;cursor:pointer;
+        transition:all .2s;position:relative;overflow:hidden;
+        " onmouseover="this.style.background='${color}44';this.style.transform='scale(1.03)'"
+        onmouseout="this.style.background='${color}22';this.style.transform='scale(1)'">
+        <div style="font-size:10px;color:${color};font-weight:700;margin-bottom:4px">${ind.pct}%</div>
+        <div style="font-size:10px;color:rgba(232,234,242,.7);line-height:1.3;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${ind.nombre}</div>
+        <div style="position:absolute;bottom:0;left:0;right:0;height:3px;background:${color};opacity:.6"></div>
+      </div>`;
+    }).join('');
+    container.innerHTML += `
+      <div style="margin-bottom:20px">
+        <div style="font-family:Syne,sans-serif;font-size:13px;font-weight:700;color:${l.color};margin-bottom:10px;display:flex;align-items:center;gap:8px">
+          <div style="width:10px;height:10px;border-radius:50%;background:${l.color}"></div>${l.nombre}
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px">${cells}</div>
+      </div>`;
+  });
+}
+
+// ══════════════════════════════════════════
+//  ALERTAS VIEW
+// ══════════════════════════════════════════
+function renderAlertas() {
+  const container = document.getElementById('alertas-container');
+  if (!container) return;
+  const all = getAllIndicadores();
+  const riAll = all.filter(i => i.nivel === 'ri');
+  const alAll = all.filter(i => i.nivel === 'al');
+
+  let html = `<div style="font-family:Syne,sans-serif;font-size:16px;font-weight:700;margin-bottom:16px;color:var(--text)">🔴 Indicadores en Riesgo <span style="font-size:13px;font-weight:400;color:var(--muted)">(${riAll.length})</span></div>`;
+  if (riAll.length === 0) html += `<div style="color:var(--muted);font-size:13px;margin-bottom:24px">Sin indicadores en riesgo. ✅</div>`;
+  riAll.forEach(ind => {
+    html += `
+      <div style="background:rgba(230,61,111,.07);border:1px solid rgba(230,61,111,.25);border-radius:12px;padding:18px;margin-bottom:10px;display:flex;gap:16px;align-items:flex-start">
+        <div style="width:44px;height:44px;border-radius:10px;background:rgba(230,61,111,.15);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">🔴</div>
+        <div style="flex:1">
+          <div style="font-weight:600;font-size:14px;margin-bottom:4px">${ind.nombre}</div>
+          <div style="font-size:11px;color:var(--muted);margin-bottom:10px">${ind.linea} · ${ind.objetivo}</div>
+          <div style="display:flex;gap:20px;font-size:12px">
+            <span>Meta: <strong>${ind.meta}</strong></span>
+            <span>Ejecución: <strong style="color:#e63d6f">${ind.exec}</strong></span>
+            <span>Brecha: <strong style="color:#e63d6f">${(100-ind.pct).toFixed(1)}pp</strong></span>
+          </div>
+        </div>
+        <button onclick='openModal(${JSON.stringify(ind).replace(/'/g,"\\'")})' style="background:rgba(230,61,111,.15);border:1px solid rgba(230,61,111,.3);color:#e63d6f;padding:6px 14px;border-radius:8px;font-size:11px;cursor:pointer;font-family:inherit;white-space:nowrap">Ver ficha</button>
+      </div>`;
+  });
+
+  html += `<div style="font-family:Syne,sans-serif;font-size:16px;font-weight:700;margin:24px 0 16px;color:var(--text)">🟠 Indicadores en Alerta <span style="font-size:13px;font-weight:400;color:var(--muted)">(${alAll.length})</span></div>`;
+  alAll.forEach(ind => {
+    html += `
+      <div style="background:rgba(245,166,35,.07);border:1px solid rgba(245,166,35,.25);border-radius:12px;padding:18px;margin-bottom:10px;display:flex;gap:16px;align-items:flex-start">
+        <div style="width:44px;height:44px;border-radius:10px;background:rgba(245,166,35,.12);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">🟠</div>
+        <div style="flex:1">
+          <div style="font-weight:600;font-size:14px;margin-bottom:4px">${ind.nombre}</div>
+          <div style="font-size:11px;color:var(--muted);margin-bottom:10px">${ind.linea} · ${ind.objetivo}</div>
+          <div style="display:flex;gap:20px;font-size:12px">
+            <span>Meta: <strong>${ind.meta}</strong></span>
+            <span>Ejecución: <strong style="color:#f5a623">${ind.exec}</strong></span>
+            <span>Cumplimiento: <strong style="color:#f5a623">${ind.pct}%</strong></span>
+          </div>
+        </div>
+        <button onclick='openModal(${JSON.stringify(ind).replace(/'/g,"\\'")})' style="background:rgba(245,166,35,.12);border:1px solid rgba(245,166,35,.3);color:#f5a623;padding:6px 14px;border-radius:8px;font-size:11px;cursor:pointer;font-family:inherit;white-space:nowrap">Ver ficha</button>
+      </div>`;
+  });
+
+  container.innerHTML = html;
+}
+
+// ══════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════
+window.addEventListener('DOMContentLoaded', () => {
+  renderBarChart();
+  renderLineasSummary();
+  renderLineasDetail();
+  renderIndicadoresTable();
+  renderHeatmap();
+  renderAlertas();
+});
+</script>
+
+<!-- MODAL -->
+<style>
+.modal-overlay {
+  position: fixed; inset:0; z-index:1000;
+  background: rgba(0,0,0,.7);
+  backdrop-filter: blur(6px);
+  display: flex; align-items: center; justify-content: center;
+  opacity:0; pointer-events:none;
+  transition: opacity .25s;
+}
+.modal-overlay.open { opacity:1; pointer-events:all; }
+.modal-box {
+  background: var(--surface);
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 20px;
+  padding: 28px;
+  width: 640px;
+  max-width: 95vw;
+  max-height: 90vh;
+  overflow-y: auto;
+  transform: translateY(12px);
+  transition: transform .3s;
+}
+.modal-overlay.open .modal-box { transform: translateY(0); }
+</style>
+
+<div class="modal-overlay" id="modal-overlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal-box" id="modal-content"></div>
+</div>
+</body>
+</html>

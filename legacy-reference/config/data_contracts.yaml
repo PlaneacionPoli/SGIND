@@ -1,0 +1,469 @@
+# Data Contracts para SGIND
+# ========================
+# Define esquemas, tipos, y reglas de validación para cada fuente de datos.
+#
+# Estructura:
+#   fuente_nombre:
+#     archivo: ruta/al/archivo
+#     tipo: excel | csv | api | database
+#     tablas/hojas:
+#       hoja_nombre:
+#         columnas:
+#           nombre_col:
+#             tipo: (string | integer | float | boolean | datetime | categorical)
+#             requerida: true | false
+#             valores_permitidos: [lista] | null
+#             min | max: límites numéricos
+#             patron: regex pattern
+#             ejemplo: valor de ejemplo
+#         validaciones:
+#           - regla_nombre: condición
+#     freshness: horas (máximo tiempo sin actualizar)
+
+resultados_consolidados:
+  archivo: "data/output/Resultados Consolidados.xlsx"
+  tipo: "excel"
+  descripcion: "Fuente oficial consolidada por periodo con histórico operativo de indicadores"
+  actualizado_por: "scripts/actualizar_consolidado.py"
+  frecuencia_actualizacion: "Manual (cuando hay nuevos datos en API)"
+  hojas:
+    "Consolidado Historico":
+      descripcion: "Consolidación histórica de soporte para análisis longitudinal y Gestión OM"
+      columnas:
+        Anio:
+          tipo: "integer"
+          requerida: true
+          min: 2022
+          max: 2030
+          descripcion: "Año del dato"
+        Fecha:
+          tipo: "datetime"
+          requerida: true
+          formato: "YYYY-MM-DD"
+          descripcion: "Fecha de corte del registro"
+        Mes:
+          tipo: "string"
+          requerida: true
+          descripcion: "Nombre del mes asociado al corte"
+        Periodo:
+          tipo: "string"
+          requerida: false
+          descripcion: "Periodo consolidado en formato AAAA-S (puede no existir en historico)"
+        Id:
+          tipo: "string"
+          requerida: true
+          patron: "^[0-9a-zA-Z\\-]+$"
+          descripcion: "ID único del indicador"
+        Indicador:
+          tipo: "string"
+          requerida: true
+          longitud_min: 5
+          longitud_max: 200
+          descripcion: "Nombre del indicador"
+        Proceso:
+          tipo: "string"
+          requerida: false
+          descripcion: "Proceso padre (puede ser nulo en registros historicos)"
+        Periodicidad:
+          tipo: "categorical"
+          requerida: true
+          valores_permitidos: ["Mensual", "Trimestral", "Semestral", "Anual", "Bimestral"]
+          descripcion: "Frecuencia de medición del indicador"
+        Meta:
+          tipo: "float"
+          requerida: false
+          min: 0.0
+          descripcion: "Meta del período"
+        Ejecucion:
+          tipo: "float"
+          requerida: false
+          descripcion: "Valor ejecutado"
+        Cumplimiento:
+          tipo: "float"
+          requerida: false
+          descripcion: "Porcentaje de cumplimiento (calculado)"
+        Sentido:
+          tipo: "categorical"
+          requerida: true
+          valores_permitidos: ["Positivo", "Negativo"]
+          descripcion: "Sentido operativo del indicador en la fuente consolidada"
+        Tipo_Registro:
+          tipo: "categorical"
+          requerida: false
+          valores_permitidos: ["Metrica", "No Aplica"]
+          descripcion: "Marcador auxiliar para registros especiales"
+      validaciones:
+        - "Fecha y Anio deben ser coherentes"
+        - "Periodo debe corresponder al corte temporal"
+        - "Cumplimiento puede existir aunque Meta o Ejecucion sean nulos en registros especiales"
+    "Consolidado Semestral":
+      descripcion: "Consolidación principal para consumo general de la aplicación"
+      columnas:
+        Anio:
+          tipo: "integer"
+          requerida: true
+          min: 2022
+          max: 2030
+          descripcion: "Año del dato"
+        Fecha:
+          tipo: "datetime"
+          requerida: true
+          formato: "YYYY-MM-DD"
+          descripcion: "Fecha de corte del registro"
+        Mes:
+          tipo: "string"
+          requerida: true
+          descripcion: "Nombre del mes asociado al corte"
+        Periodo:
+          tipo: "string"
+          requerida: true
+          descripcion: "Periodo consolidado en formato AAAA-S"
+        Id:
+          tipo: "string"
+          requerida: true
+          patron: "^[0-9a-zA-Z\\-]+$"
+          descripcion: "ID único del indicador"
+        Indicador:
+          tipo: "string"
+          requerida: true
+          longitud_min: 5
+          longitud_max: 200
+          descripcion: "Nombre del indicador"
+        Proceso:
+          tipo: "string"
+          requerida: false
+          descripcion: "Proceso padre (macroproceso) — nulo permitido en indicadores Plan Anual"
+        Periodicidad:
+          tipo: "categorical"
+          requerida: true
+          valores_permitidos: ["Mensual", "Trimestral", "Semestral", "Anual", "Bimestral"]
+          descripcion: "Frecuencia de medición del indicador"
+        Meta:
+          tipo: "float"
+          requerida: false
+          min: 0.0
+          descripcion: "Meta del período"
+        Ejecucion:
+          tipo: "float"
+          requerida: false
+          descripcion: "Valor ejecutado"
+        Cumplimiento:
+          tipo: "float"
+          requerida: false
+          descripcion: "Porcentaje de cumplimiento (calculado)"
+        Sentido:
+          tipo: "categorical"
+          requerida: true
+          valores_permitidos: ["Positivo", "Negativo"]
+          descripcion: "Sentido operativo del indicador en la fuente consolidada"
+        Tipo_Registro:
+          tipo: "categorical"
+          requerida: false
+          valores_permitidos: ["Metrica", "No Aplica"]
+          descripcion: "Marcador auxiliar para registros especiales"
+      validaciones:
+        - "Fecha y Anio deben ser coherentes"
+        - "Periodo debe corresponder al corte temporal"
+        - "Cumplimiento puede existir aunque Meta o Ejecucion sean nulos en registros especiales"
+
+    "Catalogo Indicadores":
+      descripcion: "Catálogo maestro con metadatos de indicadores"
+      columnas:
+        Id:
+          tipo: "string"
+          requerida: true
+          descripcion: "ID único (debe coincidir con Consolidado)"
+        Indicador:
+          tipo: "string"
+          requerida: true
+          descripcion: "Nombre del indicador"
+        Clasificacion:
+          tipo: "categorical"
+          requerida: false
+          valores_permitidos: ["Estratégico", "Operativo"]
+          descripcion: "Nulo permitido en sub-indicadores (IDs con decimal como 108.2, 414.5)"
+        Proceso:
+          tipo: "string"
+          requerida: false
+          descripcion: "Nulo permitido en indicadores Plan Anual que cruzan múltiples áreas"
+        Periodicidad:
+          tipo: "categorical"
+          requerida: true
+          valores_permitidos: ["Mensual", "Trimestral", "Semestral", "Anual", "Bimestral"]
+        Sentido:
+          tipo: "categorical"
+          requerida: true
+          valores_permitidos: ["Positivo", "Negativo"]
+        Tipo_API:
+          tipo: "categorical"
+          requerida: false
+          valores_permitidos: ["Serie Unica", "Multiserie"]
+        Estado:
+          tipo: "categorical"
+          requerida: true
+          valores_permitidos: ["Activo", "Historico"]
+        Fuente:
+          tipo: "categorical"
+          requerida: true
+          valores_permitidos: ["API", "Historico"]
+        TipoCalculo:
+          tipo: "categorical"
+          requerida: false
+          valores_permitidos: ["Cierre", "Promedio", "Acumulado"]
+      validaciones:
+        - "Todos los Id en Catalogo deben existir en Consolidado Semestral"
+
+plan_accion:
+  archivo: "data/raw/Plan de accion/PA_*.xlsx"
+  tipo: "excel"
+  descripcion: |
+    Planes de Acción de mejora por proceso. Archivos uno por proceso/año,
+    nombrados PA_<Proceso>_<Año>.xlsx. Fuente manual validada por líderes de proceso.
+  actualizado_por: "Manual (líderes de proceso)"
+  frecuencia_actualizacion: "Por eventos de mejora (no periódico fijo)"
+  hojas:
+    "Worksheet":
+      descripcion: "Acciones de mejora con estado, avance y fechas"
+      columnas:
+        "Id Acción":
+          tipo: "string"
+          requerida: true
+          descripcion: "Identificador único de la acción de mejora"
+        "Fecha creación":
+          tipo: "datetime"
+          requerida: true
+          formato: "YYYY-MM-DD"
+          descripcion: "Fecha en que se registró la acción"
+        "Fecha límite":
+          tipo: "datetime"
+          requerida: false
+          formato: "YYYY-MM-DD"
+          descripcion: "Fecha límite para cumplir la acción"
+        "Clasificación":
+          tipo: "categorical"
+          requerida: true
+          valores_permitidos: ["Corrección", "Acción Correctiva", "Acción Preventiva", "Mejora"]
+          descripcion: "Tipo de acción de mejora"
+        "Avance (%)":
+          tipo: "float"
+          requerida: true
+          min: 0
+          max: 100
+          descripcion: "Porcentaje de avance de la acción (0–100)"
+        "Estado (Plan de Acción)":
+          tipo: "categorical"
+          requerida: true
+          valores_permitidos: ["Abierto", "Cerrado", "En proceso", "Pendiente"]
+          descripcion: "Estado actual de la acción"
+        "Responsable":
+          tipo: "string"
+          requerida: false
+          descripcion: "Nombre o cargo del responsable de la acción"
+        "Proceso":
+          tipo: "string"
+          requerida: false
+          descripcion: "Proceso al que pertenece la acción"
+      validaciones:
+        - "Id Acción único por archivo (sin duplicados)"
+        - "Avance (%) en rango [0, 100]"
+        - "Estado (Plan de Acción) en valores permitidos"
+        - "Fecha creación no puede ser futura respecto a fecha de corte"
+        - "Si Estado = Cerrado → Avance (%) debe ser 100"
+  semaforizacion:
+    campo: "Avance (%)"
+    rangos:
+      critico: "<50"
+      atencion: "50-80"
+      normal: "80-100"
+  reglas_negocio:
+    - "Un indicador puede tener 0 o más acciones de mejora asociadas"
+    - "Las acciones no tienen FK directa al Id de indicador en esta versión"
+    - "No se usa como fuente primaria del dashboard CMI — solo reportes de gestión"
+
+kawak_consolidado:
+  tipo: "excel"
+  descripcion: "Consolidación de datos desde API Kawak (origen)"
+  actualizado_por: "scripts/consolidar_api.py"
+  frecuencia_actualizacion: "Cada nueva extracción de API Kawak"
+  hojas:
+    "Sheet1":
+      descripcion: "Todos los registros históricos de API Kawak"
+      columnas:
+        Ano:
+          tipo: "integer"
+          requerida: true
+        Fecha:
+          tipo: "datetime"
+          requerida: true
+          formato: "YYYY-MM-DD"
+        Id:
+          tipo: "string"
+          requerida: true
+        nombre:
+          tipo: "string"
+          requerida: true
+        clasificacion:
+          tipo: "categorical"
+          requerida: true
+          valores_permitidos: ["Estratégico", "Operativo"]
+        sentido:
+          tipo: "categorical"
+          requerida: true
+          valores_permitidos: ["Positivo", "Negativo"]
+        proceso:
+          tipo: "string"
+          requerida: true
+        Tipo:
+          tipo: "categorical"
+          requerida: true
+          valores_permitidos: ["Multiserie", "Serie Unica"]
+        Resultado:
+          tipo: "float"
+          requerida: false
+        Meta:
+          tipo: "float"
+          requerida: false
+        cumplimiento:
+          tipo: "float"
+          requerida: false
+        frecuencia:
+          tipo: "categorical"
+          requerida: true
+          valores_permitidos: ["Mensual", "Trimestral", "Semestral", "Anual", "Quincenal"]
+      validaciones:
+        - "Fecha valida + coherente con Ano"
+        - "Sin duplicados (Ano + Id + Fecha)"
+
+kawak_catalogo:
+  archivo: "data/raw/Fuentes Consolidadas/Indicadores Kawak.xlsx"
+  tipo: "excel"
+  descripcion: "Catálogo de indicadores desde Kawak"
+  actualizado_por: "scripts/consolidar_api.py"
+  frecuencia_actualizacion: "Cada nueva extracción de API"
+  hojas:
+    "Sheet1":
+      descripcion: "Metadatos de indicadores"
+      columnas:
+        Ano:
+          tipo: "integer"
+          requerida: true
+        Id:
+          tipo: "string"
+          requerida: true
+        Indicador:
+          tipo: "string"
+          requerida: true
+        Clasificacion:
+          tipo: "categorical"
+          requerida: true
+          valores_permitidos: ["Estratégico", "Operativo"]
+        Proceso:
+          tipo: "string"
+          requerida: true
+        Tipo:
+          tipo: "categorical"
+          requerida: true
+          valores_permitidos: ["Eficacia", "Eficiencia", "Efectividad", "Metrica", "Financiero"]
+        Periodicidad:
+          tipo: "categorical"
+          requerida: true
+          valores_permitidos: ["Mensual", "Trimestral", "Semestral", "Anual", "Bimestral"]
+        Sentido:
+          tipo: "categorical"
+          requerida: true
+          valores_permitidos: ["Positivo", "Negativo"]
+      validaciones:
+        - "Sin duplicados (Ano + Id)"
+
+indicadores_cmi:
+  archivo: "data/raw/Catalogo de Indicadores.xlsx"
+  tipo: "excel"
+  descripcion: "Directorio maestro de indicadores — vincula indicadores a subprocesos y líneas (fusionado 2026-07-13 desde 'Indicadores por CMI.xlsx' y 'Ficha_Tecnica_Indicadores.xlsx', ahora archivados en data/raw/_archivados/)"
+  actualizado_por: "Manual + scripts/sincronizar_directorio_indicadores.py"
+  frecuencia_actualizacion: "Por cambios en estructura estratégica; sincronización de Ids nuevos tras cada corrida de scripts/consolidar_api.py"
+  hojas:
+    "Catalogo Indicadores":
+      descripcion: "Directorio único de indicadores: Kawak/API + clasificación de negocio + ficha técnica resumida"
+      columnas:
+        Id:
+          tipo: "string"
+          requerida: true
+          descripcion: "ID indicador (debe existir en Kawak)"
+        Subproceso:
+          tipo: "string"
+          requerida: false
+        Linea_Estrategica:
+          tipo: "string"
+          requerida: false
+      validaciones:
+        - "Id debe existir en Catalogo Indicadores"
+        - "Sin duplicados en Id"
+        - "Regla oficial CMI por Procesos: Si Subproceso == 1, el indicador puede ser candidato a CMI por Procesos; la determinacion de activo por año requiere cruce del Id con los consolidados Kawak para el año correspondiente. El campo Ind act esta deprecado y no debe usarse como criterio de inclusion."
+
+  # Metadata del contrato
+  contract_metadata:
+    contract_name: "data_contracts"
+    version: "1.2.0"
+    last_updated: "2026-05-09"
+    changelog:
+      - version: "1.2.0"
+        date: "2026-05-09"
+        author: "copilot-agent-P1"
+        changes:
+          - "Agregado contrato formal para Plan de Accion (PA_*.xlsx)"
+      - version: "1.1.0"
+        date: "2026-05-05"
+        author: "script:copilot-patch"
+        changes:
+          - "Deprecado campo 'Ind act' como criterio para CMI por Procesos."
+          - "Regla formal: usar 'Subproceso == 1' y cruce por año con consolidados Kawak para validar activos."
+
+# ============================================================================
+# REGLAS GLOBALES DE CALIDAD
+# ============================================================================
+
+validaciones_globales:
+  - nombre: "Referential Integrity"
+    descripcion: "Todos los Id en Consolidado deben existir en Catalogo"
+    fuentes: ["resultados_consolidados", "kawak_catalogo"]
+    
+  - nombre: "Data Freshness"
+    descripcion: "Datos no deben ser más antiguos que límite especificado"
+    freshness_hours: 48
+    
+  - nombre: "No Nulls en Campos Críticos"
+    descripcion: "Campos de identidad y corte temporal no deben ser nulos"
+    campos_criticos:
+      - "resultados_consolidados/Consolidado Semestral/Anio"
+      - "resultados_consolidados/Consolidado Semestral/Id"
+      - "resultados_consolidados/Consolidado Semestral/Fecha"
+      - "kawak_catalogo/Sheet1/Id"
+  
+  - nombre: "Consistencia Histórica"
+    descripcion: "Un indicador no debe cambiar Sentido retroactivamente"
+    check_method: "Comparar Sentido actual vs 6 meses atrás"
+
+# ============================================================================
+# DOCUMENTACIÓN
+# ============================================================================
+
+documentacion:
+  proposito: |
+    Data Contracts definen "qué es un dato válido" para SGIND.
+    Permiten:
+    - Validación automática (rechazar datos malos temprano)
+    - Diagnosticar divergencias entre fuentes
+    - Documentar estructura esperada (onboarding)
+    - Crear alertas si datos violan contrato
+  
+  como_usar: |
+    1. En services/data_validation.py, cargar este YAML
+    2. Para cada fuente de datos, ejecutar validaciones
+    3. Loguear advertencias/errores si validación falla
+    4. En Fase 2+, integrar con Great Expectations para testing
+  
+  roadmap: |
+    FASE 1: Definición de contracts (este archivo)
+    FASE 2: Implementar validación en data_loader.py
+    FASE 2: Crear página Streamlit para monitoreo de calidad
+    FASE 3: Great Expectations integration + CI/CD gates

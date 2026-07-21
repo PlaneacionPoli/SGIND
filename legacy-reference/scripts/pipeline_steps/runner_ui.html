@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ETL Pipeline Runner — POLI</title>
+<style>
+  :root {
+    --color-bg:      #0f1117;
+    --color-surface: #1a1d2e;
+    --color-border:  #2e3250;
+    --color-primary: #3a7dc9;
+    --color-success: #22c55e;
+    --color-error:   #ef4444;
+    --color-warning: #f59e0b;
+    --color-running: #a78bfa;
+    --color-pending: #6b7280;
+    --color-text:    #e2e8f0;
+    --color-muted:   #94a3b8;
+    --font-main:     'Segoe UI', system-ui, sans-serif;
+    --font-mono:     'Consolas', 'Courier New', monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--color-bg);
+    color: var(--color-text);
+    font-family: var(--font-main);
+    font-size: 14px;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* ── Barra superior ────────────────────────────────────────────── */
+  .topbar {
+    background: var(--color-surface);
+    border-bottom: 1px solid var(--color-border);
+    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-shrink: 0;
+  }
+  .topbar-title { font-size: 15px; font-weight: 600; color: var(--color-text); }
+  .topbar-sub   { font-size: 12px; color: var(--color-muted); margin-left: -10px; }
+  .topbar-spacer { flex: 1; }
+  .topbar-info  { font-size: 12px; color: var(--color-muted); text-align: right; }
+
+  /* ── Botones ───────────────────────────────────────────────────── */
+  .btn {
+    padding: 7px 14px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-size: 13px;
+    font-family: var(--font-main);
+    font-weight: 500;
+    transition: opacity 0.15s;
+    white-space: nowrap;
+  }
+  .btn:hover   { opacity: 0.85; }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-primary { background: var(--color-primary); color: #fff; }
+  .btn-ghost   { background: transparent; color: var(--color-muted); border: 1px solid var(--color-border); }
+  .btn-danger  { background: #374151; color: var(--color-error); border: 1px solid var(--color-border); }
+  .btn-sm { padding: 5px 10px; font-size: 12px; }
+
+  /* ── Layout ────────────────────────────────────────────────────── */
+  .layout {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  /* ── Panel izquierdo ───────────────────────────────────────────── */
+  .left-panel {
+    width: 280px;
+    min-width: 220px;
+    background: var(--color-surface);
+    border-right: 1px solid var(--color-border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  .panel-header {
+    padding: 12px 16px 8px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--color-muted);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--color-border);
+    flex-shrink: 0;
+  }
+  .steps-list {
+    overflow-y: auto;
+    flex: 1;
+    padding: 6px 0;
+  }
+
+  .step-card {
+    padding: 10px 16px;
+    cursor: pointer;
+    border-left: 3px solid transparent;
+    transition: background 0.1s;
+    user-select: none;
+    position: relative;
+  }
+  .step-card:hover { background: rgba(255,255,255,0.04); }
+  .step-card.selected {
+    background: rgba(58,125,201,0.12);
+    border-left-color: var(--color-primary);
+  }
+
+  .step-card-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .step-icon { font-size: 15px; width: 20px; text-align: center; flex-shrink: 0; }
+  .step-num  { font-size: 11px; color: var(--color-muted); font-family: var(--font-mono); }
+  .step-name { font-size: 13px; color: var(--color-text); flex: 1; }
+  .badge-grouped {
+    font-size: 10px;
+    padding: 1px 5px;
+    border-radius: 3px;
+    background: rgba(58,125,201,0.25);
+    color: var(--color-primary);
+    font-weight: 600;
+  }
+
+  .step-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 3px;
+    padding-left: 28px;
+  }
+  .step-time { font-size: 11px; color: var(--color-muted); font-family: var(--font-mono); }
+  .step-status-text { font-size: 11px; }
+  .step-status-text.ok      { color: var(--color-success); }
+  .step-status-text.error   { color: var(--color-error); }
+  .step-status-text.running { color: var(--color-running); }
+  .step-status-text.pending { color: var(--color-pending); }
+
+  .left-panel-footer {
+    padding: 12px 14px;
+    border-top: 1px solid var(--color-border);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+
+  /* ── Panel derecho ─────────────────────────────────────────────── */
+  .right-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: var(--color-bg);
+  }
+
+  .detail-header {
+    padding: 16px 20px 12px;
+    border-bottom: 1px solid var(--color-border);
+    flex-shrink: 0;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+  }
+  .detail-icon { font-size: 28px; }
+  .detail-title { font-size: 17px; font-weight: 600; }
+  .detail-desc  { font-size: 12px; color: var(--color-muted); margin-top: 3px; }
+  .detail-meta  { display: flex; gap: 16px; margin-top: 6px; flex-wrap: wrap; }
+  .detail-meta-item { font-size: 12px; }
+  .detail-meta-item .label { color: var(--color-muted); }
+  .detail-meta-item .value { color: var(--color-text); font-family: var(--font-mono); }
+  .detail-header-right { margin-left: auto; display: flex; flex-direction: column; gap: 6px; align-items: flex-end; }
+
+  .results-section {
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--color-border);
+    flex-shrink: 0;
+  }
+  .results-title { font-size: 11px; font-weight: 600; color: var(--color-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+  .results-table { width: 100%; border-collapse: collapse; }
+  .results-table td { padding: 3px 0; font-size: 12px; }
+  .results-table td:first-child { color: var(--color-muted); width: 45%; font-family: var(--font-mono); }
+  .results-table td:last-child  { color: var(--color-text); font-family: var(--font-mono); }
+
+  .log-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding: 0 20px 12px;
+  }
+  .log-header {
+    display: flex;
+    align-items: center;
+    padding: 10px 0 6px;
+    flex-shrink: 0;
+  }
+  .log-title  { font-size: 11px; font-weight: 600; color: var(--color-muted); text-transform: uppercase; letter-spacing: 0.05em; flex: 1; }
+  .log-body {
+    flex: 1;
+    background: #0a0c12;
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    overflow-y: auto;
+    padding: 10px 12px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+  .log-line-ok      { color: var(--color-success); }
+  .log-line-error   { color: var(--color-error); }
+  .log-line-warn    { color: var(--color-warning); }
+  .log-line-info    { color: var(--color-muted); }
+  .log-line-data    { color: #60a5fa; }
+  .log-line-default { color: var(--color-text); }
+
+  /* ── Placeholders ──────────────────────────────────────────────── */
+  .placeholder {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-muted);
+    font-size: 14px;
+    gap: 8px;
+  }
+  .placeholder-icon { font-size: 40px; opacity: 0.4; }
+
+  /* ── Toast ─────────────────────────────────────────────────────── */
+  .toast {
+    position: fixed;
+    bottom: 20px; right: 20px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    padding: 9px 14px;
+    font-size: 12px;
+    color: var(--color-muted);
+    font-family: var(--font-mono);
+    z-index: 200;
+    opacity: 0;
+    transform: translateY(6px);
+    transition: opacity 0.2s, transform 0.2s;
+    pointer-events: none;
+  }
+  .toast.show {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* ── Modal ─────────────────────────────────────────────────────── */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    width: min(700px, 90vw);
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+  }
+  .modal-header {
+    display: flex;
+    align-items: center;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--color-border);
+    gap: 10px;
+  }
+  .modal-title { font-size: 14px; font-weight: 600; flex: 1; }
+  .modal-body  { overflow-y: auto; padding: 14px 18px; }
+  .modal-json  {
+    background: #0a0c12;
+    border-radius: 6px;
+    padding: 12px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    line-height: 1.6;
+    color: #93c5fd;
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+
+  /* ── Scrollbar ─────────────────────────────────────────────────── */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 3px; }
+
+  /* ── Running animation ─────────────────────────────────────────── */
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.5; }
+  }
+  .running-pulse { animation: pulse 1.2s infinite; }
+</style>
+</head>
+<body>
+
+<!-- ── Barra superior ──────────────────────────────────────────────── -->
+<div class="topbar">
+  <div>
+    <div class="topbar-title">🔷 ETL Pipeline Runner — Resultados Consolidados</div>
+    <div class="topbar-sub">Gerencia de Planeación · POLI</div>
+  </div>
+  <div class="topbar-spacer"></div>
+  <div class="topbar-info" id="topbar-info">
+    <div id="global-counter">— / 12 pasos</div>
+    <div id="last-run">—</div>
+  </div>
+  <button class="btn btn-ghost btn-sm" onclick="openAuditModal()">📋 Ver Audit</button>
+  <button class="btn btn-danger btn-sm" id="btn-reset" onclick="resetState()">↺ Reset</button>
+  <button class="btn btn-primary" id="btn-run-all" onclick="runAll()">▶ EJECUTAR TODO</button>
+</div>
+
+
+<!-- ── Layout principal ───────────────────────────────────────────── -->
+<div class="layout">
+
+  <!-- Panel izquierdo -->
+  <div class="left-panel">
+    <div class="panel-header">Pasos del Pipeline</div>
+    <div class="steps-list" id="steps-list"></div>
+    <div class="left-panel-footer">
+      <button class="btn btn-ghost btn-sm" onclick="runFromSelected()">▶ Ejecutar desde aquí</button>
+    </div>
+  </div>
+
+  <!-- Panel derecho -->
+  <div class="right-panel" id="right-panel">
+    <div class="placeholder" id="placeholder">
+      <div class="placeholder-icon">⚙️</div>
+      <div>Selecciona un paso para ver el detalle</div>
+      <div style="font-size:12px;color:var(--color-muted)">o usa ▶ EJECUTAR TODO para correr el pipeline completo</div>
+    </div>
+
+    <div id="detail-view" style="display:none; flex:1; flex-direction:column; overflow:hidden;">
+      <div class="detail-header">
+        <div class="detail-icon" id="detail-icon">⏺</div>
+        <div style="flex:1">
+          <div class="detail-title" id="detail-title">Paso</div>
+          <div class="detail-desc" id="detail-desc"></div>
+          <div class="detail-meta" id="detail-meta"></div>
+        </div>
+        <div class="detail-header-right">
+          <button class="btn btn-primary btn-sm" id="btn-run-step" onclick="runSelected()">▶ Ejecutar este paso</button>
+        </div>
+      </div>
+
+      <div class="results-section" id="results-section" style="display:none">
+        <div class="results-title">Resultado</div>
+        <table class="results-table" id="results-table"></table>
+      </div>
+
+      <div class="log-section">
+        <div class="log-header">
+          <div class="log-title">Log</div>
+          <button class="btn btn-ghost btn-sm" onclick="copyLog()">📋 Copiar</button>
+        </div>
+        <div class="log-body" id="log-body">(sin log aún)</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Modal de Auditoría ──────────────────────────────────────────── -->
+<div class="modal-overlay" id="audit-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">📋 Último Reporte de Auditoría</div>
+      <button class="btn btn-ghost btn-sm" onclick="downloadAudit()">⬇ Descargar</button>
+      <button class="btn btn-ghost btn-sm" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-json" id="audit-json">(cargando...)</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Definición de pasos ─────────────────────────────────────────────
+const STEPS = [
+  { id: "01",    label: "Cargar Fuente",         grouped: false,
+    desc: "Lee Consolidado_API_Kawak.xlsx, normaliza columnas y detecta columnas faltantes.",
+    entrada: "data/raw/Fuentes Consolidadas/Consolidado_API_Kawak.xlsx",
+    salida: ".pipeline_state/df_api.csv" },
+
+  { id: "02",    label: "Validar Contrato",      grouped: false,
+    desc: "Valida columnas requeridas y tipos contra data_contracts.yaml. Bloquea si hay error crítico.",
+    entrada: ".pipeline_state/df_api.csv · config/data_contracts.yaml",
+    salida: "Estado en current_run.json" },
+
+  { id: "03_04", label: "Catálogo + Metadatos",  grouped: true,
+    desc: "Paso 03: Carga mapas de extracción, tipo de cálculo y variables. Paso 04: Carga metadatos Kawak, CMI, LMI y api_kawak_lookup.",
+    entrada: "Workbook · Fuentes Consolidadas · CMI · LMI",
+    salida: ".pipeline_state/cat_data.json · kawak_validos.json · mapa_procesos.json" },
+
+  { id: "05",    label: "Abrir Workbook",        grouped: false,
+    desc: "Abre el workbook, crea versión de seguridad, purga filas inválidas, lee llaves existentes y signos.",
+    entrada: "data/output/Resultados Consolidados.xlsx",
+    salida: ".pipeline_state/workbook_meta.json" },
+
+  { id: "06",    label: "Construir Registros",   grouped: false,
+    desc: "Construye registros nuevos para Histórico (5 niveles de extracción), Semestral (rama Cierre + Agregado) y Cierres (mes=12).",
+    entrada: ".pipeline_state/df_api.csv · workbook_meta.json",
+    salida: ".pipeline_state/regs_hist.json · regs_sem.json · regs_cierres.json" },
+
+  { id: "07",    label: "AGENT5 Correcciones",   grouped: false,
+    desc: "Aplica correcciones críticas: capping de Ejecucion > 1.3 y detección de Meta = 0.",
+    entrada: ".pipeline_state/regs_*.json",
+    salida: ".pipeline_state/regs_*.json (corregidos) · alertas_agent5.json" },
+
+  { id: "08",    label: "Validación Intermedia", grouped: false,
+    desc: "Valida registros post-AGENT5: campos requeridos, fecha válida, NaN en Meta/Ejecucion, Sentido válido, LLAVE única.",
+    entrada: ".pipeline_state/regs_*.json",
+    salida: ".pipeline_state/regs_validados.json" },
+
+  { id: "09_10", label: "Escribir + Reparar",    grouped: true,
+    desc: "Paso 09: Inserta filas validadas en el workbook. Paso 10: Repara metas vacías, multi-series y semestrales.",
+    entrada: ".pipeline_state/regs_validados.json · workbook_meta.json",
+    salida: "data/output/Resultados Consolidados.xlsx (modificado)" },
+
+  { id: "11",    label: "Deduplicar + Fórmulas", grouped: false,
+    desc: "Ordena hojas por Id+Fecha, elimina duplicados y reescribe todas las fórmulas con número de fila correcto.",
+    entrada: "data/output/Resultados Consolidados.xlsx",
+    salida: "data/output/Resultados Consolidados.xlsx (limpio)" },
+
+  { id: "12",    label: "Actualizar Catálogo",   grouped: false,
+    desc: "Borra y regenera completamente la hoja 'Catalogo Indicadores' a partir de los metadatos actuales.",
+    entrada: ".pipeline_state/df_api.csv · Fuentes",
+    salida: "Hoja Catalogo Indicadores (regenerada)" },
+
+  { id: "13",    label: "Guardar",               grouped: false,
+    desc: "Crea backup .bak.xlsx y genera la copia solo-valores (fórmulas materializadas) VALORES.xlsx.",
+    entrada: "data/output/Resultados Consolidados.xlsx",
+    salida: "Resultados Consolidados.bak.xlsx · VALORES.xlsx" },
+
+  { id: "14_15", label: "Auditoría + Respaldo",  grouped: true,
+    desc: "Paso 14: Consolida auditoría JSON en artifacts/audit/. Paso 15: Crea versión .versions/ post-consolidación.",
+    entrada: ".pipeline_state/current_run.json · alertas_agent5.json",
+    salida: "artifacts/audit/[timestamp].json · .versiones/[...].xlsx" },
+];
+
+// ── Estado de la aplicación ─────────────────────────────────────────
+let serverState = {};
+let selectedStepId = null;
+let pollInterval = null;
+let auditData = null;
+let serverOnline = false;
+
+// ── Iconos por estado ───────────────────────────────────────────────
+const STATUS_ICONS = {
+  ok:      "✅",
+  error:   "❌",
+  running: "🟣",
+  pending: "⚪",
+  skipped: "⏭",
+};
+const STATUS_LABELS = {
+  ok:      "OK",
+  error:   "Error",
+  running: "Ejecutando...",
+  pending: "Pendiente",
+};
+
+// ── Construir lista de pasos ────────────────────────────────────────
+function buildStepsList() {
+  const list = document.getElementById("steps-list");
+  list.innerHTML = "";
+  STEPS.forEach(step => {
+    const card = document.createElement("div");
+    card.className = "step-card";
+    card.id = `step-card-${step.id}`;
+    card.onclick = () => selectStep(step.id);
+    card.title = step.desc;
+    card.innerHTML = `
+      <div class="step-card-header">
+        <span class="step-icon" id="icon-${step.id}">⚪</span>
+        <span class="step-num">${step.id}</span>
+        <span class="step-name">${step.label}</span>
+        ${step.grouped ? '<span class="badge-grouped">AGRUPADO</span>' : ''}
+      </div>
+      <div class="step-meta">
+        <span class="step-time" id="time-${step.id}"></span>
+        <span class="step-status-text pending" id="status-text-${step.id}">Pendiente</span>
+      </div>
+    `;
+    list.appendChild(card);
+  });
+}
+
+// ── Actualizar UI con estado del servidor ───────────────────────────
+function updateUI(state) {
+  serverState = state;
+  let nOk = 0;
+  let lastUpdated = state._last_updated || null;
+  const currentRunning = state._current_running;
+
+  STEPS.forEach(step => {
+    const stepData = state[`step_${step.id}`];
+    const icon = document.getElementById(`icon-${step.id}`);
+    const timeEl = document.getElementById(`time-${step.id}`);
+    const statusEl = document.getElementById(`status-text-${step.id}`);
+    if (!icon) return;
+
+    let status = "pending";
+    let timeStr = "";
+
+    if (stepData) {
+      status = stepData.status || "pending";
+      if (stepData.timestamp) {
+        const t = new Date(stepData.timestamp);
+        timeStr = t.toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+      }
+    } else if (currentRunning === step.id) {
+      status = "running";
+    }
+
+    if (status === "ok") nOk++;
+
+    icon.textContent = STATUS_ICONS[status] || "⚪";
+    if (status === "running") icon.classList.add("running-pulse");
+    else icon.classList.remove("running-pulse");
+
+    timeEl.textContent = timeStr;
+    statusEl.textContent = STATUS_LABELS[status] || status;
+    statusEl.className = `step-status-text ${status}`;
+  });
+
+  document.getElementById("global-counter").textContent = `${nOk} / ${STEPS.length} pasos OK`;
+  if (lastUpdated) {
+    const d = new Date(lastUpdated);
+    document.getElementById("last-run").textContent = `Último: ${d.toLocaleTimeString("es-CO")}`;
+  }
+
+  // Actualizar detalle si hay paso seleccionado
+  if (selectedStepId) {
+    updateDetail(selectedStepId);
+  }
+
+  // Detener polling si nada corre
+  if (!currentRunning && pollInterval) {
+    clearInterval(pollInterval);
+    pollInterval = null;
+    refreshLog(selectedStepId);
+  }
+}
+
+// ── Toast ────────────────────────────────────────────────────────────
+let toastTimer = null;
+function showToast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove("show"), 3000);
+}
+
+// ── Polling ─────────────────────────────────────────────────────────
+async function fetchStatus() {
+  try {
+    const res = await fetch("/status", { cache: "no-store" });
+    if (!res.ok) throw new Error("not ok");
+    const data = await res.json();
+    serverOnline = true;
+    updateUI(data);
+  } catch {
+    serverOnline = false;
+  }
+}
+
+function startPolling() {
+  if (pollInterval) return;
+  pollInterval = setInterval(async () => {
+    await fetchStatus();
+    if (selectedStepId) await refreshLog(selectedStepId);
+  }, 1500);
+}
+
+// ── Seleccionar paso ────────────────────────────────────────────────
+function selectStep(stepId) {
+  selectedStepId = stepId;
+
+  document.querySelectorAll(".step-card").forEach(c => c.classList.remove("selected"));
+  const card = document.getElementById(`step-card-${stepId}`);
+  if (card) card.classList.add("selected");
+
+  document.getElementById("placeholder").style.display = "none";
+  const dv = document.getElementById("detail-view");
+  dv.style.display = "flex";
+
+  updateDetail(stepId);
+  refreshLog(stepId);
+}
+
+function updateDetail(stepId) {
+  const step = STEPS.find(s => s.id === stepId);
+  if (!step) return;
+  const stepData = serverState[`step_${stepId}`];
+  const status = stepData ? (stepData.status || "pending") : "pending";
+
+  document.getElementById("detail-icon").textContent = STATUS_ICONS[status] || "⚪";
+  document.getElementById("detail-title").textContent = `Paso ${step.id} — ${step.label}`;
+  document.getElementById("detail-desc").textContent = step.desc;
+
+  const meta = document.getElementById("detail-meta");
+  meta.innerHTML = `
+    <div class="detail-meta-item">
+      <span class="label">Entrada: </span>
+      <span class="value">${step.entrada}</span>
+    </div>
+    <div class="detail-meta-item">
+      <span class="label">Salida: </span>
+      <span class="value">${step.salida}</span>
+    </div>
+  `;
+
+  // Resultados
+  const section = document.getElementById("results-section");
+  const table = document.getElementById("results-table");
+  if (stepData && stepData.resultado && Object.keys(stepData.resultado).length > 0) {
+    section.style.display = "block";
+    const rows = Object.entries(stepData.resultado).map(([k, v]) => {
+      const val = Array.isArray(v) ? JSON.stringify(v).substring(0, 80) : String(v);
+      return `<tr><td>${k}</td><td>${val}</td></tr>`;
+    });
+    table.innerHTML = rows.join("");
+  } else {
+    section.style.display = "none";
+    table.innerHTML = "";
+  }
+}
+
+// ── Refresh log ─────────────────────────────────────────────────────
+async function refreshLog(stepId) {
+  if (!stepId || !serverOnline) return;
+  try {
+    const res = await fetch(`/log/${stepId}`, { cache: "no-store" });
+    const text = await res.text();
+    const logBody = document.getElementById("log-body");
+    logBody.innerHTML = colorizeLog(text);
+    logBody.scrollTop = logBody.scrollHeight;
+  } catch {}
+}
+
+function colorizeLog(text) {
+  return text
+    .split("\n")
+    .map(line => {
+      const escaped = line.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+      if (escaped.includes("✅") || escaped.includes("OK")) return `<span class="log-line-ok">${escaped}</span>`;
+      if (escaped.includes("❌") || escaped.includes("ERROR")) return `<span class="log-line-error">${escaped}</span>`;
+      if (escaped.includes("⚠") || escaped.includes("WARN")) return `<span class="log-line-warn">${escaped}</span>`;
+      if (escaped.includes("📊") || escaped.includes("DATA")) return `<span class="log-line-data">${escaped}</span>`;
+      if (escaped.includes("ℹ") || escaped.includes("INFO")) return `<span class="log-line-info">${escaped}</span>`;
+      return `<span class="log-line-default">${escaped}</span>`;
+    })
+    .join("\n");
+}
+
+function copyLog() {
+  const logBody = document.getElementById("log-body");
+  navigator.clipboard.writeText(logBody.innerText).then(() => {
+    const btn = event.target;
+    const orig = btn.textContent;
+    btn.textContent = "✓ Copiado";
+    setTimeout(() => { btn.textContent = orig; }, 1500);
+  });
+}
+
+// ── Ejecutar paso ────────────────────────────────────────────────────
+async function runStep(stepId) {
+  try {
+    const res = await fetch(`/run/${stepId}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" });
+    if (!res.ok) throw new Error();
+    serverOnline = true;
+    startPolling();
+    if (selectedStepId === stepId) setTimeout(() => refreshLog(stepId), 500);
+  } catch {
+    serverOnline = false;
+    showToast("python scripts/pipeline_steps/runner_server.py");
+  }
+}
+
+function runSelected() {
+  if (selectedStepId) runStep(selectedStepId);
+}
+
+function runFromSelected() {
+  if (!selectedStepId) return;
+  const idx = STEPS.findIndex(s => s.id === selectedStepId);
+  if (idx < 0) return;
+  const remaining = STEPS.slice(idx).map(s => s.id);
+  runSequence(remaining);
+}
+
+async function runSequence(stepIds) {
+  for (const id of stepIds) {
+    selectStep(id);
+    await runStep(id);
+    // Esperar a que termine
+    await new Promise(resolve => {
+      const check = setInterval(async () => {
+        await fetchStatus();
+        const state = serverState;
+        if (!state._current_running) {
+          clearInterval(check);
+          resolve();
+        }
+      }, 1500);
+    });
+    const stepData = serverState[`step_${id}`];
+    if (stepData && stepData.status === "error") break;
+  }
+}
+
+async function runAll() {
+  await runStep("00");
+  startPolling();
+}
+
+async function resetState() {
+  if (!confirm("¿Resetear el estado del pipeline? Los archivos Excel no se modifican.")) return;
+  try {
+    const res = await fetch("/reset", { method: "POST" });
+    if (!res.ok) throw new Error();
+    await fetchStatus();
+  } catch { showToast("python scripts/pipeline_steps/runner_server.py"); }
+}
+
+// ── Modal de Auditoría ───────────────────────────────────────────────
+async function openAuditModal() {
+  document.getElementById("audit-modal").classList.add("open");
+  document.getElementById("audit-json").textContent = "Cargando...";
+  try {
+    const res = await fetch("/audit/latest", { cache: "no-store" });
+    auditData = await res.json();
+    document.getElementById("audit-json").textContent = JSON.stringify(auditData, null, 2);
+  } catch {
+    document.getElementById("audit-json").textContent = "No se pudo cargar (¿servidor offline?)";
+  }
+}
+
+function closeModal() {
+  document.getElementById("audit-modal").classList.remove("open");
+}
+
+function downloadAudit() {
+  if (!auditData) return;
+  const blob = new Blob([JSON.stringify(auditData, null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  const ts = new Date().toISOString().replace(/[:.]/g, "-").substring(0, 19);
+  a.download = `audit_${ts}.json`;
+  a.click();
+}
+
+// Cerrar modal con Escape
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape") closeModal();
+});
+document.getElementById("audit-modal").addEventListener("click", e => {
+  if (e.target === document.getElementById("audit-modal")) closeModal();
+});
+
+// ── Inicialización ────────────────────────────────────────────────────
+buildStepsList();
+fetchStatus();
+setInterval(fetchStatus, 5000);
+</script>
+
+<div class="toast" id="toast"></div>
+</body>
+</html>

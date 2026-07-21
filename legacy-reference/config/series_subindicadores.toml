@@ -1,0 +1,222 @@
+# config/series_subindicadores.toml
+# Mapeo de sub-series de indicadores → sub-indicadores del consolidado.
+#
+# Formato: "ID_padre.sufijo" = "nombre exacto de la serie en el JSON del API"
+#
+# La coincidencia se hace case-insensitive y normalizando espacios múltiples,
+# por lo que variaciones menores de escritura en el API no rompen el mapeo.
+#
+# Para añadir nuevos sub-indicadores: agregar línea bajo la sección
+# correspondiente y NO modificar código Python.
+
+[subindicadores]
+
+# ── ID 274: Cumplimiento total estudiantes antiguos ──────────────────
+# Series: 4 modalidades académicas
+"274.1" = "Posgrado Presencial"
+"274.2" = "Pregrado Presencial"
+"274.3" = "Pregrado Virtual"
+"274.4" = "Posgrado Virtual"
+
+# ════════════════════════════════════════════════════════════════════
+# PLAN DE RETOS
+# ════════════════════════════════════════════════════════════════════
+
+# ── ID 373: Cumplimiento de planes anuales por líneas estratégicas ───
+# Series: 6 líneas del plan estratégico
+"373.1" = "Expansión"
+"373.2" = "Educación para toda la vida"
+"373.3" = "Trasformación Organizacional"
+"373.4" = "Experiencia"
+"373.5" = "Sostenibilidad"
+"373.6" = "Calidad"
+
+# ── ID 390: Cumplimiento Plan Anual por escuela ──────────────────────
+# Series: 12 escuelas académicas
+"390.1"  = "ESCUELA DE CIENCIAS BÁSICAS"
+"390.2"  = "ESCUELA DE  DISEÑO"
+"390.3"  = "ESCUELA DE OPTIMIZACIÓN, INFRA Y AUTO"
+"390.4"  = "ESCUELA TIC"
+"390.5"  = "ESCUELA DE ADMINISTRACIÓN Y COMPETITIVIDAD"
+"390.6"  = "ESCUELA DE CONTABILIDAD INTERNACIONAL"
+"390.7"  = "ESCUELA DE NEGOCIOS Y DESARROLLO INTERNACIONAL"
+"390.8"  = "ESCUELA DE COMUNICACIÓN ARTES VISUALES Y DIGITALES"
+"390.9"  = "ESCUELA DE DERECHO Y GOBIERNO"
+"390.10" = "ESCUELA DE MARKETING Y BRANDING"
+"390.11" = "ESCUELA DE PSIC, TALENTO HUM Y SOC"
+"390.12" = "ESCUELA DE EDUCACIÓN E INNOVACIÓN"
+
+# ── ID 414: Cumplimiento Plan Anual Rectoría ─────────────────────────
+# Series: 9 vicerrectorías / gerencias
+"414.1" = "Vicerrectoría de crecimiento"
+"414.2" = "Vicerrectoría del estudiante"
+"414.3" = "Vicerrectoría financiera"
+"414.4" = "Gerencia de estrategia"
+"414.5" = "Gerencia de  talento humano y desarrollo"
+"414.6" = "Gerencia sede Medellín"
+"414.7" = "Secretaria general"
+"414.8" = "Gerencia de educación virtual"
+"414.9" = "Vicerrectoría académica"
+
+# ── ID 415: Cumplimiento Plan Anual Vicerrectoría del Estudiante ──────
+# Series: 14 gerencias / direcciones
+"415.1"  = "Gerencia de operaciones"
+"415.2"  = "Gerencia de servicio y permanencia"
+"415.3"  = "Gerencia de tecnología e innovación digital"
+"415.4"  = "BI y analítica"
+"415.5"  = "Dirección nacional de registro y control"
+"415.6"  = "Dirección de Experiencia E Inclusion"
+"415.7"  = "Director de gobierno digital"
+"415.8"  = "Gerente de innovación y producto"
+"415.9"  = "Dirección de desarrollo e innovación"
+"415.10" = "Director de operaciones IT"
+"415.11" = "Director de operaciones integrales"
+"415.12" = "Director de permanencia"
+"415.13" = "Director de servicio"
+"415.14" = "Direccion bienestar universitario y huella grancolombiana"
+
+# ── ID 416: Cumplimiento Plan Anual Vicerrectoría de Crecimiento ──────
+# Series: 6 gerencias / direcciones
+"416.1" = "Gerencia de matriculas"
+"416.2" = "Gerencia de mercadeo"
+"416.3" = "Gerencia de servicios corporativos"
+"416.4" = "Director B2B y B2C"
+"416.5" = "Director de producto"
+"416.6" = "Director de estrategia marca"
+
+# ── ID 417: Cumplimiento Plan Anual Vicerrectoría Financiera ─────────
+# Series: 6 direcciones
+"417.1" = "Dirección de contabilidad"
+"417.2" = "Dirección de infraestructura"
+"417.3" = "Dirección planeación financiera y tesorería"
+"417.4" = "Dirección de servicios administrativos"
+"417.5" = "Dirección de compras y abastecimiento"
+"417.6" = "Dirección de relacionamiento de CSU"
+
+# ── ID 418: Cumplimiento Plan Anual Vicerrectoría Académica ──────────
+# Series: 9 facultades / direcciones
+"418.1" = "Dirección aseguramiento de la calidad"
+"418.2" = "Dirección relaciones nacionales e internacionales"
+"418.3" = "Secretaria académica y de extensión"
+"418.4" = "Dirección de docencia"
+"418.5" = "Dirección de currículo presencial y virtual"
+"418.6" = "Facultad ingeniería diseño e innovación"
+"418.7" = "Facultad negocios gestión y sostenibilidad"
+"418.8" = "Facultad sociedad cultura y creatividad"
+"418.9" = "Dirección investigación innovación y creación"
+
+# ── ID 420: Cumplimiento Plan Anual Gerencia de Estrategia ───────────
+# Series: 6 sistemas / áreas
+"420.1" = "SGC"
+"420.2" = "SGA"
+"420.3" = "Riesgos"
+"420.4" = "Auditoría"
+"420.5" = "Planeación estratégica"
+"420.6" = "Estudios Internos"
+
+# ── ID 469: Cumplimiento Plan Anual Áreas sede Medellín ─────────────
+# Series: 9 facultades / áreas sede Medellín
+"469.1" = "FSCC- DERECHO Y GOBIERNO-DERECHO"
+"469.2" = "FIDI-TIC -INGENIERIA DE SISTEMAS"
+"469.3" = "FIDI-OPINA-INGENIERIA INDUSTRIAL"
+"469.4" = "FNGS-NEG Y DLLO INTER-NEGOCIOS INTERNACIONALES"
+"469.5" = "FSCC- EST.PSIC,TH Y SOC- PSICOLOGIA"
+"469.6" = "FIDI-CIENCIAS BÁSICAS MED"
+"469.7" = "ADMON DE EMPRESAS"
+"469.8" = "FSCC - MARKETING MED"
+"469.9" = "FIDI-DISEÑO-DISEÑO GRAFICO"
+
+# ── ID 470: Cumplimiento plan anual Secretaria académica y extensión ─
+# Series: 5 direcciones
+"470.1" = "DIRECTOR EDITORIAL"
+"470.2" = "DIRECTOR CENTRO MEDIOS AUDIOVISUALES"
+"470.3" = "DIRECTOR AGENCIA TROMPO"
+"470.4" = "DIRECTOR DE GRADUADOS Y PROYECCION EMP."
+"470.5" = "DIRECTOR SISTEMA NACIONAL DE BIBLIOTECAS"
+
+# ── ID 471: Cumplimiento plan anual Gerencia de Talento Humano ───────
+# Series: 7 direcciones
+"471.1" = "DIRECTOR DE BIENESTAR Y RELAC. LABORALES"
+"471.2" = "DIRECTOR DE FORMACION Y DESARROLLO"
+"471.3" = "DIRECTOR DE RELACIONES PUBLICAS Y PROTOC"
+"471.4" = "DIRECTOR DE COMUNICACIONES"
+"471.5" = "DIRECTOR DE ADMON LABORAL Y COMPENSACION"
+"471.6" = "DIRECTOR DE GESTION DE TALENTO"
+"471.7" = "DIRECTOR DE COMUN. EXTERNAS SED MEDELLIN"
+
+# ════════════════════════════════════════════════════════════════════
+# CRONOGRAMA DE PROYECTOS ESTRATÉGICOS
+# ════════════════════════════════════════════════════════════════════
+#
+# Lógica: la meta/cumplimiento de cada proyecto se extrae de la SERIE
+# del indicador padre que varía por año de vigencia:
+#   2024 → ID 441 (Cumplimiento a cronograma de proyectos 2024)
+#   2025 → ID 509 (Cumplimiento a cronograma de proyectos 2025)
+#   2026 → ID 603 (Cumplimiento a cronograma de proyectos 2026)
+#
+# Los indicadores de proyecto NO tienen filas propias en el catálogo
+# Kawak; sus valores vienen exclusivamente de las series del padre.
+
+[cronograma_proyectos]
+
+[cronograma_proyectos.padres]
+# año (string) → ID del indicador padre en la API
+"2024" = 441
+"2025" = 509
+"2026" = 603
+
+[cronograma_proyectos.series]
+# Formato: "nombre de la serie en API" = "ID_indicador_proyecto"
+# La comparación es case-insensitive y sin tildes (robustez ante encoding).
+# Una misma serie puede tener nombre distinto en distintos años;
+# se añade una entrada por cada variante de nombre.
+#
+# Códigos PRY-N: los proyectos de este grupo no tienen fila propia en el
+# catálogo Kawak (ver cabecera de sección). Se recodificaron desde IDs
+# numéricos sueltos a códigos secuenciales estables el 2026-07-12.
+# Mapeo histórico → código nuevo:
+#   11→PRY-12  12→PRY-13  901→PRY-17  904→PRY-20  906→PRY-22  909→PRY-25
+#   910→PRY-26 911→PRY-27 912→PRY-28  913→PRY-29  914→PRY-30  915→PRY-31
+#   916→PRY-32 918→PRY-34 919→PRY-35  920→PRY-36  922→PRY-38  924→PRY-40
+#   926→PRY-42 927→PRY-43
+
+# ── Comunes a 2025 y 2026 (mismo nombre en ambos padres) ────────────
+"Fortalecimiento de la investigación, la innovación y la creación" = "PRY-26"
+"Fortalecimiento de planta docente"                                = "PRY-27"
+"Gobierno de datos"                                                = "PRY-31"
+"Herramientas de Gestión para el mejoramiento continuo"            = "PRY-32"
+"ADN POLI"                                                         = "PRY-30"
+
+# ── Solo activos en 2025 (ID 509) ───────────────────────────────────
+"Acreditación Institucional fase III Etapa de evaluación externa o evaluación por pares" = "PRY-25"
+"Actualización de TRD y creación del Plan de Gestión documental"  = "PRY-29"
+"Ecosistema E3"                                                    = "PRY-20"
+"Proyecto de Permanencia institucional"                            = "PRY-38"
+"Reingenieria de aplicaciones"                                     = "PRY-34"
+"SOPHIA Sistema de Optimización y Programación Horaria Institucional Académica I Fase"   = "PRY-35"
+"Modelo de seguimiento al graduado"                                = "PRY-40"
+"SER PRO Fase II"                                                  = "PRY-22"
+"Centro de Idiomas POLI"                                           = "PRY-17"
+"Colegio Virtual"                                                  = "PRY-13"
+"Institución de educación para el trabajo y desarrollo humano IETDH" = "PRY-12"
+"Plataforma Tecnologica de Gestión de información Curricular"      = "PRY-28"
+"Sistema de medición de resultados de aprendizaje"                 = "PRY-43"
+
+# ── Solo activos en 2026 (ID 603) ───────────────────────────────────
+"Implementación de Hubspot Eduvida"                                = "PRY-36"
+"Titulación Autogestionada"                                        = "PRY-42"
+"ADN POLI FASE II"                                                 = "PRY-30"
+"Plataforma de gestión de información curricular Fase 1"           = "PRY-28"
+"Redefinición de Modelo de seguimiento y acompañamiento al Graduado" = "PRY-40"
+
+# ── Nuevos proyectos 2026 (agregados 2026-07-12) ────────────────────
+"Portal de Talento Humano"                                         = "PRY-45"
+"Proyecto E2E - ILUMNO"                                            = "PRY-46"
+"Homologaciones IA - ILUMNO"                                       = "PRY-47"
+"Modelo Predictivo de deserción basado en Scoring"                 = "PRY-48"
+"Voice IA - Recupero"                                              = "PRY-49"
+"Whatsapp IA"                                                      = "PRY-50"
+"Adecuaciones campus principal"                                    = "PRY-51"
+"Implementación reforma Curricular"                                = "PRY-52"
+"Optimización SEO AEO Captación"                                   = "PRY-53"
+"Sistematización proceso de la ORII"                               = "PRY-54"

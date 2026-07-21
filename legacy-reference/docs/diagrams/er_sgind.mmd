@@ -1,0 +1,60 @@
+graph LR
+  subgraph Fuentes[Fuentes de Datos]
+    RCO[Resultados Consolidados.xlsx\n- Hojas: Consolidado Semestral, Catalogo Indicadores, Consolidado Cierres]
+    RCH[Consolidado Historico.xlsx\n- Hojas: Consolidado Historico]
+    API[API Kawak / Consolidado_API_Kawak.xlsx\n- Tablas: Consolidado_API_Kawak]
+    CMI[Indicadores por CMI.xlsx\n- Hojas: Indicadores CMI]
+    CAT[Catalogo Indicadores / Indicadores Kawak.xlsx\n- Hojas: Catalogo Indicadores]
+    FIC[Ficha_Tecnica.xlsx\n- Hojas: Ficha_Tecnica]
+    OMX[OM.xlsx / OM.xls\n- Hojas: OM, OM_Historico]
+    PA[Plan de accion/*.xlsx\n- Tablas: Avance, Acciones]
+    MAP[Subproceso-Proceso-Area.xlsx\n- Hojas: Proceso, Subproceso, Area]
+    REGDB[Registro OM (SQLite / Supabase PostgreSQL)\n- Tablas: registros_om]
+  end
+
+  subgraph Modelo[Modelo Entidad-Relación (SGIND)]
+    IND["INDICADOR\nPK: Id"]
+    RES["RESULTADO / INDICADOR_RESULTADO\nPK: (Id, Fecha)\nFK: Id_Indicador"]
+    META["META\nPK: (Id, Año)"]
+    OBJ["OBJETIVO\nPK: ObjetivoId?"]
+    LINEA["LINEA\nPK: LineaId?"]
+    PRO["PROCESO\nPK: ProcesoId?"]
+    SUB["SUBPROCESO\nPK: SubprocesoId?"]
+    AREA["AREA\nPK: AreaId?"]
+    OM["OM / OportunidadMejora\nPK: Id_OM\nFK: Id_Indicador"]
+  end
+
+  %% Relaciones entre entidades
+  IND -->|1:N: tiene resultados| RES
+  IND -->|1:N: puede tener metas| META
+  IND -->|N:1: contribuye a| OBJ
+  OBJ -->|N:1| LINEA
+  IND -->|N:1: pertenece a| PRO
+  PRO -->|1:N| SUB
+  SUB -->|N:1| AREA
+  IND -->|1:N: tiene OM| OM
+  RES -->|FK referencia| META
+
+  %% Fuentes -> Entidades (qué provee cada fuente)
+  RCO -->|provee: Indicador, Resultado, Meta, Objetivo, Linea| IND
+  RCO --> RES
+  RCO --> META
+  API -->|provee: Indicadores, Sentido, Resultados| IND
+  CMI -->|provee: Indicador, Objetivo| IND
+  CAT -->|provee: Catálogo Indicadores (Id, metadatos)| IND
+  FIC -->|provee: Metadatos / Unidades| IND
+  MAP -->|provee: Proceso / Subproceso / Área| PRO
+  OMX -->|provee: OM histórica| OM
+  PA -->|provee: Avance acciones (Plan de acción)| OM
+  REGDB -->|persistencia OM| OM
+
+  %% Llaves y comentarios
+  classDef fuente fill:#f3f4f6,stroke:#333,stroke-width:1;
+  class RCO,RCH,API,CMI,CAT,FIC,OMX,PA,MAP,REGDB fuente;
+
+  style Modelo fill:#ffffff,stroke:#333,stroke-width:1
+
+  %% Agrupar visualmente
+  RCO --- CAT
+  CAT --- CMI
+  MAP --- PRO
