@@ -24,6 +24,7 @@ class Settings(BaseSettings):
     jwt_expire_minutes: int = 480
 
     cors_origins: str = "http://localhost:3000,http://localhost:3001"
+    cors_origin_regex: str = ""
 
     azure_tenant_id: str = ""
     azure_client_id: str = ""
