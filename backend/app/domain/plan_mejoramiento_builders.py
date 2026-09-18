@@ -990,6 +990,27 @@ def _detecta_escala_pct(signo: str | None, valores: list[float]) -> bool:
     return max(abs(v) for v in vals) <= _PCT_FRACCION_MAX
 
 
+def _excluye_subtotal_fantasma(df: pd.DataFrame) -> pd.DataFrame:
+    """Algunos indicadores traen, junto a las filas de desglose reales
+    (p.ej. Presencial - Universitario, Virtual - Maestría, ...), una fila
+    adicional con Subindicador vacío que es un subtotal parcial ya
+    precalculado en el Excel fuente (p.ej. "Total Presencial" sin
+    etiqueta propia). Si se deja mezclada, el desglose la muestra como si
+    fuera una categoría más ("—") y la suma/promedio del grupo queda
+    contaminada por un valor que ya está contenido en las demás filas —
+    ver validación de negocio 2026-09-18 ("Matrícula de estudiantes" daba
+    5.881 en vez de 58.398 real). Se excluye solo cuando el mismo
+    Factor+Indicador tiene además ≥2 filas con Subindicador real: si el
+    indicador no tiene desglose en absoluto, el Subindicador vacío es la
+    métrica simple normal y se conserva."""
+    if df.empty or "Subindicador" not in df.columns:
+        return df
+    grupo = df["Factor"].astype(str) + "" + df["Indicador"].astype(str)
+    n_con_subindicador = df.groupby(grupo)["Subindicador"].transform(lambda s: s.notna().sum())
+    es_subtotal_fantasma = df["Subindicador"].isna() & (n_con_subindicador >= 2)
+    return df[~es_subtotal_fantasma]
+
+
 def build_metricas_historico(excel) -> pd.DataFrame:
     """Una fila por (Factor, Característica, Indicador, Subindicador): serie
     anual completa + último valor + variaciones + tendencia — paridad con
@@ -1004,6 +1025,7 @@ def build_metricas_historico(excel) -> pd.DataFrame:
     df = load_metricas_raw(excel)
     if df.empty:
         return pd.DataFrame()
+    df = _excluye_subtotal_fantasma(df)
 
     group_cols = ["Factor", "Factor_num", "Caracteristica", "Indicador", "Subindicador"]
     anual = df.sort_values(["Periodo_anio", "Periodo_sem"]).drop_duplicates(
@@ -1192,6 +1214,91 @@ def build_metricas_tabla(df: pd.DataFrame) -> list[dict[str, Any]]:
     return records
 
 
+_TASA_SIGNOS = ("%", "%FRAC")
+
+
+def _fila_desglose(row: pd.Series) -> dict[str, Any]:
+    valor = _clean(row.get("ultimo_valor"))
+    anio = _clean(row.get("ultimo_anio"))
+    tendencia = row.get("tendencia")
+    return {
+        "subindicador": _clean(row.get("Subindicador")),
+        "proceso": _clean(row.get("Proceso")),
+        "ultimo_anio": int(anio) if anio is not None else None,
+        "ultimo_valor": valor,
+        "valor_fmt": fmt_valor_plan(valor, row.get("signo"), row.get("decimales")),
+        "variacion_ultima_pct": _clean(row.get("variacion_ultima_pct")),
+        "tendencia": tendencia if tendencia in ("Creciente", "Decreciente", "Estable") else "—",
+        "serie": [p["ejecucion"] for p in row.get("serie", []) if p.get("ejecucion") is not None],
+    }
+
+
+def _agrega_filas(filas: list[dict[str, Any]], signo: str | None, decimales) -> dict[str, Any]:
+    """Agrega un conjunto de filas homogéneas (mismo signo/decimales):
+    promedio para tasas (%/%FRAC, no son sumables sin ponderar), suma para
+    magnitudes aditivas (ENT/DEC, p.ej. conteos de estudiantes/profesores
+    que se descomponen por categoría) — ver validación de negocio
+    2026-09-18 ("Matrícula de estudiantes" debía sumar ~58.398, no
+    promediar)."""
+    valores = [f["ultimo_valor"] for f in filas if f["ultimo_valor"] is not None]
+    valor = None
+    if valores:
+        valor = float(pd.Series(valores).mean()) if signo in _TASA_SIGNOS else float(pd.Series(valores).sum())
+    anios = [f["ultimo_anio"] for f in filas if f["ultimo_anio"] is not None]
+    variaciones = [f["variacion_ultima_pct"] for f in filas if f["variacion_ultima_pct"] is not None]
+    tendencias = [f["tendencia"] for f in filas if f["tendencia"] != "—"]
+    return {
+        "ultimo_anio": max(anios) if anios else None,
+        "ultimo_valor": valor,
+        "valor_fmt": fmt_valor_plan(valor, signo, decimales),
+        "variacion_ultima_pct": float(pd.Series(variaciones).mean()) if variaciones else None,
+        "tendencia": pd.Series(tendencias).mode().iloc[0] if tendencias else "—",
+    }
+
+
+def _detecta_grupos_intermedios(grupo: pd.DataFrame, desglose: list[dict[str, Any]]) -> list[dict[str, Any]] | None:
+    """Si el Subindicador sigue el patrón uniforme "Grupo - Hoja" en TODAS
+    las filas con nombre (p.ej. "Presencial - Universitario",
+    "Virtual - Maestría"), reconstruye el nivel intermedio real
+    (Presencial/Virtual) que el Excel fuente sí tiene pero que el campo
+    Subindicador aplana en un solo texto — ver validación de negocio
+    2026-09-18. Si el patrón no es uniforme (categorías de una sola
+    palabra, sin separador consistente, o un único grupo), no aplica y se
+    deja el desglose plano de 2 niveles."""
+    con_nombre = [d for d in desglose if d["subindicador"]]
+    if len(con_nombre) < 2:
+        return None
+
+    partes = []
+    for d in con_nombre:
+        texto = d["subindicador"]
+        if " - " not in texto:
+            return None
+        prefijo, _, sufijo = texto.partition(" - ")
+        prefijo, sufijo = prefijo.strip(), sufijo.strip()
+        if not prefijo or not sufijo:
+            return None
+        partes.append((prefijo, sufijo, d))
+
+    prefijos = sorted({p for p, _, _ in partes})
+    if len(prefijos) < 2 or len(prefijos) >= len(partes):
+        return None
+
+    # signo/decimales del subgrupo: todas sus hojas comparten unidad porque
+    # ya se validó homogeneidad a nivel del indicador completo (homogeneo).
+    signo_sub = grupo["signo"].iloc[0]
+    decimales_sub = grupo["decimales"].iloc[0]
+
+    grupos = []
+    for prefijo in prefijos:
+        hojas = [{**d, "subindicador": sufijo} for p, sufijo, d in partes if p == prefijo]
+        agregado = _agrega_filas(hojas, signo_sub, decimales_sub)
+        grupos.append({"nombre": prefijo, "n_hojas": len(hojas), "hojas": hojas, **agregado})
+
+    grupos.sort(key=lambda g: (g["ultimo_anio"] is None, -(g["ultimo_anio"] or 0)))
+    return grupos
+
+
 def build_metricas_tabla_agrupada(df: pd.DataFrame) -> list[dict[str, Any]]:
     """Filas de la pestaña Métricas agrupadas por (Factor, Indicador): una
     fila principal por indicador con un 'desglose' expandible por
@@ -1203,12 +1310,17 @@ def build_metricas_tabla_agrupada(df: pd.DataFrame) -> list[dict[str, Any]]:
     - Indicador sin desglose real (1 solo Subindicador): se muestra el valor
       de ese único subindicador directamente.
     - Desglose homogéneo (mismo signo y decimales en todos los
-      subindicadores): se promedia el último valor de cada uno — agregación
-      válida porque todos comparten unidad.
+      subindicadores): se agrega con _agrega_filas (suma o promedio según
+      el signo).
     - Desglose heterogéneo (unidades mixtas, p.ej. conteos y porcentajes en
-      el mismo indicador): no se inventa un promedio sin sentido — la fila
+      el mismo indicador): no se inventa un agregado sin sentido — la fila
       principal solo indica cuántos subindicadores tiene y obliga a
       desplegar para ver el detalle real.
+
+    Cuando el Subindicador sigue un patrón "Grupo - Hoja" uniforme, se
+    agrega además un nivel intermedio real en 'grupos' (ver
+    _detecta_grupos_intermedios); si no aplica, 'grupos' es None y el
+    frontend usa 'desglose' (plano) directamente.
     """
     if df.empty:
         return []
@@ -1218,52 +1330,22 @@ def build_metricas_tabla_agrupada(df: pd.DataFrame) -> list[dict[str, Any]]:
         grupo = grupo.sort_values("ultimo_anio", ascending=False, na_position="last")
         fnum = grupo["Factor_num"].iloc[0]
 
-        desglose = []
-        for _, row in grupo.iterrows():
-            valor = _clean(row.get("ultimo_valor"))
-            anio = _clean(row.get("ultimo_anio"))
-            tendencia = row.get("tendencia")
-            desglose.append(
-                {
-                    "subindicador": _clean(row.get("Subindicador")),
-                    "proceso": _clean(row.get("Proceso")),
-                    "ultimo_anio": int(anio) if anio is not None else None,
-                    "ultimo_valor": valor,
-                    "valor_fmt": fmt_valor_plan(valor, row.get("signo"), row.get("decimales")),
-                    "variacion_ultima_pct": _clean(row.get("variacion_ultima_pct")),
-                    "tendencia": tendencia if tendencia in ("Creciente", "Decreciente", "Estable") else "—",
-                    "serie": [p["ejecucion"] for p in row.get("serie", []) if p.get("ejecucion") is not None],
-                }
-            )
+        desglose = [_fila_desglose(row) for _, row in grupo.iterrows()]
 
         unidades = grupo[["signo", "decimales"]].drop_duplicates()
         homogeneo = len(unidades) <= 1
+        grupos_intermedios = None
 
         if len(grupo) == 1:
             principal = desglose[0]
-            ultimo_anio = principal["ultimo_anio"]
-            ultimo_valor = principal["ultimo_valor"]
-            valor_fmt = principal["valor_fmt"]
-            variacion = principal["variacion_ultima_pct"]
-            tendencia_principal = principal["tendencia"]
+            agregado = {k: principal[k] for k in ("ultimo_anio", "ultimo_valor", "valor_fmt", "variacion_ultima_pct", "tendencia")}
             serie = principal["serie"]
         elif homogeneo:
-            valores = [d["ultimo_valor"] for d in desglose if d["ultimo_valor"] is not None]
-            ultimo_valor = float(pd.Series(valores).mean()) if valores else None
-            valor_fmt = fmt_valor_plan(ultimo_valor, grupo["signo"].iloc[0], grupo["decimales"].iloc[0])
-            anios = [d["ultimo_anio"] for d in desglose if d["ultimo_anio"] is not None]
-            ultimo_anio = max(anios) if anios else None
-            variaciones = [d["variacion_ultima_pct"] for d in desglose if d["variacion_ultima_pct"] is not None]
-            variacion = float(pd.Series(variaciones).mean()) if variaciones else None
-            tendencias = [d["tendencia"] for d in desglose if d["tendencia"] != "—"]
-            tendencia_principal = pd.Series(tendencias).mode().iloc[0] if tendencias else "—"
+            agregado = _agrega_filas(desglose, grupo["signo"].iloc[0], grupo["decimales"].iloc[0])
             serie = []
+            grupos_intermedios = _detecta_grupos_intermedios(grupo, desglose)
         else:
-            ultimo_anio = None
-            ultimo_valor = None
-            valor_fmt = "—"
-            variacion = None
-            tendencia_principal = "—"
+            agregado = {"ultimo_anio": None, "ultimo_valor": None, "valor_fmt": "—", "variacion_ultima_pct": None, "tendencia": "—"}
             serie = []
 
         records.append(
@@ -1272,14 +1354,11 @@ def build_metricas_tabla_agrupada(df: pd.DataFrame) -> list[dict[str, Any]]:
                 "factor_num": None if fnum is None or pd.isna(fnum) else int(fnum),
                 "indicador": indicador,
                 "proceso": grupo["Proceso"].dropna().iloc[-1] if not grupo["Proceso"].dropna().empty else None,
-                "ultimo_anio": ultimo_anio,
-                "ultimo_valor": ultimo_valor,
-                "valor_fmt": valor_fmt,
-                "variacion_ultima_pct": variacion,
-                "tendencia": tendencia_principal,
+                **agregado,
                 "serie": serie,
                 "n_desglose": len(desglose),
                 "desglose": desglose,
+                "grupos": grupos_intermedios,
             }
         )
 

@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
@@ -12,9 +13,13 @@ export function Sidebar() {
   return (
     <aside className="flex h-full w-64 flex-col border-r border-slate-200 bg-poli-navy text-white">
       <div className="border-b border-white/10 px-5 py-6">
-        <div className="text-xs font-semibold uppercase tracking-widest text-poli-gold">
-          Politécnico Grancolombiano
-        </div>
+        <Image
+          src="/poli-logo.png"
+          alt="Politécnico Grancolombiano"
+          width={160}
+          height={40}
+          className="h-8 w-auto object-contain"
+        />
         <h1 className="mt-1 text-lg font-bold leading-tight">Sistema de Indicadores</h1>
       </div>
 
