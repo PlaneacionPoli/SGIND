@@ -104,7 +104,7 @@ export function CmiProcesosResumenTab({ vista, baseAnio }: CmiProcesosResumenTab
       </div>
 
       {/* Gráficas de catálogo */}
-      <CmiCatalogChartsPlotly periodicidad={catalog_charts.periodicidad} tipoIndicador={catalog_charts.tipo_indicador} />
+      <CmiCatalogChartsPlotly periodicidad={catalog_charts.periodicidad} clasificacion={catalog_charts.clasificacion} />
 
       {/* Tabla ranking + panel lateral */}
       <div className="grid gap-5 xl:grid-cols-3">

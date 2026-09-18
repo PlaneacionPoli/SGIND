@@ -13,10 +13,10 @@ interface CatalogItem {
 
 interface CmiCatalogChartsPlotlyProps {
   periodicidad: CatalogItem[];
-  tipoIndicador: CatalogItem[];
+  clasificacion: CatalogItem[];
 }
 
-export function CmiCatalogChartsPlotly({ periodicidad, tipoIndicador }: CmiCatalogChartsPlotlyProps) {
+export function CmiCatalogChartsPlotly({ periodicidad, clasificacion }: CmiCatalogChartsPlotlyProps) {
   return (
     <div className="grid gap-6 lg:grid-cols-2">
       <ChartCard title="Indicadores por periodicidad">
@@ -48,19 +48,19 @@ export function CmiCatalogChartsPlotly({ periodicidad, tipoIndicador }: CmiCatal
         )}
       </ChartCard>
 
-      <ChartCard title="Indicadores por tipo">
-        {tipoIndicador.length > 0 ? (
+      <ChartCard title="Indicadores por clasificación">
+        {clasificacion.length > 0 ? (
           <Plot
             data={[
               {
                 type: "bar",
                 orientation: "h",
-                y: tipoIndicador.map((d) => d.label),
-                x: tipoIndicador.map((d) => d.count),
+                y: clasificacion.map((d) => d.label),
+                x: clasificacion.map((d) => d.count),
                 marker: {
-                  color: tipoIndicador.map((_, i) => paletteColor(i)),
+                  color: clasificacion.map((_, i) => paletteColor(i)),
                 },
-                text: tipoIndicador.map((d) => String(d.count)),
+                text: clasificacion.map((d) => String(d.count)),
                 textposition: "outside",
                 hovertemplate: "<b>%{y}</b><br>%{x} indicadores<extra></extra>",
               },
@@ -73,7 +73,7 @@ export function CmiCatalogChartsPlotly({ periodicidad, tipoIndicador }: CmiCatal
               showlegend: false,
             }}
             config={{ displayModeBar: false, responsive: true }}
-            style={{ width: "100%", height: Math.max(260, tipoIndicador.length * 36) }}
+            style={{ width: "100%", height: Math.max(260, clasificacion.length * 36) }}
             useResizeHandler
           />
         ) : (

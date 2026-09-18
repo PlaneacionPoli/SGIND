@@ -548,16 +548,25 @@ def build_unidades_detalle(df: pd.DataFrame) -> list[dict[str, Any]]:
 def build_catalog_charts(
     cmi_df: pd.DataFrame, active_ids: set[str]
 ) -> dict[str, list[dict[str, Any]]]:
+    """KPIs de catálogo para CMI Procesos: periodicidad y clasificación.
+
+    Nota (2026-09-18, ver docs/migration/PLAN_MIGRACION_PRIORIZADO.md): la
+    columna "Tipo de indicador" del Excel ("Tipo 1"/"Tipo 2") es un flag
+    técnico interno del pipeline de extracción (variables vs. series), NO una
+    categoría de negocio — nunca se muestra al usuario en el legacy. Aquí se
+    usa "Clasificacion" (Estratégico/Operativo), que sí es la categoría real
+    y ya se usa como filtro visible en el resto de este módulo.
+    """
     periodicidad: list[dict[str, Any]] = []
-    tipo_ind: list[dict[str, Any]] = []
+    clasificacion: list[dict[str, Any]] = []
     if cmi_df.empty or "Id" not in cmi_df.columns:
-        return {"periodicidad": periodicidad, "tipo_indicador": tipo_ind}
+        return {"periodicidad": periodicidad, "clasificacion": clasificacion}
 
     work = cmi_df.copy()
     work["Id_norm"] = work["Id"].astype(str).str.strip()
     work = work[work["Id_norm"].isin(active_ids)]
     if work.empty:
-        return {"periodicidad": periodicidad, "tipo_indicador": tipo_ind}
+        return {"periodicidad": periodicidad, "clasificacion": clasificacion}
 
     per_col = next(
         (c for c in work.columns if "periodicidad" in c.lower() or c == "Frecuencia"), None
@@ -566,14 +575,12 @@ def build_catalog_charts(
         vc = work[per_col].fillna("Sin dato").astype(str).value_counts()
         periodicidad = [{"label": str(k), "count": int(v)} for k, v in vc.items()]
 
-    tipo_col = next(
-        (c for c in work.columns if "tipo" in c.lower() and "indicador" in c.lower()), None
-    )
-    if tipo_col:
-        vc = work[tipo_col].fillna("Sin dato").astype(str).value_counts()
-        tipo_ind = [{"label": str(k), "count": int(v)} for k, v in vc.items()]
+    clas_col = next((c for c in work.columns if c == "Clasificacion"), None)
+    if clas_col:
+        vc = work[clas_col].fillna("Sin dato").astype(str).value_counts()
+        clasificacion = [{"label": str(k), "count": int(v)} for k, v in vc.items()]
 
-    return {"periodicidad": periodicidad, "tipo_indicador": tipo_ind}
+    return {"periodicidad": periodicidad, "clasificacion": clasificacion}
 
 
 def build_indicadores_summary(df: pd.DataFrame) -> dict[str, int]:

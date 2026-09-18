@@ -240,7 +240,7 @@ export interface CMIProcesosDashboardResponse {
   proceso_bars: CMIProcesoBar[];
   catalog_charts: {
     periodicidad: Array<{ label: string; count: number }>;
-    tipo_indicador: Array<{ label: string; count: number }>;
+    clasificacion: Array<{ label: string; count: number }>;
   };
   procesos_detalle: CMIProcesoDetalle[];
   unidades_detalle: CMIUnidadDetalle[];

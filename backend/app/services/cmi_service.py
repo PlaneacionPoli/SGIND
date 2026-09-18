@@ -451,7 +451,7 @@ class CMIService:
             "distribucion_nivel": [],
             "tipo_proceso_cards": [],
             "proceso_bars": [],
-            "catalog_charts": {"periodicidad": [], "tipo_indicador": []},
+            "catalog_charts": {"periodicidad": [], "clasificacion": []},
             "procesos_detalle": [],
             "unidades_detalle": [],
             "indicadores_summary": build_indicadores_summary(pd.DataFrame()),

@@ -16,15 +16,31 @@ logging.basicConfig(level=settings.log_level)
 async def _warm_caches() -> None:
     """Precarga en segundo plano el pipeline pesado de Excel al arrancar,
     para que el primer usuario tras un cold start (Render free tier duerme
-    el servicio) no espere el cálculo completo (hasta ~30s)."""
+    el servicio) no espere el cálculo completo (hasta ~30s).
+
+    Nota (2026-09-18): originalmente solo precalentaba CMI Procesos/Estratégico.
+    Resumen General (ETLPipelineService, sin caché de resultado propia, ver
+    docs/migration/PLAN_MIGRACION_PRIORIZADO.md) no estaba incluido — al ser
+    la única combinación de datos que un usuario podía pedir "en frío" justo
+    tras el arranque, es la explicación más probable del "Network Error"
+    reportado solo en esa página. Se agrega aquí con los mismos
+    anio/vista/rango con los que el frontend hace su primera petición
+    (ver frontend/src/app/(dashboard)/resumen-general/page.tsx)."""
     try:
         from app.api.deps import get_excel_service
         from app.services.cmi_service import CMIService
+        from app.services.dashboard_service import DashboardService
 
         excel = get_excel_service(settings)
         cmi = CMIService(excel)
         await asyncio.to_thread(cmi.get_procesos_dashboard)
         await asyncio.to_thread(cmi.get_dashboard)
+
+        dashboard = DashboardService(excel)
+        await asyncio.to_thread(dashboard.get_filtros)
+        await asyncio.to_thread(
+            dashboard.get_resumen_completo, anio=2025, vista="indicadores", rango=True
+        )
         logging.info("Cache de indicadores precargado")
     except Exception:
         logging.exception("No se pudo precargar el cache de indicadores en el arranque")
