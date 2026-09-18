@@ -17,8 +17,8 @@ interface OrbitWaveRowProps {
 
 const VIEWBOX_WIDTH = 100;
 const VIEWBOX_HEIGHT = 40;
-const TOP_Y = 11;
-const BOTTOM_Y = 29;
+const TOP_Y = 8;
+const BOTTOM_Y = 32;
 
 function isHighlighted(roles: Role[] | undefined, currentRole: string | null) {
   if (!roles || !currentRole) return false;
@@ -53,8 +53,10 @@ export function OrbitWaveRow({ items, rowIndex, currentRole }: OrbitWaveRowProps
   const path = buildWavePath(points);
   const gradientId = `orbit-wave-gradient-${rowIndex}`;
 
+  const glowId = `orbit-wave-glow-${rowIndex}`;
+
   return (
-    <div className="relative mx-auto w-full max-w-4xl md:h-40 lg:h-48">
+    <div className="relative mx-auto w-full max-w-4xl md:h-52 lg:h-60">
       <svg
         viewBox={`0 0 ${VIEWBOX_WIDTH} ${VIEWBOX_HEIGHT}`}
         preserveAspectRatio="none"
@@ -63,26 +65,47 @@ export function OrbitWaveRow({ items, rowIndex, currentRole }: OrbitWaveRowProps
       >
         <defs>
           <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.35" />
-            <stop offset="50%" stopColor="#60a5fa" stopOpacity="0.9" />
-            <stop offset="100%" stopColor="#22d3ee" stopOpacity="0.35" />
+            <stop offset="0%" stopColor="#22d3ee" stopOpacity="0.9" />
+            <stop offset="50%" stopColor="#60a5fa" stopOpacity="1" />
+            <stop offset="100%" stopColor="#a855f7" stopOpacity="0.9" />
           </linearGradient>
+          <filter id={glowId} x="-50%" y="-200%" width="200%" height="500%">
+            <feGaussianBlur stdDeviation="1.4" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
         </defs>
+        {/* Halo difuso de fondo */}
         <path
           d={path}
           fill="none"
           stroke={`url(#${gradientId})`}
-          strokeWidth={0.6}
+          strokeWidth={2.4}
           strokeLinecap="round"
-          opacity={0.5}
+          opacity={0.35}
+          filter={`url(#${glowId})`}
+          vectorEffect="non-scaling-stroke"
         />
+        {/* Trazo principal, nítido */}
         <path
           d={path}
           fill="none"
           stroke={`url(#${gradientId})`}
           strokeWidth={0.9}
           strokeLinecap="round"
-          strokeDasharray="4 6"
+          vectorEffect="non-scaling-stroke"
+        />
+        {/* Pulso de luz recorriendo la onda */}
+        <path
+          d={path}
+          fill="none"
+          stroke="#e0f2fe"
+          strokeWidth={1.3}
+          strokeLinecap="round"
+          strokeDasharray="3 18"
+          vectorEffect="non-scaling-stroke"
           className="motion-safe:animate-dash-flow"
         />
       </svg>

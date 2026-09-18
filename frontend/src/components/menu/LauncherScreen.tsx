@@ -71,14 +71,16 @@ export function LauncherScreen() {
 
       <div className="relative z-10 mx-auto max-w-6xl px-6 pb-16 pt-10">
         <header className="mb-12 flex flex-wrap items-center gap-4 animate-fade-in">
-          <Image
-            src="/poli-logo.png"
-            alt="Politécnico Grancolombiano"
-            width={160}
-            height={90}
-            priority
-            className="h-10 w-auto object-contain"
-          />
+          <span className="flex items-center rounded-xl bg-white px-3 py-2 shadow-elevated">
+            <Image
+              src="/poli-logo.png"
+              alt="Politécnico Grancolombiano"
+              width={160}
+              height={90}
+              priority
+              className="h-9 w-auto object-contain"
+            />
+          </span>
           <div>
             <p className="text-sm text-white/70">
               {greeting}

@@ -38,15 +38,15 @@ export function OrbitNode({
         animationDelay: `${index * 350}ms`,
       }}
       className={cn(
-        "relative flex h-14 w-14 items-center justify-center rounded-full shadow-elevated ring-4 ring-white/10 sm:h-16 sm:w-16",
+        "relative flex h-20 w-20 items-center justify-center rounded-full shadow-elevated ring-4 ring-white/10 sm:h-24 sm:w-24",
         "transition-transform duration-300 motion-safe:animate-float",
         "group-hover:scale-110 group-hover:ring-white/30 group-focus-visible:scale-110",
         highlighted && "ring-poli-gold/70 motion-safe:animate-glow-pulse"
       )}
     >
-      <Icon size={24} className="text-white" aria-hidden="true" />
+      <Icon size={34} className="text-white sm:h-10 sm:w-10" aria-hidden="true" />
       {highlighted && (
-        <span className="absolute -right-1 -top-1 rounded-full bg-poli-gold px-1.5 py-0.5 text-[0.55rem] font-semibold text-white shadow-sm">
+        <span className="absolute -right-1 -top-1 rounded-full bg-poli-gold px-2 py-0.5 text-2xs font-semibold text-white shadow-sm">
           Tu rol
         </span>
       )}
@@ -73,10 +73,10 @@ export function OrbitNode({
       href={href}
       aria-label={label}
       style={{ left: `${left}%`, top: `${top}%` }}
-      className="group absolute flex w-24 -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-2 motion-safe:animate-fade-in"
+      className="group absolute flex w-32 -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-2.5 motion-safe:animate-fade-in"
     >
       {iconCircle}
-      <span className="text-center text-xs font-semibold leading-tight text-white drop-shadow-sm transition-colors duration-300 group-hover:text-poli-gold-50 sm:text-sm">
+      <span className="text-center text-sm font-semibold leading-tight text-white drop-shadow-sm transition-colors duration-300 group-hover:text-poli-gold-50 sm:text-base">
         {label}
       </span>
     </Link>

@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BETA_ITEMS, NAV_ITEMS } from "@/config/navigation";
+import { ArrowLeft } from "lucide-react";
+import { NAV_ITEMS } from "@/config/navigation";
 import { cn } from "@/lib/utils";
 
 export function Sidebar() {
@@ -18,6 +19,14 @@ export function Sidebar() {
       </div>
 
       <nav className="flex-1 overflow-y-auto px-3 py-4">
+        <Link
+          href="/menu"
+          className="mb-4 flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm text-slate-300 transition-colors hover:bg-white/10 hover:text-white"
+        >
+          <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+          Menú principal
+        </Link>
+
         <ul className="space-y-1">
           {NAV_ITEMS.map((item) => {
             const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
@@ -39,32 +48,6 @@ export function Sidebar() {
             );
           })}
         </ul>
-
-        <div className="mt-6 border-t border-white/10 pt-4">
-          <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-wide text-slate-400">
-            Beta
-          </p>
-          <ul className="space-y-1">
-            {BETA_ITEMS.map((item) => {
-              const active = pathname === item.href;
-              return (
-                <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    className={cn(
-                      "block rounded-lg px-3 py-2 text-sm transition-colors",
-                      active
-                        ? "bg-poli-blue text-white"
-                        : "text-slate-400 hover:bg-white/10 hover:text-white"
-                    )}
-                  >
-                    {item.label}
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
       </nav>
     </aside>
   );
