@@ -23,7 +23,7 @@ from app.domain.plan_mejoramiento_builders import (
     build_metricas_historico,
     build_metricas_kpis,
     build_metricas_por_factor,
-    build_metricas_tabla,
+    build_metricas_tabla_agrupada,
     build_plan_indicadores_kpis,
     build_plan_indicadores_tabla_historico,
     build_plan_indicadores_tabla_metas,
@@ -232,10 +232,11 @@ class PlanMejoramientoService:
                 "total": 0,
             }
 
-        kpis = build_metricas_kpis(df)
-        grafico_por_factor = build_metricas_por_factor(df)
+        agrupado_total = build_metricas_tabla_agrupada(df)
+        kpis = build_metricas_kpis(agrupado_total)
+        grafico_por_factor = build_metricas_por_factor(agrupado_total)
         rows = apply_metricas_filters(df, factor=factor, tendencia=tendencia, nombre=nombre)
-        tabla = build_metricas_tabla(rows)
+        tabla = build_metricas_tabla_agrupada(rows)
         factores = sorted(df["Factor"].dropna().unique().tolist()) if "Factor" in df.columns else []
 
         return {

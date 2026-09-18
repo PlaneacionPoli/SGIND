@@ -5,12 +5,29 @@ import { useQuery } from "@tanstack/react-query";
 import { KPICard } from "@/components/ui/KPICard";
 import { downloadPlanIndicadoresExport, fetchPlanIndicadoresDashboard } from "@/lib/api";
 import { useAuthReady } from "@/stores/auth-store";
+import { PmFactorBadge } from "./PmFactorBadge";
 import { PmFactorBarChart } from "./PmFactorBarChart";
 import { PmIndicadorModal } from "./PmIndicadorModal";
+import { getFactorColor } from "./pmFactorTheme";
 
 type SubVista = "metas" | "historico";
 
 const METAS_YEARS = ["2026", "2027", "2028", "2029", "2030"] as const;
+
+const TIPO_STYLES: Record<string, string> = {
+  Indicador: "bg-sky-50 text-sky-700",
+  Metrica: "bg-lime-50 text-lime-700",
+};
+const TIPO_DEFAULT = "bg-rose-50 text-rose-700";
+
+function TipoTag({ tipo }: { tipo: string | null }) {
+  const cls = (tipo && TIPO_STYLES[tipo]) || TIPO_DEFAULT;
+  return (
+    <span className={`inline-block rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${cls}`}>
+      {tipo || "Sin clasificar"}
+    </span>
+  );
+}
 
 /** Pestaña "Indicadores" del Plan de Mejoramiento — paridad con
  * pages/plan_mejoramiento.py::_render_tab_indicadores (ver
@@ -39,9 +56,9 @@ export function PmIndicadoresTab() {
   const tabla = data?.tabla ?? [];
 
   const chartData = useMemo(() => {
-    const porFactor = new Map<string, { suma: number; n: number }>();
+    const porFactor = new Map<string, { suma: number; n: number; factorNum: number | null }>();
     for (const row of tabla) {
-      const acc = porFactor.get(row.factor) ?? { suma: 0, n: 0 };
+      const acc = porFactor.get(row.factor) ?? { suma: 0, n: 0, factorNum: row.factor_num };
       if ("metas" in row) {
         const tieneMeta = METAS_YEARS.some((y) => row.metas[y].valor != null);
         acc.n += tieneMeta ? 1 : 0;
@@ -57,8 +74,9 @@ export function PmIndicadoresTab() {
       }
       porFactor.set(row.factor, acc);
     }
-    return Array.from(porFactor.entries()).map(([f, { suma, n }]) => ({
+    return Array.from(porFactor.entries()).map(([f, { suma, n, factorNum }]) => ({
       factor: f,
+      factorNum,
       value: subvista === "metas" ? n : n ? Math.round((suma / n) * 10) / 10 : 0,
     }));
   }, [tabla, subvista]);
@@ -88,8 +106,8 @@ export function PmIndicadoresTab() {
                 key={v}
                 type="button"
                 onClick={() => setSubvista(v)}
-                className={`rounded-lg px-4 py-2 text-sm font-semibold ${
-                  subvista === v ? "bg-poli-navy text-white" : "bg-slate-100 text-slate-600"
+                className={`rounded-lg px-4 py-2 text-sm font-semibold transition-colors ${
+                  subvista === v ? "bg-poli-navy text-white shadow-sm" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                 }`}
               >
                 {v === "metas" ? "Metas 2026–2030" : "Cumplimiento histórico"}
@@ -158,7 +176,7 @@ export function PmIndicadoresTab() {
             </div>
           </div>
 
-          <div className="rounded-xl border border-slate-200 bg-white p-4">
+          <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
             <PmFactorBarChart
               data={chartData}
               valueSuffix={subvista === "metas" ? "" : "%"}
@@ -173,69 +191,97 @@ export function PmIndicadoresTab() {
                 : "Ningún indicador de este filtro tiene cumplimiento histórico registrado todavía."}
             </p>
           ) : (
-            <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
-              <table className="min-w-full text-left text-sm">
-                <thead className="bg-slate-50 text-xs uppercase text-slate-500">
-                  <tr>
-                    {subvista === "metas" ? (
-                      <>
-                        <th className="px-3 py-2">Factor</th>
-                        <th className="px-3 py-2">Indicador</th>
-                        <th className="px-3 py-2">Tipo</th>
-                        {METAS_YEARS.map((y) => (
-                          <th key={y} className="px-3 py-2">
-                            Meta {y}
-                          </th>
-                        ))}
-                      </>
-                    ) : (
-                      <>
-                        <th className="px-3 py-2">Factor</th>
-                        <th className="px-3 py-2">Indicador</th>
-                        <th className="px-3 py-2">Meta 2025</th>
-                        <th className="px-3 py-2">Ejec. 2025</th>
-                        <th className="px-3 py-2">% Cump 2025</th>
-                        <th className="px-3 py-2">Meta 2026</th>
-                        <th className="px-3 py-2">Ejec. 2026</th>
-                        <th className="px-3 py-2">% Cump 2026</th>
-                      </>
-                    )}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {tabla.map((row, i) => (
-                    <tr
-                      key={i}
-                      className="cursor-pointer hover:bg-slate-50"
-                      onClick={() => setSeleccion({ factor: row.factor, indicador: row.indicador })}
-                    >
-                      {"metas" in row ? (
+            <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+              <div className="overflow-x-auto">
+                <table className="min-w-full text-left text-sm">
+                  <thead className="bg-slate-50/80 text-[11px] font-bold uppercase tracking-wide text-slate-500">
+                    <tr>
+                      {subvista === "metas" ? (
                         <>
-                          <td className="px-3 py-2">{row.factor_num != null ? `F${row.factor_num}` : "—"}</td>
-                          <td className="max-w-xs truncate px-3 py-2">{row.indicador}</td>
-                          <td className="px-3 py-2">{row.tipo}</td>
+                          <th className="px-4 py-3">Factor</th>
+                          <th className="px-4 py-3">Indicador</th>
+                          <th className="px-4 py-3">Tipo</th>
                           {METAS_YEARS.map((y) => (
-                            <td key={y} className="px-3 py-2">
-                              {row.metas[y].valor_fmt}
-                            </td>
+                            <th key={y} className="px-4 py-3 text-right">
+                              Meta {y}
+                            </th>
                           ))}
                         </>
                       ) : (
                         <>
-                          <td className="px-3 py-2">{row.factor_num != null ? `F${row.factor_num}` : "—"}</td>
-                          <td className="max-w-xs truncate px-3 py-2">{row.indicador}</td>
-                          <td className="px-3 py-2">{row.meta_2025.valor_fmt}</td>
-                          <td className="px-3 py-2">{row.ejecucion_2025.valor_fmt}</td>
-                          <td className="px-3 py-2">{row.cump_2025.valor_fmt}</td>
-                          <td className="px-3 py-2">{row.meta_2026.valor_fmt}</td>
-                          <td className="px-3 py-2">{row.ejecucion_2026.valor_fmt}</td>
-                          <td className="px-3 py-2">{row.cump_2026.valor_fmt}</td>
+                          <th className="px-4 py-3">Factor</th>
+                          <th className="px-4 py-3">Indicador</th>
+                          <th className="px-4 py-3 text-right">Meta 2025</th>
+                          <th className="px-4 py-3 text-right">Ejec. 2025</th>
+                          <th className="px-4 py-3 text-right">% Cump 2025</th>
+                          <th className="px-4 py-3 text-right">Meta 2026</th>
+                          <th className="px-4 py-3 text-right">Ejec. 2026</th>
+                          <th className="px-4 py-3 text-right">% Cump 2026</th>
                         </>
                       )}
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {tabla.map((row, i) => (
+                      <tr
+                        key={i}
+                        className={`group cursor-pointer border-l-2 border-l-transparent transition-colors hover:border-l-4 hover:!bg-slate-50 ${
+                          i % 2 === 1 ? "bg-slate-50/40" : ""
+                        }`}
+                        onMouseEnter={(e) => (e.currentTarget.style.borderLeftColor = getFactorColor(row.factor_num))}
+                        onMouseLeave={(e) => (e.currentTarget.style.borderLeftColor = "transparent")}
+                        onClick={() => setSeleccion({ factor: row.factor, indicador: row.indicador })}
+                      >
+                        {"metas" in row ? (
+                          <>
+                            <td className="px-4 py-2.5">
+                              <PmFactorBadge factorNum={row.factor_num} />
+                            </td>
+                            <td className="max-w-xs truncate px-4 py-2.5 font-medium text-slate-800">
+                              {row.indicador}
+                            </td>
+                            <td className="px-4 py-2.5">
+                              <TipoTag tipo={row.tipo} />
+                            </td>
+                            {METAS_YEARS.map((y) => (
+                              <td key={y} className="px-4 py-2.5 text-right tabular-nums text-slate-700">
+                                {row.metas[y].valor_fmt}
+                              </td>
+                            ))}
+                          </>
+                        ) : (
+                          <>
+                            <td className="px-4 py-2.5">
+                              <PmFactorBadge factorNum={row.factor_num} />
+                            </td>
+                            <td className="max-w-xs truncate px-4 py-2.5 font-medium text-slate-800">
+                              {row.indicador}
+                            </td>
+                            <td className="px-4 py-2.5 text-right tabular-nums text-slate-700">
+                              {row.meta_2025.valor_fmt}
+                            </td>
+                            <td className="px-4 py-2.5 text-right tabular-nums text-slate-700">
+                              {row.ejecucion_2025.valor_fmt}
+                            </td>
+                            <td className="px-4 py-2.5 text-right tabular-nums font-semibold text-slate-800">
+                              {row.cump_2025.valor_fmt}
+                            </td>
+                            <td className="px-4 py-2.5 text-right tabular-nums text-slate-700">
+                              {row.meta_2026.valor_fmt}
+                            </td>
+                            <td className="px-4 py-2.5 text-right tabular-nums text-slate-700">
+                              {row.ejecucion_2026.valor_fmt}
+                            </td>
+                            <td className="px-4 py-2.5 text-right tabular-nums font-semibold text-slate-800">
+                              {row.cump_2026.valor_fmt}
+                            </td>
+                          </>
+                        )}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
         </>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { ClipboardList, LineChart } from "lucide-react";
 import { PmIndicadoresTab } from "@/components/plan-mejoramiento/PmIndicadoresTab";
 import { PmMetricasTab } from "@/components/plan-mejoramiento/PmMetricasTab";
 
@@ -19,24 +20,33 @@ export default function PlanMejoramientoPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold text-slate-900">Evaluación de Indicadores y Métricas — Modelo CNA</h2>
-        <p className="mt-1 text-slate-600">
+      <div className="rounded-xl bg-gradient-to-r from-slate-900 to-slate-800 p-6 text-white shadow-md">
+        <p className="text-xs font-semibold uppercase tracking-widest text-blue-200">Modelo CNA</p>
+        <h2 className="mt-1 text-2xl font-bold">Evaluación de Indicadores y Métricas</h2>
+        <p className="mt-1 text-sm text-slate-300">
           Politécnico Grancolombiano · Gerencia de Planeación · Medición y Mejora
         </p>
       </div>
 
       <div className="flex gap-2">
-        {(["indicadores", "metricas"] as const).map((v) => (
+        {(
+          [
+            { key: "indicadores", label: "Indicadores", Icon: ClipboardList },
+            { key: "metricas", label: "Métricas", Icon: LineChart },
+          ] as const
+        ).map(({ key, label, Icon }) => (
           <button
-            key={v}
+            key={key}
             type="button"
-            onClick={() => setVista(v)}
-            className={`rounded-lg px-5 py-2 text-sm font-semibold ${
-              vista === v ? "bg-poli-navy text-white" : "bg-slate-100 text-slate-600"
+            onClick={() => setVista(key)}
+            className={`inline-flex items-center gap-2 rounded-lg px-5 py-2 text-sm font-semibold transition-colors ${
+              vista === key
+                ? "bg-poli-navy text-white shadow-sm"
+                : "bg-slate-100 text-slate-600 hover:bg-slate-200"
             }`}
           >
-            {v === "indicadores" ? "Indicadores" : "Métricas"}
+            <Icon size={16} />
+            {label}
           </button>
         ))}
       </div>

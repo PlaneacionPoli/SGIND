@@ -793,20 +793,34 @@ export interface PlanMetricasDashboardResponse {
   };
   filtros: { factores: string[]; tendencias: string[] };
   grafico_por_factor: Array<{ factor: string; factor_num: number | null; cantidad: number }>;
-  tabla: Array<{
-    factor: string;
-    factor_num: number | null;
-    metrica: string;
-    indicador: string;
-    subindicador: string | null;
-    proceso: string | null;
-    ultimo_anio: number | null;
-    ultimo_valor: number | null;
-    variacion_ultima_pct: number | null;
-    tendencia: "Creciente" | "Decreciente" | "Estable" | "—";
-    serie: number[];
-  }>;
+  tabla: PlanMetricaFila[];
   total: number;
+}
+
+export interface PlanMetricaDesglose {
+  subindicador: string | null;
+  proceso: string | null;
+  ultimo_anio: number | null;
+  ultimo_valor: number | null;
+  valor_fmt: string;
+  variacion_ultima_pct: number | null;
+  tendencia: "Creciente" | "Decreciente" | "Estable" | "—";
+  serie: number[];
+}
+
+export interface PlanMetricaFila {
+  factor: string;
+  factor_num: number | null;
+  indicador: string;
+  proceso: string | null;
+  ultimo_anio: number | null;
+  ultimo_valor: number | null;
+  valor_fmt: string;
+  variacion_ultima_pct: number | null;
+  tendencia: "Creciente" | "Decreciente" | "Estable" | "—";
+  serie: number[];
+  n_desglose: number;
+  desglose: PlanMetricaDesglose[];
 }
 
 export interface PlanMetricaDetalleResponse {

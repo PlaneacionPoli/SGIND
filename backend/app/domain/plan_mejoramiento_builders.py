@@ -439,7 +439,11 @@ def build_filtros_cna(
 # ═════════════════════════════════════════════════════════════════════════════
 
 _PLAN_INDICADORES_PATH = "raw/Plan de mejoramiento/Indicadores Plan de Mejoramiento.xlsx"
+# Desde el ajuste de fuentes 2026-09-18, el archivo trae dos hojas:
+# "Indicadores Plan de Mejor" con las metas 2026-2030, y "Indicadores Real"
+# con la ejecución y el % de cumplimiento 2025-2026 (ver load_plan_indicadores).
 _SHEET_PLAN_INDICADORES = "Indicadores Plan de Mejor"
+_SHEET_PLAN_REAL = "Indicadores Real"
 _CATALOGO_PLAN_PATH = "raw/Plan de mejoramiento/Catalogo_Indicadores_Plan_Mejoramiento.xlsx"
 _SHEET_CATALOGO_PLAN = "Catalogo"
 
@@ -500,6 +504,13 @@ def _parse_meta_ejecucion(value: object) -> float | None:
         return float(text)
     except ValueError:
         return None
+
+
+def _clean(value):
+    """None en vez de NaN — pd.DataFrame(list_of_dicts) convierte columnas con
+    None mezclado a float64/NaN, y json.dumps no rechaza NaN (emite el
+    literal no-estándar "NaN"), lo que rompe el parseo en el frontend."""
+    return None if (value is None or (isinstance(value, float) and pd.isna(value))) else value
 
 
 def _or_default(value, default: str = "—") -> str:
@@ -579,9 +590,30 @@ def load_catalogo_plan_indicadores(excel) -> pd.DataFrame:
     return df[[c for c in cols if c in df.columns]].drop_duplicates(subset=["Factor", "Indicador"])
 
 
+_PLAN_REAL_VALUE_COLS = ["Meta_2025", "Ejecucion_2025", "Cump_2025", "Ejecucion_2026", "Cump_2026"]
+_PLAN_DESCRIPTIVO_COLS = [
+    "Caracteristica", "Accion_Mejora", "Id_Kawak", "Tipo", "Observacion", "Estado_raw",
+    "Estado_Aprobacion", "Formula", "Fuente", "Responsable", "Periodicidad",
+]
+
+
+def _load_plan_sheet(excel, sheet_name: str) -> pd.DataFrame:
+    df = excel.read_excel(_PLAN_INDICADORES_PATH, sheet_name=sheet_name, header=1)
+    df.columns = [str(c).replace("\n", " ").strip() for c in df.columns]
+    df = df.rename(columns={k: v for k, v in _PLAN_RENAME.items() if k in df.columns})
+    for col in ("Factor", "Indicador"):
+        if col in df.columns:
+            df[col] = df[col].astype(str).str.strip()
+    return df
+
+
 def load_plan_indicadores(excel) -> pd.DataFrame:
     """Indicadores del Plan de Mejoramiento — paridad con
     plan_mejoramiento_loader.py::load_plan_indicadores.
+
+    Desde el ajuste de fuentes 2026-09-18, las metas 2026-2030 viven en la
+    hoja "Indicadores Plan de Mejor" y la ejecución/%cumplimiento 2025-2026
+    en "Indicadores Real" — se combinan aquí por (Factor, Indicador).
 
     Wide -> derivado: Meta|Ejecución|%Cump x 2025,2026 (+ metas futuras
     2026-2030), Factor_num/Factor_nombre, Estado_final, tiene_medicion,
@@ -592,12 +624,22 @@ def load_plan_indicadores(excel) -> pd.DataFrame:
     if not path.exists():
         return pd.DataFrame()
     try:
-        df = excel.read_excel(_PLAN_INDICADORES_PATH, sheet_name=_SHEET_PLAN_INDICADORES, header=1)
+        df = _load_plan_sheet(excel, _SHEET_PLAN_INDICADORES)
+        df_real = _load_plan_sheet(excel, _SHEET_PLAN_REAL)
     except Exception:
         return pd.DataFrame()
 
-    df.columns = [str(c).replace("\n", " ").strip() for c in df.columns]
-    df = df.rename(columns={k: v for k, v in _PLAN_RENAME.items() if k in df.columns})
+    if "Factor" in df.columns and "Indicador" in df.columns and "Factor" in df_real.columns:
+        real_cols = ["Factor", "Indicador"] + [c for c in _PLAN_REAL_VALUE_COLS if c in df_real.columns]
+        df = df.merge(df_real[real_cols], on=["Factor", "Indicador"], how="outer", suffixes=("", "_real"))
+        if "Meta_2025_real" in df.columns:
+            df["Meta_2025"] = df["Meta_2025_real"] if "Meta_2025" not in df.columns else df["Meta_2025"].combine_first(df["Meta_2025_real"])
+            df = df.drop(columns=["Meta_2025_real"])
+        for col in _PLAN_DESCRIPTIVO_COLS:
+            real_col = f"{col}_real"
+            if real_col in df.columns:
+                df[col] = df[real_col] if col not in df.columns else df[col].combine_first(df[real_col])
+                df = df.drop(columns=[real_col])
 
     for col in (
         "Factor", "Caracteristica", "Indicador", "Tipo", "Estado_raw", "Estado_Aprobacion", "Periodicidad",
@@ -838,8 +880,15 @@ _SHEET_METRICAS = "Metricas"
 _METRICAS_COLS = [
     "Id", "Indicador", "Subindicador", "Factor", "Caracteristica", "Proceso",
     "Periodicidad", "Sentido", "Fecha", "Año", "Mes", "Periodo", "Meta",
-    "Ejecución", "Ejecución s", "Llave", "DecimalesEje", "Proyecto",
+    "Ejecución", "Ejecución s", "Llave", "Decimales", "DecimalesEje", "Proyecto",
 ]
+
+# Umbral para detectar que un indicador con signo "%" guarda la fracción
+# cruda (0-1) en vez del valor ya escalado a 0-100 — validado contra
+# data/output/Resultados_Consolidados_CNA.xlsx: todo indicador con signo "%"
+# en la hoja Metricas guarda la fracción, salvo casos de datos de origen mal
+# etiquetados (ver diagnóstico 2026-09-18).
+_PCT_FRACCION_MAX = 1.5
 
 TENDENCIA_METRICAS_FILTRO_OPTIONS = ["Toda tendencia", "Creciente", "Decreciente", "Estable"]
 
@@ -923,10 +972,28 @@ def _classify_tendencia_historico(variacion_promedio_pct: float | None, n_anios_
     return "Estable"
 
 
+def _detecta_escala_pct(signo: str | None, valores: list[float]) -> bool:
+    """True si el indicador está en escala fracción (0-1) y debe escalarse
+    x100 para mostrarse como porcentaje — ver _PCT_FRACCION_MAX arriba."""
+    if signo != "%":
+        return False
+    vals = [v for v in valores if v is not None and pd.notna(v)]
+    if not vals:
+        return False
+    return max(abs(v) for v in vals) <= _PCT_FRACCION_MAX
+
+
 def build_metricas_historico(excel) -> pd.DataFrame:
     """Una fila por (Factor, Característica, Indicador, Subindicador): serie
     anual completa + último valor + variaciones + tendencia — paridad con
-    plan_mejoramiento_loader.py::build_metricas_historico."""
+    plan_mejoramiento_loader.py::build_metricas_historico.
+
+    Las filas cuyo Periodo no tiene formato "AAAA-N" reciben el sentinel de
+    orden (9999, 9) en _split_periodo — se excluyen aquí del cálculo de
+    último año/valor/serie para que ese sentinel no se filtre como si fuera
+    un año real (ver diagnóstico 2026-09-18). Si TODAS las filas del grupo
+    caen en ese caso (p.ej. desgloses por cohorte/semestre sin año asociado),
+    se conserva el último valor disponible sin año ni serie."""
     df = load_metricas_raw(excel)
     if df.empty:
         return pd.DataFrame()
@@ -939,20 +1006,39 @@ def build_metricas_historico(excel) -> pd.DataFrame:
     rows = []
     for keys, grupo in anual.groupby(group_cols, dropna=False):
         grupo = grupo.sort_values("Periodo_anio")
+
+        signo = grupo["Ejecución s"].dropna().iloc[-1] if not grupo["Ejecución s"].dropna().empty else None
+        decimales = grupo["Decimales"].dropna().iloc[-1] if "Decimales" in grupo and not grupo["Decimales"].dropna().empty else _DECIMALES_DEFAULT
+        pct_scale = _detecta_escala_pct(signo, grupo["Ejecucion_num"].tolist())
+        factor_valor = 100.0 if pct_scale else 1.0
+
+        con_anio = grupo[grupo["Periodo_anio"] != 9999]
+        con_dato = con_anio.dropna(subset=["Ejecucion_num"])
+
         serie = [
             {
                 "anio": int(anio),
-                "ejecucion": None if pd.isna(ejec) else float(ejec),
-                "meta": None if pd.isna(meta) else float(meta),
+                "ejecucion": None if pd.isna(ejec) else float(ejec) * factor_valor,
+                "meta": None if pd.isna(meta) else float(meta) * factor_valor,
             }
-            for anio, ejec, meta in zip(grupo["Periodo_anio"], grupo["Ejecucion_num"], grupo["Meta_num"], strict=True)
+            for anio, ejec, meta in zip(con_anio["Periodo_anio"], con_anio["Ejecucion_num"], con_anio["Meta_num"], strict=True)
             if pd.notna(anio)
         ]
 
-        con_dato = grupo.dropna(subset=["Ejecucion_num"])
         n_anios_con_dato = len(con_dato)
-        ultimo_anio = int(con_dato["Periodo_anio"].iloc[-1]) if n_anios_con_dato else None
-        ultimo_valor = float(con_dato["Ejecucion_num"].iloc[-1]) if n_anios_con_dato else None
+        if n_anios_con_dato:
+            ultimo_anio = int(con_dato["Periodo_anio"].iloc[-1])
+            ultimo_valor = float(con_dato["Ejecucion_num"].iloc[-1]) * factor_valor
+        else:
+            # Sin año real disponible: se conserva el último dato reportado
+            # (si existe) para no perder la métrica del tablero.
+            sin_anio_con_dato = grupo.dropna(subset=["Ejecucion_num"])
+            ultimo_anio = None
+            ultimo_valor = (
+                float(sin_anio_con_dato["Ejecucion_num"].iloc[-1]) * factor_valor
+                if not sin_anio_con_dato.empty
+                else None
+            )
 
         variacion_ultima_pct = None
         if n_anios_con_dato >= 2:
@@ -976,6 +1062,8 @@ def build_metricas_historico(excel) -> pd.DataFrame:
                 "Periodicidad": (
                     grupo["Periodicidad"].dropna().iloc[-1] if not grupo["Periodicidad"].dropna().empty else None
                 ),
+                "signo": signo,
+                "decimales": decimales,
                 "serie": serie,
                 "ultimo_anio": ultimo_anio,
                 "ultimo_valor": ultimo_valor,
@@ -1009,14 +1097,19 @@ def apply_metricas_filters(
     return out
 
 
-def build_metricas_kpis(df: pd.DataFrame) -> dict[str, Any]:
-    total = len(df)
-    n_factores = int(df["Factor"].nunique()) if total and "Factor" in df.columns else 0
-    n_creciente = int((df["tendencia"] == "Creciente").sum()) if total and "tendencia" in df.columns else 0
-    n_decreciente = int((df["tendencia"] == "Decreciente").sum()) if total and "tendencia" in df.columns else 0
+def build_metricas_kpis(records: list[dict[str, Any]]) -> dict[str, Any]:
+    """KPIs de la pestaña Métricas — calculados sobre la tabla ya agrupada por
+    (Factor, Indicador) para que coincidan con lo que se cuenta en la tabla
+    (ver build_metricas_tabla_agrupada; antes contaban filas por
+    Subindicador, inflando el total muy por encima de las métricas
+    realmente distintas)."""
+    total = len(records)
+    factores = {r["factor"] for r in records if r.get("factor")}
+    n_creciente = sum(1 for r in records if r.get("tendencia") == "Creciente")
+    n_decreciente = sum(1 for r in records if r.get("tendencia") == "Decreciente")
     return {
         "total": total,
-        "factores_cubiertos": n_factores,
+        "factores_cubiertos": len(factores),
         "n_creciente": n_creciente,
         "n_decreciente": n_decreciente,
         "pct_creciente": round(n_creciente / total * 100) if total else 0,
@@ -1024,21 +1117,20 @@ def build_metricas_kpis(df: pd.DataFrame) -> dict[str, Any]:
     }
 
 
-def build_metricas_por_factor(df: pd.DataFrame) -> list[dict[str, Any]]:
-    """Conteo de métricas con histórico por factor — insumo del gráfico
-    clickable chart_metricas_por_factor (clic en un punto filtra la tabla)."""
-    if df.empty or "Factor" not in df.columns:
-        return []
-    counts = df.groupby(["Factor", "Factor_num"], dropna=False).size().reset_index(name="cantidad")
-    counts = counts.sort_values("Factor_num")
-    return [
-        {
-            "factor": row["Factor"],
-            "factor_num": None if pd.isna(row["Factor_num"]) else int(row["Factor_num"]),
-            "cantidad": int(row["cantidad"]),
-        }
-        for _, row in counts.iterrows()
+def build_metricas_por_factor(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Conteo de métricas (por Indicador, no por Subindicador) por factor —
+    insumo del gráfico clickable chart_metricas_por_factor (clic en un punto
+    filtra la tabla)."""
+    counts: dict[tuple[str | None, int | None], int] = {}
+    for r in records:
+        key = (r.get("factor"), r.get("factor_num"))
+        counts[key] = counts.get(key, 0) + 1
+    rows = [
+        {"factor": factor, "factor_num": fnum, "cantidad": cantidad}
+        for (factor, fnum), cantidad in counts.items()
     ]
+    rows.sort(key=lambda r: (r["factor_num"] is None, r["factor_num"] or 0))
+    return rows
 
 
 def build_metricas_tabla(df: pd.DataFrame) -> list[dict[str, Any]]:
@@ -1049,9 +1141,11 @@ def build_metricas_tabla(df: pd.DataFrame) -> list[dict[str, Any]]:
     rows_sorted = df.sort_values("ultimo_anio", ascending=False, na_position="last").reset_index(drop=True)
     records = []
     for _, row in rows_sorted.iterrows():
-        ind, sub = row.get("Indicador"), row.get("Subindicador")
+        ind, sub = row.get("Indicador"), _clean(row.get("Subindicador"))
         fnum = row.get("Factor_num")
         tendencia = row.get("tendencia")
+        ultimo_valor = _clean(row.get("ultimo_valor"))
+        ultimo_anio = _clean(row.get("ultimo_anio"))
         records.append(
             {
                 "factor": row.get("Factor"),
@@ -1059,14 +1153,110 @@ def build_metricas_tabla(df: pd.DataFrame) -> list[dict[str, Any]]:
                 "metrica": ind if (not sub or sub == ind) else f"{ind} · {sub}",
                 "indicador": ind,
                 "subindicador": sub,
-                "proceso": row.get("Proceso"),
-                "ultimo_anio": row.get("ultimo_anio"),
-                "ultimo_valor": row.get("ultimo_valor"),
-                "variacion_ultima_pct": row.get("variacion_ultima_pct"),
+                "proceso": _clean(row.get("Proceso")),
+                "ultimo_anio": int(ultimo_anio) if ultimo_anio is not None else None,
+                "ultimo_valor": ultimo_valor,
+                "valor_fmt": fmt_valor_plan(ultimo_valor, row.get("signo"), row.get("decimales")),
+                "variacion_ultima_pct": _clean(row.get("variacion_ultima_pct")),
                 "tendencia": tendencia if tendencia in ("Creciente", "Decreciente", "Estable") else "—",
                 "serie": [p["ejecucion"] for p in row.get("serie", []) if p.get("ejecucion") is not None],
             }
         )
+    return records
+
+
+def build_metricas_tabla_agrupada(df: pd.DataFrame) -> list[dict[str, Any]]:
+    """Filas de la pestaña Métricas agrupadas por (Factor, Indicador): una
+    fila principal por indicador con un 'desglose' expandible por
+    Subindicador — evita mostrar 10-60 filas repetidas para el mismo
+    indicador cuando trae desglose por modalidad/cohorte/sede (ver
+    diagnóstico 2026-09-18).
+
+    El valor de la fila principal:
+    - Indicador sin desglose real (1 solo Subindicador): se muestra el valor
+      de ese único subindicador directamente.
+    - Desglose homogéneo (mismo signo y decimales en todos los
+      subindicadores): se promedia el último valor de cada uno — agregación
+      válida porque todos comparten unidad.
+    - Desglose heterogéneo (unidades mixtas, p.ej. conteos y porcentajes en
+      el mismo indicador): no se inventa un promedio sin sentido — la fila
+      principal solo indica cuántos subindicadores tiene y obliga a
+      desplegar para ver el detalle real.
+    """
+    if df.empty:
+        return []
+
+    records = []
+    for (factor, indicador), grupo in df.groupby(["Factor", "Indicador"], dropna=False):
+        grupo = grupo.sort_values("ultimo_anio", ascending=False, na_position="last")
+        fnum = grupo["Factor_num"].iloc[0]
+
+        desglose = []
+        for _, row in grupo.iterrows():
+            valor = _clean(row.get("ultimo_valor"))
+            anio = _clean(row.get("ultimo_anio"))
+            tendencia = row.get("tendencia")
+            desglose.append(
+                {
+                    "subindicador": _clean(row.get("Subindicador")),
+                    "proceso": _clean(row.get("Proceso")),
+                    "ultimo_anio": int(anio) if anio is not None else None,
+                    "ultimo_valor": valor,
+                    "valor_fmt": fmt_valor_plan(valor, row.get("signo"), row.get("decimales")),
+                    "variacion_ultima_pct": _clean(row.get("variacion_ultima_pct")),
+                    "tendencia": tendencia if tendencia in ("Creciente", "Decreciente", "Estable") else "—",
+                    "serie": [p["ejecucion"] for p in row.get("serie", []) if p.get("ejecucion") is not None],
+                }
+            )
+
+        unidades = grupo[["signo", "decimales"]].drop_duplicates()
+        homogeneo = len(unidades) <= 1
+
+        if len(grupo) == 1:
+            principal = desglose[0]
+            ultimo_anio = principal["ultimo_anio"]
+            ultimo_valor = principal["ultimo_valor"]
+            valor_fmt = principal["valor_fmt"]
+            variacion = principal["variacion_ultima_pct"]
+            tendencia_principal = principal["tendencia"]
+            serie = principal["serie"]
+        elif homogeneo:
+            valores = [d["ultimo_valor"] for d in desglose if d["ultimo_valor"] is not None]
+            ultimo_valor = float(pd.Series(valores).mean()) if valores else None
+            valor_fmt = fmt_valor_plan(ultimo_valor, grupo["signo"].iloc[0], grupo["decimales"].iloc[0])
+            anios = [d["ultimo_anio"] for d in desglose if d["ultimo_anio"] is not None]
+            ultimo_anio = max(anios) if anios else None
+            variaciones = [d["variacion_ultima_pct"] for d in desglose if d["variacion_ultima_pct"] is not None]
+            variacion = float(pd.Series(variaciones).mean()) if variaciones else None
+            tendencias = [d["tendencia"] for d in desglose if d["tendencia"] != "—"]
+            tendencia_principal = pd.Series(tendencias).mode().iloc[0] if tendencias else "—"
+            serie = []
+        else:
+            ultimo_anio = None
+            ultimo_valor = None
+            valor_fmt = "—"
+            variacion = None
+            tendencia_principal = "—"
+            serie = []
+
+        records.append(
+            {
+                "factor": factor,
+                "factor_num": None if fnum is None or pd.isna(fnum) else int(fnum),
+                "indicador": indicador,
+                "proceso": grupo["Proceso"].dropna().iloc[-1] if not grupo["Proceso"].dropna().empty else None,
+                "ultimo_anio": ultimo_anio,
+                "ultimo_valor": ultimo_valor,
+                "valor_fmt": valor_fmt,
+                "variacion_ultima_pct": variacion,
+                "tendencia": tendencia_principal,
+                "serie": serie,
+                "n_desglose": len(desglose),
+                "desglose": desglose,
+            }
+        )
+
+    records.sort(key=lambda r: (r["ultimo_anio"] is None, -(r["ultimo_anio"] or 0)))
     return records
 
 

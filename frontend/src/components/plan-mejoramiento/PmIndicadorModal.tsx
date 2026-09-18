@@ -2,6 +2,8 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { fetchPlanIndicadorDetalle } from "@/lib/api";
+import { PmFactorBadge } from "./PmFactorBadge";
+import { parseFactorNum } from "./pmFactorTheme";
 
 interface PmIndicadorSeleccion {
   factor: string;
@@ -49,9 +51,10 @@ export function PmIndicadorModal({ seleccion, onClose }: PmIndicadorModalProps) 
             <p className="text-slate-500">No se encontró información del indicador.</p>
           ) : (
             <>
-              <span className="inline-block rounded-md bg-poli-navy px-2.5 py-1 text-xs font-bold text-white">
-                {d.factor}
-              </span>
+              <div className="flex items-center gap-2">
+                <PmFactorBadge factorNum={parseFactorNum(d.factor)} variant="full" />
+                <span className="text-xs font-semibold text-slate-500">{d.factor}</span>
+              </div>
               <div>
                 <p className="font-semibold text-slate-700">Característica</p>
                 <p className="text-slate-600">{d.caracteristica}</p>

@@ -3,6 +3,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { fetchPlanMetricaDetalle } from "@/lib/api";
+import { PmFactorBadge } from "./PmFactorBadge";
+import { getFactorColor, parseFactorNum } from "./pmFactorTheme";
 
 interface PmMetricaSeleccion {
   factor: string;
@@ -67,9 +69,10 @@ export function PmMetricaModal({ seleccion, onClose }: PmMetricaModalProps) {
             <p className="text-slate-500">No se encontró información de la métrica.</p>
           ) : (
             <>
-              <span className="inline-block rounded-md bg-poli-navy px-2.5 py-1 text-xs font-bold text-white">
-                {d.factor}
-              </span>
+              <div className="flex items-center gap-2">
+                <PmFactorBadge factorNum={parseFactorNum(d.factor)} variant="full" />
+                <span className="text-xs font-semibold text-slate-500">{d.factor}</span>
+              </div>
               {chartData.length ? (
                 <div className="h-56">
                   <ResponsiveContainer width="100%" height="100%">
@@ -78,7 +81,13 @@ export function PmMetricaModal({ seleccion, onClose }: PmMetricaModalProps) {
                       <XAxis dataKey="anio" tick={{ fontSize: 11 }} />
                       <YAxis tick={{ fontSize: 11 }} />
                       <Tooltip />
-                      <Line type="monotone" dataKey="Resultado" stroke="#1A3A5C" strokeWidth={2} dot={{ r: 3 }} />
+                      <Line
+                        type="monotone"
+                        dataKey="Resultado"
+                        stroke={getFactorColor(parseFactorNum(d.factor))}
+                        strokeWidth={2.5}
+                        dot={{ r: 3 }}
+                      />
                       <Line
                         type="monotone"
                         dataKey="Meta"

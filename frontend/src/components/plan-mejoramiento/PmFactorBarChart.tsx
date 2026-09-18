@@ -2,24 +2,25 @@
 
 import dynamic from "next/dynamic";
 import type { Data, Layout } from "plotly.js";
+import { getFactorColor } from "./pmFactorTheme";
 
 const Plot = dynamic(() => import("react-plotly.js"), { ssr: false });
 
 interface PmFactorBarChartProps {
-  data: Array<{ factor: string; value: number }>;
+  data: Array<{ factor: string; factorNum?: number | null; value: number }>;
   valueSuffix?: string;
-  color?: string;
   emptyMessage?: string;
   onFactorClick?: (factor: string) => void;
 }
 
 /** Barras horizontales por Factor CNA — usado tanto en la pestaña Indicadores
  * (conteo/cumplimiento por factor) como en Métricas (chart_metricas_por_factor,
- * clic en una barra filtra la tabla por ese factor). */
+ * clic en una barra filtra la tabla por ese factor). Cada barra toma el color
+ * temático fijo de su factor (ver pmFactorTheme.ts), no un color plano único —
+ * la misma identidad visual que las insignias de factor en la tabla. */
 export function PmFactorBarChart({
   data,
   valueSuffix = "",
-  color = "#1A3A5C",
   emptyMessage = "Sin datos",
   onFactorClick,
 }: PmFactorBarChartProps) {
@@ -35,7 +36,7 @@ export function PmFactorBarChart({
     orientation: "h",
     y: labels,
     x: sorted.map((d) => d.value),
-    marker: { color },
+    marker: { color: sorted.map((d) => getFactorColor(d.factorNum)) },
     text: sorted.map((d) => `${d.value}${valueSuffix}`),
     textposition: "auto",
     hovertemplate: `%{y}: %{x}${valueSuffix}<extra></extra>`,
