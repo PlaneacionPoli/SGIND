@@ -14,9 +14,24 @@ type Vista = "indicadores" | "metricas";
  * ítem 0). Reemplaza la vista anterior de "Indicadores CNA por cierre +
  * Acciones de Mejora", que correspondía a un diseño ya reemplazado en el
  * legacy.
+ *
+ * Factor y Característica son filtros GLOBALES del módulo (se mantienen al
+ * cambiar entre Indicadores/Métricas, no se reinician por pestaña) — el
+ * estado vive aquí y se pasa como props a ambas pestañas; cada pestaña
+ * sigue resolviendo sus propias opciones de Característica (dependientes
+ * del Factor elegido) porque Indicadores y Métricas son fuentes de datos
+ * independientes con catálogos de Característica que pueden no coincidir
+ * exactamente.
  */
 export default function PlanMejoramientoPage() {
   const [vista, setVista] = useState<Vista>("indicadores");
+  const [factor, setFactor] = useState("Todos");
+  const [caracteristica, setCaracteristica] = useState("Todas");
+
+  const handleFactorChange = (value: string) => {
+    setFactor(value);
+    setCaracteristica("Todas");
+  };
 
   return (
     <div className="space-y-6">
@@ -51,7 +66,21 @@ export default function PlanMejoramientoPage() {
         ))}
       </div>
 
-      {vista === "indicadores" ? <PmIndicadoresTab /> : <PmMetricasTab />}
+      {vista === "indicadores" ? (
+        <PmIndicadoresTab
+          factor={factor}
+          onFactorChange={handleFactorChange}
+          caracteristica={caracteristica}
+          onCaracteristicaChange={setCaracteristica}
+        />
+      ) : (
+        <PmMetricasTab
+          factor={factor}
+          onFactorChange={handleFactorChange}
+          caracteristica={caracteristica}
+          onCaracteristicaChange={setCaracteristica}
+        />
+      )}
 
       <p className="text-xs text-slate-400">
         Panel generado a partir de &quot;Indicadores Plan de Mejoramiento&quot; y &quot;Resultados Consolidados

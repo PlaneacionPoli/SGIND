@@ -375,6 +375,7 @@ export async function fetchPlanMejoramientoDashboard(params?: {
 export async function fetchPlanIndicadoresDashboard(params?: {
   subvista?: "metas" | "historico";
   factor?: string;
+  caracteristica?: string;
   tipo?: string;
   nombre?: string;
 }): Promise<PlanIndicadoresDashboardResponse> {
@@ -392,6 +393,7 @@ export async function fetchPlanIndicadorDetalle(params: {
 
 export async function fetchPlanMetricasDashboard(params?: {
   factor?: string;
+  caracteristica?: string;
   tendencia?: string;
   nombre?: string;
 }): Promise<PlanMetricasDashboardResponse> {
@@ -411,6 +413,7 @@ export async function fetchPlanMetricaDetalle(params: {
 export async function downloadPlanIndicadoresExport(params: {
   subvista: "metas" | "historico";
   factor?: string;
+  caracteristica?: string;
   tipo?: string;
   nombre?: string;
 }): Promise<void> {

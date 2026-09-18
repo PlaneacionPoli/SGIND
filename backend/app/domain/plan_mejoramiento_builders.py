@@ -708,11 +708,18 @@ def load_plan_indicadores(excel) -> pd.DataFrame:
 
 
 def apply_plan_indicadores_filters(
-    df: pd.DataFrame, *, factor: str | None = None, tipo: str | None = None, nombre: str | None = None
+    df: pd.DataFrame,
+    *,
+    factor: str | None = None,
+    caracteristica: str | None = None,
+    tipo: str | None = None,
+    nombre: str | None = None,
 ) -> pd.DataFrame:
     out = df.copy()
     if factor and factor != "Todos" and "Factor" in out.columns:
         out = out[out["Factor"] == factor]
+    if caracteristica and caracteristica != "Todas" and "Caracteristica" in out.columns:
+        out = out[out["Caracteristica"] == caracteristica]
     if tipo and tipo != "Todos" and "Tipo" in out.columns:
         out = out[out["Tipo"] == tipo]
     if nombre and nombre.strip():
@@ -1079,11 +1086,18 @@ def build_metricas_historico(excel) -> pd.DataFrame:
 
 
 def apply_metricas_filters(
-    df: pd.DataFrame, *, factor: str | None = None, tendencia: str | None = None, nombre: str | None = None
+    df: pd.DataFrame,
+    *,
+    factor: str | None = None,
+    caracteristica: str | None = None,
+    tendencia: str | None = None,
+    nombre: str | None = None,
 ) -> pd.DataFrame:
     out = df.copy()
     if factor and factor != "Todos" and "Factor" in out.columns:
         out = out[out["Factor"] == factor]
+    if caracteristica and caracteristica != "Todas" and "Caracteristica" in out.columns:
+        out = out[out["Caracteristica"] == caracteristica]
     if tendencia and tendencia != "Toda tendencia" and "tendencia" in out.columns:
         out = out[out["tendencia"] == tendencia]
     if nombre and nombre.strip():
@@ -1095,6 +1109,19 @@ def apply_metricas_filters(
         ).str.lower()
         out = out[hay.str.contains(q, na=False, regex=False)]
     return out
+
+
+def build_caracteristicas_cascade(df: pd.DataFrame, factor: str | None = None) -> list[str]:
+    """Características disponibles, dependientes del Factor seleccionado —
+    filtro en cascada compartido por Indicadores y Métricas (Factor y
+    Característica son globales al módulo, no independientes por pestaña;
+    ver docs/migration/PLAN_MIGRACION_PRIORIZADO.md)."""
+    if df.empty or "Caracteristica" not in df.columns:
+        return []
+    pool = df
+    if factor and factor != "Todos" and "Factor" in df.columns:
+        pool = df[df["Factor"] == factor]
+    return sorted(pool["Caracteristica"].dropna().unique().tolist())
 
 
 def build_metricas_kpis(records: list[dict[str, Any]]) -> dict[str, Any]:

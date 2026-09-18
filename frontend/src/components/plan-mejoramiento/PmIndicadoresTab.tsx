@@ -29,23 +29,37 @@ function TipoTag({ tipo }: { tipo: string | null }) {
   );
 }
 
+interface PmIndicadoresTabProps {
+  /** Factor y Característica son filtros globales del módulo — el estado
+   * vive en PlanMejoramientoPage y se comparte con PmMetricasTab. */
+  factor: string;
+  onFactorChange: (value: string) => void;
+  caracteristica: string;
+  onCaracteristicaChange: (value: string) => void;
+}
+
 /** Pestaña "Indicadores" del Plan de Mejoramiento — paridad con
  * pages/plan_mejoramiento.py::_render_tab_indicadores (ver
  * docs/migration/PLAN_MIGRACION_PRIORIZADO.md ítem 0). */
-export function PmIndicadoresTab() {
+export function PmIndicadoresTab({
+  factor,
+  onFactorChange,
+  caracteristica,
+  onCaracteristicaChange,
+}: PmIndicadoresTabProps) {
   const { isAuthenticated } = useAuthReady();
   const [subvista, setSubvista] = useState<SubVista>("metas");
-  const [factor, setFactor] = useState("Todos");
   const [tipo, setTipo] = useState("Todos");
   const [nombre, setNombre] = useState("");
   const [seleccion, setSeleccion] = useState<{ factor: string; indicador: string } | null>(null);
 
   const query = useQuery({
-    queryKey: ["plan-indicadores", subvista, factor, tipo, nombre],
+    queryKey: ["plan-indicadores", subvista, factor, caracteristica, tipo, nombre],
     queryFn: () =>
       fetchPlanIndicadoresDashboard({
         subvista,
         ...(factor !== "Todos" ? { factor } : {}),
+        ...(caracteristica !== "Todas" ? { caracteristica } : {}),
         ...(tipo !== "Todos" ? { tipo } : {}),
         ...(nombre.trim() ? { nombre: nombre.trim() } : {}),
       }),
@@ -53,7 +67,7 @@ export function PmIndicadoresTab() {
   });
 
   const data = query.data;
-  const tabla = data?.tabla ?? [];
+  const tabla = useMemo(() => data?.tabla ?? [], [data]);
 
   const chartData = useMemo(() => {
     const porFactor = new Map<string, { suma: number; n: number; factorNum: number | null }>();
@@ -121,16 +135,28 @@ export function PmIndicadoresTab() {
           </p>
 
           <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-            <div className="grid gap-3 sm:grid-cols-4">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
               <select
                 className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
                 value={factor}
-                onChange={(e) => setFactor(e.target.value)}
+                onChange={(e) => onFactorChange(e.target.value)}
               >
                 <option value="Todos">Todos los factores</option>
                 {(data?.filtros.factores ?? []).map((f) => (
                   <option key={f} value={f}>
                     {f}
+                  </option>
+                ))}
+              </select>
+              <select
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                value={caracteristica}
+                onChange={(e) => onCaracteristicaChange(e.target.value)}
+              >
+                <option value="Todas">Todas las características</option>
+                {(data?.filtros.caracteristicas ?? []).map((c) => (
+                  <option key={c} value={c}>
+                    {c}
                   </option>
                 ))}
               </select>
@@ -165,6 +191,7 @@ export function PmIndicadoresTab() {
                   downloadPlanIndicadoresExport({
                     subvista,
                     ...(factor !== "Todos" ? { factor } : {}),
+                    ...(caracteristica !== "Todas" ? { caracteristica } : {}),
                     ...(tipo !== "Todos" ? { tipo } : {}),
                     ...(nombre.trim() ? { nombre: nombre.trim() } : {}),
                   })

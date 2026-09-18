@@ -14,6 +14,7 @@ from app.domain.plan_mejoramiento_builders import (
     apply_metricas_filters,
     apply_plan_indicadores_filters,
     build_acciones_section,
+    build_caracteristicas_cascade,
     build_filtros_cna,
     build_filtros_corte,
     build_graficos,
@@ -119,6 +120,7 @@ class PlanMejoramientoService:
         *,
         subvista: str = "metas",
         factor: str | None = None,
+        caracteristica: str | None = None,
         tipo: str | None = None,
         nombre: str | None = None,
     ) -> dict[str, Any]:
@@ -127,24 +129,27 @@ class PlanMejoramientoService:
             return {
                 "kpis": {"total": 0, "con_meta_futura": 0, "con_cumplimiento_historico": 0,
                          "aprobados": 0, "pct_aprobados": 0},
-                "filtros": {"factores": [], "tipos": []},
+                "filtros": {"factores": [], "caracteristicas": [], "tipos": []},
                 "tabla": [],
                 "total": 0,
             }
 
         kpis = build_plan_indicadores_kpis(df)
-        rows = apply_plan_indicadores_filters(df, factor=factor, tipo=tipo, nombre=nombre)
+        rows = apply_plan_indicadores_filters(
+            df, factor=factor, caracteristica=caracteristica, tipo=tipo, nombre=nombre
+        )
         tabla = (
             build_plan_indicadores_tabla_historico(rows)
             if subvista == "historico"
             else build_plan_indicadores_tabla_metas(rows)
         )
         factores = sorted(df["Factor"].dropna().unique().tolist()) if "Factor" in df.columns else []
+        caracteristicas = build_caracteristicas_cascade(df, factor)
         tipos = sorted(df["Tipo"].dropna().unique().tolist()) if "Tipo" in df.columns else []
 
         return {
             "kpis": kpis,
-            "filtros": {"factores": factores, "tipos": tipos},
+            "filtros": {"factores": factores, "caracteristicas": caracteristicas, "tipos": tipos},
             "tabla": tabla,
             "total": len(tabla),
         }
@@ -154,6 +159,7 @@ class PlanMejoramientoService:
         *,
         subvista: str = "metas",
         factor: str | None = None,
+        caracteristica: str | None = None,
         tipo: str | None = None,
         nombre: str | None = None,
     ) -> bytes:
@@ -161,7 +167,9 @@ class PlanMejoramientoService:
         pages/plan_mejoramiento.py::_render_export_button (valores numéricos
         crudos, no el texto formateado de la tabla en pantalla)."""
         df = load_plan_indicadores(self._excel)
-        rows = apply_plan_indicadores_filters(df, factor=factor, tipo=tipo, nombre=nombre)
+        rows = apply_plan_indicadores_filters(
+            df, factor=factor, caracteristica=caracteristica, tipo=tipo, nombre=nombre
+        )
         buffer = io.BytesIO()
         with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
             if subvista == "historico":
@@ -218,6 +226,7 @@ class PlanMejoramientoService:
         self,
         *,
         factor: str | None = None,
+        caracteristica: str | None = None,
         tendencia: str | None = None,
         nombre: str | None = None,
     ) -> dict[str, Any]:
@@ -226,7 +235,7 @@ class PlanMejoramientoService:
             return {
                 "kpis": {"total": 0, "factores_cubiertos": 0, "n_creciente": 0, "n_decreciente": 0,
                          "pct_creciente": 0, "pct_decreciente": 0},
-                "filtros": {"factores": [], "tendencias": TENDENCIA_METRICAS_FILTRO_OPTIONS},
+                "filtros": {"factores": [], "caracteristicas": [], "tendencias": TENDENCIA_METRICAS_FILTRO_OPTIONS},
                 "grafico_por_factor": [],
                 "tabla": [],
                 "total": 0,
@@ -235,13 +244,20 @@ class PlanMejoramientoService:
         agrupado_total = build_metricas_tabla_agrupada(df)
         kpis = build_metricas_kpis(agrupado_total)
         grafico_por_factor = build_metricas_por_factor(agrupado_total)
-        rows = apply_metricas_filters(df, factor=factor, tendencia=tendencia, nombre=nombre)
+        rows = apply_metricas_filters(
+            df, factor=factor, caracteristica=caracteristica, tendencia=tendencia, nombre=nombre
+        )
         tabla = build_metricas_tabla_agrupada(rows)
         factores = sorted(df["Factor"].dropna().unique().tolist()) if "Factor" in df.columns else []
+        caracteristicas = build_caracteristicas_cascade(df, factor)
 
         return {
             "kpis": kpis,
-            "filtros": {"factores": factores, "tendencias": TENDENCIA_METRICAS_FILTRO_OPTIONS},
+            "filtros": {
+                "factores": factores,
+                "caracteristicas": caracteristicas,
+                "tendencias": TENDENCIA_METRICAS_FILTRO_OPTIONS,
+            },
             "grafico_por_factor": grafico_por_factor,
             "tabla": tabla,
             "total": len(tabla),

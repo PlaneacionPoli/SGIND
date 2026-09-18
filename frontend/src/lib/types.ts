@@ -740,7 +740,7 @@ export interface PlanIndicadoresDashboardResponse {
     aprobados: number;
     pct_aprobados: number;
   };
-  filtros: { factores: string[]; tipos: string[] };
+  filtros: { factores: string[]; caracteristicas: string[]; tipos: string[] };
   tabla: Array<
     | {
         factor: string;
@@ -791,7 +791,7 @@ export interface PlanMetricasDashboardResponse {
     pct_creciente: number;
     pct_decreciente: number;
   };
-  filtros: { factores: string[]; tendencias: string[] };
+  filtros: { factores: string[]; caracteristicas: string[]; tendencias: string[] };
   grafico_por_factor: Array<{ factor: string; factor_num: number | null; cantidad: number }>;
   tabla: PlanMetricaFila[];
   total: number;

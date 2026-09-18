@@ -18,12 +18,25 @@ const TENDENCIA_BADGE: Record<string, string> = {
   "—": "bg-slate-50 text-slate-400",
 };
 
+interface PmMetricasTabProps {
+  /** Factor y Característica son filtros globales del módulo — el estado
+   * vive en PlanMejoramientoPage y se comparte con PmIndicadoresTab. */
+  factor: string;
+  onFactorChange: (value: string) => void;
+  caracteristica: string;
+  onCaracteristicaChange: (value: string) => void;
+}
+
 /** Pestaña "Métricas" del Plan de Mejoramiento — paridad con
  * pages/plan_mejoramiento.py::_render_tab_metricas (ver
  * docs/migration/PLAN_MIGRACION_PRIORIZADO.md ítem 0). */
-export function PmMetricasTab() {
+export function PmMetricasTab({
+  factor,
+  onFactorChange,
+  caracteristica,
+  onCaracteristicaChange,
+}: PmMetricasTabProps) {
   const { isAuthenticated } = useAuthReady();
-  const [factor, setFactor] = useState("Todos");
   const [tendencia, setTendencia] = useState("Toda tendencia");
   const [nombre, setNombre] = useState("");
   const [expandidos, setExpandidos] = useState<Set<string>>(new Set());
@@ -43,10 +56,11 @@ export function PmMetricasTab() {
   };
 
   const query = useQuery({
-    queryKey: ["plan-metricas", factor, tendencia, nombre],
+    queryKey: ["plan-metricas", factor, caracteristica, tendencia, nombre],
     queryFn: () =>
       fetchPlanMetricasDashboard({
         ...(factor !== "Todos" ? { factor } : {}),
+        ...(caracteristica !== "Todas" ? { caracteristica } : {}),
         ...(tendencia !== "Toda tendencia" ? { tendencia } : {}),
         ...(nombre.trim() ? { nombre: nombre.trim() } : {}),
       }),
@@ -96,7 +110,7 @@ export function PmMetricasTab() {
                   factorNum: f.factor_num,
                   value: f.cantidad,
                 }))}
-                onFactorClick={setFactor}
+                onFactorClick={onFactorChange}
               />
             </div>
           </div>
@@ -107,16 +121,28 @@ export function PmMetricasTab() {
               Selecciona un factor para filtrar. Haz clic en una métrica para ver su gráfica completa.
             </p>
             <div className="rounded-xl border border-slate-200 bg-white p-4">
-              <div className="grid gap-3 sm:grid-cols-3">
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                 <select
                   className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
                   value={factor}
-                  onChange={(e) => setFactor(e.target.value)}
+                  onChange={(e) => onFactorChange(e.target.value)}
                 >
-                  <option value="Todos">Todos</option>
+                  <option value="Todos">Todos los factores</option>
                   {(data?.filtros.factores ?? []).map((f) => (
                     <option key={f} value={f}>
                       {f}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                  value={caracteristica}
+                  onChange={(e) => onCaracteristicaChange(e.target.value)}
+                >
+                  <option value="Todas">Todas las características</option>
+                  {(data?.filtros.caracteristicas ?? []).map((c) => (
+                    <option key={c} value={c}>
+                      {c}
                     </option>
                   ))}
                 </select>
@@ -139,9 +165,13 @@ export function PmMetricasTab() {
                   onChange={(e) => setNombre(e.target.value)}
                 />
               </div>
-              {factor !== "Todos" ? (
+              {factor !== "Todos" || caracteristica !== "Todas" ? (
                 <p className="mt-2 text-xs text-slate-500">
-                  Filtrando por: <strong>{factor}</strong>
+                  Filtrando por:{" "}
+                  {[factor !== "Todos" ? factor : null, caracteristica !== "Todas" ? caracteristica : null]
+                    .filter(Boolean)
+                    .map((f) => <strong key={f}>{f}</strong>)
+                    .reduce((acc, el, i) => (i === 0 ? [el] : [...acc, " · ", el]), [] as React.ReactNode[])}
                 </p>
               ) : null}
             </div>

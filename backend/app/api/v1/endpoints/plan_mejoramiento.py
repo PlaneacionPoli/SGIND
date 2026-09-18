@@ -56,15 +56,19 @@ async def plan_mejoramiento_dashboard(
 async def plan_mejoramiento_indicadores(
     subvista: str = Query("metas", description="'metas' (2026-2030) o 'historico' (2025-2026)"),
     factor: str | None = Query(None),
+    caracteristica: str | None = Query(None),
     tipo: str | None = Query(None),
     nombre: str | None = Query(None),
     _user: User = Depends(require_reader),
     service: PlanMejoramientoService = Depends(_service),
 ) -> PlanIndicadoresDashboardResponse:
     """Pestaña 'Indicadores' del Plan de Mejoramiento — ver
-    docs/migration/PLAN_MIGRACION_PRIORIZADO.md ítem 0."""
+    docs/migration/PLAN_MIGRACION_PRIORIZADO.md ítem 0. Factor/Característica
+    son filtros globales del módulo, compartidos con /metricas."""
     return PlanIndicadoresDashboardResponse(
-        **service.get_indicadores_dashboard(subvista=subvista, factor=factor, tipo=tipo, nombre=nombre)
+        **service.get_indicadores_dashboard(
+            subvista=subvista, factor=factor, caracteristica=caracteristica, tipo=tipo, nombre=nombre
+        )
     )
 
 
@@ -72,12 +76,15 @@ async def plan_mejoramiento_indicadores(
 async def plan_mejoramiento_indicadores_export(
     subvista: str = Query("metas"),
     factor: str | None = Query(None),
+    caracteristica: str | None = Query(None),
     tipo: str | None = Query(None),
     nombre: str | None = Query(None),
     _user: User = Depends(require_reader),
     service: PlanMejoramientoService = Depends(_service),
 ) -> Response:
-    content = service.export_indicadores_excel(subvista=subvista, factor=factor, tipo=tipo, nombre=nombre)
+    content = service.export_indicadores_excel(
+        subvista=subvista, factor=factor, caracteristica=caracteristica, tipo=tipo, nombre=nombre
+    )
     filename = "indicadores_metas.xlsx" if subvista != "historico" else "indicadores_cumplimiento.xlsx"
     return Response(
         content=content,
@@ -102,15 +109,19 @@ async def plan_mejoramiento_indicador_detalle(
 @router.get("/metricas", response_model=PlanMetricasDashboardResponse)
 async def plan_mejoramiento_metricas(
     factor: str | None = Query(None),
+    caracteristica: str | None = Query(None),
     tendencia: str | None = Query(None),
     nombre: str | None = Query(None),
     _user: User = Depends(require_reader),
     service: PlanMejoramientoService = Depends(_service),
 ) -> PlanMetricasDashboardResponse:
     """Pestaña 'Métricas' del Plan de Mejoramiento — ver
-    docs/migration/PLAN_MIGRACION_PRIORIZADO.md ítem 0."""
+    docs/migration/PLAN_MIGRACION_PRIORIZADO.md ítem 0. Factor/Característica
+    son filtros globales del módulo, compartidos con /indicadores."""
     return PlanMetricasDashboardResponse(
-        **service.get_metricas_dashboard(factor=factor, tendencia=tendencia, nombre=nombre)
+        **service.get_metricas_dashboard(
+            factor=factor, caracteristica=caracteristica, tendencia=tendencia, nombre=nombre
+        )
     )
 
 
