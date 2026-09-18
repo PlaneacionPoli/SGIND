@@ -76,6 +76,7 @@ _FICHA_PATH = "raw/Catalogo de Indicadores.xlsx"
 _FICHA_SHEET = "Ficha Tecnica Detalle"
 
 _YEAR_PREPARED_CACHE: dict[tuple[str, int, bool], tuple[float, pd.DataFrame]] = {}
+_PROCESOS_DASHBOARD_CACHE: dict[tuple, tuple[float, dict]] = {}
 
 # 2026 pertenece al siguiente ciclo del PDI y aun no tiene datos completos
 # cargados — se excluye de los filtros de anio en todas las secciones por
@@ -407,6 +408,35 @@ class CMIService:
         return build_indicadores_procesos_listado(latest)
 
     def get_procesos_dashboard(
+        self,
+        *,
+        anio: int | None = None,
+        mes: int | None = None,
+        unidad: str | None = None,
+        proceso: str | None = None,
+        subproceso: str | None = None,
+        clasificacion: str | None = None,
+        frecuencia: str | None = None,
+    ) -> dict[str, Any]:
+        """Dashboard completo de Procesos (groupby + loops pesados en
+        procesos_builders.py) — se cachea por combinación de filtros ya que
+        el mismo endpoint se llama en cada cambio de filtro desde el
+        frontend, y _warm_caches (main.py) precalienta exactamente los
+        valores por defecto al arrancar."""
+        key = (
+            id(self._excel), anio, mes, unidad, proceso, subproceso, clasificacion, frecuencia,
+        )
+        return cache_get(
+            _PROCESOS_DASHBOARD_CACHE,
+            key,
+            lambda: self._get_procesos_dashboard_uncached(
+                anio=anio, mes=mes, unidad=unidad, proceso=proceso,
+                subproceso=subproceso, clasificacion=clasificacion, frecuencia=frecuencia,
+            ),
+            ttl=self._excel.ttl,
+        )
+
+    def _get_procesos_dashboard_uncached(
         self,
         *,
         anio: int | None = None,

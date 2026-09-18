@@ -3,7 +3,9 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { KPICard } from "@/components/ui/KPICard";
+import { Pagination } from "@/components/ui/Pagination";
 import { useDebounce } from "@/hooks/use-debounce";
+import { usePagination } from "@/hooks/use-pagination";
 import { downloadPlanIndicadoresExport, fetchPlanIndicadoresDashboard } from "@/lib/api";
 import { useAuthReady } from "@/stores/auth-store";
 import { PmBulletProgress } from "./PmBulletProgress";
@@ -71,6 +73,7 @@ export function PmIndicadoresTab({
 
   const data = query.data;
   const tabla = useMemo(() => data?.tabla ?? [], [data]);
+  const { page, setPage, pageSize, setPageSize, pageItems, totalPages } = usePagination(tabla);
 
   const chartData = useMemo(() => {
     const porFactor = new Map<string, { suma: number; n: number; factorNum: number | null }>();
@@ -244,7 +247,7 @@ export function PmIndicadoresTab({
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {tabla.map((row, i) => (
+                    {pageItems.map((row, i) => (
                       <tr
                         key={i}
                         className={`group cursor-pointer border-l-2 border-l-transparent transition-colors hover:border-l-4 hover:!bg-slate-50 ${
@@ -309,6 +312,15 @@ export function PmIndicadoresTab({
                     ))}
                   </tbody>
                 </table>
+              </div>
+              <div className="border-t border-slate-100 px-4 py-3">
+                <Pagination
+                  page={page}
+                  totalPages={totalPages}
+                  pageSize={pageSize}
+                  onPageChange={setPage}
+                  onPageSizeChange={setPageSize}
+                />
               </div>
             </div>
           )}

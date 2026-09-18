@@ -13,10 +13,12 @@ diseño actual — ver docs/migration/PLAN_MIGRACION_PRIORIZADO.md ítem 0.
 from __future__ import annotations
 
 import re
+import time
 from typing import Any
 
 import pandas as pd
 
+from app.core.ttl_cache import cache_get
 from app.domain.loader_utils import find_col, id_a_str
 
 CORTE_SEMESTRAL = {"Junio": 6, "Diciembre": 12}
@@ -607,19 +609,39 @@ def _load_plan_sheet(excel, sheet_name: str) -> pd.DataFrame:
     return df
 
 
+_plan_indicadores_cache: dict[int, tuple[float, pd.DataFrame]] = {}
+
+
 def load_plan_indicadores(excel) -> pd.DataFrame:
     """Indicadores del Plan de Mejoramiento — paridad con
     plan_mejoramiento_loader.py::load_plan_indicadores.
 
-    Desde el ajuste de fuentes 2026-09-18, las metas 2026-2030 viven en la
-    hoja "Indicadores Plan de Mejor" y la ejecución/%cumplimiento 2025-2026
-    en "Indicadores Real" — se combinan aquí por (Factor, Indicador).
+    Tanto el dashboard (lista filtrada) como el detalle de un solo
+    indicador (modal, get_indicador_detalle) llaman a esta función — sin
+    caché, abrir el modal repetía todo el merge/derivación de columnas
+    sobre el dataset completo. Se cachea con el mismo TTL que
+    ExcelReaderService (mismo patrón que build_metricas_historico)."""
+    cache_key = id(excel)
+    cached = _plan_indicadores_cache.get(cache_key)
+    if cached is not None:
+        cached_at, cached_df = cached
+        if time.time() - cached_at < getattr(excel, "ttl", 300):
+            return cached_df.copy()
 
-    Wide -> derivado: Meta|Ejecución|%Cump x 2025,2026 (+ metas futuras
+    df = _load_plan_indicadores_uncached(excel)
+    _plan_indicadores_cache[cache_key] = (time.time(), df)
+    return df.copy()
+
+
+def _load_plan_indicadores_uncached(excel) -> pd.DataFrame:
+    """Wide -> derivado: Meta|Ejecución|%Cump x 2025,2026 (+ metas futuras
     2026-2030), Factor_num/Factor_nombre, Estado_final, tiene_medicion,
     Cump_calc_2025/2026 (Ejecución/Meta, clip 1.3), y el catálogo
     Signo/Decimales/Decimales_Cump mergeado por Factor+Indicador.
-    """
+
+    Desde el ajuste de fuentes 2026-09-18, las metas 2026-2030 viven en la
+    hoja "Indicadores Plan de Mejor" y la ejecución/%cumplimiento 2025-2026
+    en "Indicadores Real" — se combinan aquí por (Factor, Indicador)."""
     path = excel.data_root / _PLAN_INDICADORES_PATH
     if not path.exists():
         return pd.DataFrame()
@@ -1005,17 +1027,34 @@ def _excluye_subtotal_fantasma(df: pd.DataFrame) -> pd.DataFrame:
     return df[~es_subtotal_fantasma]
 
 
+_metricas_historico_cache: dict[int, tuple[float, pd.DataFrame]] = {}
+
+
 def build_metricas_historico(excel) -> pd.DataFrame:
     """Una fila por (Factor, Característica, Indicador, Subindicador): serie
     anual completa + último valor + variaciones + tendencia — paridad con
     plan_mejoramiento_loader.py::build_metricas_historico.
 
-    Las filas cuyo Periodo no tiene formato "AAAA-N" reciben el sentinel de
-    orden (9999, 9) en _split_periodo — se excluyen aquí del cálculo de
-    último año/valor/serie para que ese sentinel no se filtre como si fuera
-    un año real (ver diagnóstico 2026-09-18). Si TODAS las filas del grupo
-    caen en ese caso (p.ej. desgloses por cohorte/semestre sin año asociado),
-    se conserva el último valor disponible sin año ni serie."""
+    El groupby + loop en Python de más abajo es costoso sobre el histórico
+    completo (se recorre una vez por cada combinación Factor/Característica/
+    Indicador/Subindicador). Tanto la pestaña Métricas como el modal de
+    detalle de una sola métrica llaman a esta función — sin caché, abrir un
+    modal recalculaba todo el histórico desde cero (causa de las esperas de
+    varios segundos / >30s reportadas). Se cachea con el mismo TTL que
+    ExcelReaderService, para invalidarse junto con la lectura del Excel."""
+    cache_key = id(excel)
+    cached = _metricas_historico_cache.get(cache_key)
+    if cached is not None:
+        cached_at, cached_df = cached
+        if time.time() - cached_at < getattr(excel, "ttl", 300):
+            return cached_df.copy()
+
+    df = _build_metricas_historico_uncached(excel)
+    _metricas_historico_cache[cache_key] = (time.time(), df)
+    return df.copy()
+
+
+def _build_metricas_historico_uncached(excel) -> pd.DataFrame:
     df = load_metricas_raw(excel)
     if df.empty:
         return pd.DataFrame()
@@ -1358,6 +1397,25 @@ def build_metricas_tabla_agrupada(df: pd.DataFrame) -> list[dict[str, Any]]:
 
     records.sort(key=lambda r: (r["ultimo_anio"] is None, -(r["ultimo_anio"] or 0)))
     return records
+
+
+_METRICAS_AGRUPADO_TOTAL_CACHE: dict[int, tuple[float, list]] = {}
+
+
+def get_metricas_agrupado_total(excel) -> list[dict[str, Any]]:
+    """Agrupado por (Factor, Indicador) sobre el histórico COMPLETO sin
+    filtrar — insumo de los KPIs y el gráfico por factor de la pestaña
+    Métricas (build_metricas_kpis/build_metricas_por_factor), que siempre
+    reflejan el total sin importar los filtros de la tabla. Es idéntico en
+    cada request (mismo excel), así que se cachea aparte del cálculo sobre
+    la tabla ya filtrada (ese sí varía por request y el dataset es pequeño,
+    no amerita caché)."""
+    return cache_get(
+        _METRICAS_AGRUPADO_TOTAL_CACHE,
+        id(excel),
+        lambda: build_metricas_tabla_agrupada(build_metricas_historico(excel)),
+        ttl=getattr(excel, "ttl", 300),
+    )
 
 
 def build_metrica_detalle(row: pd.Series) -> dict[str, Any]:

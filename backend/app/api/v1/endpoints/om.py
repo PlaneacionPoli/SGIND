@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_excel_service
+from app.core.concurrency import run_sync
 from app.core.config import Settings, get_settings
 from app.core.database import get_db
 from app.core.security import require_admin, require_reader
@@ -64,7 +65,7 @@ async def om_plan_accion(
 
     Paridad con el detalle 'Ver más' de streamlit_app/pages/gestion_om.py.
     """
-    return load_plan_accion_para_om(excel, numero_om)
+    return await run_sync(load_plan_accion_para_om, excel, numero_om)
 
 
 @router.get("", response_model=list[RegistroOMResponse])

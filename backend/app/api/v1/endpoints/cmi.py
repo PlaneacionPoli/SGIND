@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import Response
 
 from app.api.deps import get_excel_service
+from app.core.concurrency import run_sync
 from app.core.security import require_reader
 from app.models.user import User
 from app.schemas.common import (
@@ -29,7 +30,7 @@ async def cmi_filtros(
     _user: User = Depends(require_reader),
     service: CMIService = Depends(_cmi_service),
 ) -> CMIFiltrosResponse:
-    return CMIFiltrosResponse(**service.get_filtros())
+    return CMIFiltrosResponse(**await run_sync(service.get_filtros))
 
 
 @router.get("/estrategico-dashboard", response_model=CMIDashboardResponse)
@@ -42,7 +43,7 @@ async def cmi_estrategico_dashboard(
     service: CMIService = Depends(_cmi_service),
 ) -> CMIDashboardResponse:
     return CMIDashboardResponse(
-        **service.get_dashboard(anio=anio, mes=mes, corte=corte, rango=rango)
+        **await run_sync(service.get_dashboard, anio=anio, mes=mes, corte=corte, rango=rango)
     )
 
 
@@ -55,7 +56,7 @@ async def cmi_indicador_ficha(
     _user: User = Depends(require_reader),
     service: CMIService = Depends(_cmi_service),
 ) -> FichaIndicadorResponse:
-    ficha = service.get_indicador_ficha(indicador_id, anio=anio, mes=mes, corte=corte)
+    ficha = await run_sync(service.get_indicador_ficha, indicador_id, anio=anio, mes=mes, corte=corte)
     if ficha is None:
         raise HTTPException(
             status_code=404, detail="Indicador no encontrado para el corte seleccionado"
@@ -71,7 +72,7 @@ async def cmi_estrategico(
     _user: User = Depends(require_reader),
     service: CMIService = Depends(_cmi_service),
 ) -> CMIEstrategicoResponse:
-    return CMIEstrategicoResponse(**service.get_estrategico(anio=anio, mes=mes, corte=corte))
+    return CMIEstrategicoResponse(**await run_sync(service.get_estrategico, anio=anio, mes=mes, corte=corte))
 
 
 @router.get("/procesos/filtros", response_model=CMIProcesosFiltrosResponse)
@@ -80,7 +81,7 @@ async def cmi_procesos_filtros(
     _user: User = Depends(require_reader),
     service: CMIService = Depends(_cmi_service),
 ) -> CMIProcesosFiltrosResponse:
-    return CMIProcesosFiltrosResponse(**service.get_procesos_filtros(anio=anio))
+    return CMIProcesosFiltrosResponse(**await run_sync(service.get_procesos_filtros, anio=anio))
 
 
 @router.get("/procesos-dashboard", response_model=CMIProcesosDashboardResponse)
@@ -96,7 +97,8 @@ async def cmi_procesos_dashboard(
     service: CMIService = Depends(_cmi_service),
 ) -> CMIProcesosDashboardResponse:
     return CMIProcesosDashboardResponse(
-        **service.get_procesos_dashboard(
+        **await run_sync(
+            service.get_procesos_dashboard,
             anio=anio,
             mes=mes,
             unidad=unidad,
@@ -119,7 +121,8 @@ async def cmi_procesos_indicador_ficha(
     _user: User = Depends(require_reader),
     service: CMIService = Depends(_cmi_service),
 ) -> FichaIndicadorResponse:
-    ficha = service.get_procesos_indicador_ficha(
+    ficha = await run_sync(
+        service.get_procesos_indicador_ficha,
         indicador_id,
         anio=anio,
         mes=mes,
@@ -145,7 +148,8 @@ async def cmi_procesos_export(
     _user: User = Depends(require_reader),
     service: CMIService = Depends(_cmi_service),
 ) -> Response:
-    content, filename, media_type = service.export_procesos_indicadores(
+    content, filename, media_type = await run_sync(
+        service.export_procesos_indicadores,
         anio=anio,
         mes=mes,
         formato=formato,
@@ -168,7 +172,7 @@ async def cmi_procesos(
     _user: User = Depends(require_reader),
     service: CMIService = Depends(_cmi_service),
 ) -> CMIProcesosResponse:
-    return CMIProcesosResponse(**service.get_procesos(anio=anio))
+    return CMIProcesosResponse(**await run_sync(service.get_procesos, anio=anio))
 
 
 @router.get("/alertas", response_model=CMIAlertasResponse)
@@ -180,4 +184,6 @@ async def cmi_alertas(
     _user: User = Depends(require_reader),
     service: CMIService = Depends(_cmi_service),
 ) -> CMIAlertasResponse:
-    return CMIAlertasResponse(**service.get_alertas(anio=anio, mes=mes, corte=corte, limit=limit))
+    return CMIAlertasResponse(
+        **await run_sync(service.get_alertas, anio=anio, mes=mes, corte=corte, limit=limit)
+    )

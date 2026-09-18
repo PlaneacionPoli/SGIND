@@ -34,10 +34,13 @@ from app.domain.resumen_builders import (
     get_chip_config_retos,
     merge_consolidado_summaries,
 )
+from app.core.ttl_cache import cache_get
 from app.domain.strategic_processors import StrategicProcessors
 from app.services.etl_pipeline import ETLPipelineService
 from app.services.excel_reader import ExcelReaderService
 from app.services.retos_loaders import RetosLoaders
+
+_RESUMEN_COMPLETO_CACHE: dict[tuple, tuple[float, dict]] = {}
 
 VISTAS = ("consolidado", "retos", "proyectos", "indicadores")
 
@@ -515,7 +518,22 @@ class ResumenService:
     def get_resumen_completo(
         self, *, anio: int, vista: str = "indicadores", rango: bool = False
     ) -> dict[str, Any]:
-        """Payload unificado alineado con streamlit resumen_general.py."""
+        """Payload unificado alineado con streamlit resumen_general.py.
+        Se cachea por combinación de filtros — este dashboard recorre
+        varios builders con groupby/loops pesados (resumen_builders.py) en
+        cada request; _warm_caches (main.py) precalienta exactamente
+        anio=2025/vista='indicadores'/rango=True al arrancar."""
+        key = (id(self._excel), anio, vista, rango)
+        return cache_get(
+            _RESUMEN_COMPLETO_CACHE,
+            key,
+            lambda: self._get_resumen_completo_uncached(anio=anio, vista=vista, rango=rango),
+            ttl=self._excel.ttl,
+        )
+
+    def _get_resumen_completo_uncached(
+        self, *, anio: int, vista: str = "indicadores", rango: bool = False
+    ) -> dict[str, Any]:
         vista_norm = (vista or "indicadores").strip().lower()
         meses = {
             1: "Enero",

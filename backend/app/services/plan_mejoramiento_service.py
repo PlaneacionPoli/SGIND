@@ -23,6 +23,7 @@ from app.domain.plan_mejoramiento_builders import (
     build_metrica_detalle,
     build_metricas_historico,
     build_metricas_kpis,
+    get_metricas_agrupado_total,
     build_metricas_por_factor,
     build_metricas_tabla_agrupada,
     build_plan_indicadores_kpis,
@@ -217,7 +218,7 @@ class PlanMejoramientoService:
         df = load_plan_indicadores(self._excel)
         if df.empty or "Factor" not in df.columns or "Indicador" not in df.columns:
             return None
-        match = df[(df["Factor"] == factor) & (df["Indicador"] == indicador)]
+        match = df[(df["Factor"] == factor.strip()) & (df["Indicador"] == indicador.strip())]
         if match.empty:
             return None
         return build_indicador_detalle(match.iloc[0])
@@ -245,7 +246,7 @@ class PlanMejoramientoService:
                 "total": 0,
             }
 
-        agrupado_total = build_metricas_tabla_agrupada(df)
+        agrupado_total = get_metricas_agrupado_total(self._excel)
         kpis = build_metricas_kpis(agrupado_total)
         grafico_por_factor = build_metricas_por_factor(agrupado_total)
         rows = apply_metricas_filters(
@@ -273,9 +274,9 @@ class PlanMejoramientoService:
         df = build_metricas_historico(self._excel)
         if df.empty or "Factor" not in df.columns or "Indicador" not in df.columns:
             return None
-        mask = (df["Factor"] == factor) & (df["Indicador"] == indicador)
+        mask = (df["Factor"] == factor.strip()) & (df["Indicador"] == indicador.strip())
         if subindicador is not None and "Subindicador" in df.columns:
-            mask &= df["Subindicador"] == subindicador
+            mask &= df["Subindicador"] == subindicador.strip()
         match = df[mask]
         if match.empty:
             return None

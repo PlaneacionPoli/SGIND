@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, Query
 
 from app.api.deps import get_excel_service
+from app.core.concurrency import run_sync
 from app.core.security import require_reader
 from app.models.user import User
 from app.schemas.common import InformeDashboardResponse, InformeFiltrosResponse
@@ -20,7 +21,7 @@ async def informe_filtros(
     service: InformeService = Depends(_service),
 ) -> InformeFiltrosResponse:
     """Devuelve años, meses, procesos y subprocesos disponibles."""
-    return InformeFiltrosResponse(**service.get_filtros())
+    return InformeFiltrosResponse(**await run_sync(service.get_filtros))
 
 
 @router.get("/dashboard", response_model=InformeDashboardResponse)
@@ -36,7 +37,8 @@ async def informe_dashboard(
     service: InformeService = Depends(_service),
 ) -> InformeDashboardResponse:
     return InformeDashboardResponse(
-        **service.get_dashboard(
+        **await run_sync(
+            service.get_dashboard,
             anio=anio,
             mes=mes or 12,
             unidad=unidad,

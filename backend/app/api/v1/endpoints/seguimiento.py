@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, Query
 from fastapi.responses import Response
 
 from app.api.deps import get_excel_service
+from app.core.concurrency import run_sync
 from app.core.security import require_reader
 from app.models.user import User
 from app.schemas.common import SeguimientoDashboardResponse, SeguimientoFiltrosResponse
@@ -21,7 +22,7 @@ async def seguimiento_filtros(
     service: SeguimientoService = Depends(_service),
 ) -> SeguimientoFiltrosResponse:
     """Devuelve años, meses, procesos y estados disponibles."""
-    return SeguimientoFiltrosResponse(**service.get_filtros())
+    return SeguimientoFiltrosResponse(**await run_sync(service.get_filtros))
 
 
 @router.get("/dashboard", response_model=SeguimientoDashboardResponse)
@@ -36,8 +37,9 @@ async def seguimiento_dashboard(
     service: SeguimientoService = Depends(_service),
 ) -> SeguimientoDashboardResponse:
     return SeguimientoDashboardResponse(
-        **service.get_dashboard(
-            anio=anio, mes=mes, proceso=proceso, estado=estado, limit=limit, offset=offset
+        **await run_sync(
+            service.get_dashboard,
+            anio=anio, mes=mes, proceso=proceso, estado=estado, limit=limit, offset=offset,
         )
     )
 
@@ -51,7 +53,7 @@ async def seguimiento_export(
     _user: User = Depends(require_reader),
     service: SeguimientoService = Depends(_service),
 ) -> Response:
-    content = service.export_excel(anio=anio, mes=mes, proceso=proceso, estado=estado)
+    content = await run_sync(service.export_excel, anio=anio, mes=mes, proceso=proceso, estado=estado)
     return Response(
         content=content,
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",

@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, Query
 
 from app.api.deps import get_excel_service
+from app.core.concurrency import run_sync
 from app.core.config import Settings, get_settings
 from app.core.security import require_reader
 from app.models.user import User
@@ -39,7 +40,7 @@ async def get_kpis(
     dashboard: DashboardService = Depends(_dashboard_service),
 ) -> DashboardKPIsResponse:
 
-    raw = dashboard.get_kpis(anio=anio, periodo=periodo, vista=vista)
+    raw = await run_sync(dashboard.get_kpis, anio=anio, periodo=periodo, vista=vista)
 
     return DashboardKPIsResponse(
         anio=anio,
@@ -55,7 +56,7 @@ async def list_excel_files(
     excel: ExcelReaderService = Depends(_excel_service),
 ) -> list[ExcelFileInfo]:
 
-    return excel.list_available_files()
+    return await run_sync(excel.list_available_files)
 
 
 @router.get("/semaphore", response_model=list[SemaphoreItem])
@@ -67,7 +68,7 @@ async def get_semaphore(
     dashboard: DashboardService = Depends(_dashboard_service),
 ) -> list[SemaphoreItem]:
 
-    raw = dashboard.get_semaphore(anio=anio, periodo=periodo, vista=vista)
+    raw = await run_sync(dashboard.get_semaphore, anio=anio, periodo=periodo, vista=vista)
 
     return [SemaphoreItem(**item) for item in raw]
 
@@ -80,7 +81,7 @@ async def get_trend(
     dashboard: DashboardService = Depends(_dashboard_service),
 ) -> list[TrendItem]:
 
-    raw = dashboard.get_trend(anio=anio, vista=vista)
+    raw = await run_sync(dashboard.get_trend, anio=anio, vista=vista)
 
     return [TrendItem(**item) for item in raw]
 
@@ -91,7 +92,7 @@ async def get_filtros(
     dashboard: DashboardService = Depends(_dashboard_service),
 ) -> DashboardFiltrosResponse:
 
-    return DashboardFiltrosResponse(**dashboard.get_filtros())
+    return DashboardFiltrosResponse(**await run_sync(dashboard.get_filtros))
 
 
 @router.get("/lineas", response_model=list[CMILineaItem])
@@ -103,7 +104,7 @@ async def get_lineas(
     dashboard: DashboardService = Depends(_dashboard_service),
 ) -> list[CMILineaItem]:
 
-    raw = dashboard.get_lineas(anio=anio, periodo=periodo, vista=vista)
+    raw = await run_sync(dashboard.get_lineas, anio=anio, periodo=periodo, vista=vista)
 
     return [CMILineaItem(**item) for item in raw]
 
@@ -116,7 +117,7 @@ async def get_sunburst(
     dashboard: DashboardService = Depends(_dashboard_service),
 ) -> list[dict]:
 
-    return dashboard.get_sunburst(anio=anio, vista=vista)
+    return await run_sync(dashboard.get_sunburst, anio=anio, vista=vista)
 
 
 @router.get("/yoy")
@@ -127,7 +128,7 @@ async def get_yoy(
     dashboard: DashboardService = Depends(_dashboard_service),
 ) -> list[dict]:
 
-    return dashboard.get_yoy(anio=anio, vista=vista)
+    return await run_sync(dashboard.get_yoy, anio=anio, vista=vista)
 
 
 @router.get("/resumen-completo", response_model=DashboardResumenCompletoResponse)
@@ -139,7 +140,7 @@ async def get_resumen_completo(
     dashboard: DashboardService = Depends(_dashboard_service),
 ) -> DashboardResumenCompletoResponse:
     return DashboardResumenCompletoResponse(
-        **dashboard.get_resumen_completo(anio=anio, vista=vista, rango=rango)
+        **await run_sync(dashboard.get_resumen_completo, anio=anio, vista=vista, rango=rango)
     )
 
 
@@ -151,4 +152,4 @@ async def get_narrativa(
     dashboard: DashboardService = Depends(_dashboard_service),
 ) -> DashboardNarrativaResponse:
 
-    return DashboardNarrativaResponse(**dashboard.get_narrativa(anio=anio, vista=vista))
+    return DashboardNarrativaResponse(**await run_sync(dashboard.get_narrativa, anio=anio, vista=vista))

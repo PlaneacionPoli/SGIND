@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import Response
 
 from app.api.deps import get_excel_service
+from app.core.concurrency import run_sync
 from app.core.security import require_reader
 from app.models.user import User
 from app.schemas.common import (
@@ -28,7 +29,7 @@ async def plan_mejoramiento_filtros(
     service: PlanMejoramientoService = Depends(_service),
 ) -> PlanMejoramientoFiltrosResponse:
     """Devuelve años, cortes, factores y características disponibles."""
-    return PlanMejoramientoFiltrosResponse(**service.get_filtros())
+    return PlanMejoramientoFiltrosResponse(**await run_sync(service.get_filtros))
 
 
 @router.get("/dashboard", response_model=PlanMejoramientoDashboardResponse)
@@ -42,7 +43,8 @@ async def plan_mejoramiento_dashboard(
     service: PlanMejoramientoService = Depends(_service),
 ) -> PlanMejoramientoDashboardResponse:
     return PlanMejoramientoDashboardResponse(
-        **service.get_dashboard(
+        **await run_sync(
+            service.get_dashboard,
             anio=anio,
             corte=corte,
             factor=factor,
@@ -66,8 +68,9 @@ async def plan_mejoramiento_indicadores(
     docs/migration/PLAN_MIGRACION_PRIORIZADO.md ítem 0. Factor/Característica
     son filtros globales del módulo, compartidos con /metricas."""
     return PlanIndicadoresDashboardResponse(
-        **service.get_indicadores_dashboard(
-            subvista=subvista, factor=factor, caracteristica=caracteristica, tipo=tipo, nombre=nombre
+        **await run_sync(
+            service.get_indicadores_dashboard,
+            subvista=subvista, factor=factor, caracteristica=caracteristica, tipo=tipo, nombre=nombre,
         )
     )
 
@@ -82,8 +85,9 @@ async def plan_mejoramiento_indicadores_export(
     _user: User = Depends(require_reader),
     service: PlanMejoramientoService = Depends(_service),
 ) -> Response:
-    content = service.export_indicadores_excel(
-        subvista=subvista, factor=factor, caracteristica=caracteristica, tipo=tipo, nombre=nombre
+    content = await run_sync(
+        service.export_indicadores_excel,
+        subvista=subvista, factor=factor, caracteristica=caracteristica, tipo=tipo, nombre=nombre,
     )
     filename = "indicadores_metas.xlsx" if subvista != "historico" else "indicadores_cumplimiento.xlsx"
     return Response(
@@ -100,7 +104,7 @@ async def plan_mejoramiento_indicador_detalle(
     _user: User = Depends(require_reader),
     service: PlanMejoramientoService = Depends(_service),
 ) -> PlanIndicadorDetalleResponse:
-    detalle = service.get_indicador_detalle(factor=factor, indicador=indicador)
+    detalle = await run_sync(service.get_indicador_detalle, factor=factor, indicador=indicador)
     if detalle is None:
         raise HTTPException(status_code=404, detail="Indicador no encontrado")
     return PlanIndicadorDetalleResponse(**detalle)
@@ -119,8 +123,9 @@ async def plan_mejoramiento_metricas(
     docs/migration/PLAN_MIGRACION_PRIORIZADO.md ítem 0. Factor/Característica
     son filtros globales del módulo, compartidos con /indicadores."""
     return PlanMetricasDashboardResponse(
-        **service.get_metricas_dashboard(
-            factor=factor, caracteristica=caracteristica, tendencia=tendencia, nombre=nombre
+        **await run_sync(
+            service.get_metricas_dashboard,
+            factor=factor, caracteristica=caracteristica, tendencia=tendencia, nombre=nombre,
         )
     )
 
@@ -133,7 +138,9 @@ async def plan_mejoramiento_metrica_detalle(
     _user: User = Depends(require_reader),
     service: PlanMejoramientoService = Depends(_service),
 ) -> PlanMetricaDetalleResponse:
-    detalle = service.get_metrica_detalle(factor=factor, indicador=indicador, subindicador=subindicador)
+    detalle = await run_sync(
+        service.get_metrica_detalle, factor=factor, indicador=indicador, subindicador=subindicador
+    )
     if detalle is None:
         raise HTTPException(status_code=404, detail="Métrica no encontrada")
     return PlanMetricaDetalleResponse(**detalle)

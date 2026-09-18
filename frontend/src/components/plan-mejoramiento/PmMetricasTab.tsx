@@ -3,7 +3,9 @@
 import { Fragment, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { KPICard } from "@/components/ui/KPICard";
+import { Pagination } from "@/components/ui/Pagination";
 import { useDebounce } from "@/hooks/use-debounce";
+import { usePagination } from "@/hooks/use-pagination";
 import { fetchPlanMetricasDashboard } from "@/lib/api";
 import { useAuthReady } from "@/stores/auth-store";
 import { PmFactorBadge } from "./PmFactorBadge";
@@ -71,6 +73,7 @@ export function PmMetricasTab({
 
   const data = query.data;
   const tabla = data?.tabla ?? [];
+  const { page, setPage, pageSize, setPageSize, pageItems, totalPages } = usePagination(tabla);
 
   return (
     <div className="space-y-6">
@@ -198,7 +201,7 @@ export function PmMetricasTab({
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {tabla.map((row, i) => {
+                    {pageItems.map((row, i) => {
                       const key = `${row.factor}|${row.indicador}`;
                       const expandible = row.n_desglose > 1;
                       const abierto = expandidos.has(key);
@@ -319,6 +322,15 @@ export function PmMetricasTab({
                     })}
                   </tbody>
                 </table>
+              </div>
+              <div className="border-t border-slate-100 px-4 py-3">
+                <Pagination
+                  page={page}
+                  totalPages={totalPages}
+                  pageSize={pageSize}
+                  onPageChange={setPage}
+                  onPageSizeChange={setPageSize}
+                />
               </div>
             </div>
           )}

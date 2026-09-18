@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, Query
 
 from app.api.deps import get_excel_service
+from app.core.concurrency import run_sync
 from app.core.security import require_reader
 from app.models.user import User
 from app.schemas.common import PDIDashboardResponse, PDIFiltrosResponse
@@ -20,7 +21,7 @@ async def pdi_filtros(
     service: PDIService = Depends(_service),
 ) -> PDIFiltrosResponse:
     """Devuelve opciones de filtro para la vista PDI/Acreditación."""
-    return PDIFiltrosResponse(**service.get_filtros())
+    return PDIFiltrosResponse(**await run_sync(service.get_filtros))
 
 
 @router.get("/dashboard", response_model=PDIDashboardResponse)
@@ -33,5 +34,5 @@ async def pdi_dashboard(
 ) -> PDIDashboardResponse:
     """Dashboard PDI/Acreditación con KPIs, treemap, benchmark y tabla."""
     return PDIDashboardResponse(
-        **service.get_dashboard(estado=estado, macro=macro, horizonte=horizonte)
+        **await run_sync(service.get_dashboard, estado=estado, macro=macro, horizonte=horizonte)
     )

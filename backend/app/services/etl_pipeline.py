@@ -2,8 +2,11 @@
 
 import pandas as pd
 
+from app.core.ttl_cache import cache_get
 from app.domain.loader_utils import id_a_str, obtener_rename_map, renombrar_columnas
 from app.services.excel_reader import ExcelReaderService
+
+_LEER_CIERRES_CACHE: dict[int, tuple[float, pd.DataFrame]] = {}
 
 _CONSOLIDADO_CANDIDATES = [
     "output/Resultados Consolidados.xlsx",
@@ -72,7 +75,17 @@ class ETLPipelineService:
         return df
 
     def leer_cierres(self) -> pd.DataFrame:
-        return self.ejecutar(sheet="Consolidado Cierres")
+        """Usada tanto por el listado de indicadores como por el detalle de
+        uno solo (IndicatorService.list_indicators/get_indicator) — sin
+        caché, abrir el detalle de un indicador repetía las 4 fases del ETL
+        completo. Se cachea por excel con el mismo TTL que ExcelReaderService."""
+        df = cache_get(
+            _LEER_CIERRES_CACHE,
+            id(self._excel),
+            lambda: self.ejecutar(sheet="Consolidado Cierres"),
+            ttl=getattr(self._excel, "ttl", 300),
+        )
+        return df.copy()
 
     def _fase1_leer_path(
         self, relative: str, *, historico: bool, sheet: str | None = None

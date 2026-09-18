@@ -8,6 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
 
 from app.api.deps import get_excel_service
+from app.core.concurrency import run_sync
 from app.core.security import require_reader
 from app.models.user import User
 from app.services.cmi_service import CMIService
@@ -48,8 +49,8 @@ async def pdf_resumen_general(
     excel: ExcelReaderService = Depends(_excel),
 ) -> StreamingResponse:
     service = DashboardService(excel)
-    kpis_list = service.get_kpis(anio=anio)
-    semaforo = service.get_semaphore(anio=anio)
+    kpis_list = await run_sync(service.get_kpis, anio=anio)
+    semaforo = await run_sync(service.get_semaphore, anio=anio)
 
     # get_kpis devuelve lista de KPIResponse; extraemos los agregados
     kpis: dict = {}
@@ -64,7 +65,8 @@ async def pdf_resumen_general(
 
     indicadores = semaforo if isinstance(semaforo, list) else []
 
-    pdf_bytes = generar_resumen_general(
+    pdf_bytes = await run_sync(
+        generar_resumen_general,
         anio=anio,
         kpis=kpis,
         indicadores=indicadores,
@@ -98,13 +100,15 @@ async def pdf_informe_procesos(
     excel: ExcelReaderService = Depends(_excel),
 ) -> StreamingResponse:
     service = InformeService(excel)
-    data = service.get_dashboard(
+    data = await run_sync(
+        service.get_dashboard,
         anio=anio,
         mes=mes,
         proceso=proceso if proceso and proceso != "Todos" else None,
     )
 
-    pdf_bytes = generar_informe_procesos(
+    pdf_bytes = await run_sync(
+        generar_informe_procesos,
         anio=anio,
         mes=mes,
         proceso=proceso or "Todos",
@@ -146,7 +150,8 @@ async def pdf_ficha_indicador(
 ) -> StreamingResponse:
     service = CMIService(excel)
     if origen == "procesos":
-        ficha = service.get_procesos_indicador_ficha(
+        ficha = await run_sync(
+            service.get_procesos_indicador_ficha,
             indicador_id,
             anio=anio,
             mes=mes,
@@ -155,14 +160,14 @@ async def pdf_ficha_indicador(
             subproceso=subproceso,
         )
     else:
-        ficha = service.get_indicador_ficha(indicador_id, anio=anio, mes=mes, corte=corte)
+        ficha = await run_sync(service.get_indicador_ficha, indicador_id, anio=anio, mes=mes, corte=corte)
 
     if ficha is None:
         raise HTTPException(
             status_code=404, detail="Indicador no encontrado para el corte seleccionado"
         )
 
-    pdf_bytes = generar_ficha_indicador(ficha, generated_at=_now_iso())
+    pdf_bytes = await run_sync(generar_ficha_indicador, ficha, generated_at=_now_iso())
 
     filename = f"ficha_{indicador_id}_{anio}.pdf"
     return StreamingResponse(

@@ -1,3 +1,7 @@
+"use client";
+
+import { Pagination } from "@/components/ui/Pagination";
+import { usePagination } from "@/hooks/use-pagination";
 import type { Indicator } from "@/lib/types";
 
 const BADGE: Record<string, string> = {
@@ -18,6 +22,8 @@ interface IndicatorsTableProps {
 }
 
 export function IndicatorsTable({ items, total }: IndicatorsTableProps) {
+  const { page, setPage, pageSize, setPageSize, pageItems, totalPages } = usePagination(items);
+
   if (!items.length) {
     return (
       <div className="rounded-lg border border-dashed border-slate-300 p-8 text-center text-sm text-slate-500">
@@ -45,7 +51,7 @@ export function IndicatorsTable({ items, total }: IndicatorsTableProps) {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {items.map((row, idx) => (
+            {pageItems.map((row, idx) => (
               <tr key={`${row.Id}-${idx}`} className="hover:bg-slate-50">
                 <td className="px-4 py-3 font-mono text-sm text-slate-600">{row.Id}</td>
                 <td className="whitespace-normal break-words px-4 py-3 text-slate-800">
@@ -72,6 +78,15 @@ export function IndicatorsTable({ items, total }: IndicatorsTableProps) {
             ))}
           </tbody>
         </table>
+      </div>
+      <div className="border-t border-slate-100 px-4 py-3">
+        <Pagination
+          page={page}
+          totalPages={totalPages}
+          pageSize={pageSize}
+          onPageChange={setPage}
+          onPageSizeChange={setPageSize}
+        />
       </div>
     </div>
   );
