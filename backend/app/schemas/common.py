@@ -384,7 +384,7 @@ class DashboardResumenCompletoResponse(BaseModel):
     vista: str
     chips: list[dict[str, Any]] = Field(default_factory=list)
     fichas: list[dict[str, Any]] = Field(default_factory=list)
-    sunburst: list[dict[str, Any]] = Field(default_factory=list)
+    sunburst: dict[str, Any] = Field(default_factory=dict)
     narrativa: dict[str, Any] = Field(default_factory=dict)
     mejoraron: list[dict[str, Any]] = Field(default_factory=list)
     en_riesgo: list[dict[str, Any]] = Field(default_factory=list)
