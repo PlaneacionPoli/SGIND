@@ -267,6 +267,50 @@ class PlanMejoramientoDashboardResponse(BaseModel):
     total_indicadores: int = 0
 
 
+class PlanIndicadoresDashboardResponse(BaseModel):
+    kpis: dict[str, Any] = Field(default_factory=dict)
+    filtros: dict[str, Any] = Field(default_factory=dict)
+    tabla: list[dict[str, Any]] = Field(default_factory=list)
+    total: int = 0
+
+
+class PlanIndicadorDetalleResponse(BaseModel):
+    indicador: str | None = None
+    factor: str | None = None
+    caracteristica: str | None = None
+    accion_mejora: str | None = None
+    tipo: str | None = None
+    estado: str | None = None
+    estado_aprobacion: str | None = None
+    responsable: str | None = None
+    fuente: str | None = None
+    periodicidad: str | None = None
+    formula: str | None = None
+    observacion: str | None = None
+    cumplimiento_texto: str | None = None
+    metas_futuras_texto: str | None = None
+
+
+class PlanMetricasDashboardResponse(BaseModel):
+    kpis: dict[str, Any] = Field(default_factory=dict)
+    filtros: dict[str, Any] = Field(default_factory=dict)
+    grafico_por_factor: list[dict[str, Any]] = Field(default_factory=list)
+    tabla: list[dict[str, Any]] = Field(default_factory=list)
+    total: int = 0
+
+
+class PlanMetricaDetalleResponse(BaseModel):
+    indicador: str | None = None
+    subindicador: str | None = None
+    factor: str | None = None
+    proceso: str | None = None
+    sentido: str | None = None
+    periodicidad: str | None = None
+    variacion_ultima_pct: float | None = None
+    variacion_promedio_pct: float | None = None
+    serie: list[dict[str, Any]] = Field(default_factory=list)
+
+
 class InformeFiltrosResponse(BaseModel):
     error: str | None = None
     anios: list[int] = Field(default_factory=list)

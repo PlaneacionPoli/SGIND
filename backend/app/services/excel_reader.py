@@ -60,9 +60,10 @@ class ExcelReaderService:
         relative_path: str,
         *,
         sheet_name: str | int | None = 0,
+        header: int | None = 0,
         use_cache: bool = True,
     ) -> pd.DataFrame:
-        cache_key = f"{relative_path}:{sheet_name}"
+        cache_key = f"{relative_path}:{sheet_name}:{header}"
         if use_cache and cache_key in self._cache:
             cached_at, df = self._cache[cache_key]
             if time.time() - cached_at < self._ttl:
@@ -72,7 +73,7 @@ class ExcelReaderService:
         if not path.exists():
             raise FileNotFoundError(f"Archivo no encontrado: {relative_path}")
 
-        df = pd.read_excel(path, sheet_name=sheet_name, engine="openpyxl")
+        df = pd.read_excel(path, sheet_name=sheet_name, header=header, engine="openpyxl")
         self._cache[cache_key] = (time.time(), df)
         return df.copy()
 

@@ -1,9 +1,17 @@
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi.responses import Response
 
 from app.api.deps import get_excel_service
 from app.core.security import require_reader
 from app.models.user import User
-from app.schemas.common import PlanMejoramientoDashboardResponse, PlanMejoramientoFiltrosResponse
+from app.schemas.common import (
+    PlanIndicadorDetalleResponse,
+    PlanIndicadoresDashboardResponse,
+    PlanMejoramientoDashboardResponse,
+    PlanMejoramientoFiltrosResponse,
+    PlanMetricaDetalleResponse,
+    PlanMetricasDashboardResponse,
+)
 from app.services.excel_reader import ExcelReaderService
 from app.services.plan_mejoramiento_service import PlanMejoramientoService
 
@@ -42,3 +50,79 @@ async def plan_mejoramiento_dashboard(
             nombre=nombre,
         )
     )
+
+
+@router.get("/indicadores", response_model=PlanIndicadoresDashboardResponse)
+async def plan_mejoramiento_indicadores(
+    subvista: str = Query("metas", description="'metas' (2026-2030) o 'historico' (2025-2026)"),
+    factor: str | None = Query(None),
+    tipo: str | None = Query(None),
+    nombre: str | None = Query(None),
+    _user: User = Depends(require_reader),
+    service: PlanMejoramientoService = Depends(_service),
+) -> PlanIndicadoresDashboardResponse:
+    """Pestaña 'Indicadores' del Plan de Mejoramiento — ver
+    docs/migration/PLAN_MIGRACION_PRIORIZADO.md ítem 0."""
+    return PlanIndicadoresDashboardResponse(
+        **service.get_indicadores_dashboard(subvista=subvista, factor=factor, tipo=tipo, nombre=nombre)
+    )
+
+
+@router.get("/indicadores/export")
+async def plan_mejoramiento_indicadores_export(
+    subvista: str = Query("metas"),
+    factor: str | None = Query(None),
+    tipo: str | None = Query(None),
+    nombre: str | None = Query(None),
+    _user: User = Depends(require_reader),
+    service: PlanMejoramientoService = Depends(_service),
+) -> Response:
+    content = service.export_indicadores_excel(subvista=subvista, factor=factor, tipo=tipo, nombre=nombre)
+    filename = "indicadores_metas.xlsx" if subvista != "historico" else "indicadores_cumplimiento.xlsx"
+    return Response(
+        content=content,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f"attachment; filename={filename}"},
+    )
+
+
+@router.get("/indicadores/detalle", response_model=PlanIndicadorDetalleResponse)
+async def plan_mejoramiento_indicador_detalle(
+    factor: str = Query(...),
+    indicador: str = Query(...),
+    _user: User = Depends(require_reader),
+    service: PlanMejoramientoService = Depends(_service),
+) -> PlanIndicadorDetalleResponse:
+    detalle = service.get_indicador_detalle(factor=factor, indicador=indicador)
+    if detalle is None:
+        raise HTTPException(status_code=404, detail="Indicador no encontrado")
+    return PlanIndicadorDetalleResponse(**detalle)
+
+
+@router.get("/metricas", response_model=PlanMetricasDashboardResponse)
+async def plan_mejoramiento_metricas(
+    factor: str | None = Query(None),
+    tendencia: str | None = Query(None),
+    nombre: str | None = Query(None),
+    _user: User = Depends(require_reader),
+    service: PlanMejoramientoService = Depends(_service),
+) -> PlanMetricasDashboardResponse:
+    """Pestaña 'Métricas' del Plan de Mejoramiento — ver
+    docs/migration/PLAN_MIGRACION_PRIORIZADO.md ítem 0."""
+    return PlanMetricasDashboardResponse(
+        **service.get_metricas_dashboard(factor=factor, tendencia=tendencia, nombre=nombre)
+    )
+
+
+@router.get("/metricas/detalle", response_model=PlanMetricaDetalleResponse)
+async def plan_mejoramiento_metrica_detalle(
+    factor: str = Query(...),
+    indicador: str = Query(...),
+    subindicador: str | None = Query(None),
+    _user: User = Depends(require_reader),
+    service: PlanMejoramientoService = Depends(_service),
+) -> PlanMetricaDetalleResponse:
+    detalle = service.get_metrica_detalle(factor=factor, indicador=indicador, subindicador=subindicador)
+    if detalle is None:
+        raise HTTPException(status_code=404, detail="Métrica no encontrada")
+    return PlanMetricaDetalleResponse(**detalle)

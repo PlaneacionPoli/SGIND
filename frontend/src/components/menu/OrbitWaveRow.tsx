@@ -68,7 +68,7 @@ export function OrbitWaveRow({ items, rowIndex, currentRole }: OrbitWaveRowProps
   const glowId = `orbit-wave-ambient-glow-${rowIndex}`;
 
   return (
-    <div className="relative mx-auto w-full max-w-4xl self-center md:aspect-[10/3] md:h-[21vh] md:max-h-[210px] lg:h-[24vh] lg:max-h-[240px]">
+    <div className="relative mx-auto w-full max-w-4xl self-center md:aspect-[10/3] md:h-[26vh] md:max-h-[250px] lg:h-[30vh] lg:max-h-[290px]">
       <svg
         viewBox={`0 0 ${VIEWBOX_WIDTH} ${VIEWBOX_HEIGHT}`}
         preserveAspectRatio="none"
@@ -105,12 +105,12 @@ export function OrbitWaveRow({ items, rowIndex, currentRole }: OrbitWaveRowProps
           d={path}
           fill="none"
           stroke={`url(#${ribbonId})`}
-          strokeWidth={7}
+          strokeWidth={5.5}
           strokeLinecap="round"
           filter={`url(#${glowId})`}
         />
         {/* Capa 2 — cuerpo translúcido de la cinta */}
-        <path d={path} fill="none" stroke={`url(#${ribbonId})`} strokeWidth={4.4} strokeLinecap="round" />
+        <path d={path} fill="none" stroke={`url(#${ribbonId})`} strokeWidth={3.4} strokeLinecap="round" />
         {/* Capa 3 — núcleo luminoso interior */}
         <path
           d={path}
@@ -142,7 +142,7 @@ export function OrbitWaveRow({ items, rowIndex, currentRole }: OrbitWaveRowProps
           strokeLinecap="round"
           strokeDasharray="6 30"
           opacity={0.8}
-          style={{ animationDuration: "3.2s" }}
+          style={{ animationDuration: "6s" }}
           className="motion-safe:animate-dash-flow"
         />
         <path

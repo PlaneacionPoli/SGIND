@@ -310,6 +310,7 @@ Migración real se ejecuta cuando PostgreSQL de producción esté disponible.
 ### Fase 11.5 — Cierre de Hallazgos del Comparativo 🔄 En progreso
 
 > Plan detallado en [`PLAN_CIERRE_HALLAZGOS.md`](PLAN_CIERRE_HALLAZGOS.md), derivado del informe comparativo Streamlit vs. SGING.
+> **Priorización vigente (2026-09-18)**: [`PLAN_MIGRACION_PRIORIZADO.md`](PLAN_MIGRACION_PRIORIZADO.md) reclasifica estos hallazgos por prioridad real (Alta/Media/Baja) tras verificarlos contra el código actual, y agrega el hallazgo de mayor prioridad detectado: el módulo Plan de Mejoramiento fue rediseñado por completo en Streamlit esta semana (pestañas Indicadores/Métricas, catálogo Signo/Decimales) y SGING tiene una versión anterior ya reemplazada, no una parcial de la actual.
 
 - [ ] Fase 0 del plan — Higiene base (lint backend con ruff, Vitest en frontend)
 - [ ] Fase 1 del plan — Consolidar paleta de semáforo (5 fuentes distintas → 1)

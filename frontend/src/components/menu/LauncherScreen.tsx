@@ -97,7 +97,7 @@ export function LauncherScreen() {
           )}
         </header>
 
-        <section className="flex min-h-0 flex-1 flex-col justify-evenly gap-10 overflow-y-auto py-2 sm:overflow-visible">
+        <section className="flex min-h-0 flex-1 flex-col justify-evenly gap-8 overflow-y-auto py-2 sm:overflow-visible">
           {rows.map((rowItems, rowIndex) => (
             <OrbitWaveRow
               key={rowIndex}

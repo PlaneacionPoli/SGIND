@@ -20,7 +20,11 @@ import type {
   OMMatrizResponse,
   OMPlanAccionActividad,
   PDIDashboardResponse,
+  PlanIndicadorDetalleResponse,
+  PlanIndicadoresDashboardResponse,
   PlanMejoramientoDashboardResponse,
+  PlanMetricaDetalleResponse,
+  PlanMetricasDashboardResponse,
   RegistroOM,
   RegistroOMCerrar,
   RegistroOMCreate,
@@ -366,6 +370,60 @@ export async function fetchPlanMejoramientoDashboard(params?: {
 }): Promise<PlanMejoramientoDashboardResponse> {
   const { data } = await api.get<PlanMejoramientoDashboardResponse>("/plan-mejoramiento/dashboard", { params });
   return data;
+}
+
+export async function fetchPlanIndicadoresDashboard(params?: {
+  subvista?: "metas" | "historico";
+  factor?: string;
+  tipo?: string;
+  nombre?: string;
+}): Promise<PlanIndicadoresDashboardResponse> {
+  const { data } = await api.get<PlanIndicadoresDashboardResponse>("/plan-mejoramiento/indicadores", { params });
+  return data;
+}
+
+export async function fetchPlanIndicadorDetalle(params: {
+  factor: string;
+  indicador: string;
+}): Promise<PlanIndicadorDetalleResponse> {
+  const { data } = await api.get<PlanIndicadorDetalleResponse>("/plan-mejoramiento/indicadores/detalle", { params });
+  return data;
+}
+
+export async function fetchPlanMetricasDashboard(params?: {
+  factor?: string;
+  tendencia?: string;
+  nombre?: string;
+}): Promise<PlanMetricasDashboardResponse> {
+  const { data } = await api.get<PlanMetricasDashboardResponse>("/plan-mejoramiento/metricas", { params });
+  return data;
+}
+
+export async function fetchPlanMetricaDetalle(params: {
+  factor: string;
+  indicador: string;
+  subindicador?: string;
+}): Promise<PlanMetricaDetalleResponse> {
+  const { data } = await api.get<PlanMetricaDetalleResponse>("/plan-mejoramiento/metricas/detalle", { params });
+  return data;
+}
+
+export async function downloadPlanIndicadoresExport(params: {
+  subvista: "metas" | "historico";
+  factor?: string;
+  tipo?: string;
+  nombre?: string;
+}): Promise<void> {
+  const response = await api.get("/plan-mejoramiento/indicadores/export", { params, responseType: "blob" });
+  const blob = new Blob([response.data], {
+    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = params.subvista === "historico" ? "indicadores_cumplimiento.xlsx" : "indicadores_metas.xlsx";
+  link.click();
+  URL.revokeObjectURL(url);
 }
 
 export async function fetchInformeDashboard(params: {

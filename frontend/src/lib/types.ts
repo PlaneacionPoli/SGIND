@@ -724,6 +724,103 @@ export interface PlanMejoramientoDashboardResponse {
   total_indicadores: number;
 }
 
+// Pestaña "Indicadores" y "Métricas" del Plan de Mejoramiento — ver
+// docs/migration/PLAN_MIGRACION_PRIORIZADO.md ítem 0.
+
+export interface PlanValorFmt {
+  valor: number | null;
+  valor_fmt: string;
+}
+
+export interface PlanIndicadoresDashboardResponse {
+  kpis: {
+    total: number;
+    con_meta_futura: number;
+    con_cumplimiento_historico: number;
+    aprobados: number;
+    pct_aprobados: number;
+  };
+  filtros: { factores: string[]; tipos: string[] };
+  tabla: Array<
+    | {
+        factor: string;
+        factor_num: number | null;
+        indicador: string;
+        tipo: string | null;
+        signo: string | null;
+        metas: Record<"2026" | "2027" | "2028" | "2029" | "2030", PlanValorFmt>;
+      }
+    | {
+        factor: string;
+        factor_num: number | null;
+        indicador: string;
+        meta_2025: PlanValorFmt;
+        ejecucion_2025: PlanValorFmt;
+        cump_2025: PlanValorFmt;
+        meta_2026: PlanValorFmt;
+        ejecucion_2026: PlanValorFmt;
+        cump_2026: PlanValorFmt;
+      }
+  >;
+  total: number;
+}
+
+export interface PlanIndicadorDetalleResponse {
+  indicador: string | null;
+  factor: string | null;
+  caracteristica: string | null;
+  accion_mejora: string | null;
+  tipo: string | null;
+  estado: string | null;
+  estado_aprobacion: string | null;
+  responsable: string | null;
+  fuente: string | null;
+  periodicidad: string | null;
+  formula: string | null;
+  observacion: string | null;
+  cumplimiento_texto: string | null;
+  metas_futuras_texto: string | null;
+}
+
+export interface PlanMetricasDashboardResponse {
+  kpis: {
+    total: number;
+    factores_cubiertos: number;
+    n_creciente: number;
+    n_decreciente: number;
+    pct_creciente: number;
+    pct_decreciente: number;
+  };
+  filtros: { factores: string[]; tendencias: string[] };
+  grafico_por_factor: Array<{ factor: string; factor_num: number | null; cantidad: number }>;
+  tabla: Array<{
+    factor: string;
+    factor_num: number | null;
+    metrica: string;
+    indicador: string;
+    subindicador: string | null;
+    proceso: string | null;
+    ultimo_anio: number | null;
+    ultimo_valor: number | null;
+    variacion_ultima_pct: number | null;
+    tendencia: "Creciente" | "Decreciente" | "Estable" | "—";
+    serie: number[];
+  }>;
+  total: number;
+}
+
+export interface PlanMetricaDetalleResponse {
+  indicador: string | null;
+  subindicador: string | null;
+  factor: string | null;
+  proceso: string | null;
+  sentido: string | null;
+  periodicidad: string | null;
+  variacion_ultima_pct: number | null;
+  variacion_promedio_pct: number | null;
+  serie: Array<{ anio: number; ejecucion: number | null; meta: number | null }>;
+}
+
 export interface OMMatrizResponse {
   error?: string;
   anio: number;

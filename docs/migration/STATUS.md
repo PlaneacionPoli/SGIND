@@ -76,6 +76,7 @@ python sgind-v2/scripts/uat_verify.py --api-url http://localhost:8000 --output-j
 | Artefacto | Ruta | Propósito |
 |-----------|------|-----------|
 | Plan de implementación | `docs/migration/PLAN_CIERRE_HALLAZGOS.md` | 8 fases: paleta de semáforo, tipado de endpoints, paginación, filtros compartidos, visuales, reactivación de menú, admin usuarios, comparativos multi-año |
+| **Plan priorizado vigente** | [`docs/migration/PLAN_MIGRACION_PRIORIZADO.md`](PLAN_MIGRACION_PRIORIZADO.md) | Fuente de verdad de priorización funcional/visual (2026-09-18), verificada contra código real (no contra este STATUS.md). Incluye el hallazgo de mayor prioridad: el módulo Plan de Mejoramiento fue rediseñado en Streamlit esta semana y SGING tiene una versión anterior, no una parcial de la actual. |
 
 ## Fase 12 — Cutover
 
