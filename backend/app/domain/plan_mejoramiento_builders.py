@@ -477,8 +477,9 @@ _PLAN_RENAME = {
     "% Cump 2026": "Cump_2026",
 }
 
-# "2026" ya llega renombrado a Meta_2026 (ver _PLAN_RENAME); solo 2027-2030
-# son columnas de meta futura crudas en el Excel fuente.
+# Meta_2026 llega de la hoja "Indicadores Real" (columna "Meta 2026", ver
+# _PLAN_REAL_VALUE_COLS); 2027-2030 son columnas de meta futura crudas
+# ("2027".."2030") en la hoja "Indicadores Plan de Mejor".
 _FUTURE_RAW_YEARS = ("2027", "2028", "2029", "2030")
 _METAS_ALL_YEARS = ("2026", "2027", "2028", "2029", "2030")
 
@@ -592,7 +593,7 @@ def load_catalogo_plan_indicadores(excel) -> pd.DataFrame:
     return df[[c for c in cols if c in df.columns]].drop_duplicates(subset=["Factor", "Indicador"])
 
 
-_PLAN_REAL_VALUE_COLS = ["Meta_2025", "Ejecucion_2025", "Cump_2025", "Ejecucion_2026", "Cump_2026"]
+_PLAN_REAL_VALUE_COLS = ["Meta_2025", "Meta_2026", "Ejecucion_2025", "Cump_2025", "Ejecucion_2026", "Cump_2026"]
 _PLAN_DESCRIPTIVO_COLS = [
     "Caracteristica", "Accion_Mejora", "Id_Kawak", "Tipo", "Observacion", "Estado_raw",
     "Estado_Aprobacion", "Formula", "Fuente", "Responsable", "Periodicidad",
