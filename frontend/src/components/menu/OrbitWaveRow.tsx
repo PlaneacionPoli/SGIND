@@ -15,10 +15,13 @@ interface OrbitWaveRowProps {
   currentRole: string | null;
 }
 
+// El viewBox debe conservar la misma proporción que el contenedor (aspect-[10/3]
+// abajo); si no coinciden, preserveAspectRatio="none" estira x e y en proporciones
+// distintas y cualquier trazo con stroke-dasharray sale distorsionado en diagonal.
 const VIEWBOX_WIDTH = 100;
-const VIEWBOX_HEIGHT = 40;
-const TOP_Y = 8;
-const BOTTOM_Y = 32;
+const VIEWBOX_HEIGHT = 30;
+const TOP_Y = 6;
+const BOTTOM_Y = 24;
 
 function isHighlighted(roles: Role[] | undefined, currentRole: string | null) {
   if (!roles || !currentRole) return false;
@@ -53,10 +56,10 @@ export function OrbitWaveRow({ items, rowIndex, currentRole }: OrbitWaveRowProps
   const path = buildWavePath(points);
   const gradientId = `orbit-wave-gradient-${rowIndex}`;
 
-  const glowId = `orbit-wave-glow-${rowIndex}`;
+  const coreId = `orbit-wave-core-${rowIndex}`;
 
   return (
-    <div className="relative mx-auto w-full max-w-4xl md:h-52 lg:h-60">
+    <div className="relative mx-auto w-full max-w-4xl md:aspect-[10/3]">
       <svg
         viewBox={`0 0 ${VIEWBOX_WIDTH} ${VIEWBOX_HEIGHT}`}
         preserveAspectRatio="none"
@@ -66,32 +69,49 @@ export function OrbitWaveRow({ items, rowIndex, currentRole }: OrbitWaveRowProps
         <defs>
           <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="0%">
             <stop offset="0%" stopColor="#1e5fd9" />
+            <stop offset="55%" stopColor="#38bdf8" />
             <stop offset="100%" stopColor="#00d4ff" />
           </linearGradient>
-          <filter id={glowId} x="-30%" y="-300%" width="160%" height="700%">
-            <feGaussianBlur stdDeviation="1.1" />
-          </filter>
+          <linearGradient id={coreId} x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#bff0ff" />
+            <stop offset="100%" stopColor="#ffffff" />
+          </linearGradient>
         </defs>
-        {/* Cable de fibra óptica: un único trazo con resplandor */}
+
+        {/* Halo exterior difuso — el "brillo" del cable de fibra óptica */}
         <path
           d={path}
           fill="none"
           stroke={`url(#${gradientId})`}
-          strokeWidth={2.5}
+          strokeWidth={3.2}
           strokeLinecap="round"
           vectorEffect="non-scaling-stroke"
-          filter={`url(#${glowId})`}
+          style={{
+            filter:
+              "drop-shadow(0 0 6px #38bdf8) drop-shadow(0 0 14px #1e5fd9)",
+          }}
         />
-        {/* Segmento de luz que recorre la onda en bucle continuo */}
+        {/* Núcleo brillante del cable */}
         <path
           d={path}
           fill="none"
-          stroke="#e0f7ff"
-          strokeWidth={2.5}
+          stroke={`url(#${coreId})`}
+          strokeWidth={1.1}
           strokeLinecap="round"
-          strokeDasharray="8 220"
+          vectorEffect="non-scaling-stroke"
+          opacity={0.9}
+        />
+        {/* Pulso de luz que recorre la onda en bucle continuo */}
+        <path
+          d={path}
+          fill="none"
+          stroke="#ffffff"
+          strokeWidth={2}
+          strokeLinecap="round"
+          strokeDasharray="14 190"
           vectorEffect="non-scaling-stroke"
           className="motion-safe:animate-dash-flow"
+          style={{ filter: "drop-shadow(0 0 6px #ffffff)" }}
         />
       </svg>
 
