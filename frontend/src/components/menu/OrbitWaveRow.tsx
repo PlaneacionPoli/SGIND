@@ -65,46 +65,31 @@ export function OrbitWaveRow({ items, rowIndex, currentRole }: OrbitWaveRowProps
       >
         <defs>
           <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#22d3ee" stopOpacity="0.9" />
-            <stop offset="50%" stopColor="#60a5fa" stopOpacity="1" />
-            <stop offset="100%" stopColor="#a855f7" stopOpacity="0.9" />
+            <stop offset="0%" stopColor="#1e5fd9" />
+            <stop offset="100%" stopColor="#00d4ff" />
           </linearGradient>
-          <filter id={glowId} x="-50%" y="-200%" width="200%" height="500%">
-            <feGaussianBlur stdDeviation="1.4" result="blur" />
-            <feMerge>
-              <feMergeNode in="blur" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
+          <filter id={glowId} x="-30%" y="-300%" width="160%" height="700%">
+            <feGaussianBlur stdDeviation="1.1" />
           </filter>
         </defs>
-        {/* Halo difuso de fondo */}
+        {/* Cable de fibra óptica: un único trazo con resplandor */}
         <path
           d={path}
           fill="none"
           stroke={`url(#${gradientId})`}
-          strokeWidth={2.4}
+          strokeWidth={2.5}
           strokeLinecap="round"
-          opacity={0.35}
+          vectorEffect="non-scaling-stroke"
           filter={`url(#${glowId})`}
-          vectorEffect="non-scaling-stroke"
         />
-        {/* Trazo principal, nítido */}
+        {/* Segmento de luz que recorre la onda en bucle continuo */}
         <path
           d={path}
           fill="none"
-          stroke={`url(#${gradientId})`}
-          strokeWidth={0.9}
+          stroke="#e0f7ff"
+          strokeWidth={2.5}
           strokeLinecap="round"
-          vectorEffect="non-scaling-stroke"
-        />
-        {/* Pulso de luz recorriendo la onda */}
-        <path
-          d={path}
-          fill="none"
-          stroke="#e0f2fe"
-          strokeWidth={1.3}
-          strokeLinecap="round"
-          strokeDasharray="3 18"
+          strokeDasharray="8 220"
           vectorEffect="non-scaling-stroke"
           className="motion-safe:animate-dash-flow"
         />

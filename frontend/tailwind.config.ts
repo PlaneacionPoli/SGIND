@@ -103,7 +103,7 @@ const config: Config = {
         },
         "dash-flow": {
           "0%":   { strokeDashoffset: "0" },
-          "100%": { strokeDashoffset: "-48" },
+          "100%": { strokeDashoffset: "-228" },
         },
         "glow-pulse": {
           "0%, 100%": { boxShadow: "0 0 0 0 rgba(201,162,39,0.45)" },
@@ -123,7 +123,7 @@ const config: Config = {
         "card-in": "card-in 0.35s cubic-bezier(0.16,1,0.3,1) both",
         float:    "float 4s ease-in-out infinite",
         "liquid-shift": "liquid-shift 8s ease-in-out infinite",
-        "dash-flow": "dash-flow 3s linear infinite",
+        "dash-flow": "dash-flow 5s linear infinite",
         "glow-pulse": "glow-pulse 2.4s ease-in-out infinite",
         twinkle: "twinkle 3s ease-in-out infinite",
       },

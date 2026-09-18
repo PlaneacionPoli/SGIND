@@ -34,11 +34,12 @@ export function OrbitNode({
   const iconCircle = (
     <span
       style={{
-        background: pillColor,
+        background: `radial-gradient(circle at 35% 30%, ${pillColor}f2 0%, ${pillColor} 65%)`,
+        boxShadow: `0 0 26px 6px ${pillColor}80, 0 0 4px 1px ${pillColor}`,
         animationDelay: `${index * 350}ms`,
       }}
       className={cn(
-        "relative flex h-20 w-20 items-center justify-center rounded-full shadow-elevated ring-4 ring-white/10 sm:h-24 sm:w-24",
+        "relative flex h-20 w-20 items-center justify-center rounded-full ring-4 ring-white/10 sm:h-24 sm:w-24",
         "transition-transform duration-300 motion-safe:animate-float",
         "group-hover:scale-110 group-hover:ring-white/30 group-focus-visible:scale-110",
         highlighted && "ring-poli-gold/70 motion-safe:animate-glow-pulse"

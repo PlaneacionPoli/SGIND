@@ -47,7 +47,7 @@ export function LauncherScreen() {
   const rows = chunk(items, ROW_SIZE);
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[radial-gradient(ellipse_at_top,#16345f_0%,#0a1a33_45%,#050d1a_100%)]">
+    <div className="relative min-h-screen bg-[radial-gradient(ellipse_at_top,#16345f_0%,#0a1a33_45%,#050d1a_100%)]">
       {/* Resplandores difusos de profundidad */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute -left-32 -top-32 h-96 w-96 animate-blob-slow rounded-full bg-poli-blue/20 blur-3xl" />
@@ -69,7 +69,7 @@ export function LauncherScreen() {
         ))}
       </div>
 
-      <div className="relative z-10 mx-auto max-w-6xl px-6 pb-16 pt-10">
+      <div className="relative z-10 mx-auto max-w-6xl px-6 pb-24 pt-10">
         <header className="mb-12 flex flex-wrap items-center gap-4 animate-fade-in">
           <span className="flex items-center rounded-xl bg-white px-3 py-2 shadow-elevated">
             <Image
