@@ -68,7 +68,7 @@ export function OrbitWaveRow({ items, rowIndex, currentRole }: OrbitWaveRowProps
   const glowId = `orbit-wave-ambient-glow-${rowIndex}`;
 
   return (
-    <div className="relative mx-auto w-full max-w-4xl md:aspect-[10/3]">
+    <div className="relative mx-auto w-full max-w-4xl self-center md:aspect-[10/3] md:h-[21vh] md:max-h-[210px] lg:h-[24vh] lg:max-h-[240px]">
       <svg
         viewBox={`0 0 ${VIEWBOX_WIDTH} ${VIEWBOX_HEIGHT}`}
         preserveAspectRatio="none"

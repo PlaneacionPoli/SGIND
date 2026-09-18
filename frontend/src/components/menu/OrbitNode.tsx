@@ -39,13 +39,18 @@ export function OrbitNode({
         animationDelay: `${index * 350}ms`,
       }}
       className={cn(
-        "relative flex h-20 w-20 items-center justify-center rounded-full ring-4 ring-white/10 sm:h-24 sm:w-24",
+        "relative flex items-center justify-center rounded-full ring-4 ring-white/10",
         "transition-transform duration-300 motion-safe:animate-float",
         "group-hover:scale-110 group-hover:ring-white/30 group-focus-visible:scale-110",
+        layout === "orbit" ? "h-14 w-14 md:h-16 md:w-16 lg:h-[4.5rem] lg:w-[4.5rem]" : "h-16 w-16 sm:h-20 sm:w-20",
         highlighted && "ring-poli-gold/70 motion-safe:animate-glow-pulse"
       )}
     >
-      <Icon size={34} className="text-white sm:h-10 sm:w-10" aria-hidden="true" />
+      <Icon
+        size={layout === "orbit" ? 24 : 30}
+        className={cn("text-white", layout === "orbit" ? "lg:h-7 lg:w-7" : "sm:h-8 sm:w-8")}
+        aria-hidden="true"
+      />
       {highlighted && (
         <span className="absolute -right-1 -top-1 rounded-full bg-poli-gold px-2 py-0.5 text-2xs font-semibold text-white shadow-sm">
           Tu rol
@@ -74,10 +79,10 @@ export function OrbitNode({
       href={href}
       aria-label={label}
       style={{ left: `${left}%`, top: `${top}%` }}
-      className="group absolute flex w-32 -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-2.5 motion-safe:animate-fade-in"
+      className="group absolute flex w-24 -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-1.5 motion-safe:animate-fade-in lg:w-28"
     >
       {iconCircle}
-      <span className="text-center text-sm font-semibold leading-tight text-white drop-shadow-sm transition-colors duration-300 group-hover:text-poli-gold-50 sm:text-base">
+      <span className="text-center text-xs font-semibold leading-tight text-white drop-shadow-sm transition-colors duration-300 group-hover:text-poli-gold-50 lg:text-sm">
         {label}
       </span>
     </Link>

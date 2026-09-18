@@ -47,7 +47,7 @@ export function LauncherScreen() {
   const rows = chunk(items, ROW_SIZE);
 
   return (
-    <div className="relative min-h-screen bg-[radial-gradient(ellipse_at_top,#16345f_0%,#0a1a33_45%,#050d1a_100%)]">
+    <div className="relative flex h-screen flex-col overflow-hidden bg-[radial-gradient(ellipse_at_top,#16345f_0%,#0a1a33_45%,#050d1a_100%)]">
       {/* Resplandores difusos de profundidad */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute -left-32 -top-32 h-96 w-96 animate-blob-slow rounded-full bg-poli-blue/20 blur-3xl" />
@@ -69,24 +69,24 @@ export function LauncherScreen() {
         ))}
       </div>
 
-      <div className="relative z-10 mx-auto max-w-6xl px-6 pb-24 pt-10">
-        <header className="mb-12 flex flex-wrap items-center gap-4 animate-fade-in">
-          <span className="flex items-center rounded-xl bg-white px-3 py-2 shadow-elevated">
+      <div className="relative z-10 mx-auto flex h-full w-full max-w-6xl flex-col overflow-hidden px-6 py-4 sm:py-6">
+        <header className="flex flex-shrink-0 flex-wrap items-center gap-3 animate-fade-in">
+          <span className="flex items-center rounded-xl bg-white px-2.5 py-1.5 shadow-elevated">
             <Image
               src="/poli-logo.png"
               alt="Politécnico Grancolombiano"
               width={160}
               height={90}
               priority
-              className="h-9 w-auto object-contain"
+              className="h-7 w-auto object-contain sm:h-8"
             />
           </span>
           <div>
-            <p className="text-sm text-white/70">
+            <p className="text-xs text-white/70 sm:text-sm">
               {greeting}
               {firstName ? `, ${firstName}` : ""}
             </p>
-            <h1 className="text-2xl font-semibold text-white">
+            <h1 className="text-lg font-semibold text-white sm:text-xl">
               Panel de indicadores
             </h1>
           </div>
@@ -97,7 +97,7 @@ export function LauncherScreen() {
           )}
         </header>
 
-        <section className="flex flex-col gap-10 sm:gap-14">
+        <section className="flex min-h-0 flex-1 flex-col justify-evenly gap-10 overflow-y-auto py-2 sm:overflow-visible">
           {rows.map((rowItems, rowIndex) => (
             <OrbitWaveRow
               key={rowIndex}
