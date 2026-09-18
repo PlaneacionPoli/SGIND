@@ -23,25 +23,6 @@ const nextConfig = {
     },
   ],
 
-  // Redirects para API
-  redirects: async () => [
-    {
-      source: "/api/:path*",
-      destination: `${process.env.NEXT_PUBLIC_API_URL}/:path*`,
-      permanent: false,
-    },
-  ],
-
-  // Rewrites para proxy de API
-  rewrites: async () => ({
-    beforeFiles: [
-      {
-        source: "/api/v1/:path*",
-        destination: `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/v1/:path*`,
-      },
-    ],
-  }),
-
   // Image optimization
   images: {
     remotePatterns: [
