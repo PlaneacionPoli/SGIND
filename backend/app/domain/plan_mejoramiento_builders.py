@@ -756,13 +756,10 @@ def build_plan_indicadores_kpis(df: pd.DataFrame) -> dict[str, Any]:
 
 
 def build_plan_indicadores_tabla_metas(df: pd.DataFrame) -> list[dict[str, Any]]:
-    """Filas de la sub-vista 'Metas 2026-2030' — solo indicadores con al menos
-    una meta futura definida."""
-    meta_cols = [f"Meta_num_{y}" for y in _METAS_ALL_YEARS]
-    existentes = [c for c in meta_cols if c in df.columns]
-    rows_view = df[df[existentes].notna().any(axis=1)] if existentes else df.iloc[0:0]
-    sort_cols = [c for c in ("Factor_num",) if c in rows_view.columns]
-    rows_sorted = rows_view.sort_values(sort_cols).reset_index(drop=True) if sort_cols else rows_view
+    """Filas de la sub-vista 'Metas 2026-2030' — todos los indicadores del
+    filtro, incluidos los pendientes de meta (celdas en "—")."""
+    sort_cols = [c for c in ("Factor_num",) if c in df.columns]
+    rows_sorted = df.sort_values(sort_cols).reset_index(drop=True) if sort_cols else df
 
     records = []
     for _, row in rows_sorted.iterrows():
@@ -788,13 +785,10 @@ def build_plan_indicadores_tabla_metas(df: pd.DataFrame) -> list[dict[str, Any]]
 
 
 def build_plan_indicadores_tabla_historico(df: pd.DataFrame) -> list[dict[str, Any]]:
-    """Filas de la sub-vista 'Cumplimiento histórico' — solo indicadores con
-    dato real (Cump_calc) en 2025 y/o 2026."""
-    if "Cump_calc_2025" not in df.columns or "Cump_calc_2026" not in df.columns:
-        return []
-    rows_view = df[df["Cump_calc_2025"].notna() | df["Cump_calc_2026"].notna()]
-    sort_cols = [c for c in ("Factor_num",) if c in rows_view.columns]
-    rows_sorted = rows_view.sort_values(sort_cols).reset_index(drop=True) if sort_cols else rows_view
+    """Filas de la sub-vista 'Cumplimiento histórico' — todos los indicadores
+    del filtro, incluidos los pendientes de dato real (celdas en "—")."""
+    sort_cols = [c for c in ("Factor_num",) if c in df.columns]
+    rows_sorted = df.sort_values(sort_cols).reset_index(drop=True) if sort_cols else df
 
     def _valor(row, col, signo, decimales) -> dict[str, Any]:
         v = row.get(col)

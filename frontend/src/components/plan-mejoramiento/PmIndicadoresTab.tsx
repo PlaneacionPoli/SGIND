@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { KPICard } from "@/components/ui/KPICard";
+import { useDebounce } from "@/hooks/use-debounce";
 import { downloadPlanIndicadoresExport, fetchPlanIndicadoresDashboard } from "@/lib/api";
 import { useAuthReady } from "@/stores/auth-store";
 import { PmFactorBadge } from "./PmFactorBadge";
@@ -51,17 +52,18 @@ export function PmIndicadoresTab({
   const [subvista, setSubvista] = useState<SubVista>("metas");
   const [tipo, setTipo] = useState("Todos");
   const [nombre, setNombre] = useState("");
+  const nombreDebounced = useDebounce(nombre);
   const [seleccion, setSeleccion] = useState<{ factor: string; indicador: string } | null>(null);
 
   const query = useQuery({
-    queryKey: ["plan-indicadores", subvista, factor, caracteristica, tipo, nombre],
+    queryKey: ["plan-indicadores", subvista, factor, caracteristica, tipo, nombreDebounced],
     queryFn: () =>
       fetchPlanIndicadoresDashboard({
         subvista,
         ...(factor !== "Todos" ? { factor } : {}),
         ...(caracteristica !== "Todas" ? { caracteristica } : {}),
         ...(tipo !== "Todos" ? { tipo } : {}),
-        ...(nombre.trim() ? { nombre: nombre.trim() } : {}),
+        ...(nombreDebounced.trim() ? { nombre: nombreDebounced.trim() } : {}),
       }),
     enabled: isAuthenticated,
   });
@@ -131,7 +133,7 @@ export function PmIndicadoresTab({
           <p className="text-xs text-slate-500">
             {subvista === "metas"
               ? "Trayectoria de metas definidas por indicador, agrupadas por factor CNA."
-              : "Meta, ejecución y % de cumplimiento 2025–2026, solo para indicadores con información registrada."}
+              : "Meta, ejecución y % de cumplimiento 2025–2026 por indicador."}
           </p>
 
           <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
@@ -165,7 +167,7 @@ export function PmIndicadoresTab({
                 value={tipo}
                 onChange={(e) => setTipo(e.target.value)}
               >
-                <option value="Todos">Indicador y métrica</option>
+                <option value="Todos">Todos los tipos</option>
                 {(data?.filtros.tipos ?? []).map((t) => (
                   <option key={t} value={t}>
                     {t}
@@ -181,9 +183,7 @@ export function PmIndicadoresTab({
               />
             </div>
             <div className="mt-3 flex items-center justify-between">
-              <span className="text-xs font-semibold text-slate-500">
-                {data?.total ?? 0} {subvista === "metas" ? "con meta definida" : "con dato histórico"}
-              </span>
+              <span className="text-xs font-semibold text-slate-500">{data?.total ?? 0} indicadores</span>
               <button
                 type="button"
                 disabled={!tabla.length}
@@ -212,11 +212,7 @@ export function PmIndicadoresTab({
           </div>
 
           {!tabla.length ? (
-            <p className="text-sm text-slate-500">
-              {subvista === "metas"
-                ? "No hay indicadores con metas 2026–2030 definidas para este filtro."
-                : "Ningún indicador de este filtro tiene cumplimiento histórico registrado todavía."}
-            </p>
+            <p className="text-sm text-slate-500">No hay indicadores para este filtro.</p>
           ) : (
             <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
               <div className="overflow-x-auto">

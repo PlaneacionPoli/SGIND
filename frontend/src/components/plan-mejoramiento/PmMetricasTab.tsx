@@ -3,6 +3,7 @@
 import { Fragment, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { KPICard } from "@/components/ui/KPICard";
+import { useDebounce } from "@/hooks/use-debounce";
 import { fetchPlanMetricasDashboard } from "@/lib/api";
 import { useAuthReady } from "@/stores/auth-store";
 import { PmFactorBadge } from "./PmFactorBadge";
@@ -39,6 +40,7 @@ export function PmMetricasTab({
   const { isAuthenticated } = useAuthReady();
   const [tendencia, setTendencia] = useState("Toda tendencia");
   const [nombre, setNombre] = useState("");
+  const nombreDebounced = useDebounce(nombre);
   const [expandidos, setExpandidos] = useState<Set<string>>(new Set());
   const [seleccion, setSeleccion] = useState<{
     factor: string;
@@ -56,13 +58,13 @@ export function PmMetricasTab({
   };
 
   const query = useQuery({
-    queryKey: ["plan-metricas", factor, caracteristica, tendencia, nombre],
+    queryKey: ["plan-metricas", factor, caracteristica, tendencia, nombreDebounced],
     queryFn: () =>
       fetchPlanMetricasDashboard({
         ...(factor !== "Todos" ? { factor } : {}),
         ...(caracteristica !== "Todas" ? { caracteristica } : {}),
         ...(tendencia !== "Toda tendencia" ? { tendencia } : {}),
-        ...(nombre.trim() ? { nombre: nombre.trim() } : {}),
+        ...(nombreDebounced.trim() ? { nombre: nombreDebounced.trim() } : {}),
       }),
     enabled: isAuthenticated,
   });

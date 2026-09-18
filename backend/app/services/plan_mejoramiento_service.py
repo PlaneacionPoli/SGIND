@@ -125,6 +125,8 @@ class PlanMejoramientoService:
         nombre: str | None = None,
     ) -> dict[str, Any]:
         df = load_plan_indicadores(self._excel)
+        if "Tipo" in df.columns:
+            df = df[df["Tipo"] != "Metrica"]
         if df.empty:
             return {
                 "kpis": {"total": 0, "con_meta_futura": 0, "con_cumplimiento_historico": 0,
@@ -167,6 +169,8 @@ class PlanMejoramientoService:
         pages/plan_mejoramiento.py::_render_export_button (valores numéricos
         crudos, no el texto formateado de la tabla en pantalla)."""
         df = load_plan_indicadores(self._excel)
+        if "Tipo" in df.columns:
+            df = df[df["Tipo"] != "Metrica"]
         rows = apply_plan_indicadores_filters(
             df, factor=factor, caracteristica=caracteristica, tipo=tipo, nombre=nombre
         )
