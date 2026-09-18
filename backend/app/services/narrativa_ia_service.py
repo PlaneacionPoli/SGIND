@@ -1,9 +1,18 @@
-"""Narrativa con IA generativa (Claude) para fichas de indicador — C-02.
+"""Narrativa con IA generativa (Gemini) para fichas de indicador — C-02.
 
-Portado desde services/ai_analysis.py (legacy Streamlit). Reutiliza el
-fallback heurístico de app.domain.procesos_builders cuando no hay
-ANTHROPIC_API_KEY configurada o la llamada a la API falla, siguiendo el
-mismo patrón obligatorio de degradación del legacy y de ADR-007.
+Portado desde services/ai_analysis.py (legacy Streamlit), originalmente sobre
+Claude. Se migró a Gemini (Google AI Studio) porque su free tier no requiere
+tarjeta de crédito ni presupuesto asignado — decisión de producto de la Fase 4
+del plan de remediación ("buscar otra IA gratuita que pueda implementarse").
+Reutiliza el fallback heurístico de app.domain.procesos_builders cuando no hay
+GEMINI_API_KEY configurada o la llamada a la API falla, siguiendo el mismo
+patrón obligatorio de degradación del legacy y de ADR-007.
+
+Obtener una API key gratuita: https://aistudio.google.com/app/apikey
+(no requiere tarjeta de crédito). Límites del free tier para gemini-2.5-flash
+al momento de escribir esto: 15 solicitudes/min, 1500 solicitudes/día,
+1M tokens/min — de sobra para narrativas generadas bajo demanda al abrir
+una ficha de indicador.
 """
 
 from __future__ import annotations
@@ -16,7 +25,7 @@ from app.domain.procesos_builders import generate_ficha_narrativa_heuristica
 
 logger = logging.getLogger(__name__)
 
-_MODEL = "claude-haiku-4-5-20251001"
+_MODEL = "gemini-2.5-flash"
 
 _PROMPT_TEMPLATE = """Actúa como analista estratégico experto en indicadores de gestión institucional.
 
@@ -38,18 +47,18 @@ texto adicional ni encabezados."""
 
 
 def _get_client() -> Any | None:
-    key = get_settings().anthropic_api_key
+    key = get_settings().gemini_api_key
     if not key:
         return None
     try:
-        import anthropic
+        from google import genai
     except ImportError:
-        logger.warning("Paquete anthropic no instalado; usando narrativa heurística.")
+        logger.warning("Paquete google-genai no instalado; usando narrativa heurística.")
         return None
     try:
-        return anthropic.Anthropic(api_key=key)
+        return genai.Client(api_key=key)
     except Exception:
-        logger.exception("No se pudo inicializar el cliente de Anthropic.")
+        logger.exception("No se pudo inicializar el cliente de Gemini.")
         return None
 
 
@@ -78,7 +87,7 @@ def generar_narrativa_ficha(
     cumplimiento: float | None,
     proceso: str | None = None,
 ) -> dict[str, str]:
-    """Narrativa de ficha vía Claude si hay API key configurada; si no, o si falla, usa el heurístico."""
+    """Narrativa de ficha vía Gemini si hay API key configurada; si no, o si falla, usa el heurístico."""
     fallback = generate_ficha_narrativa_heuristica(
         nombre=nombre,
         meta=meta,
@@ -101,14 +110,12 @@ def generar_narrativa_ficha(
         cumplimiento=f"{cumplimiento}%" if cumplimiento is not None else "N/D",
     )
     try:
-        message = client.messages.create(
-            model=_MODEL,
-            max_tokens=400,
-            messages=[{"role": "user", "content": prompt}],
-        )
-        texto = message.content[0].text.strip()
+        response = client.models.generate_content(model=_MODEL, contents=prompt)
+        texto = (response.text or "").strip()
+        if not texto:
+            raise ValueError("Respuesta vacía de Gemini")
     except Exception:
-        logger.exception("Fallo al llamar a la API de Claude; usando narrativa heurística.")
+        logger.exception("Fallo al llamar a la API de Gemini; usando narrativa heurística.")
         return fallback
 
     parsed = _parse_respuesta(texto)
@@ -130,5 +137,5 @@ def generar_narrativa_ficha(
         "riesgo": riesgo,
         "recomendacion": recomendacion,
         "texto_html": texto_html,
-        "fuente": "claude",
+        "fuente": "gemini",
     }

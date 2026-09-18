@@ -74,7 +74,9 @@ class ETLPipelineService:
     def leer_cierres(self) -> pd.DataFrame:
         return self.ejecutar(sheet="Consolidado Cierres")
 
-    def _fase1_leer_path(self, relative: str, *, historico: bool, sheet: str | None = None) -> pd.DataFrame:
+    def _fase1_leer_path(
+        self, relative: str, *, historico: bool, sheet: str | None = None
+    ) -> pd.DataFrame:
         if sheet is None:
             sheet = "Consolidado Historico" if historico else "Consolidado Semestral"
         try:
@@ -107,9 +109,12 @@ class ETLPipelineService:
         try:
             df_cmi = self._excel.read_excel(cmi_path, sheet_name=_CMI_SHEET)
             df_cmi = renombrar_columnas(df_cmi, obtener_rename_map())
-            df_cmi = df_cmi.rename(columns={
-                "Linea_Estrategica": "Linea", "Objetivo_Estrategico": "Objetivo",
-            })
+            df_cmi = df_cmi.rename(
+                columns={
+                    "Linea_Estrategica": "Linea",
+                    "Objetivo_Estrategico": "Objetivo",
+                }
+            )
             if "Id" not in df_cmi.columns:
                 return df
             df_cmi["Id"] = df_cmi["Id"].apply(id_a_str)

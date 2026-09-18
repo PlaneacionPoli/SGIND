@@ -13,8 +13,8 @@ Cubre:
 
 import pytest
 
-
 # ─── /auth/login ─────────────────────────────────────────────────────────────
+
 
 @pytest.mark.asyncio
 async def test_auth_login_redirige_o_503(client):
@@ -43,6 +43,7 @@ async def test_auth_login_url_estructura(client):
 
 # ─── /auth/me ────────────────────────────────────────────────────────────────
 
+
 @pytest.mark.asyncio
 async def test_auth_me_requiere_auth(client):
     """GET /auth/me sin token → 401."""
@@ -60,6 +61,7 @@ async def test_auth_me_con_token(client, auth_as_calidad):
 
 # ─── /auth/dev-token ─────────────────────────────────────────────────────────
 
+
 @pytest.mark.asyncio
 async def test_dev_token_bloqueado_en_production(client):
     """POST /auth/dev-token debe devolver 404 en producción o 200/422 en desarrollo."""
@@ -71,12 +73,11 @@ async def test_dev_token_bloqueado_en_production(client):
         raise
     # En entorno development (tests) puede retornar 200 o 500 (sin PG)
     # En producción debe retornar 404 (endpoint oculto)
-    assert resp.status_code in (200, 404, 422, 500), (
-        f"Status inesperado: {resp.status_code}"
-    )
+    assert resp.status_code in (200, 404, 422, 500), f"Status inesperado: {resp.status_code}"
 
 
 # ─── JWT: create_access_token / decode_token ─────────────────────────────────
+
 
 def test_jwt_create_y_decode():
     """JWT generado puede ser decodificado y contiene los claims correctos."""
@@ -116,9 +117,11 @@ def test_jwt_claims_no_se_pierden():
 
 # ─── RBAC: require_reader / require_admin ────────────────────────────────────
 
+
 def test_rbac_require_reader_incluye_todos_los_roles():
     """require_reader acepta procesos, calidad y desempeno."""
     from app.core.security import require_reader
+
     # require_reader es un callable que retorna un Depends checker
     # Solo verificamos que está definido y es callable
     assert callable(require_reader)
@@ -128,17 +131,16 @@ def test_rbac_require_admin_excluye_procesos():
     """require_admin NO debe aceptar el rol 'procesos'."""
     from app.core.security import ADMIN_ROLES
 
-    assert "procesos" not in ADMIN_ROLES, (
-        "El rol 'procesos' no debe tener permisos de admin"
-    )
+    assert "procesos" not in ADMIN_ROLES, "El rol 'procesos' no debe tener permisos de admin"
     assert "calidad" in ADMIN_ROLES
     assert "desempeno" in ADMIN_ROLES
 
 
 def test_rbac_matrix_roles_definidos():
     """Los 3 roles del sistema existen en RoleName."""
-    from app.core.config import RoleName
     import typing
+
+    from app.core.config import RoleName
 
     args = typing.get_args(RoleName)
     assert "procesos" in args
@@ -149,15 +151,14 @@ def test_rbac_matrix_roles_definidos():
 
 # ─── Seguridad: dev login solo en no-producción ──────────────────────────────
 
+
 def test_dev_token_endpoint_oculto_en_schema():
     """El endpoint /auth/dev-token usa include_in_schema=False (no aparece en Swagger)."""
     from app.main import app
 
-    routes = {r.path: r for r in app.routes if hasattr(r, "path")}  # type: ignore[union-attr]
     # El endpoint existe pero debe tener include_in_schema=False
     dev_routes = [
-        r for r in app.routes
-        if hasattr(r, "path") and "/dev-token" in getattr(r, "path", "")
+        r for r in app.routes if hasattr(r, "path") and "/dev-token" in getattr(r, "path", "")
     ]
     for route in dev_routes:
         # Verificar que include_in_schema=False (no visible en docs)

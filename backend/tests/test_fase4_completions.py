@@ -19,6 +19,7 @@ def _is_db_unavailable(exc: Exception) -> bool:
 
 # ─── Helpers ─────────────────────────────────────────────────────────────────
 
+
 def _make_admin(email: str = "admin@poligran.edu.co") -> User:
     user = MagicMock(spec=User)
     user.email = email
@@ -38,6 +39,7 @@ def _make_reader(email: str = "reader@poligran.edu.co") -> User:
 
 
 # ─── OM CRUD ─────────────────────────────────────────────────────────────────
+
 
 @pytest.mark.asyncio
 async def test_om_list_requiere_auth(client):
@@ -168,6 +170,7 @@ async def test_om_crud_flujo_completo(client, auth_as_calidad):
 
 # ─── Filtros Plan de Mejoramiento ────────────────────────────────────────────
 
+
 @pytest.mark.asyncio
 async def test_plan_mejoramiento_filtros_requiere_auth(client):
     resp = await client.get("/api/v1/plan-mejoramiento/filtros")
@@ -188,6 +191,7 @@ async def test_plan_mejoramiento_filtros_estructura(client, auth_as_calidad):
 
 
 # ─── Filtros Seguimiento ──────────────────────────────────────────────────────
+
 
 @pytest.mark.asyncio
 async def test_seguimiento_filtros_requiere_auth(client):
@@ -210,6 +214,7 @@ async def test_seguimiento_filtros_estructura(client, auth_as_calidad):
 
 # ─── Filtros Informe ──────────────────────────────────────────────────────────
 
+
 @pytest.mark.asyncio
 async def test_informe_filtros_requiere_auth(client):
     resp = await client.get("/api/v1/informe/filtros")
@@ -226,6 +231,7 @@ async def test_informe_filtros_estructura(client, auth_as_calidad):
 
 # ─── Plan de Mejoramiento dashboard ──────────────────────────────────────────
 
+
 @pytest.mark.asyncio
 async def test_plan_mejoramiento_dashboard_requiere_auth(client):
     resp = await client.get("/api/v1/plan-mejoramiento/dashboard")
@@ -241,6 +247,7 @@ async def test_plan_mejoramiento_dashboard_responde(client, auth_as_calidad):
 
 
 # ─── Seguimiento dashboard ────────────────────────────────────────────────────
+
 
 @pytest.mark.asyncio
 async def test_seguimiento_dashboard_requiere_auth(client):

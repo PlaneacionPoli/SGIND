@@ -1,10 +1,10 @@
 """Tests módulos operativos — seguimiento y plan mejoramiento."""
 
 from app.core.config import get_settings
+from app.domain.strategic_processors import StrategicProcessors
 from app.services.excel_reader import ExcelReaderService
 from app.services.plan_mejoramiento_service import PlanMejoramientoService
 from app.services.seguimiento_service import SeguimientoService
-from app.domain.strategic_processors import StrategicProcessors
 
 
 def _excel():

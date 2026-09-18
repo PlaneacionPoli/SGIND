@@ -7,18 +7,17 @@ from typing import Any
 import pandas as pd
 
 from app.domain.categorization import categorizar_cumplimiento
+from app.domain.constants import COLOR_CATEGORIA
 from app.domain.linea_order import linea_sort_key
 from app.domain.loader_utils import repair_linea_encoding
 from app.services.excel_reader import ExcelReaderService
 from app.services.tracking_cache import get_tracking_dataframe
 
-NIVEL_COLOR: dict[str, str] = {
-    "Sobrecumplimiento": "#3b82f6",
-    "Cumplimiento": "#22c55e",
-    "Alerta": "#f59e0b",
-    "Peligro": "#ef4444",
-    "Sin dato": "#94a3b8",
-}
+# Única fuente de verdad de colores de nivel — antes este módulo tenía una
+# paleta propia (#3b82f6/#22c55e/...) que divergía de COLOR_CATEGORIA, usada
+# por el resto del backend (cmi_builders, procesos_builders, etc.) y por el
+# frontend (cmiChartColors.ts). Ver plan de remediación, Fase 5.1.
+NIVEL_COLOR: dict[str, str] = COLOR_CATEGORIA
 
 ESTADOS_DEFAULT = ["Peligro", "Alerta", "Cumplimiento", "Sobrecumplimiento", "Sin dato"]
 MACROS_DEFAULT = ["Docencia", "Investigación", "Extensión", "Gobierno"]
@@ -64,11 +63,15 @@ class PDIService:
         for path in _CNA_PATHS:
             try:
                 df_cna = self._excel.read_excel(path, sheet_name=_CNA_SHEET)
-                df_cna = df_cna.rename(columns={
-                    "Linea_Estrategica": "Linea", "Objetivo_Estrategico": "Objetivo",
-                })
+                df_cna = df_cna.rename(
+                    columns={
+                        "Linea_Estrategica": "Linea",
+                        "Objetivo_Estrategico": "Objetivo",
+                    }
+                )
                 merge_cols = [
-                    c for c in ["Linea", "Objetivo", "Factor", "Caracteristica", "CNA_SNIES"]
+                    c
+                    for c in ["Linea", "Objetivo", "Factor", "Caracteristica", "CNA_SNIES"]
                     if c in df_cna.columns
                 ]
                 if merge_cols and "Id" in df.columns and "Id" in df_cna.columns:
@@ -84,7 +87,11 @@ class PDIService:
                     for col in merge_cols:
                         cna_col = f"{col}_cna"
                         if cna_col in df.columns:
-                            df[col] = df[cna_col].combine_first(df[col]) if col in df.columns else df[cna_col]
+                            df[col] = (
+                                df[cna_col].combine_first(df[col])
+                                if col in df.columns
+                                else df[cna_col]
+                            )
                             df = df.drop(columns=[cna_col])
                     if "Linea" in df.columns:
                         df["Linea"] = repair_linea_encoding(df["Linea"])
@@ -92,7 +99,9 @@ class PDIService:
             except Exception:
                 continue
 
-        tiene_factor = df["Factor"].notna() if "Factor" in df.columns else pd.Series(False, index=df.index)
+        tiene_factor = (
+            df["Factor"].notna() if "Factor" in df.columns else pd.Series(False, index=df.index)
+        )
         tiene_cna_snies = (
             df["CNA_SNIES"].astype(str).str.strip().str.lower().isin({"true", "1", "1.0"})
             if "CNA_SNIES" in df.columns
@@ -119,9 +128,8 @@ class PDIService:
 
         # Brecha
         if "Meta" in df.columns and "Ejecucion" in df.columns:
-            df["brecha"] = (
-                pd.to_numeric(df["Meta"], errors="coerce")
-                - pd.to_numeric(df["Ejecucion"], errors="coerce")
+            df["brecha"] = pd.to_numeric(df["Meta"], errors="coerce") - pd.to_numeric(
+                df["Ejecucion"], errors="coerce"
             )
         else:
             df["brecha"] = None
@@ -129,7 +137,8 @@ class PDIService:
         # Classify estado (misma escala/umbrales que categorizar_cumplimiento central)
         id_col = df["Id"] if "Id" in df.columns else pd.Series([None] * len(df), index=df.index)
         df["Estado"] = [
-            _classify_estado(cumpl, id_ind) for cumpl, id_ind in zip(df["cumplimiento_pct"], id_col)
+            _classify_estado(cumpl, id_ind)
+            for cumpl, id_ind in zip(df["cumplimiento_pct"], id_col, strict=True)
         ]
 
         return df
@@ -211,11 +220,15 @@ class PDIService:
             df_f = df_f[df_f["Periodo"].astype(str) == horizonte]
 
         # KPIs
-        cumpl_s = pd.to_numeric(df_f.get("cumplimiento_pct", pd.Series(dtype=float)), errors="coerce")
+        cumpl_s = pd.to_numeric(
+            df_f.get("cumplimiento_pct", pd.Series(dtype=float)), errors="coerce"
+        )
         brecha_s = pd.to_numeric(df_f.get("brecha", pd.Series(dtype=float)), errors="coerce")
         kpis: dict[str, Any] = {
             "total": len(df_f),
-            "cumplimiento_promedio": round(float(cumpl_s.mean()), 1) if cumpl_s.notna().any() else None,
+            "cumplimiento_promedio": round(float(cumpl_s.mean()), 1)
+            if cumpl_s.notna().any()
+            else None,
             "brecha_promedio": round(float(brecha_s.mean()), 1) if brecha_s.notna().any() else None,
         }
 
@@ -225,29 +238,39 @@ class PDIService:
         has_obj = "Objetivo" in df_f.columns
         if has_linea and has_obj:
             for macro_val, gm in df_f.groupby("Linea", dropna=True):
-                treemap.append({"id": str(macro_val), "label": str(macro_val), "parent": "", "value": len(gm)})
+                treemap.append(
+                    {"id": str(macro_val), "label": str(macro_val), "parent": "", "value": len(gm)}
+                )
                 for obj_val, go in gm.groupby("Objetivo", dropna=True):
                     node_id = f"{macro_val}||{obj_val}"
                     treemap.append(
-                        {"id": node_id, "label": str(obj_val)[:60], "parent": str(macro_val), "value": len(go)}
+                        {
+                            "id": node_id,
+                            "label": str(obj_val)[:60],
+                            "parent": str(macro_val),
+                            "value": len(go),
+                        }
                     )
                     for _, row in go.iterrows():
                         ind_id = str(row.get("Id", ""))
                         ind_label = f"{ind_id}: {str(row.get('Indicador', ''))[:40]}"
                         cumpl_val = row.get("cumplimiento_pct")
                         estado_str = str(row.get("Estado", "Sin dato"))
-                        treemap.append({
-                            "id": ind_id or f"{node_id}||{ind_label}",
-                            "label": ind_label,
-                            "parent": node_id,
-                            "value": 1,
-                            "color": NIVEL_COLOR.get(estado_str, "#94a3b8"),
-                            "color_value": (
-                                round(float(cumpl_val), 1)
-                                if cumpl_val is not None and not (isinstance(cumpl_val, float) and pd.isna(cumpl_val))
-                                else None
-                            ),
-                        })
+                        treemap.append(
+                            {
+                                "id": ind_id or f"{node_id}||{ind_label}",
+                                "label": ind_label,
+                                "parent": node_id,
+                                "value": 1,
+                                "color": NIVEL_COLOR.get(estado_str, "#BDBDBD"),
+                                "color_value": (
+                                    round(float(cumpl_val), 1)
+                                    if cumpl_val is not None
+                                    and not (isinstance(cumpl_val, float) and pd.isna(cumpl_val))
+                                    else None
+                                ),
+                            }
+                        )
 
         # Benchmark by Proceso
         benchmark: list[dict[str, Any]] = []
@@ -257,11 +280,13 @@ class PDIService:
                 c_series = pd.to_numeric(gp["cumplimiento_pct"], errors="coerce")
                 if c_series.notna().any():
                     c_mean = round(float(c_series.mean()), 1)
-                    benchmark.append({
-                        "proceso": str(proc),
-                        "cumplimiento": c_mean,
-                        "benchmark": round(c_mean - 5, 1),
-                    })
+                    benchmark.append(
+                        {
+                            "proceso": str(proc),
+                            "cumplimiento": c_mean,
+                            "benchmark": round(c_mean - 5, 1),
+                        }
+                    )
 
         # Evolución brechas
         evolucion: list[dict[str, Any]] = []
@@ -269,14 +294,31 @@ class PDIService:
             for (per, proc), g in df_f.groupby(["Periodo", proc_col], dropna=True):
                 b_series = pd.to_numeric(g["brecha"], errors="coerce")
                 if b_series.notna().any():
-                    evolucion.append({
-                        "periodo": str(per),
-                        "proceso": str(proc),
-                        "brecha": round(float(b_series.mean()), 1),
-                    })
+                    evolucion.append(
+                        {
+                            "periodo": str(per),
+                            "proceso": str(proc),
+                            "brecha": round(float(b_series.mean()), 1),
+                        }
+                    )
 
         # Tabla
-        tabla_cols = ["Id", "Indicador", "Linea", "Objetivo", "cumplimiento_pct", "Meta", "Ejecucion", "Meta_Signo", "Ejecucion_s", "EjecS", "Decimales_Meta", "Decimales_Ejecucion", "Estado", "brecha"]
+        tabla_cols = [
+            "Id",
+            "Indicador",
+            "Linea",
+            "Objetivo",
+            "cumplimiento_pct",
+            "Meta",
+            "Ejecucion",
+            "Meta_Signo",
+            "Ejecucion_s",
+            "EjecS",
+            "Decimales_Meta",
+            "Decimales_Ejecucion",
+            "Estado",
+            "brecha",
+        ]
         tabla: list[dict[str, Any]] = []
         for _, row in df_f.iterrows():
             rec: dict[str, Any] = {}
@@ -290,7 +332,7 @@ class PDIService:
                     rec[c] = v
                 else:
                     rec[c] = str(v)
-            rec["estado_color"] = NIVEL_COLOR.get(str(row.get("Estado", "Sin dato")), "#94a3b8")
+            rec["estado_color"] = NIVEL_COLOR.get(str(row.get("Estado", "Sin dato")), "#BDBDBD")
             tabla.append(rec)
 
         return {

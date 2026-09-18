@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import re
-from typing import Optional
 
 import pandas as pd
 
@@ -86,9 +85,12 @@ class CMIFilterService:
         if df.empty:
             return set()
         col_plan = next(
-            (c for c in df.columns
-             if "plan estrateg" in c.lower().replace("_", " ")
-             or c in ("Indicadores Plan estrategico", "Indicadores_Plan_Estrategico")),
+            (
+                c
+                for c in df.columns
+                if "plan estrateg" in c.lower().replace("_", " ")
+                or c in ("Indicadores Plan estrategico", "Indicadores_Plan_Estrategico")
+            ),
             None,
         )
         if not col_plan or "Proyecto" not in df.columns or "Id" not in df.columns:
@@ -107,7 +109,7 @@ class CMIFilterService:
         filtered = df[flag_proyecto == 1]
         return {_normalize_id_value(v) for v in filtered["Id"].dropna() if _normalize_id_value(v)}
 
-    def get_procesos_ids(self, year: Optional[int] = None) -> set[str]:
+    def get_procesos_ids(self, year: int | None = None) -> set[str]:
         root = str(self._excel.data_root.resolve())
         cache_key = (root, year)
 
@@ -117,7 +119,9 @@ class CMIFilterService:
                 return frozenset()
             flag_sub = _normalize_flag_series(df["Subprocesos"])
             filtered = df[flag_sub == 1]
-            base_ids = {_normalize_id_value(v) for v in filtered["Id"].dropna() if _normalize_id_value(v)}
+            base_ids = {
+                _normalize_id_value(v) for v in filtered["Id"].dropna() if _normalize_id_value(v)
+            }
             if year is None:
                 return frozenset(base_ids)
             kawak_ids = self._load_kawak_active_ids(year)
@@ -143,17 +147,28 @@ class CMIFilterService:
                     if df_k.empty:
                         continue
                     id_col = next(
-                        (c for c in df_k.columns if str(c).strip().lower() in ("id", "id_indicador", "idindicador")),
+                        (
+                            c
+                            for c in df_k.columns
+                            if str(c).strip().lower() in ("id", "id_indicador", "idindicador")
+                        ),
                         None,
                     )
                     if id_col is None:
                         continue
                     year_col = next(
-                        (c for c in df_k.columns if str(c).strip().lower() in ("anio", "año", "year")),
+                        (
+                            c
+                            for c in df_k.columns
+                            if str(c).strip().lower() in ("anio", "año", "year")
+                        ),
                         None,
                     )
                     if year_col is not None:
-                        df_k = df_k[pd.to_numeric(df_k[year_col], errors="coerce").fillna(0).astype(int) == int(year)]
+                        df_k = df_k[
+                            pd.to_numeric(df_k[year_col], errors="coerce").fillna(0).astype(int)
+                            == int(year)
+                        ]
                     else:
                         match = re.search(r"(20\d{2})", path.name)
                         if match and int(match.group(1)) != int(year):
@@ -194,7 +209,11 @@ class CMIFilterService:
 
         def _load() -> frozenset[str]:
             cmi_df = self.load_cmi_worksheet()
-            if cmi_df.empty or "Subprocesos" not in cmi_df.columns or "Subproceso" not in cmi_df.columns:
+            if (
+                cmi_df.empty
+                or "Subprocesos" not in cmi_df.columns
+                or "Subproceso" not in cmi_df.columns
+            ):
                 return frozenset()
             sub_cmi = set(
                 cmi_df.loc[_normalize_flag_series(cmi_df["Subprocesos"]) == 1, "Subproceso"]

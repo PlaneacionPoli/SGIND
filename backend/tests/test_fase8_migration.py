@@ -32,13 +32,15 @@ sys.path.insert(0, str(SCRIPTS_DIR))
 
 # ─── Dry-run SQLite ──────────────────────────────────────────────────────────
 
+
 def test_sqlite_dryrun_no_requiere_bd(tmp_path, capsys):
     """El dry-run de migrate_sqlite_to_postgres no necesita PostgreSQL."""
     if not SQLITE_DB.exists():
         pytest.skip("SQLite no disponible")
 
-    from migrate_sqlite_to_postgres import read_sqlite_om, read_sqlite_acciones
     import sqlite3
+
+    from migrate_sqlite_to_postgres import read_sqlite_acciones, read_sqlite_om
 
     conn = sqlite3.connect(SQLITE_DB)
     om_rows = read_sqlite_om(conn)
@@ -78,12 +80,13 @@ def test_sqlite_om_mapeo():
 
 # ─── Dry-run Excel ───────────────────────────────────────────────────────────
 
+
 def test_excel_dryrun_no_requiere_bd():
     """El dry-run de migrate_excel_to_postgres lee el Excel sin necesitar BD."""
     if not ACCIONES_EXCEL.exists():
         pytest.skip("acciones_mejora.xlsx no disponible")
 
-    from migrate_excel_to_postgres import read_acciones_excel, analyze_acciones
+    from migrate_excel_to_postgres import analyze_acciones, read_acciones_excel
 
     df = read_acciones_excel(ACCIONES_EXCEL)
     assert len(df) > 0
@@ -102,6 +105,7 @@ def test_excel_acciones_columnas_requeridas():
         pytest.skip("acciones_mejora.xlsx no disponible")
 
     import pandas as pd
+
     df = pd.read_excel(ACCIONES_EXCEL, nrows=0)
     cols = set(df.columns)
 
@@ -140,12 +144,14 @@ def test_excel_mapeo_accion_row():
 
 # ─── Validación de fuentes ───────────────────────────────────────────────────
 
+
 def test_resultados_consolidados_estructura():
     """Resultados Consolidados.xlsx tiene las columnas esperadas por el ETL."""
     if not RESULTADOS_EXCEL.exists():
         pytest.skip("Resultados Consolidados.xlsx no disponible")
 
     import pandas as pd
+
     df = pd.read_excel(RESULTADOS_EXCEL, nrows=5)
     cols = set(df.columns)
 
@@ -160,6 +166,7 @@ def test_resultados_consolidados_kpi_baseline():
         pytest.skip("Resultados Consolidados.xlsx no disponible")
 
     import pandas as pd
+
     df = pd.read_excel(RESULTADOS_EXCEL)
     df.columns = [str(c).strip() for c in df.columns]
 
@@ -184,6 +191,7 @@ def test_resultados_consolidados_kpi_baseline():
 def test_validate_migration_script_no_pg(tmp_path):
     """validate_migration.py con --no-pg produce reporte JSON válido."""
     import subprocess
+
     result = subprocess.run(
         [sys.executable, str(SCRIPTS_DIR / "validate_migration.py"), "--no-pg"],
         capture_output=True,
@@ -200,6 +208,7 @@ def test_migrate_excel_dryrun_script(tmp_path):
         pytest.skip("acciones_mejora.xlsx no disponible")
 
     import subprocess
+
     result = subprocess.run(
         [sys.executable, str(SCRIPTS_DIR / "migrate_excel_to_postgres.py"), "--dry-run"],
         capture_output=True,
@@ -216,6 +225,7 @@ def test_migrate_sqlite_dryrun_script():
         pytest.skip("SQLite no disponible")
 
     import subprocess
+
     result = subprocess.run(
         [sys.executable, str(SCRIPTS_DIR / "migrate_sqlite_to_postgres.py"), "--dry-run"],
         capture_output=True,
@@ -231,12 +241,13 @@ def test_migrate_sqlite_dryrun_script():
 
 # ─── Análisis de issues ──────────────────────────────────────────────────────
 
+
 def test_analyze_issues_detecta_vencidas():
     """analyze_issues detecta acciones en ejecución con fecha vencida."""
     if not ACCIONES_EXCEL.exists():
         pytest.skip("acciones_mejora.xlsx no disponible")
 
-    from migrate_excel_to_postgres import read_acciones_excel, analyze_issues
+    from migrate_excel_to_postgres import analyze_issues, read_acciones_excel
 
     df = read_acciones_excel(ACCIONES_EXCEL)
     issues = analyze_issues(df)

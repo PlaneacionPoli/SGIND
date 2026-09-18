@@ -56,9 +56,7 @@ def obtener_ultimo_registro(df: pd.DataFrame) -> pd.DataFrame:
 
     if "Fecha" in df.columns:
         return (
-            df.sort_values("Fecha")
-            .drop_duplicates(subset="Id", keep="last")
-            .reset_index(drop=True)
+            df.sort_values("Fecha").drop_duplicates(subset="Id", keep="last").reset_index(drop=True)
         )
     return df.drop_duplicates(subset="Id", keep="last").reset_index(drop=True)
 
@@ -71,7 +69,11 @@ def calcular_kpis(df_ultimo: pd.DataFrame) -> tuple[int, dict]:
     total = len(df_con_datos)
     conteos: dict = {}
     for cat in ["Peligro", "Alerta", "Cumplimiento", "Sobrecumplimiento"]:
-        n = int((df_con_datos["Categoria"] == cat).sum()) if "Categoria" in df_con_datos.columns else 0
+        n = (
+            int((df_con_datos["Categoria"] == cat).sum())
+            if "Categoria" in df_con_datos.columns
+            else 0
+        )
         pct = round(n / total * 100, 1) if total > 0 else 0
         conteos[cat] = {"n": n, "pct": pct}
     return total, conteos
@@ -116,12 +118,17 @@ def aplicar_calculos_cumplimiento(df: pd.DataFrame) -> pd.DataFrame:
     if col_tipo_reg:
         mask_metrica = out[col_tipo_reg].astype(str).str.strip().str.lower() == "metrica"
     elif "Indicador" in out.columns:
-        mask_metrica = out["Indicador"].astype(str).str.lower().str.contains(r"\bmetrica\b", na=False)
+        mask_metrica = (
+            out["Indicador"].astype(str).str.lower().str.contains(r"\bmetrica\b", na=False)
+        )
     else:
         mask_metrica = pd.Series(False, index=out.index)
 
     mask_sin_meta = (
-        (pd.to_numeric(out["Meta"], errors="coerce").isna() | (pd.to_numeric(out["Meta"], errors="coerce") == 0))
+        (
+            pd.to_numeric(out["Meta"], errors="coerce").isna()
+            | (pd.to_numeric(out["Meta"], errors="coerce") == 0)
+        )
         if "Meta" in out.columns
         else pd.Series(False, index=out.index)
     )
@@ -145,15 +152,21 @@ def aplicar_calculos_cumplimiento(df: pd.DataFrame) -> pd.DataFrame:
 
     out.loc[mask_metrica | mask_sin_reporte, "Cumplimiento_norm"] = float("nan")
 
-    col_ejec = "Ejecucion" if "Ejecucion" in out.columns else find_col(out, ["Ejecución", "Ejecucion"])
+    col_ejec = (
+        "Ejecucion" if "Ejecucion" in out.columns else find_col(out, ["Ejecución", "Ejecucion"])
+    )
     col_sentido = "Sentido" if "Sentido" in out.columns else find_col(out, ["Sentido"])
 
     if col_ejec and "Meta" in out.columns:
-        calcular_mask = out["Cumplimiento_norm"].isna() & out["Meta"].notna() & out[col_ejec].notna()
+        calcular_mask = (
+            out["Cumplimiento_norm"].isna() & out["Meta"].notna() & out[col_ejec].notna()
+        )
         if calcular_mask.any():
 
             def _calcular_fila(row):
-                sentido = row[col_sentido] if col_sentido and col_sentido in row.index else "Positivo"
+                sentido = (
+                    row[col_sentido] if col_sentido and col_sentido in row.index else "Positivo"
+                )
                 return recalcular_cumplimiento_faltante(
                     row["Meta"],
                     row[col_ejec],
@@ -161,7 +174,9 @@ def aplicar_calculos_cumplimiento(df: pd.DataFrame) -> pd.DataFrame:
                     id_indicador=row.get("Id"),
                 )
 
-            out.loc[calcular_mask, "Cumplimiento_norm"] = out.loc[calcular_mask].apply(_calcular_fila, axis=1)
+            out.loc[calcular_mask, "Cumplimiento_norm"] = out.loc[calcular_mask].apply(
+                _calcular_fila, axis=1
+            )
 
     out["Categoria"] = out.apply(
         lambda r: categorizar_cumplimiento(

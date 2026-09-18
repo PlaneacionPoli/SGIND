@@ -5,7 +5,6 @@ import logging
 import pandas as pd
 
 from app.domain.constants import (
-    CategoriaCumplimiento,
     IDS_NEGATIVO_PCT,
     IDS_PLAN_ANUAL_DEFAULT,
     UMBRAL_ALERTA,
@@ -15,6 +14,7 @@ from app.domain.constants import (
     UMBRAL_PELIGRO_NEG_PCT,
     UMBRAL_SOBRECUMPLIMIENTO,
     UMBRAL_SOBRECUMPLIMIENTO_PA,
+    CategoriaCumplimiento,
 )
 
 logger = logging.getLogger(__name__)

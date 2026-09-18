@@ -6,7 +6,7 @@ import pandas as pd
 
 from app.domain.cmi_filters import CMIFilterService
 from app.services.excel_reader import ExcelReaderService
-from app.services.strategic_loaders import StrategicLoaders, PENDIENTE
+from app.services.strategic_loaders import PENDIENTE, StrategicLoaders
 
 PENDIENTE_STR = PENDIENTE
 
@@ -16,7 +16,18 @@ def _normalize_flag_series(series: pd.Series) -> pd.Series:
     if numeric.isna().any():
         raw = series.astype(str).str.strip().str.lower()
         mapped = raw.map(
-            {"1": 1, "1.0": 1, "si": 1, "true": 1, "x": 1, "0": 0, "0.0": 0, "no": 0, "false": 0, "": 0}
+            {
+                "1": 1,
+                "1.0": 1,
+                "si": 1,
+                "true": 1,
+                "x": 1,
+                "0": 0,
+                "0.0": 0,
+                "no": 0,
+                "false": 0,
+                "": 0,
+            }
         )
         numeric = numeric.fillna(mapped)
     return numeric
@@ -46,7 +57,9 @@ def cierre_por_corte(df_cierres: pd.DataFrame, anio: int, mes: int) -> pd.DataFr
     cutoff = int(anio) * 100 + int(mes)
     cutoff_date = pd.Timestamp(int(anio), int(mes), 1) + pd.offsets.MonthEnd(0)
     if "Anio" in df.columns and "Mes" in df.columns:
-        ym = pd.to_numeric(df["Anio"], errors="coerce") * 100 + pd.to_numeric(df["Mes"], errors="coerce")
+        ym = pd.to_numeric(df["Anio"], errors="coerce") * 100 + pd.to_numeric(
+            df["Mes"], errors="coerce"
+        )
         by_period = ym.notna() & (ym <= cutoff)
         if "Fecha" in df.columns:
             by_date = (
@@ -100,7 +113,9 @@ class StrategicProcessors:
         cierres_cut = cierre_por_corte(cierres, anio, mes)
         cierres_cut["Id"] = cierres_cut["Id"].apply(_normalize_id_value)
 
-        result = indicators[merge_cols].merge(cierres_cut, on="Id", how="left", suffixes=("", "_cierre"))
+        result = indicators[merge_cols].merge(
+            cierres_cut, on="Id", how="left", suffixes=("", "_cierre")
+        )
         if "Indicador_cierre" in result.columns:
             result["Indicador"] = result["Indicador"].where(
                 result["Indicador"].notna() & (result["Indicador"].astype(str).str.strip() != ""),
@@ -109,7 +124,9 @@ class StrategicProcessors:
             result = result.drop(columns=["Indicador_cierre"])
 
         if not catalog.empty and "Linea" in result.columns and "Objetivo" in result.columns:
-            result = result.merge(catalog, on=["Linea", "Objetivo"], how="left", suffixes=("", "_cat"))
+            result = result.merge(
+                catalog, on=["Linea", "Objetivo"], how="left", suffixes=("", "_cat")
+            )
 
         if "Nivel de cumplimiento" in result.columns:
             result["Nivel de cumplimiento"] = result["Nivel de cumplimiento"].fillna(PENDIENTE_STR)
@@ -149,7 +166,9 @@ class StrategicProcessors:
 
         # Solo indicadores con resultado final registrado en la hoja Cierre PDI
         # (inner join, no left) — evita mostrar indicadores sin cierre real.
-        result = indicators[merge_cols].merge(cierre_pdi, on="Id", how="inner", suffixes=("", "_cierre"))
+        result = indicators[merge_cols].merge(
+            cierre_pdi, on="Id", how="inner", suffixes=("", "_cierre")
+        )
         if "Indicador_cierre" in result.columns:
             result["Indicador"] = result["Indicador"].where(
                 result["Indicador"].notna() & (result["Indicador"].astype(str).str.strip() != ""),
@@ -158,7 +177,9 @@ class StrategicProcessors:
             result = result.drop(columns=["Indicador_cierre"])
 
         if not catalog.empty and "Linea" in result.columns and "Objetivo" in result.columns:
-            result = result.merge(catalog, on=["Linea", "Objetivo"], how="left", suffixes=("", "_cat"))
+            result = result.merge(
+                catalog, on=["Linea", "Objetivo"], how="left", suffixes=("", "_cat")
+            )
 
         if "Nivel de cumplimiento" in result.columns:
             result["Nivel de cumplimiento"] = result["Nivel de cumplimiento"].fillna(PENDIENTE_STR)
@@ -188,7 +209,9 @@ class StrategicProcessors:
         cierres_cut = cierre_por_corte(cierres, anio, mes)
         cierres_cut["Id"] = cierres_cut["Id"].apply(_normalize_id_value)
 
-        result = indicators[merge_cols].merge(cierres_cut, on="Id", how="left", suffixes=("", "_cierre"))
+        result = indicators[merge_cols].merge(
+            cierres_cut, on="Id", how="left", suffixes=("", "_cierre")
+        )
         if "Indicador_cierre" in result.columns:
             result["Indicador"] = result["Indicador"].where(
                 result["Indicador"].notna() & (result["Indicador"].astype(str).str.strip() != ""),
@@ -197,7 +220,9 @@ class StrategicProcessors:
             result = result.drop(columns=["Indicador_cierre"])
 
         if not catalog.empty and "Factor" in result.columns and "Caracteristica" in result.columns:
-            result = result.merge(catalog, on=["Factor", "Caracteristica"], how="left", suffixes=("", "_cat"))
+            result = result.merge(
+                catalog, on=["Factor", "Caracteristica"], how="left", suffixes=("", "_cat")
+            )
 
         if "Nivel de cumplimiento" in result.columns:
             result["Nivel de cumplimiento"] = result["Nivel de cumplimiento"].fillna(PENDIENTE_STR)

@@ -33,6 +33,7 @@
 | 9    | Reportes PDF         | ⏳ Pendiente         | 0%     |
 | 10   | Deploy Staging       | ⏳ Pendiente         | 0%     |
 | 11   | UAT / Validación     | 🔄 En progreso       | 10%    |
+| 11.5 | Cierre de Hallazgos del Comparativo | 🔄 En progreso | 0% |
 | 12   | Cutover Producción   | 🔄 En progreso       | 15%    |
 
 ---
@@ -306,6 +307,24 @@ Migración real se ejecuta cuando PostgreSQL de producción esté disponible.
 
 ---
 
+### Fase 11.5 — Cierre de Hallazgos del Comparativo 🔄 En progreso
+
+> Plan detallado en [`PLAN_CIERRE_HALLAZGOS.md`](PLAN_CIERRE_HALLAZGOS.md), derivado del informe comparativo Streamlit vs. SGING.
+
+- [ ] Fase 0 del plan — Higiene base (lint backend con ruff, Vitest en frontend)
+- [ ] Fase 1 del plan — Consolidar paleta de semáforo (5 fuentes distintas → 1)
+- [ ] Fase 2 del plan — Tipar 6 endpoints sin `response_model`, eliminar modelo `Accion` muerto, extender test de regresión PDI
+- [ ] Fase 3 del plan — Paginación real en Seguimiento Operativo (backend + frontend)
+- [ ] Fase 4 del plan — Hook compartido `useCascadingProcessFilters` + persistencia de filtros en URL
+- [ ] Fase 5 del plan — Exportación de imagen en gráficos Plotly, limpieza de componentes muertos
+- [ ] Fase 6 del plan — Reactivación validada de los 5 módulos ocultos del menú
+- [ ] Fase 7 del plan — Panel de administración de usuarios/roles (MVP)
+- [ ] Fase 8 del plan — Comparativos multi-año (MVP)
+
+**Hito F11.5:** Cero hallazgos abiertos del comparativo. Menú con equivalencia funcional completa frente al legacy.
+
+---
+
 ### Fase 12 — Cutover a Producción 🔄 En progreso
 
 > Artefactos de cutover creados en `sgind-v2/docs/migration/` y `sgind-v2/scripts/`
@@ -396,6 +415,7 @@ npx playwright test
 | Archivo | Propósito |
 |---------|-----------|
 | `sgind-v2/docs/migration/STATUS.md` | Estado actualizado por fase |
+| `sgind-v2/docs/migration/PLAN_CIERRE_HALLAZGOS.md` | Plan de implementación para cerrar hallazgos del comparativo Streamlit vs. SGING (paleta, filtros, paginación, menús, admin de usuarios) |
 | `sgind-v2/docs/architecture/adrs/` | 8 Architectural Decision Records |
 | `sgind-v2/docs/architecture/RBAC_MATRIX.md` | Roles y permisos |
 | `sgind-v2/backend/app/domain/calculos.py` | Fórmulas de indicadores (debe ser fuente única) |

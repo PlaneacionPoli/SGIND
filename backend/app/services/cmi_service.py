@@ -8,7 +8,7 @@ from typing import Any
 import pandas as pd
 
 from app.core.ttl_cache import cache_get
-
+from app.domain.calidad_builders import build_calidad_dashboard, filter_calidad, load_calidad_data
 from app.domain.cmi_builders import (
     CORTE_POR_MES,
     CORTE_SEMESTRAL,
@@ -26,9 +26,8 @@ from app.domain.cmi_builders import (
     linea_color,
     previous_corte,
 )
-from app.domain.linea_order import linea_sort_key
-from app.domain.calidad_builders import build_calidad_dashboard, filter_calidad, load_calidad_data
 from app.domain.cmi_filters import CMIFilterService
+from app.domain.linea_order import linea_sort_key
 from app.domain.procesos_builders import (
     MESES_OPCIONES,
     TIPO_PROCESO_COLORS,
@@ -37,9 +36,9 @@ from app.domain.procesos_builders import (
     build_analisis_avanzado,
     build_banner,
     build_catalog_charts,
+    build_ejecucion_variacion,
     build_export_dataframe,
     build_export_excel_bytes,
-    build_ejecucion_variacion,
     build_filtros_options,
     build_historico_catalog,
     build_indicadores_procesos_listado,
@@ -99,7 +98,11 @@ class CMIService:
             return [fallback]
         anios = sorted(
             a
-            for a in pd.to_numeric(cierres["Anio"], errors="coerce").dropna().astype(int).unique().tolist()
+            for a in pd.to_numeric(cierres["Anio"], errors="coerce")
+            .dropna()
+            .astype(int)
+            .unique()
+            .tolist()
             if a <= MAX_ANIO_FILTROS
         )
         return anios or [fallback]
@@ -186,7 +189,9 @@ class CMIService:
         mes_eff = self._resolve_mes(mes, corte)
         corte_label = "Cierre PDI 2022-2025" if rango else CORTE_POR_MES.get(mes_eff, "Diciembre")
 
-        df = self._prepare_df_cierre_pdi() if rango else self._prepare_df(anio=anio_eff, mes=mes_eff)
+        df = (
+            self._prepare_df_cierre_pdi() if rango else self._prepare_df(anio=anio_eff, mes=mes_eff)
+        )
         pdi_catalog = self._loaders.load_pdi_catalog()
         cierres = self._loaders.load_cierres()
 
@@ -238,7 +243,9 @@ class CMIService:
             "alertas": build_alertas(df),
         }
 
-    def get_indicador_ficha(self, indicador_id: str, *, anio: int, mes: int | None = None, corte: str | None = None) -> dict[str, Any] | None:
+    def get_indicador_ficha(
+        self, indicador_id: str, *, anio: int, mes: int | None = None, corte: str | None = None
+    ) -> dict[str, Any] | None:
         mes_eff = self._resolve_mes(mes, corte)
         df = self._prepare_df(anio=int(anio), mes=mes_eff)
         if df.empty or "Id" not in df.columns:
@@ -256,7 +263,10 @@ class CMIService:
                 hist["Periodo"] = (
                     hist["Anio"].astype(str)
                     + "-"
-                    + hist.get("Mes", pd.Series([12] * len(hist))).astype(int).astype(str).str.zfill(2)
+                    + hist.get("Mes", pd.Series([12] * len(hist)))
+                    .astype(int)
+                    .astype(str)
+                    .str.zfill(2)
                 )
                 for _, r in hist.sort_values("Periodo").iterrows():
                     historico.append(
@@ -351,7 +361,9 @@ class CMIService:
         map_df = load_process_map(self._excel)
         anios = self._available_anios()
         anio_eff = int(anio) if anio is not None else default_anio_procesos(anios)
-        opts = build_filtros_options(tracking, map_df, self._cmi.load_cmi_worksheet(), anio=anio_eff)
+        opts = build_filtros_options(
+            tracking, map_df, self._cmi.load_cmi_worksheet(), anio=anio_eff
+        )
         return {
             "anios": opts["anios"] or anios,
             "anio_default": anio_eff,
@@ -427,7 +439,15 @@ class CMIService:
             },
             "total_indicadores": 0,
             "kpis": build_procesos_kpis(pd.DataFrame()),
-            "banner": build_banner(pd.DataFrame(), anio=anio_eff, mes=mes_eff, base_year=anio_eff - 1, base_month=None, cumpl_global=None, cumpl_base=None),
+            "banner": build_banner(
+                pd.DataFrame(),
+                anio=anio_eff,
+                mes=mes_eff,
+                base_year=anio_eff - 1,
+                base_month=None,
+                cumpl_global=None,
+                cumpl_base=None,
+            ),
             "distribucion_nivel": [],
             "tipo_proceso_cards": [],
             "proceso_bars": [],
@@ -460,18 +480,24 @@ class CMIService:
 
         df_current = self._slice_by_mes(year_prep, anio=anio_eff, mes=mes_eff)
         df_prev_month = (
-            self._slice_by_mes(year_prep, anio=anio_eff, mes=max(1, mes_eff - 1)) if mes_eff > 1 else pd.DataFrame()
+            self._slice_by_mes(year_prep, anio=anio_eff, mes=max(1, mes_eff - 1))
+            if mes_eff > 1
+            else pd.DataFrame()
         )
 
         df_base_year = (
-            self._slice_by_mes(year_prep_base, anio=base_year, mes=base_mes) if base_mes is not None else pd.DataFrame()
+            self._slice_by_mes(year_prep_base, anio=base_year, mes=base_mes)
+            if base_mes is not None
+            else pd.DataFrame()
         )
 
         mes_global = get_prev_month_for_year(tracking, anio_eff) or mes_eff
         df_global = self._slice_by_mes(year_prep, anio=anio_eff, mes=mes_global)
 
         df_global_base = (
-            self._slice_by_mes(year_prep_base, anio=base_year, mes=base_mes) if base_mes is not None else pd.DataFrame()
+            self._slice_by_mes(year_prep_base, anio=base_year, mes=base_mes)
+            if base_mes is not None
+            else pd.DataFrame()
         )
 
         vista_global = build_vista_global(
@@ -484,14 +510,18 @@ class CMIService:
             base_mes=base_mes,
         )
 
-        meses_hist = sorted(
-            tracking[pd.to_numeric(tracking["Anio"], errors="coerce") == anio_eff]["Mes"]
-            .apply(lambda m: int(mes_to_num(m) or 0))
-            .dropna()
-            .astype(int)
-            .unique()
-            .tolist()
-        ) if "Anio" in tracking.columns else list(range(1, 13))
+        meses_hist = (
+            sorted(
+                tracking[pd.to_numeric(tracking["Anio"], errors="coerce") == anio_eff]["Mes"]
+                .apply(lambda m: int(mes_to_num(m) or 0))
+                .dropna()
+                .astype(int)
+                .unique()
+                .tolist()
+            )
+            if "Anio" in tracking.columns
+            else list(range(1, 13))
+        )
 
         hist_slices_global: list[pd.DataFrame] = []
         for m in meses_hist:
@@ -499,7 +529,9 @@ class CMIService:
             if not sl.empty:
                 hist_slices_global.append(sl)
         tracking_hist_global = (
-            pd.concat(hist_slices_global, ignore_index=True) if hist_slices_global else pd.DataFrame()
+            pd.concat(hist_slices_global, ignore_index=True)
+            if hist_slices_global
+            else pd.DataFrame()
         )
 
         filtered = apply_ui_filters(
@@ -512,7 +544,9 @@ class CMIService:
         )
         latest = latest_per_indicator(filtered)
 
-        active_ids = set(latest["Id"].astype(str).str.strip().tolist()) if "Id" in latest.columns else set()
+        active_ids = (
+            set(latest["Id"].astype(str).str.strip().tolist()) if "Id" in latest.columns else set()
+        )
         catalog_charts = build_catalog_charts(cmi_catalog, active_ids)
 
         hist_slices: list[pd.DataFrame] = []
@@ -565,7 +599,11 @@ class CMIService:
             "mes_nombre": mes_nombre(mes_eff),
             "anios_disponibles": anios,
             "meses_disponibles": sorted(
-                tracking[tracking["Anio"] == anio_eff]["Mes"].apply(lambda m: int(mes_to_num(m) or 0)).dropna().unique().tolist()
+                tracking[tracking["Anio"] == anio_eff]["Mes"]
+                .apply(lambda m: int(mes_to_num(m) or 0))
+                .dropna()
+                .unique()
+                .tolist()
             )
             if "Anio" in tracking.columns and "Mes" in tracking.columns
             else list(range(1, 13)),
@@ -596,7 +634,9 @@ class CMIService:
             "indicadores_summary": build_indicadores_summary(latest),
             "indicadores": build_indicadores_procesos_listado(latest),
             "alertas": build_alertas(latest),
-            "variacion": build_variacion_analisis(latest, df_prev_month if not df_prev_month.empty else df_base_year),
+            "variacion": build_variacion_analisis(
+                latest, df_prev_month if not df_prev_month.empty else df_base_year
+            ),
             "analisis_avanzado": analisis_avanzado,
             "calidad": calidad,
             "vista_global": vista_global,
@@ -693,7 +733,9 @@ class CMIService:
         record["subproceso_final"] = str(row.get("Subproceso_final", row.get("Subproceso", "")))
         record["unidad"] = str(row.get("Unidad", ""))
         record["tipo_proceso"] = tipo
-        record["tipo_proceso_color"] = TIPO_PROCESO_COLORS.get(tipo.upper() if tipo else "", "#1A3A5C")
+        record["tipo_proceso_color"] = TIPO_PROCESO_COLORS.get(
+            tipo.upper() if tipo else "", "#1A3A5C"
+        )
         cump = row.get("cumplimiento_pct")
         try:
             cump_f = float(cump) if cump is not None else None
@@ -755,7 +797,9 @@ class CMIService:
         media = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         return content, filename, media
 
-    def get_estrategico(self, *, anio: int | None = None, mes: int | None = None, corte: str | None = None) -> dict[str, Any]:
+    def get_estrategico(
+        self, *, anio: int | None = None, mes: int | None = None, corte: str | None = None
+    ) -> dict[str, Any]:
         anios = self._available_anios()
         anio_eff = int(anio) if anio is not None else default_anio(anios)
         mes_eff = self._resolve_mes(mes, corte)
@@ -767,7 +811,11 @@ class CMIService:
         for linea, group in df.groupby("Linea", dropna=True):
             if not linea or str(linea).strip() in ("", "nan"):
                 continue
-            cumpl = group["cumplimiento_pct"].dropna() if "cumplimiento_pct" in group else pd.Series(dtype=float)
+            cumpl = (
+                group["cumplimiento_pct"].dropna()
+                if "cumplimiento_pct" in group
+                else pd.Series(dtype=float)
+            )
             promedio = round(float(cumpl.mean()), 1) if len(cumpl) else None
             riesgo = 0
             if "Nivel de cumplimiento" in group.columns:
@@ -798,7 +846,11 @@ class CMIService:
         for proceso, group in df.groupby(col, dropna=True):
             if not proceso or str(proceso).strip() in ("", "nan"):
                 continue
-            cumpl = group["cumplimiento_pct"].dropna() if "cumplimiento_pct" in group.columns else pd.Series(dtype=float)
+            cumpl = (
+                group["cumplimiento_pct"].dropna()
+                if "cumplimiento_pct" in group.columns
+                else pd.Series(dtype=float)
+            )
             promedio = round(float(cumpl.mean()), 1) if len(cumpl) else None
             conteo_cat: dict[str, int] = {}
             if "Nivel de cumplimiento" in group.columns:

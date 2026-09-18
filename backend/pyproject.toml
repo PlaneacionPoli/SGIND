@@ -1,0 +1,26 @@
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+exclude = [
+    "tests/*_disabled*",
+    "__pycache__",
+]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "UP",  # pyupgrade
+]
+ignore = [
+    "E501",  # line-too-long (handled by formatter on a best-effort basis)
+    "B008",  # FastAPI's Depends()/Query() default-arg pattern is intentional, used ~113x
+    "UP042", # (str, Enum) -> StrEnum is a behavior-adjacent change, left for a dedicated pass
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"

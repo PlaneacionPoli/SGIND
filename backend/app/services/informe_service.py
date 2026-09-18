@@ -26,7 +26,13 @@ class InformeService:
         try:
             return self._cmi.get_procesos_filtros()
         except FileNotFoundError:
-            return {"anios": [], "meses": [], "procesos": [], "subprocesos": [], "error": "datos no disponibles"}
+            return {
+                "anios": [],
+                "meses": [],
+                "procesos": [],
+                "subprocesos": [],
+                "error": "datos no disponibles",
+            }
 
     def get_dashboard(
         self,
@@ -65,7 +71,9 @@ class InformeService:
             anio_actual=anio, mes=mes, proceso=proceso, subproceso=subproceso
         )
         comparativa = build_comparativa_anual(historico_anual, mes)
-        propuestas, prop_err = load_propuestas(self._excel, proceso or "Todos", subproceso or "Todos")
+        propuestas, prop_err = load_propuestas(
+            self._excel, proceso or "Todos", subproceso or "Todos"
+        )
         auditoria, aud_err = load_auditoria(self._excel, proceso or "Todos")
 
         return {

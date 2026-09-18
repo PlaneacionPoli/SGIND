@@ -1,3 +1,5 @@
+from typing import Any
+
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -7,7 +9,13 @@ from app.core.database import get_db
 from app.core.security import require_admin, require_reader
 from app.domain.om_builders import load_plan_accion_para_om
 from app.models.user import User
-from app.schemas.common import RegistroOMCerrar, RegistroOMCreate, RegistroOMResponse, RegistroOMUpdate
+from app.schemas.common import (
+    OMMatrizResponse,
+    RegistroOMCerrar,
+    RegistroOMCreate,
+    RegistroOMResponse,
+    RegistroOMUpdate,
+)
 from app.services.excel_reader import ExcelReaderService
 from app.services.om_matriz_service import OMMatrizService
 from app.services.om_service import OMService
@@ -24,7 +32,7 @@ def _matriz_service(excel: ExcelReaderService = Depends(_excel)) -> OMMatrizServ
     return OMMatrizService(excel)
 
 
-@router.get("/matriz")
+@router.get("/matriz", response_model=OMMatrizResponse)
 async def om_matriz(
     anio: int = Query(...),
     mes: str = Query("Diciembre"),
@@ -34,8 +42,8 @@ async def om_matriz(
     _user: User = Depends(require_reader),
     db: AsyncSession = Depends(get_db),
     service: OMMatrizService = Depends(_matriz_service),
-) -> dict:
-    return await service.get_matriz(
+) -> OMMatrizResponse:
+    data = await service.get_matriz(
         db,
         anio=anio,
         mes=mes,
@@ -43,14 +51,15 @@ async def om_matriz(
         subproceso=subproceso,
         mostrar_alerta=mostrar_alerta,
     )
+    return OMMatrizResponse(**data)
 
 
-@router.get("/plan-accion")
+@router.get("/plan-accion", response_model=list[dict[str, Any]])
 async def om_plan_accion(
     numero_om: str = Query(...),
     _user: User = Depends(require_reader),
     excel: ExcelReaderService = Depends(_excel),
-) -> list[dict]:
+) -> list[dict[str, Any]]:
     """Actividades del plan de acción asociadas a un numero_om/identificador.
 
     Paridad con el detalle 'Ver más' de streamlit_app/pages/gestion_om.py.

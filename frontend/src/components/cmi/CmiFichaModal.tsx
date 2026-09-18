@@ -234,7 +234,7 @@ export function CmiFichaModal({ ficha, loading, onClose, onDownloadPdf, download
             {ficha.narrativa_ia && (
               <div className="rounded-xl border border-blue-100 bg-blue-50/50 p-4">
                 <p className="mb-2 text-sm font-bold text-poli-navy">
-                  Análisis IA {ficha.narrativa_ia.fuente === "claude" ? "" : "(heurístico)"}
+                  Análisis IA {ficha.narrativa_ia.fuente === "gemini" ? "" : "(heurístico)"}
                 </p>
                 <div
                   className="prose prose-sm max-w-none text-slate-700"

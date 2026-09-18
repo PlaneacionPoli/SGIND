@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, Query
 from fastapi.responses import RedirectResponse
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import Settings, get_settings
 from app.core.database import get_db
@@ -13,7 +14,6 @@ from app.schemas.common import (
     UserResponse,
 )
 from app.services.auth_service import AuthService
-from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter()
 
@@ -46,7 +46,9 @@ async def callback(
     settings: Settings = Depends(get_settings),
 ):
     token, _user = await auth.handle_callback(code, db)
-    frontend = settings.cors_origins_list[0] if settings.cors_origins_list else "http://localhost:3000"
+    frontend = (
+        settings.cors_origins_list[0] if settings.cors_origins_list else "http://localhost:3000"
+    )
     return RedirectResponse(url=f"{frontend}/auth/callback?token={token}")
 
 

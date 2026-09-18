@@ -29,6 +29,7 @@ SCRIPTS_DIR = SGIND_V2 / "scripts"
 
 # ─── Fixtures de archivos ─────────────────────────────────────────────────────
 
+
 def _read_yaml(path: Path) -> dict:
     try:
         import yaml  # type: ignore[import]
@@ -40,12 +41,14 @@ def _read_yaml(path: Path) -> dict:
 def _yaml_available() -> bool:
     try:
         import yaml  # noqa: F401
+
         return True
     except ImportError:
         return False
 
 
 # ─── docker-compose.staging.yml ──────────────────────────────────────────────
+
 
 def test_compose_staging_existe():
     """docker-compose.staging.yml debe existir."""
@@ -92,12 +95,14 @@ def test_compose_staging_db_no_expone_puerto():
 def test_compose_staging_dev_login_desactivado():
     """NEXT_PUBLIC_ENABLE_DEV_LOGIN debe ser 'false' en staging."""
     content = (SGIND_V2 / "docker-compose.staging.yml").read_text(encoding="utf-8")
-    assert 'NEXT_PUBLIC_ENABLE_DEV_LOGIN: "false"' in content or \
-           "NEXT_PUBLIC_ENABLE_DEV_LOGIN: 'false'" in content, \
-        "Dev login debe estar desactivado en staging"
+    assert (
+        'NEXT_PUBLIC_ENABLE_DEV_LOGIN: "false"' in content
+        or "NEXT_PUBLIC_ENABLE_DEV_LOGIN: 'false'" in content
+    ), "Dev login debe estar desactivado en staging"
 
 
 # ─── .env.staging ────────────────────────────────────────────────────────────
+
 
 def test_env_staging_existe():
     """sgind-v2/.env.staging (template) existe."""
@@ -125,8 +130,9 @@ def test_env_staging_no_contiene_secretos_reales():
     """sgind-v2/.env.staging es un template, no debe tener secretos reales."""
     content = (SGIND_V2 / ".env.staging").read_text(encoding="utf-8")
     # Verifica que las contraseñas son placeholders
-    assert "CHANGE_ME" in content or "sgind_dev_password" not in content, \
+    assert "CHANGE_ME" in content or "sgind_dev_password" not in content, (
         ".env.staging parece contener credenciales reales (no placeholders)"
+    )
 
 
 def test_env_staging_en_gitignore():
@@ -135,11 +141,13 @@ def test_env_staging_en_gitignore():
     if not gitignore.exists():
         pytest.skip(".gitignore no encontrado")
     content = gitignore.read_text(encoding="utf-8")
-    assert "env.staging" in content or ".env.staging" in content, \
+    assert "env.staging" in content or ".env.staging" in content, (
         ".env.staging no está en .gitignore — riesgo de commitear credenciales"
+    )
 
 
 # ─── deploy-staging.yml ───────────────────────────────────────────────────────
+
 
 def test_deploy_workflow_existe():
     """.github/workflows/deploy-staging.yml existe."""
@@ -185,6 +193,7 @@ def test_deploy_workflow_trigger_main():
 
 # ─── Smoke test script ────────────────────────────────────────────────────────
 
+
 def test_smoke_test_script_existe():
     """sgind-v2/scripts/smoke_test.py existe."""
     assert (SCRIPTS_DIR / "smoke_test.py").exists()
@@ -193,9 +202,19 @@ def test_smoke_test_script_existe():
 def test_smoke_test_skip_si_no_configurado():
     """smoke_test.py --skip-if-unconfigured sale con código 0 sin URLs."""
     result = subprocess.run(
-        [sys.executable, str(SCRIPTS_DIR / "smoke_test.py"),
-         "--api-url", "", "--frontend-url", "", "--skip-if-unconfigured"],
-        capture_output=True, text=True, encoding="utf-8", errors="replace",
+        [
+            sys.executable,
+            str(SCRIPTS_DIR / "smoke_test.py"),
+            "--api-url",
+            "",
+            "--frontend-url",
+            "",
+            "--skip-if-unconfigured",
+        ],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
         cwd=str(ROOT),
         timeout=15,
     )
@@ -205,10 +224,18 @@ def test_smoke_test_skip_si_no_configurado():
 def test_smoke_test_falla_con_url_invalida():
     """smoke_test.py retorna código no-cero si la URL no responde."""
     result = subprocess.run(
-        [sys.executable, str(SCRIPTS_DIR / "smoke_test.py"),
-         "--api-url", "http://localhost:19999",
-         "--retries", "1"],  # sin retries para que sea rápido
-        capture_output=True, text=True, encoding="utf-8", errors="replace",
+        [
+            sys.executable,
+            str(SCRIPTS_DIR / "smoke_test.py"),
+            "--api-url",
+            "http://localhost:19999",
+            "--retries",
+            "1",
+        ],  # sin retries para que sea rápido
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
         cwd=str(ROOT),
         timeout=30,
     )
@@ -218,6 +245,7 @@ def test_smoke_test_falla_con_url_invalida():
 def test_smoke_test_contra_backend_local():
     """smoke_test.py health check pasa si el backend local está corriendo en :8000."""
     import socket
+
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     try:
         reachable = sock.connect_ex(("localhost", 8000)) == 0
@@ -230,10 +258,10 @@ def test_smoke_test_contra_backend_local():
     # Solo verificamos que el health check pasa (no todos los endpoints del staging).
     # Endpoints de staging completos requieren un build actualizado.
     import httpx
+
     try:
         r = httpx.get("http://localhost:8000/api/v1/health", timeout=5)
         ok = r.status_code == 200
-        version = r.json().get("version", "?") if ok else "?"
     except Exception as e:
         pytest.skip(f"Backend no responde: {e}")
         return
@@ -242,6 +270,7 @@ def test_smoke_test_contra_backend_local():
 
 
 # ─── Dockerfiles ─────────────────────────────────────────────────────────────
+
 
 def test_backend_dockerfile_existe():
     """sgind-v2/backend/Dockerfile existe."""

@@ -332,6 +332,8 @@ export async function fetchSeguimientoDashboard(params?: {
   mes?: number;
   proceso?: string;
   estado?: string;
+  limit?: number;
+  offset?: number;
 }): Promise<SeguimientoDashboardResponse> {
   const { data } = await api.get<SeguimientoDashboardResponse>("/seguimiento/dashboard", { params });
   return data;

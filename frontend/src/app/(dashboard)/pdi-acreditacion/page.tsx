@@ -7,15 +7,16 @@ import { KPICard } from "@/components/ui/KPICard";
 import { fetchPDIDashboard } from "@/lib/api";
 import { fmtValorSigno } from "@/lib/formatValor";
 import { useAuthReady } from "@/stores/auth-store";
+import { NIVEL_COLORS } from "@/components/cmi/cmiChartColors";
 
 const Plot = dynamic(() => import("react-plotly.js"), { ssr: false });
 
+// Fuente única de colores de nivel (cmiChartColors.ts) — antes esta página
+// tenía su propia paleta divergente (#3b82f6/#22c55e/...), duplicada también
+// en el backend (pdi_service.py) antes de la Fase 5.1 del plan de remediación.
 const NIVEL_COLOR: Record<string, string> = {
-  Sobrecumplimiento: "#3b82f6",
-  Cumplimiento: "#22c55e",
-  Alerta: "#f59e0b",
-  Peligro: "#ef4444",
-  "Sin dato": "#94a3b8",
+  ...NIVEL_COLORS,
+  "Sin dato": "#9E9E9E",
 };
 
 const PLOT_BASE = {

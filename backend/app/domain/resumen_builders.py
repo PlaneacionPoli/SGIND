@@ -26,11 +26,29 @@ def _safe_pct(value: Any, *, default: float | None = None) -> float | None:
 
 STRATEGIC_LINE_DEFS = [
     {"key": "expansion", "alt": [], "label": "Expansion", "icon": "rocket", "color": "#FBAF17"},
-    {"key": "transformacion organizacional", "alt": ["transformacion organizacional"], "label": "Transformacion organizacional", "icon": "chart", "color": "#42F2F2"},
+    {
+        "key": "transformacion organizacional",
+        "alt": ["transformacion organizacional"],
+        "label": "Transformacion organizacional",
+        "icon": "chart",
+        "color": "#42F2F2",
+    },
     {"key": "calidad", "alt": [], "label": "Calidad", "icon": "medal", "color": "#EC0677"},
     {"key": "experiencia", "alt": [], "label": "Experiencia", "icon": "bulb", "color": "#1FB2DE"},
-    {"key": "sostenibilidad", "alt": ["sustentabilidad"], "label": "Sostenibilidad", "icon": "leaf", "color": "#A6CE38"},
-    {"key": "educacion para toda la vida", "alt": ["educacion para toda la vida"], "label": "Educacion para toda la vida", "icon": "graduation", "color": "#0F385A"},
+    {
+        "key": "sostenibilidad",
+        "alt": ["sustentabilidad"],
+        "label": "Sostenibilidad",
+        "icon": "leaf",
+        "color": "#A6CE38",
+    },
+    {
+        "key": "educacion para toda la vida",
+        "alt": ["educacion para toda la vida"],
+        "label": "Educacion para toda la vida",
+        "icon": "graduation",
+        "color": "#0F385A",
+    },
 ]
 
 LINEA_COLORS_BADGE = {
@@ -111,7 +129,11 @@ def _objective_display_label(label: str, parent: str) -> str:
         return ""
     parent_key = _sunburst_norm_key(parent)
     label_key = _sunburst_norm_key(full)
-    if parent_key == "sostenibilidad" and "inclusion" in label_key and "medio ambiente" in label_key:
+    if (
+        parent_key == "sostenibilidad"
+        and "inclusion" in label_key
+        and "medio ambiente" in label_key
+    ):
         return "Inclusión, proyección social y medio ambiente"
     return full
 
@@ -154,7 +176,15 @@ def build_linea_summary(
     unique_count_col: str = "Id",
     count_col_name: str = "N_Indicadores",
 ) -> pd.DataFrame:
-    cols = ["Linea", "Cumpl_Promedio", "Sobrecumplimiento", "Cumplimiento", "Alerta", "Peligro", count_col_name]
+    cols = [
+        "Linea",
+        "Cumpl_Promedio",
+        "Sobrecumplimiento",
+        "Cumplimiento",
+        "Alerta",
+        "Peligro",
+        count_col_name,
+    ]
     if df.empty or "Linea" not in df.columns:
         return pd.DataFrame(columns=cols)
 
@@ -174,9 +204,17 @@ def build_linea_summary(
         work.groupby("Linea", dropna=False)
         .agg(
             **{
-                count_col_name: (unique_count_col, _count_unique) if unique_count_col in work.columns else ("Indicador", "count"),
-                "Cumpl_Promedio": ("cumplimiento_pct", lambda x: x[x > 0].mean() if (x > 0).any() else pd.NA),
-                "Sobrecumplimiento": ("Nivel de cumplimiento", lambda s: (s == "Sobrecumplimiento").sum()),
+                count_col_name: (unique_count_col, _count_unique)
+                if unique_count_col in work.columns
+                else ("Indicador", "count"),
+                "Cumpl_Promedio": (
+                    "cumplimiento_pct",
+                    lambda x: x[x > 0].mean() if (x > 0).any() else pd.NA,
+                ),
+                "Sobrecumplimiento": (
+                    "Nivel de cumplimiento",
+                    lambda s: (s == "Sobrecumplimiento").sum(),
+                ),
                 "Cumplimiento": ("Nivel de cumplimiento", lambda s: (s == "Cumplimiento").sum()),
                 "Alerta": ("Nivel de cumplimiento", lambda s: (s == "Alerta").sum()),
                 "Peligro": ("Nivel de cumplimiento", lambda s: (s == "Peligro").sum()),
@@ -192,7 +230,11 @@ def get_chip_config_indicadores(df: pd.DataFrame) -> list[dict]:
         return _empty_chips_indicadores()
     unique = df.drop_duplicates(subset=["Id"], keep="last") if "Id" in df.columns else df
     total = len(unique)
-    nivel = unique["Nivel de cumplimiento"] if "Nivel de cumplimiento" in unique.columns else pd.Series(dtype=str)
+    nivel = (
+        unique["Nivel de cumplimiento"]
+        if "Nivel de cumplimiento" in unique.columns
+        else pd.Series(dtype=str)
+    )
     counts = {
         "Sobrecumplimiento": int((nivel == "Sobrecumplimiento").sum()),
         "Cumplimiento": int((nivel == "Cumplimiento").sum()),
@@ -288,9 +330,18 @@ def build_strategy_cards(
             n_retos = 0
 
         historico: list[dict] = []
-        if row and historico_df is not None and not historico_df.empty and "Linea" in historico_df.columns:
+        if (
+            row
+            and historico_df is not None
+            and not historico_df.empty
+            and "Linea" in historico_df.columns
+        ):
             df_hist = historico_df[historico_df["Linea"] == linea_nombre]
-            if not df_hist.empty and "Anio" in df_hist.columns and "cumplimiento_pct" in df_hist.columns:
+            if (
+                not df_hist.empty
+                and "Anio" in df_hist.columns
+                and "cumplimiento_pct" in df_hist.columns
+            ):
                 serie = (
                     df_hist.groupby("Anio", dropna=False)["cumplimiento_pct"]
                     .mean()
@@ -359,7 +410,11 @@ def build_sunburst_plotly(objetivo_df: pd.DataFrame) -> dict[str, Any]:
     if df.empty:
         return empty
 
-    lines = df.groupby("Linea", dropna=False).agg(cumplimiento_pct=("cumplimiento_pct", "mean")).reset_index()
+    lines = (
+        df.groupby("Linea", dropna=False)
+        .agg(cumplimiento_pct=("cumplimiento_pct", "mean"))
+        .reset_index()
+    )
     grouped = (
         df.groupby(["Linea", "Objetivo"], dropna=False)
         .agg(cumplimiento_pct=("cumplimiento_pct", "mean"))
@@ -426,8 +481,8 @@ def build_sunburst_plotly(objetivo_df: pd.DataFrame) -> dict[str, Any]:
         colors.append(color_map.get(parent_norm, "#6B728E"))
 
     text: list[str] = []
-    id_to_label = dict(zip(ids, labels))
-    for lab, cd, parent_id in zip(labels, customdata, parents):
+    id_to_label = dict(zip(ids, labels, strict=True))
+    for lab, cd, parent_id in zip(labels, customdata, parents, strict=True):
         pct = cd[0] if cd else 0.0
         lab_key = _sunburst_norm_key(lab)
         if lab_key in LABEL_WRAP_OVERRIDES:
@@ -452,12 +507,19 @@ def build_sunburst_plotly(objetivo_df: pd.DataFrame) -> dict[str, Any]:
 
 
 def compute_trends(current: pd.DataFrame, previous: pd.DataFrame) -> tuple[list[dict], list[dict]]:
-    if current.empty or previous.empty or "Id" not in current.columns or "Id" not in previous.columns:
+    if (
+        current.empty
+        or previous.empty
+        or "Id" not in current.columns
+        or "Id" not in previous.columns
+    ):
         return [], []
 
     name_col = "Indicador" if "Indicador" in current.columns else "Id"
     cur = (
-        current[["Id", name_col, "cumplimiento_pct"] + (["Linea"] if "Linea" in current.columns else [])]
+        current[
+            ["Id", name_col, "cumplimiento_pct"] + (["Linea"] if "Linea" in current.columns else [])
+        ]
         .dropna(subset=["cumplimiento_pct"])
         .drop_duplicates(subset=["Id"], keep="first")
     )
@@ -516,7 +578,8 @@ def generate_narrative_indicadores(
     total_chip = next((c["value"] for c in chips if c["label"] == "Total"), 0)
     counts = {c["label"]: c["value"] for c in chips}
     health_rate = round(
-        ((counts.get("Sobrecumplimiento", 0) + counts.get("Cumplimiento", 0)) / max(total_chip, 1)) * 100,
+        ((counts.get("Sobrecumplimiento", 0) + counts.get("Cumplimiento", 0)) / max(total_chip, 1))
+        * 100,
         1,
     )
     if health_rate >= 85:
@@ -530,12 +593,17 @@ def generate_narrative_indicadores(
 
     mejor_linea = ""
     if not df.empty and "Linea" in df.columns and "cumplimiento_pct" in df.columns:
-        top = df.groupby("Linea")["cumplimiento_pct"].mean().reset_index().sort_values("cumplimiento_pct", ascending=False)
+        top = (
+            df.groupby("Linea")["cumplimiento_pct"]
+            .mean()
+            .reset_index()
+            .sort_values("cumplimiento_pct", ascending=False)
+        )
         if not top.empty:
             ln = top.iloc[0]
             mejor_linea = (
-                f'La línea <strong>{ln["Linea"]}</strong> lidera el cumplimiento con un promedio de '
-                f'<strong>{ln["cumplimiento_pct"]:.1f}%</strong>. '
+                f"La línea <strong>{ln['Linea']}</strong> lidera el cumplimiento con un promedio de "
+                f"<strong>{ln['cumplimiento_pct']:.1f}%</strong>. "
             )
 
     alerta = counts.get("Alerta", 0)
@@ -581,21 +649,44 @@ def build_linea_summary_retos(
     objetivo_df: pd.DataFrame | None = None,
     planes_df: pd.DataFrame | None = None,
 ) -> pd.DataFrame:
-    cols = ["Linea", "N_Indicadores", "Cumpl_Promedio", "Sobrecumplimiento", "Cumplimiento", "Alerta", "Peligro"]
+    cols = [
+        "Linea",
+        "N_Indicadores",
+        "Cumpl_Promedio",
+        "Sobrecumplimiento",
+        "Cumplimiento",
+        "Alerta",
+        "Peligro",
+    ]
     if linea_df.empty or "Linea" not in linea_df.columns:
         return pd.DataFrame(columns=cols)
 
     df = linea_df.copy()
     df["Nivel de cumplimiento"] = df["cumplimiento_pct"].apply(_retos_category)
 
-    if objetivo_df is not None and "Linea" in objetivo_df.columns and "Objetivo" in objetivo_df.columns:
+    if (
+        objetivo_df is not None
+        and "Linea" in objetivo_df.columns
+        and "Objetivo" in objetivo_df.columns
+    ):
         objetivos_count = (
             objetivo_df.groupby("Linea", dropna=False)
-            .agg(N_Indicadores=("Objetivo", lambda s: s.dropna().astype(str).str.strip().replace("", pd.NA).dropna().nunique()))
+            .agg(
+                N_Indicadores=(
+                    "Objetivo",
+                    lambda s: (
+                        s.dropna().astype(str).str.strip().replace("", pd.NA).dropna().nunique()
+                    ),
+                )
+            )
             .reset_index()
         )
     else:
-        objetivos_count = df.groupby("Linea", dropna=False).agg(N_Indicadores=("cumplimiento_pct", "size")).reset_index()
+        objetivos_count = (
+            df.groupby("Linea", dropna=False)
+            .agg(N_Indicadores=("cumplimiento_pct", "size"))
+            .reset_index()
+        )
 
     resumen = (
         df.groupby("Linea", dropna=False)
@@ -610,10 +701,19 @@ def build_linea_summary_retos(
     )
     resumen = resumen.merge(objetivos_count, on="Linea", how="left")
 
-    if planes_df is not None and not planes_df.empty and "Linea" in planes_df.columns and "N_Planes" in planes_df.columns:
+    if (
+        planes_df is not None
+        and not planes_df.empty
+        and "Linea" in planes_df.columns
+        and "N_Planes" in planes_df.columns
+    ):
         planes = planes_df.copy()
         planes["Linea_norm"] = planes["Linea"].astype(str).apply(norm_key)
-        planes_count = planes.groupby("Linea_norm", dropna=False).agg(N_Planes=("N_Planes", "sum")).reset_index()
+        planes_count = (
+            planes.groupby("Linea_norm", dropna=False)
+            .agg(N_Planes=("N_Planes", "sum"))
+            .reset_index()
+        )
         resumen["Linea_norm"] = resumen["Linea"].astype(str).apply(norm_key)
         resumen = resumen.merge(planes_count, on="Linea_norm", how="left")
         resumen["N_Indicadores"] = resumen["N_Planes"].fillna(resumen["N_Indicadores"]).astype(int)
@@ -655,11 +755,17 @@ def merge_consolidado_summaries(
     out["N_Retos"] = 0
 
     if "Linea_norm" in s1n.columns and "N_Indicadores" in s1n.columns:
-        out["N_Indicadores"] = pd.to_numeric(s1n.set_index("Linea_norm")["N_Indicadores"], errors="coerce")
+        out["N_Indicadores"] = pd.to_numeric(
+            s1n.set_index("Linea_norm")["N_Indicadores"], errors="coerce"
+        )
     if "Linea_norm" in s2n.columns and "N_Proyectos" in s2n.columns:
-        out["N_Proyectos"] = pd.to_numeric(s2n.set_index("Linea_norm")["N_Proyectos"], errors="coerce")
+        out["N_Proyectos"] = pd.to_numeric(
+            s2n.set_index("Linea_norm")["N_Proyectos"], errors="coerce"
+        )
     if "Linea_norm" in s3n.columns and "N_Indicadores" in s3n.columns:
-        out["N_Retos"] = pd.to_numeric(s3n.set_index("Linea_norm")["N_Indicadores"], errors="coerce")
+        out["N_Retos"] = pd.to_numeric(
+            s3n.set_index("Linea_norm")["N_Indicadores"], errors="coerce"
+        )
 
     out["N_Indicadores"] = out["N_Indicadores"].fillna(0).astype(int)
     out["N_Proyectos"] = out["N_Proyectos"].fillna(0).astype(int)
@@ -668,23 +774,37 @@ def merge_consolidado_summaries(
 
     def _avg_series(summary, name):
         if "Linea_norm" in summary.columns and "Cumpl_Promedio" in summary.columns:
-            return pd.to_numeric(summary.set_index("Linea_norm")["Cumpl_Promedio"], errors="coerce").rename(name)
+            return pd.to_numeric(
+                summary.set_index("Linea_norm")["Cumpl_Promedio"], errors="coerce"
+            ).rename(name)
         return pd.Series(name=name, dtype="float64")
 
     out = out.join(
-        [_avg_series(s1n, "Cumpl_Promedio_Indicadores"), _avg_series(s2n, "Cumpl_Promedio_Proyectos"), _avg_series(s3n, "Cumpl_Promedio_Retos")],
+        [
+            _avg_series(s1n, "Cumpl_Promedio_Indicadores"),
+            _avg_series(s2n, "Cumpl_Promedio_Proyectos"),
+            _avg_series(s3n, "Cumpl_Promedio_Retos"),
+        ],
         how="left",
     )
-    out["Cumpl_Promedio"] = out[
-        ["Cumpl_Promedio_Indicadores", "Cumpl_Promedio_Proyectos", "Cumpl_Promedio_Retos"]
-    ].mean(axis=1, skipna=True).fillna(0)
+    out["Cumpl_Promedio"] = (
+        out[["Cumpl_Promedio_Indicadores", "Cumpl_Promedio_Proyectos", "Cumpl_Promedio_Retos"]]
+        .mean(axis=1, skipna=True)
+        .fillna(0)
+    )
 
     for col in ["Sobrecumplimiento", "Cumplimiento", "Alerta", "Peligro"]:
         vals = []
         for summary in [s1n, s2n, s3n]:
             if col in summary.columns and "Linea_norm" in summary.columns:
                 vals.append(summary.set_index("Linea_norm")[col])
-        out[col] = pd.to_numeric(pd.concat(vals, axis=1).fillna(0).sum(axis=1), errors="coerce").fillna(0).astype(int) if vals else 0
+        out[col] = (
+            pd.to_numeric(pd.concat(vals, axis=1).fillna(0).sum(axis=1), errors="coerce")
+            .fillna(0)
+            .astype(int)
+            if vals
+            else 0
+        )
 
     labels = {}
     for summary in [s1n, s2n, s3n]:
@@ -701,15 +821,27 @@ def merge_consolidado_summaries(
 
 
 def get_chip_config_retos(linea_df: pd.DataFrame, area_count: int) -> list[dict]:
-    total_planes = int(linea_df["N_Indicadores"].sum()) if not linea_df.empty and "N_Indicadores" in linea_df.columns else 0
+    total_planes = (
+        int(linea_df["N_Indicadores"].sum())
+        if not linea_df.empty and "N_Indicadores" in linea_df.columns
+        else 0
+    )
     meta_esperada = 100.0
-    ejecucion_real = float(linea_df["Cumpl_Promedio"].mean()) if not linea_df.empty and "Cumpl_Promedio" in linea_df.columns else 0.0
+    ejecucion_real = (
+        float(linea_df["Cumpl_Promedio"].mean())
+        if not linea_df.empty and "Cumpl_Promedio" in linea_df.columns
+        else 0.0
+    )
     cumplimiento = round((ejecucion_real / meta_esperada) * 100, 1) if meta_esperada else 0.0
     return [
         {"value": total_planes, "label": "Plan de Retos", "color": "#0B5FFF"},
         {"value": f"{meta_esperada:.0f}%", "label": "% Meta Esperada", "color": "#6B7280"},
         {"value": f"{ejecucion_real:.1f}%", "label": "% Ejecución Real", "color": "#2563EB"},
-        {"value": f"{cumplimiento:.1f}%", "label": "Cumplimiento", "color": "#16A34A" if cumplimiento >= 100 else "#F59E0B"},
+        {
+            "value": f"{cumplimiento:.1f}%",
+            "label": "Cumplimiento",
+            "color": "#16A34A" if cumplimiento >= 100 else "#F59E0B",
+        },
         {"value": area_count, "label": "Áreas con retos", "color": "#7C3AED"},
     ]
 
@@ -729,9 +861,15 @@ def get_chip_config_consolidado(
     ]
 
 
-def generate_narrative_proyectos(proy_df: pd.DataFrame, linea_summary: pd.DataFrame) -> dict[str, Any]:
+def generate_narrative_proyectos(
+    proy_df: pd.DataFrame, linea_summary: pd.DataFrame
+) -> dict[str, Any]:
     count_col = "N_Proyectos" if "N_Proyectos" in linea_summary.columns else "N_Indicadores"
-    total_proy = int(linea_summary[count_col].sum()) if not linea_summary.empty and count_col in linea_summary.columns else 0
+    total_proy = (
+        int(linea_summary[count_col].sum())
+        if not linea_summary.empty and count_col in linea_summary.columns
+        else 0
+    )
     cerrados = en_ejecucion = en_planeacion = 0
     cumplimiento_prom = 0.0
     if not proy_df.empty and "cumplimiento_pct" in proy_df.columns:
@@ -756,11 +894,15 @@ def generate_narrative_proyectos(proy_df: pd.DataFrame, linea_summary: pd.DataFr
         estado, color, icon = "proyectos requieren atención prioritaria", "#DC2626", "alert"
 
     mejor_linea = ""
-    if not linea_summary.empty and "Linea" in linea_summary.columns and "Cumpl_Promedio" in linea_summary.columns:
+    if (
+        not linea_summary.empty
+        and "Linea" in linea_summary.columns
+        and "Cumpl_Promedio" in linea_summary.columns
+    ):
         top = linea_summary.sort_values("Cumpl_Promedio", ascending=False).iloc[0]
         mejor_linea = (
-            f'La línea <strong>{top["Linea"]}</strong> concentra el mejor desempeño '
-            f'(<strong>{float(top["Cumpl_Promedio"]):.1f}%</strong> de cumplimiento). '
+            f"La línea <strong>{top['Linea']}</strong> concentra el mejor desempeño "
+            f"(<strong>{float(top['Cumpl_Promedio']):.1f}%</strong> de cumplimiento). "
         )
 
     texto = (
@@ -772,12 +914,19 @@ def generate_narrative_proyectos(proy_df: pd.DataFrame, linea_summary: pd.DataFr
         f"El cumplimiento promedio del portafolio es de <strong>{cumplimiento_prom:.1f}%</strong>. "
         f"{mejor_linea}"
     )
-    return {"texto": texto, "estado_color": color, "estado_icon": icon, "health_rate": round(cumplimiento_prom, 1)}
+    return {
+        "texto": texto,
+        "estado_color": color,
+        "estado_icon": icon,
+        "health_rate": round(cumplimiento_prom, 1),
+    }
 
 
 def generate_narrative_retos(linea_summary: pd.DataFrame) -> dict[str, Any]:
     total_retos = int(linea_summary["N_Indicadores"].sum()) if not linea_summary.empty else 0
-    cumplimiento_prom = float(linea_summary["Cumpl_Promedio"].mean()) if not linea_summary.empty else 0.0
+    cumplimiento_prom = (
+        float(linea_summary["Cumpl_Promedio"].mean()) if not linea_summary.empty else 0.0
+    )
     if cumplimiento_prom >= RETOS_UMBRAL_SOBRECUMPLIMIENTO:
         estado, color, icon = "retos con sobrecumplimiento", "#16A34A", "success"
     elif cumplimiento_prom >= RETOS_UMBRAL_CUMPLIMIENTO:
@@ -790,16 +939,22 @@ def generate_narrative_retos(linea_summary: pd.DataFrame) -> dict[str, Any]:
         estado, color, icon = "retos requieren atención", "#DC2626", "alert"
 
     mejor_linea = alerta_lineas = ""
-    if not linea_summary.empty and "Linea" in linea_summary.columns and "Cumpl_Promedio" in linea_summary.columns:
+    if (
+        not linea_summary.empty
+        and "Linea" in linea_summary.columns
+        and "Cumpl_Promedio" in linea_summary.columns
+    ):
         ranked = linea_summary.sort_values("Cumpl_Promedio", ascending=False)
         top = ranked.iloc[0]
         mejor_linea = (
-            f'La línea <strong>{top["Linea"]}</strong> lidera con '
-            f'<strong>{float(top["Cumpl_Promedio"]):.1f}%</strong> de cumplimiento. '
+            f"La línea <strong>{top['Linea']}</strong> lidera con "
+            f"<strong>{float(top['Cumpl_Promedio']):.1f}%</strong> de cumplimiento. "
         )
         bajo_umbral = ranked[ranked["Cumpl_Promedio"] < RETOS_UMBRAL_CUMPLIMIENTO]
         if not bajo_umbral.empty:
-            nombres = ", ".join(f'<strong>{row["Linea"]}</strong>' for _, row in bajo_umbral.iterrows())
+            nombres = ", ".join(
+                f"<strong>{row['Linea']}</strong>" for _, row in bajo_umbral.iterrows()
+            )
             alerta_lineas = (
                 f"{len(bajo_umbral)} línea(s) están por debajo del umbral de cumplimiento "
                 f"({RETOS_UMBRAL_CUMPLIMIENTO:.0f}%): {nombres}. "
@@ -817,7 +972,12 @@ def generate_narrative_retos(linea_summary: pd.DataFrame) -> dict[str, Any]:
         f"(umbral de cumplimiento desde <strong>{RETOS_UMBRAL_CUMPLIMIENTO:.0f}%</strong>). "
         f"{mejor_linea}{alerta_lineas}"
     )
-    return {"texto": texto, "estado_color": color, "estado_icon": icon, "health_rate": round(cumplimiento_prom, 1)}
+    return {
+        "texto": texto,
+        "estado_color": color,
+        "estado_icon": icon,
+        "health_rate": round(cumplimiento_prom, 1),
+    }
 
 
 def generate_narrative_consolidado(
@@ -839,16 +999,16 @@ def generate_narrative_consolidado(
             ranked = work.sort_values("Cumpl_Promedio", ascending=False)
             best = ranked.iloc[0]
             mejor_linea = (
-                f'La línea <strong>{best["Linea"]}</strong> lidera el cumplimiento integrado '
-                f'con <strong>{float(best["Cumpl_Promedio"]):.1f}%</strong>. '
+                f"La línea <strong>{best['Linea']}</strong> lidera el cumplimiento integrado "
+                f"con <strong>{float(best['Cumpl_Promedio']):.1f}%</strong>. "
             )
             if len(ranked) > 1:
                 worst = ranked.iloc[-1]
                 brecha = float(best["Cumpl_Promedio"]) - float(worst["Cumpl_Promedio"])
                 if brecha >= 3:
                     brecha_linea = (
-                        f'La mayor brecha se observa frente a <strong>{worst["Linea"]}</strong> '
-                        f'(<strong>{float(worst["Cumpl_Promedio"]):.1f}%</strong>). '
+                        f"La mayor brecha se observa frente a <strong>{worst['Linea']}</strong> "
+                        f"(<strong>{float(worst['Cumpl_Promedio']):.1f}%</strong>). "
                     )
 
         if {"N_Indicadores", "N_Proyectos", "N_Retos"}.issubset(work.columns):
@@ -861,10 +1021,10 @@ def generate_narrative_consolidado(
             )
 
     texto = (
-        f'La visión consolidada del PDI <strong>{anio}</strong> muestra un desempeño institucional '
+        f"La visión consolidada del PDI <strong>{anio}</strong> muestra un desempeño institucional "
         f'<strong style="color:{color};">{estado}</strong>, con un cumplimiento promedio integrado de '
-        f'<strong>{cumpl_pdi:.1f}%</strong>. El portafolio reúne '
-        f'<strong>{ind_count}</strong> indicadores estratégicos, <strong>{proy_count}</strong> proyectos y '
+        f"<strong>{cumpl_pdi:.1f}%</strong>. El portafolio reúne "
+        f"<strong>{ind_count}</strong> indicadores estratégicos, <strong>{proy_count}</strong> proyectos y "
         f"<strong>{retos_count}</strong> retos "
         f"(<strong>{total_elementos}</strong> elementos en conjunto). "
         f"{mejor_linea}{brecha_linea}{distribucion}"
@@ -950,7 +1110,11 @@ def build_proyectos_tabla(proy_df: pd.DataFrame) -> list[dict]:
     if not available:
         return []
     rows = []
-    for linea in sorted(work["Linea"].dropna().unique(), key=linea_sort_key) if "Linea" in work.columns else [""]:
+    for linea in (
+        sorted(work["Linea"].dropna().unique(), key=linea_sort_key)
+        if "Linea" in work.columns
+        else [""]
+    ):
         sub = work[work["Linea"] == linea] if linea else work
         for _, row in sub.drop_duplicates("Id", keep="last").iterrows():
             cumpl = row.get("cumplimiento_pct")

@@ -72,7 +72,9 @@ class StrategicLoaders:
             df.columns = [str(c).strip() for c in df.columns]
             c_id = find_col(df, ["Id", "ID"])
             c_ind = find_col(df, ["Indicador"])
-            c_linea = find_col(df, ["Linea", "Línea", "LINEA", "LÍNEA", "Linea estrategica", "Linea_Estrategica"])
+            c_linea = find_col(
+                df, ["Linea", "Línea", "LINEA", "LÍNEA", "Linea estrategica", "Linea_Estrategica"]
+            )
             c_obj = find_col(df, ["Objetivo", "OBJETIVO", "Objetivo_Estrategico"])
             c_plan = find_col(df, ["Indicadores Plan estrategico", "Indicadores_Plan_Estrategico"])
             c_proyecto = find_col(df, ["Proyecto", "PROYECTO"])
@@ -81,7 +83,11 @@ class StrategicLoaders:
             c_cna = find_col(df, ["Indicadores CNA", "FlagCNA", "CNA", "CNA_SNIES"])
             if not c_id:
                 return pd.DataFrame()
-            cols = [c for c in [c_id, c_ind, c_linea, c_obj, c_plan, c_proyecto, c_factor, c_car, c_cna] if c]
+            cols = [
+                c
+                for c in [c_id, c_ind, c_linea, c_obj, c_plan, c_proyecto, c_factor, c_car, c_cna]
+                if c
+            ]
             out = df[cols].copy()
             rename = {c_id: "Id", c_ind: "Indicador", c_linea: "Linea", c_obj: "Objetivo"}
             if c_plan:
@@ -115,7 +121,11 @@ class StrategicLoaders:
             c_car = find_col(df, ["CARACTERISTICA", "Caracteristica", "CARACTERÍSTICA"])
             if not c_factor or not c_car:
                 return pd.DataFrame(columns=["Factor", "Caracteristica"])
-            out = df[[c_factor, c_car]].copy().rename(columns={c_factor: "Factor", c_car: "Caracteristica"})
+            out = (
+                df[[c_factor, c_car]]
+                .copy()
+                .rename(columns={c_factor: "Factor", c_car: "Caracteristica"})
+            )
             out["Factor"] = out["Factor"].astype(str).str.strip()
             out["Caracteristica"] = out["Caracteristica"].astype(str).str.strip()
             out = out[(out["Factor"] != "") & (out["Caracteristica"] != "")]
@@ -136,7 +146,9 @@ class StrategicLoaders:
             df.columns = [str(c).strip() for c in df.columns]
             c_linea = find_col(df, ["Linea", "Línea", "LINEA", "Linea_Estrategica"])
             c_obj = find_col(df, ["Objetivo", "OBJETIVO", "Objetivo_Estrategico"])
-            c_meta = find_col(df, ["Meta Estratégica", "META ESTRATEGICA", "Meta estrategica", "Meta_Estrategica"])
+            c_meta = find_col(
+                df, ["Meta Estratégica", "META ESTRATEGICA", "Meta estrategica", "Meta_Estrategica"]
+            )
             if not c_linea or not c_obj:
                 return pd.DataFrame(columns=["Linea", "Objetivo", "Meta_Estrategica"])
             cols = [c_linea, c_obj] + ([c_meta] if c_meta else [])
@@ -175,18 +187,50 @@ class StrategicLoaders:
             for src, dst, transform in [
                 (find_col(df, ["Indicador"]), "Indicador", lambda s: s.astype(str).str.strip()),
                 (find_col(df, ["Fecha"]), "Fecha", lambda s: pd.to_datetime(s, errors="coerce")),
-                (find_col(df, ["Año", "Anio"]), "Anio", lambda s: pd.to_numeric(s, errors="coerce")),
+                (
+                    find_col(df, ["Año", "Anio"]),
+                    "Anio",
+                    lambda s: pd.to_numeric(s, errors="coerce"),
+                ),
                 (find_col(df, ["Mes"]), "Mes", lambda s: pd.to_numeric(s, errors="coerce")),
                 (find_col(df, ["Meta"]), "Meta", lambda s: pd.to_numeric(s, errors="coerce")),
-                (find_col(df, ["Ejecucion", "Ejecución"]), "Ejecucion", lambda s: pd.to_numeric(s, errors="coerce")),
+                (
+                    find_col(df, ["Ejecucion", "Ejecución"]),
+                    "Ejecucion",
+                    lambda s: pd.to_numeric(s, errors="coerce"),
+                ),
                 (find_col(df, ["Sentido"]), "Sentido", lambda s: s.astype(str).str.strip()),
-                (find_col(df, ["Tipo_Registro", "Tipo Registro"]), "Tipo_Registro", lambda s: s.astype(str).str.strip()),
-                (find_col(df, ["Linea", "Línea"]), "Linea", lambda s: repair_linea_encoding(s.astype(str).str.strip())),
+                (
+                    find_col(df, ["Tipo_Registro", "Tipo Registro"]),
+                    "Tipo_Registro",
+                    lambda s: s.astype(str).str.strip(),
+                ),
+                (
+                    find_col(df, ["Linea", "Línea"]),
+                    "Linea",
+                    lambda s: repair_linea_encoding(s.astype(str).str.strip()),
+                ),
                 (find_col(df, ["Objetivo"]), "Objetivo", lambda s: s.astype(str).str.strip()),
-                (find_col(df, ["Meta_Signo", "MetaS", "meta_signo"]), "Meta_Signo", lambda s: s.astype(str).str.strip()),
-                (find_col(df, ["Ejecucion_Signo", "Ejecucion_s", "EjecS", "ejec_signo"]), "Ejecucion_s", lambda s: s.astype(str).str.strip()),
-                (find_col(df, ["Decimales_Meta"]), "Decimales_Meta", lambda s: pd.to_numeric(s, errors="coerce")),
-                (find_col(df, ["Decimales_Ejecucion"]), "Decimales_Ejecucion", lambda s: pd.to_numeric(s, errors="coerce")),
+                (
+                    find_col(df, ["Meta_Signo", "MetaS", "meta_signo"]),
+                    "Meta_Signo",
+                    lambda s: s.astype(str).str.strip(),
+                ),
+                (
+                    find_col(df, ["Ejecucion_Signo", "Ejecucion_s", "EjecS", "ejec_signo"]),
+                    "Ejecucion_s",
+                    lambda s: s.astype(str).str.strip(),
+                ),
+                (
+                    find_col(df, ["Decimales_Meta"]),
+                    "Decimales_Meta",
+                    lambda s: pd.to_numeric(s, errors="coerce"),
+                ),
+                (
+                    find_col(df, ["Decimales_Ejecucion"]),
+                    "Decimales_Ejecucion",
+                    lambda s: pd.to_numeric(s, errors="coerce"),
+                ),
             ]:
                 if src:
                     out[dst] = transform(df[src])
@@ -196,7 +240,9 @@ class StrategicLoaders:
                 out.loc[out["Mes"].isna(), "Mes"] = out.loc[out["Mes"].isna(), "Fecha"].dt.month
 
             c_cumpl = find_col(df, ["Cumplimiento", "cumplimiento_dec"])
-            out["cumplimiento_dec"] = pd.to_numeric(df[c_cumpl], errors="coerce") if c_cumpl else pd.NA
+            out["cumplimiento_dec"] = (
+                pd.to_numeric(df[c_cumpl], errors="coerce") if c_cumpl else pd.NA
+            )
             mask = out["cumplimiento_dec"].isna() & out["Meta"].notna() & out["Ejecucion"].notna()
             if mask.any():
                 out.loc[mask, "cumplimiento_dec"] = out.loc[mask].apply(
@@ -215,7 +261,9 @@ class StrategicLoaders:
                 axis=1,
             )
             out.loc[es_metrica, "Nivel de cumplimiento"] = NO_APLICA
-            out.loc[out["cumplimiento_pct"].isna() & ~es_metrica, "Nivel de cumplimiento"] = PENDIENTE
+            out.loc[out["cumplimiento_pct"].isna() & ~es_metrica, "Nivel de cumplimiento"] = (
+                PENDIENTE
+            )
             return out.reset_index(drop=True)
 
         return self._cached("cierres", _load)
@@ -244,9 +292,17 @@ class StrategicLoaders:
             for src, dst, transform in [
                 (find_col(df, ["Indicador"]), "Indicador", lambda s: s.astype(str).str.strip()),
                 (find_col(df, ["Meta"]), "Meta", lambda s: pd.to_numeric(s, errors="coerce")),
-                (find_col(df, ["Ejecucion", "Ejecución"]), "Ejecucion", lambda s: pd.to_numeric(s, errors="coerce")),
+                (
+                    find_col(df, ["Ejecucion", "Ejecución"]),
+                    "Ejecucion",
+                    lambda s: pd.to_numeric(s, errors="coerce"),
+                ),
                 (find_col(df, ["Sentido"]), "Sentido", lambda s: s.astype(str).str.strip()),
-                (find_col(df, ["Linea", "Línea"]), "Linea", lambda s: repair_linea_encoding(s.astype(str).str.strip())),
+                (
+                    find_col(df, ["Linea", "Línea"]),
+                    "Linea",
+                    lambda s: repair_linea_encoding(s.astype(str).str.strip()),
+                ),
                 (find_col(df, ["Objetivo"]), "Objetivo", lambda s: s.astype(str).str.strip()),
             ]:
                 if src:
@@ -254,10 +310,14 @@ class StrategicLoaders:
             out = out[out["Id"] != ""].copy()
 
             c_cumpl = find_col(df, ["Cumplimiento", "cumplimiento_dec"])
-            out["cumplimiento_dec"] = pd.to_numeric(df[c_cumpl], errors="coerce") if c_cumpl else pd.NA
-            mask = out["cumplimiento_dec"].isna() & out.get("Meta", pd.Series(dtype=float)).notna() & out.get(
-                "Ejecucion", pd.Series(dtype=float)
-            ).notna()
+            out["cumplimiento_dec"] = (
+                pd.to_numeric(df[c_cumpl], errors="coerce") if c_cumpl else pd.NA
+            )
+            mask = (
+                out["cumplimiento_dec"].isna()
+                & out.get("Meta", pd.Series(dtype=float)).notna()
+                & out.get("Ejecucion", pd.Series(dtype=float)).notna()
+            )
             if mask.any():
                 out.loc[mask, "cumplimiento_dec"] = out.loc[mask].apply(
                     lambda r: recalcular_cumplimiento_faltante(
@@ -296,21 +356,39 @@ class StrategicLoaders:
             out["Id"] = df[c_id].apply(id_a_str)
             for src, dst, transform in [
                 (find_col(df, ["Indicador"]), "Indicador", lambda s: s.astype(str).str.strip()),
-                (find_col(df, ["Linea", "Línea"]), "Linea", lambda s: repair_linea_encoding(s.astype(str).str.strip())),
+                (
+                    find_col(df, ["Linea", "Línea"]),
+                    "Linea",
+                    lambda s: repair_linea_encoding(s.astype(str).str.strip()),
+                ),
                 (find_col(df, ["Objetivo"]), "Objetivo", lambda s: s.astype(str).str.strip()),
                 (find_col(df, ["Fecha"]), "Fecha", pd.to_datetime),
-                (find_col(df, ["Año", "Anio"]), "Anio", lambda s: pd.to_numeric(s, errors="coerce")),
+                (
+                    find_col(df, ["Año", "Anio"]),
+                    "Anio",
+                    lambda s: pd.to_numeric(s, errors="coerce"),
+                ),
                 (find_col(df, ["Mes"]), "Mes", lambda s: pd.to_numeric(s, errors="coerce")),
                 (find_col(df, ["Meta"]), "Meta", lambda s: pd.to_numeric(s, errors="coerce")),
-                (find_col(df, ["Ejecucion", "Ejecución"]), "Ejecucion", lambda s: pd.to_numeric(s, errors="coerce")),
+                (
+                    find_col(df, ["Ejecucion", "Ejecución"]),
+                    "Ejecucion",
+                    lambda s: pd.to_numeric(s, errors="coerce"),
+                ),
                 (find_col(df, ["Sentido"]), "Sentido", lambda s: s.astype(str).str.strip()),
-                (find_col(df, ["Tipo_Registro", "Tipo Registro"]), "Tipo_Registro", lambda s: s.astype(str).str.strip()),
+                (
+                    find_col(df, ["Tipo_Registro", "Tipo Registro"]),
+                    "Tipo_Registro",
+                    lambda s: s.astype(str).str.strip(),
+                ),
             ]:
                 if src:
                     out[dst] = transform(df[src])
 
             c_cumpl = find_col(df, ["Cumplimiento", "cumplimiento_dec"])
-            out["cumplimiento_dec"] = pd.to_numeric(df[c_cumpl], errors="coerce") if c_cumpl else pd.NA
+            out["cumplimiento_dec"] = (
+                pd.to_numeric(df[c_cumpl], errors="coerce") if c_cumpl else pd.NA
+            )
             mask = out["cumplimiento_dec"].isna() & out["Meta"].notna() & out["Ejecucion"].notna()
             if mask.any():
                 out.loc[mask, "cumplimiento_dec"] = out.loc[mask].apply(

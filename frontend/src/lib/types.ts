@@ -686,6 +686,9 @@ export interface SeguimientoDashboardResponse {
     estados: Array<{ estado: string; cantidad: number; color: string }>;
   }>;
   detalle: Array<Record<string, string | number | null>>;
+  detalle_total: number;
+  detalle_limit: number;
+  detalle_offset: number;
   estado_colores: Record<string, string>;
 }
 

@@ -30,7 +30,11 @@ def load_process_map(excel: ExcelReaderService) -> pd.DataFrame:
                     continue
                 df = xl.parse("Proceso")
                 df.columns = [str(c).strip() for c in df.columns]
-                cols = [c for c in ["Unidad", "Proceso", "Subproceso", "Tipo de proceso"] if c in df.columns]
+                cols = [
+                    c
+                    for c in ["Unidad", "Proceso", "Subproceso", "Tipo de proceso"]
+                    if c in df.columns
+                ]
                 if not cols:
                     continue
                 return df[cols].dropna(how="all")

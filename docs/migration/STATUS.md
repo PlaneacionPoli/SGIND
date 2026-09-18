@@ -18,6 +18,7 @@
 | 9    | Reportes PDF        | **Completada** | reportlab, 2 endpoints, botón frontend ✅ |
 | 10   | Deploy Staging v2   | **Completada** | GHCR, docker-compose.staging, smoke tests ✅ |
 | 11   | UAT / Validación    | **En progreso** | Artefactos UAT listos. Pendiente sesiones con usuarios. |
+| 11.5 | Cierre de Hallazgos del Comparativo | **En progreso** | Plan de 8 fases en `PLAN_CIERRE_HALLAZGOS.md`, 0/8 completadas |
 | 12   | Cutover Producción  | **En progreso** | Artefactos listos. Pendiente ventana de mantenimiento. |
 
 ## Fase 5 — Avance
@@ -69,6 +70,12 @@ python sgind-v2/scripts/uat_verify.py --api-url http://localhost:8000 --anio 202
 # Con reporte JSON:
 python sgind-v2/scripts/uat_verify.py --api-url http://localhost:8000 --output-json uat_results.json
 ```
+
+## Fase 11.5 — Cierre de Hallazgos del Comparativo
+
+| Artefacto | Ruta | Propósito |
+|-----------|------|-----------|
+| Plan de implementación | `docs/migration/PLAN_CIERRE_HALLAZGOS.md` | 8 fases: paleta de semáforo, tipado de endpoints, paginación, filtros compartidos, visuales, reactivación de menú, admin usuarios, comparativos multi-año |
 
 ## Fase 12 — Cutover
 

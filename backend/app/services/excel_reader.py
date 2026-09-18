@@ -84,9 +84,7 @@ class ExcelReaderService:
                     return self.read_excel(candidate, sheet_name="Consolidado Semestral")
                 except (ValueError, KeyError):
                     return self.read_excel(candidate)
-        raise FileNotFoundError(
-            "No se encontró archivo consolidado. Verifique SGIND_DATA_PATH."
-        )
+        raise FileNotFoundError("No se encontró archivo consolidado. Verifique SGIND_DATA_PATH.")
 
     def get_dashboard_kpis(self, anio: int | None = None, periodo: str | None = None) -> list[dict]:
         """Deprecated: usar DashboardService.get_kpis()."""

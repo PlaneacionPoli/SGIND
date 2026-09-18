@@ -9,6 +9,7 @@ from typing import Any
 
 import pandas as pd
 
+from app.domain.linea_order import linea_sort_key
 from app.domain.resumen_builders import compute_trends, ensure_nivel_cumplimiento
 
 CORTE_SEMESTRAL: dict[str, int] = {"Junio": 6, "Diciembre": 12}
@@ -41,8 +42,6 @@ LINEA_DISPLAY_MAP: dict[str, str] = {
     "sostenibilidad": "Sostenibilidad",
     "educacion para toda la vida": "Educación para toda la vida",
 }
-
-from app.domain.linea_order import LINEA_ORDER, linea_sort_key
 
 
 def default_anio(anios: list[int]) -> int:
@@ -155,12 +154,7 @@ def calcular_kpis(df: pd.DataFrame) -> dict[str, Any]:
 def build_cumplimiento_por_linea(df: pd.DataFrame) -> list[dict[str, Any]]:
     if df.empty or "Linea" not in df.columns or "cumplimiento_pct" not in df.columns:
         return []
-    by_linea = (
-        df.groupby("Linea", dropna=False)["cumplimiento_pct"]
-        .mean()
-        .fillna(0)
-        .reset_index()
-    )
+    by_linea = df.groupby("Linea", dropna=False)["cumplimiento_pct"].mean().fillna(0).reset_index()
     by_linea["_order"] = by_linea["Linea"].map(lambda x: linea_sort_key(str(x)))
     by_linea = by_linea.sort_values("_order")
     result = []
@@ -174,7 +168,9 @@ def build_cumplimiento_por_linea(df: pd.DataFrame) -> list[dict[str, Any]]:
 def build_distribucion_nivel(df: pd.DataFrame) -> list[dict[str, Any]]:
     if df.empty or "Nivel de cumplimiento" not in df.columns:
         return []
-    niveles = df["Nivel de cumplimiento"].fillna("Pendiente de reporte").value_counts().reset_index()
+    niveles = (
+        df["Nivel de cumplimiento"].fillna("Pendiente de reporte").value_counts().reset_index()
+    )
     niveles.columns = ["nivel", "cantidad"]
     total = int(niveles["cantidad"].sum()) or 1
     result = []
@@ -274,7 +270,9 @@ def build_vista_rapida_lineas(df: pd.DataFrame) -> list[dict[str, Any]]:
         cump = cump or 0.0
         estado, estado_color = _estado_linea(cump)
         counts = _nivel_counts(df_l)
-        n_obj = int(df_l["Objetivo"].nunique()) if "Objetivo" in df_l.columns and not df_l.empty else 0
+        n_obj = (
+            int(df_l["Objetivo"].nunique()) if "Objetivo" in df_l.columns and not df_l.empty else 0
+        )
         card_estado = _estado_linea_card(cump, not df_l.empty)
         cump_safe = max(0.0, cump)
         progress_meta = "Meta 100%"
@@ -396,7 +394,9 @@ def build_objetivos_estructura(
         df_obj = df_linea[df_linea["Objetivo"] == obj].copy()
         metas_block: list[dict[str, Any]] = []
         if "Meta_Estrategica" in df_obj.columns:
-            metas = sorted(df_obj["Meta_Estrategica"].dropna().astype(str).str.strip().unique().tolist())
+            metas = sorted(
+                df_obj["Meta_Estrategica"].dropna().astype(str).str.strip().unique().tolist()
+            )
             metas = [m for m in metas if m]
             for meta in metas:
                 df_meta = df_obj[df_obj["Meta_Estrategica"].astype(str).str.strip() == meta]
@@ -419,7 +419,11 @@ def build_linea_historico(cierres: pd.DataFrame, ids: list[str]) -> list[dict[st
     if work.empty or "Anio" not in work.columns:
         return []
     work = ensure_nivel_cumplimiento(work)
-    work["Periodo"] = work["Anio"].astype(str) + "-" + work.get("Mes", pd.Series([12] * len(work))).astype(int).astype(str).str.zfill(2)
+    work["Periodo"] = (
+        work["Anio"].astype(str)
+        + "-"
+        + work.get("Mes", pd.Series([12] * len(work))).astype(int).astype(str).str.zfill(2)
+    )
     hist = work.groupby("Periodo")["cumplimiento_pct"].mean().reset_index().sort_values("Periodo")
     return [
         {
@@ -439,7 +443,11 @@ def previous_corte(anio: int, mes: int) -> tuple[int, int]:
 def _indicadores_riesgo(df_linea: pd.DataFrame, limit: int = 8) -> list[dict[str, Any]]:
     if df_linea.empty or "Nivel de cumplimiento" not in df_linea.columns:
         return []
-    cols = [c for c in ["Id", "Indicador", "Objetivo", "cumplimiento_pct", "Nivel de cumplimiento"] if c in df_linea.columns]
+    cols = [
+        c
+        for c in ["Id", "Indicador", "Objetivo", "cumplimiento_pct", "Nivel de cumplimiento"]
+        if c in df_linea.columns
+    ]
     work = df_linea[df_linea["Nivel de cumplimiento"].isin(["Peligro", "Alerta"])].copy()
     if work.empty or "cumplimiento_pct" not in work.columns:
         return []
@@ -490,7 +498,9 @@ def generate_linea_narrativa_heuristica(
         sort_cols = ["_rank"] + (["cumplimiento_pct"] if "cumplimiento_pct" in work.columns else [])
         crit = work.sort_values(sort_cols, ascending=True).iloc[0]
         indic = str(crit.get("Indicador", "Indicador sin nombre")).strip() or "Indicador sin nombre"
-        objetivo = str(crit.get("Objetivo", "Objetivo no informado")).strip() or "Objetivo no informado"
+        objetivo = (
+            str(crit.get("Objetivo", "Objetivo no informado")).strip() or "Objetivo no informado"
+        )
         nivel = str(crit.get("Nivel de cumplimiento", "Sin nivel")).strip() or "Sin nivel"
         cump_row = _safe_float(crit.get("cumplimiento_pct"), 0.0) or 0.0
         foco_urgente = (
@@ -545,7 +555,11 @@ def build_linea_analisis(
     ids = df_linea["Id"].dropna().astype(str).tolist() if "Id" in df_linea.columns else []
     historico = build_linea_historico(cierres, ids)
 
-    cump_actual = _safe_float(df_linea["cumplimiento_pct"].mean(), 0.0) if "cumplimiento_pct" in df_linea.columns else 0.0
+    cump_actual = (
+        _safe_float(df_linea["cumplimiento_pct"].mean(), 0.0)
+        if "cumplimiento_pct" in df_linea.columns
+        else 0.0
+    )
     cump_actual = cump_actual or 0.0
     counts = _nivel_counts(df_linea)
     n_riesgo = counts["n_alerta"] + counts["n_riesgo"]
@@ -553,7 +567,11 @@ def build_linea_analisis(
     cump_anterior: float | None = None
     variacion_pp: float | None = None
     periodo_comparacion = ""
-    if df_previous is not None and not df_previous.empty and "cumplimiento_pct" in df_previous.columns:
+    if (
+        df_previous is not None
+        and not df_previous.empty
+        and "cumplimiento_pct" in df_previous.columns
+    ):
         cump_anterior = _safe_float(df_previous["cumplimiento_pct"].mean(), None)
         if cump_anterior is not None:
             variacion_pp = round(cump_actual - cump_anterior, 1)
@@ -567,7 +585,9 @@ def build_linea_analisis(
         mejoraron, empeoraron = compute_trends(df_linea, df_previous)
 
     narrativa = generate_linea_narrativa_heuristica(
-        str(df_linea["Linea"].iloc[0]) if "Linea" in df_linea.columns and not df_linea.empty else "",
+        str(df_linea["Linea"].iloc[0])
+        if "Linea" in df_linea.columns and not df_linea.empty
+        else "",
         cump_actual,
         len(df_linea),
         n_riesgo,
@@ -598,20 +618,40 @@ def build_lineas_detalle(
 ) -> list[dict[str, Any]]:
     if df.empty or "Linea" not in df.columns:
         return []
-    lineas = sorted([str(ln).strip() for ln in df["Linea"].dropna().unique() if str(ln).strip()], key=linea_sort_key)
+    lineas = sorted(
+        [str(ln).strip() for ln in df["Linea"].dropna().unique() if str(ln).strip()],
+        key=linea_sort_key,
+    )
     result = []
     for linea in lineas:
         df_linea = df[df["Linea"] == linea].copy()
-        cump = _safe_float(df_linea["cumplimiento_pct"].mean(), 0.0) if "cumplimiento_pct" in df_linea.columns else 0.0
+        cump = (
+            _safe_float(df_linea["cumplimiento_pct"].mean(), 0.0)
+            if "cumplimiento_pct" in df_linea.columns
+            else 0.0
+        )
         cump = cump or 0.0
         counts = _nivel_counts(df_linea)
         n_meta = 0
-        if pdi_catalog is not None and not pdi_catalog.empty and "Meta_Estrategica" in pdi_catalog.columns:
+        if (
+            pdi_catalog is not None
+            and not pdi_catalog.empty
+            and "Meta_Estrategica" in pdi_catalog.columns
+        ):
             if "Linea" in pdi_catalog.columns:
-                metas = pdi_catalog[pdi_catalog["Linea"].astype(str).str.strip() == linea]["Meta_Estrategica"]
+                metas = pdi_catalog[pdi_catalog["Linea"].astype(str).str.strip() == linea][
+                    "Meta_Estrategica"
+                ]
                 n_meta = int(metas.astype(str).str.strip().replace("", pd.NA).dropna().nunique())
         elif "Meta_Estrategica" in df_linea.columns:
-            n_meta = int(df_linea["Meta_Estrategica"].astype(str).str.strip().replace("", pd.NA).dropna().nunique())
+            n_meta = int(
+                df_linea["Meta_Estrategica"]
+                .astype(str)
+                .str.strip()
+                .replace("", pd.NA)
+                .dropna()
+                .nunique()
+            )
 
         ids = df_linea["Id"].dropna().astype(str).tolist() if "Id" in df_linea.columns else []
         df_prev_linea = None
@@ -625,7 +665,9 @@ def build_lineas_detalle(
                 "color": linea_color(linea),
                 "cumplimiento_promedio": round(cump, 1),
                 "total_indicadores": len(df_linea),
-                "n_objetivos": int(df_linea["Objetivo"].nunique()) if "Objetivo" in df_linea.columns else 0,
+                "n_objetivos": int(df_linea["Objetivo"].nunique())
+                if "Objetivo" in df_linea.columns
+                else 0,
                 "n_metas": n_meta,
                 **counts,
                 "top_indicadores": build_top_indicadores(df_linea),

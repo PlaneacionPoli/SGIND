@@ -5,14 +5,7 @@ import { CmiBarLineasPlotly } from "@/components/cmi/CmiBarLineasPlotly";
 import { CmiDonutNivelPlotly } from "@/components/cmi/CmiDonutNivelPlotly";
 import { CmiMetricCard } from "@/components/cmi/CmiMetricCard";
 import { CmiVistaRapidaCards } from "@/components/cmi/CmiVistaRapidaCards";
-
-const NIVEL_COLORS: Record<string, string> = {
-  Sobrecumplimiento: "#6699FF",
-  Cumplimiento: "#43A047",
-  Alerta: "#FBAF17",
-  Peligro: "#D32F2F",
-  "Pendiente de reporte": "#9E9E9E",
-};
+import { NIVEL_COLORS } from "@/components/cmi/cmiChartColors";
 
 interface CmiResumenTabProps {
   data: CMIDashboardResponse;

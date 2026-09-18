@@ -47,7 +47,9 @@ class RetosLoaders:
                     df.rename(columns={"Línea Estratégica": "Linea"}, inplace=True)
                 if "Cumplimiento" in df.columns:
                     df.rename(columns={"Cumplimiento": "cumplimiento_pct"}, inplace=True)
-                    df["cumplimiento_pct"] = pd.to_numeric(df["cumplimiento_pct"], errors="coerce") * 100
+                    df["cumplimiento_pct"] = (
+                        pd.to_numeric(df["cumplimiento_pct"], errors="coerce") * 100
+                    )
             if "Objetivo" not in obj_df.columns:
                 obj_df["Objetivo"] = None
             return linea_df, obj_df

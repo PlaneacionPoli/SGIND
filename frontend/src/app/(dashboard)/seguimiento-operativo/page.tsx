@@ -15,6 +15,8 @@ const MESES = [
   "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre",
 ];
 
+const PAGE_SIZE = 200;
+
 export default function SeguimientoOperativoPage() {
   const { isAuthenticated } = useAuthReady();
   const [anio, setAnio] = useState<number | null>(null);
@@ -23,15 +25,18 @@ export default function SeguimientoOperativoPage() {
   const [estado, setEstado] = useState("Todos");
   const [exporting, setExporting] = useState(false);
   const [anioTodos, setAnioTodos] = useState(false);
+  const [page, setPage] = useState(0);
 
   const query = useQuery({
-    queryKey: ["seguimiento", anio, mes, proceso, estado, anioTodos],
+    queryKey: ["seguimiento", anio, mes, proceso, estado, anioTodos, page],
     queryFn: () =>
       fetchSeguimientoDashboard({
         ...(anio != null && !anioTodos ? { anio } : {}),
         ...(mes != null ? { mes } : {}),
         ...(proceso !== "Todos" ? { proceso } : {}),
         ...(estado !== "Todos" ? { estado } : {}),
+        limit: PAGE_SIZE,
+        offset: page * PAGE_SIZE,
       }),
     enabled: isAuthenticated,
   });
@@ -43,16 +48,21 @@ export default function SeguimientoOperativoPage() {
     }
   }, [query.data, anio]);
 
+  // Volver a la primera página cada vez que cambian los filtros (no al cambiar de página).
+  useEffect(() => {
+    setPage(0);
+  }, [anio, mes, proceso, estado, anioTodos]);
+
   const anioEff = anio ?? query.data?.filtros.anio_default ?? new Date().getFullYear();
   const data = query.data;
 
-  const detalle = data?.detalle ?? [];
-  const DETALLE_DISPLAY_LIMIT = 200;
-  const detalleVisible = detalle.slice(0, DETALLE_DISPLAY_LIMIT);
-  const totalRegistros = data?.kpis.registros ?? detalle.length;
-  const isTruncated = detalle.length > DETALLE_DISPLAY_LIMIT || totalRegistros > detalleVisible.length;
+  const detalleVisible = data?.detalle ?? [];
+  const detalleTotal = data?.detalle_total ?? detalleVisible.length;
+  const totalPaginas = Math.max(1, Math.ceil(detalleTotal / PAGE_SIZE));
+  const desde = detalleTotal === 0 ? 0 : page * PAGE_SIZE + 1;
+  const hasta = Math.min(detalleTotal, page * PAGE_SIZE + detalleVisible.length);
   const FALLBACK_COLUMNS = ["Id", "Indicador", "Proceso", "Año", "Mes", "Estado", "Periodicidad"];
-  const columnas = detalle.length > 0 ? Object.keys(detalle[0]) : FALLBACK_COLUMNS;
+  const columnas = detalleVisible.length > 0 ? Object.keys(detalleVisible[0]) : FALLBACK_COLUMNS;
 
   const chartData = data?.estado_por_proceso ?? [];
   const estadosUnicos = Array.from(new Set(chartData.flatMap((p) => p.estados.map((e) => e.estado))));
@@ -190,12 +200,11 @@ export default function SeguimientoOperativoPage() {
             </button>
           </div>
 
-          {isTruncated ? (
-            <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
-              Mostrando {detalleVisible.length} de {totalRegistros} registros — usa &quot;Descargar Excel&quot;
-              para exportar el conjunto completo.
-            </p>
-          ) : null}
+          <p className="text-xs text-slate-500">
+            {detalleTotal === 0
+              ? "Sin registros para este filtro."
+              : `Mostrando ${desde}–${hasta} de ${detalleTotal} registros.`}
+          </p>
 
           <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
             <table className="min-w-full text-left text-sm">
@@ -227,6 +236,30 @@ export default function SeguimientoOperativoPage() {
               </tbody>
             </table>
           </div>
+
+          {detalleTotal > PAGE_SIZE ? (
+            <div className="flex items-center justify-between gap-4">
+              <button
+                type="button"
+                onClick={() => setPage((p) => Math.max(0, p - 1))}
+                disabled={page === 0}
+                className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-40"
+              >
+                ← Anterior
+              </button>
+              <span className="text-xs text-slate-500">
+                Página {page + 1} de {totalPaginas}
+              </span>
+              <button
+                type="button"
+                onClick={() => setPage((p) => (p + 1 < totalPaginas ? p + 1 : p))}
+                disabled={page + 1 >= totalPaginas}
+                className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-40"
+              >
+                Siguiente →
+              </button>
+            </div>
+          ) : null}
         </>
       )}
     </div>

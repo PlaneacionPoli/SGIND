@@ -9,8 +9,18 @@ import pandas as pd
 from app.domain.loader_utils import id_a_str
 
 MESES_NOMBRES = [
-    "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
-    "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre",
+    "Enero",
+    "Febrero",
+    "Marzo",
+    "Abril",
+    "Mayo",
+    "Junio",
+    "Julio",
+    "Agosto",
+    "Septiembre",
+    "Octubre",
+    "Noviembre",
+    "Diciembre",
 ]
 MES_A_NUM = {m: i + 1 for i, m in enumerate(MESES_NOMBRES)}
 
@@ -122,8 +132,12 @@ def load_avance_om(excel) -> dict[str, float]:
                 avance_col = next((c for c in cols if "Avance" in c), None)
             id_om_col = next((c for c in cols if "Id Oportunidad de mejora" in c), None)
             if not id_om_col:
-                id_om_col = next((c for c in cols if c.startswith("Id ") and "Oportunidad" in c), None)
-            id_accion_col = next((c for c in cols if str(c).strip().lower() in {"id acción", "id accion"}), None)
+                id_om_col = next(
+                    (c for c in cols if c.startswith("Id ") and "Oportunidad" in c), None
+                )
+            id_accion_col = next(
+                (c for c in cols if str(c).strip().lower() in {"id acción", "id accion"}), None
+            )
             if id_om_col and avance_col:
                 subset_cols = [id_om_col, avance_col]
                 if id_accion_col:
@@ -196,7 +210,9 @@ def load_plan_accion_para_om(excel, numero_om: str) -> list[dict[str, Any]]:
             continue
 
         for _, row in subset.iterrows():
-            id_accion = str(row.get("Id Acción", "")).strip() or str(row.get("Id Accion", "")).strip()
+            id_accion = (
+                str(row.get("Id Acción", "")).strip() or str(row.get("Id Accion", "")).strip()
+            )
             accion = str(row.get("Acción", "")).strip() or str(row.get("Accion", "")).strip()
             if not accion:
                 accion = (
@@ -269,7 +285,9 @@ def filter_indicadores_riesgo(
     if "Anio" in out.columns:
         out = out[pd.to_numeric(out["Anio"], errors="coerce") == anio]
     if mes_num and "Mes" in out.columns:
-        out["Mes_num"] = out["Mes"].apply(lambda x: MES_A_NUM.get(_mes_a_nombre(x), pd.to_numeric(x, errors="coerce")))
+        out["Mes_num"] = out["Mes"].apply(
+            lambda x: MES_A_NUM.get(_mes_a_nombre(x), pd.to_numeric(x, errors="coerce"))
+        )
         out = out[pd.to_numeric(out["Mes_num"], errors="coerce") == mes_num]
     cat_col = "Categoria" if "Categoria" in out.columns else "Nivel de cumplimiento"
     if cat_col in out.columns:
@@ -324,26 +342,32 @@ def merge_om_registros(
         if avance_om is None and tiene_om:
             avance_om = _buscar_avance(avances_om, rid)
 
-        rows.append({
-            "id": rid,
-            "indicador": str(row.get("Indicador", "")),
-            "proceso": str(row.get("Proceso", row.get("Proceso_padre", ""))),
-            "subproceso": str(row.get("Subproceso", row.get("Subproceso_final", ""))),
-            "periodicidad": str(row.get("Periodicidad", row.get("Frecuencia", ""))),
-            "meta": row.get("Meta"),
-            "ejecucion": row.get("Ejecucion"),
-            "cumplimiento_pct": cumpl_pct,
-            "categoria": cat,
-            "categoria_color": CATEGORIA_COLORS.get(cat, "#6E7781"),
-            "tipo_accion": tipo_accion,
-            "tipo_accion_color": TIPO_ACCION_COLORS.get(tipo_accion, TIPO_ACCION_COLORS["Sin acción"]),
-            "tiene_om": tiene_om,
-            "numero_om": str(numero_om) if numero_om else "",
-            "comentario": str(comentario) if comentario else "",
-            "om_id": om.get("id"),
-            "avance_om": avance_om,
-            "row_bg": "#FFF5F5" if cat == "Peligro" else ("#FFFBEB" if cat == "Alerta" else "#FFFFFF"),
-        })
+        rows.append(
+            {
+                "id": rid,
+                "indicador": str(row.get("Indicador", "")),
+                "proceso": str(row.get("Proceso", row.get("Proceso_padre", ""))),
+                "subproceso": str(row.get("Subproceso", row.get("Subproceso_final", ""))),
+                "periodicidad": str(row.get("Periodicidad", row.get("Frecuencia", ""))),
+                "meta": row.get("Meta"),
+                "ejecucion": row.get("Ejecucion"),
+                "cumplimiento_pct": cumpl_pct,
+                "categoria": cat,
+                "categoria_color": CATEGORIA_COLORS.get(cat, "#6E7781"),
+                "tipo_accion": tipo_accion,
+                "tipo_accion_color": TIPO_ACCION_COLORS.get(
+                    tipo_accion, TIPO_ACCION_COLORS["Sin acción"]
+                ),
+                "tiene_om": tiene_om,
+                "numero_om": str(numero_om) if numero_om else "",
+                "comentario": str(comentario) if comentario else "",
+                "om_id": om.get("id"),
+                "avance_om": avance_om,
+                "row_bg": "#FFF5F5"
+                if cat == "Peligro"
+                else ("#FFFBEB" if cat == "Alerta" else "#FFFFFF"),
+            }
+        )
     return pd.DataFrame(rows)
 
 
@@ -354,16 +378,28 @@ def build_filtros(df: pd.DataFrame) -> dict[str, Any]:
     if "Anio" in df.columns:
         available = sorted(
             y
-            for y in pd.to_numeric(df["Anio"], errors="coerce").dropna().astype(int).unique().tolist()
+            for y in pd.to_numeric(df["Anio"], errors="coerce")
+            .dropna()
+            .astype(int)
+            .unique()
+            .tolist()
             if y <= 2025
         )
         anios = [str(y) for y in available] or anios
         if 2025 in available and "2025" not in anios:
             anios = ["2025"] + [a for a in anios if a != "2025"]
-    procesos = sorted(df["Proceso"].dropna().astype(str).unique().tolist()) if "Proceso" in df.columns else []
+    procesos = (
+        sorted(df["Proceso"].dropna().astype(str).unique().tolist())
+        if "Proceso" in df.columns
+        else []
+    )
     if not procesos and "Proceso_padre" in df.columns:
         procesos = sorted(df["Proceso_padre"].dropna().astype(str).unique().tolist())
-    subprocesos = sorted(df["Subproceso"].dropna().astype(str).unique().tolist()) if "Subproceso" in df.columns else []
+    subprocesos = (
+        sorted(df["Subproceso"].dropna().astype(str).unique().tolist())
+        if "Subproceso" in df.columns
+        else []
+    )
     if not subprocesos and "Subproceso_final" in df.columns:
         subprocesos = sorted(df["Subproceso_final"].dropna().astype(str).unique().tolist())
     return {
@@ -380,8 +416,12 @@ def build_kpis_matriz(df_tabla: pd.DataFrame) -> dict[str, Any]:
     if df_tabla.empty:
         return {"peligro": 0, "alerta": 0, "con_om": 0, "total": 0, "avance_om_promedio": None}
     total = len(df_tabla)
-    peligro = int((df_tabla["categoria"] == "Peligro").sum()) if "categoria" in df_tabla.columns else 0
-    alerta = int((df_tabla["categoria"] == "Alerta").sum()) if "categoria" in df_tabla.columns else 0
+    peligro = (
+        int((df_tabla["categoria"] == "Peligro").sum()) if "categoria" in df_tabla.columns else 0
+    )
+    alerta = (
+        int((df_tabla["categoria"] == "Alerta").sum()) if "categoria" in df_tabla.columns else 0
+    )
     con_om = int(df_tabla["tiene_om"].sum()) if "tiene_om" in df_tabla.columns else 0
     avance = pd.to_numeric(df_tabla.get("avance_om"), errors="coerce")
     avance_prom = round(float(avance.mean()), 1) if avance.notna().any() else None

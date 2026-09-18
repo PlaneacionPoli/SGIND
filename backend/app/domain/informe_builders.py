@@ -38,8 +38,15 @@ def build_resumen_ejecutivo(
 ) -> dict[str, Any]:
     if not indicadores:
         return {
-            "score": 0, "avg": 0, "label": "En riesgo",
-            "total_indicadores": 0, "cumple": 0, "alerta": 0, "peligro": 0, "sin_dato": 0, "delta": None,
+            "score": 0,
+            "avg": 0,
+            "label": "En riesgo",
+            "total_indicadores": 0,
+            "cumple": 0,
+            "alerta": 0,
+            "peligro": 0,
+            "sin_dato": 0,
+            "delta": None,
         }
     pcts = [i.get("cumplimiento_pct") for i in indicadores if i.get("cumplimiento_pct") is not None]
     avg = sum(pcts) / len(pcts) if pcts else 0.0
@@ -50,7 +57,11 @@ def build_resumen_ejecutivo(
     sin_dato = len(indicadores) - len(pcts)
     delta = None
     if base_indicadores:
-        base_pcts = [i.get("cumplimiento_pct") for i in base_indicadores if i.get("cumplimiento_pct") is not None]
+        base_pcts = [
+            i.get("cumplimiento_pct")
+            for i in base_indicadores
+            if i.get("cumplimiento_pct") is not None
+        ]
         if base_pcts:
             delta = round(avg - sum(base_pcts) / len(base_pcts), 1)
     return {
@@ -66,7 +77,9 @@ def build_resumen_ejecutivo(
     }
 
 
-def build_comparativa_anual(historico: list[dict[str, Any]], mes: int, limit: int = 4) -> list[dict[str, Any]]:
+def build_comparativa_anual(
+    historico: list[dict[str, Any]], mes: int, limit: int = 4
+) -> list[dict[str, Any]]:
     """Usa vista_global.comparativa_anual del dashboard si está disponible."""
     if not historico:
         return []
@@ -77,10 +90,7 @@ def build_comparativa_anual(historico: list[dict[str, Any]], mes: int, limit: in
         if anio is not None and cumpl is not None:
             by_year.setdefault(int(anio), []).append(float(cumpl))
     years = sorted(by_year.keys())[-limit:]
-    return [
-        {"anio": y, "cumplimiento": round(sum(by_year[y]) / len(by_year[y]), 1)}
-        for y in years
-    ]
+    return [{"anio": y, "cumplimiento": round(sum(by_year[y]) / len(by_year[y]), 1)} for y in years]
 
 
 def build_criticos(indicadores: list[dict[str, Any]], limit: int = 3) -> list[dict[str, Any]]:
@@ -97,12 +107,14 @@ def build_analisis_ia(indicadores: list[dict[str, Any]], limit: int = 20) -> dic
     def _pick(lst, n=limit):
         out = []
         for i in lst[:n]:
-            out.append({
-                "indicador": i.get("indicador") or i.get("nombre"),
-                "proceso": i.get("proceso"),
-                "subproceso": i.get("subproceso"),
-                "cumplimiento_pct": i.get("cumplimiento_pct"),
-            })
+            out.append(
+                {
+                    "indicador": i.get("indicador") or i.get("nombre"),
+                    "proceso": i.get("proceso"),
+                    "subproceso": i.get("subproceso"),
+                    "cumplimiento_pct": i.get("cumplimiento_pct"),
+                }
+            )
         return out
 
     top_peligro = _pick(sorted(peligro, key=lambda x: x.get("cumplimiento_pct") or 0))
@@ -116,7 +128,9 @@ def build_analisis_ia(indicadores: list[dict[str, Any]], limit: int = 20) -> dic
     }
 
 
-def load_propuestas(excel, proceso: str = "Todos", subproceso: str = "Todos") -> tuple[list[dict[str, Any]], str | None]:
+def load_propuestas(
+    excel, proceso: str = "Todos", subproceso: str = "Todos"
+) -> tuple[list[dict[str, Any]], str | None]:
     path = excel.data_root / _PROPUESTAS_PATH
     if not path.exists():
         return [], f"No existe el archivo: {_PROPUESTAS_PATH}"
@@ -143,13 +157,22 @@ def load_propuestas(excel, proceso: str = "Todos", subproceso: str = "Todos") ->
         plan_f["Fuente"] = "Plan de mejoramiento"
 
         calidad = excel.read_excel(_PROPUESTAS_PATH, sheet_name="Calidad")
-        calidad_f = calidad[["Proceso", "Subroceso", "Propuesta SGC (Indicadores)"]].rename(
-            columns={"Subroceso": "Subproceso", "Propuesta SGC (Indicadores)": "Indicador Propuesto"}
-        ).dropna(subset=["Indicador Propuesto"])
+        calidad_f = (
+            calidad[["Proceso", "Subroceso", "Propuesta SGC (Indicadores)"]]
+            .rename(
+                columns={
+                    "Subroceso": "Subproceso",
+                    "Propuesta SGC (Indicadores)": "Indicador Propuesto",
+                }
+            )
+            .dropna(subset=["Indicador Propuesto"])
+        )
         calidad_f["Fuente"] = "Calidad"
 
         df_final = pd.concat([retos_f, proyectos_f, plan_f, calidad_f], ignore_index=True)
-        df_final = df_final.drop_duplicates(subset=["Proceso", "Subproceso", "Indicador Propuesto", "Fuente"])
+        df_final = df_final.drop_duplicates(
+            subset=["Proceso", "Subproceso", "Indicador Propuesto", "Fuente"]
+        )
 
         if proceso != "Todos":
             pn = _norm_text(proceso)
@@ -161,13 +184,15 @@ def load_propuestas(excel, proceso: str = "Todos", subproceso: str = "Todos") ->
         records = []
         for _, row in df_final.iterrows():
             fuente = str(row["Fuente"])
-            records.append({
-                "proceso": str(row["Proceso"]),
-                "subproceso": str(row["Subproceso"]),
-                "indicador": str(row["Indicador Propuesto"]),
-                "fuente": fuente,
-                "style": SOURCE_STYLES.get(fuente, {}),
-            })
+            records.append(
+                {
+                    "proceso": str(row["Proceso"]),
+                    "subproceso": str(row["Subproceso"]),
+                    "indicador": str(row["Indicador Propuesto"]),
+                    "fuente": fuente,
+                    "style": SOURCE_STYLES.get(fuente, {}),
+                }
+            )
         return records, None
     except Exception as exc:
         return [], f"Error procesando propuestas: {exc}"
@@ -201,19 +226,23 @@ def load_auditoria(excel, proceso: str = "Todos") -> tuple[list[dict[str, Any]],
                 valor = str(row.get(col_name, "")).strip()
                 if valor:
                     label, pill_bg, pill_text, dot_color, emoji = estilo
-                    items = [v.strip() for v in valor.replace("\n", " | ").split(" | ") if v.strip()]
+                    items = [
+                        v.strip() for v in valor.replace("\n", " | ").split(" | ") if v.strip()
+                    ]
                     if not items:
                         continue
-                    categorias.append({
-                        "campo": campo,
-                        "label": label,
-                        "valor": valor,
-                        "items": items,
-                        "pill_bg": pill_bg,
-                        "pill_text": pill_text,
-                        "dot_color": dot_color,
-                        "emoji": emoji,
-                    })
+                    categorias.append(
+                        {
+                            "campo": campo,
+                            "label": label,
+                            "valor": valor,
+                            "items": items,
+                            "pill_bg": pill_bg,
+                            "pill_text": pill_text,
+                            "dot_color": dot_color,
+                            "emoji": emoji,
+                        }
+                    )
             if categorias:
                 fichas.append({"proceso": proceso_nombre, "categorias": categorias})
         secciones.append({"tipo": tipo, "titulo": titulo, "fichas": fichas})

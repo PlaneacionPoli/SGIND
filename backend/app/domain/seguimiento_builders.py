@@ -27,8 +27,18 @@ _ESTADO_COLORS = {
 }
 
 MESES_NOMBRES = [
-    "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
-    "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre",
+    "Enero",
+    "Febrero",
+    "Marzo",
+    "Abril",
+    "Mayo",
+    "Junio",
+    "Julio",
+    "Agosto",
+    "Septiembre",
+    "Octubre",
+    "Noviembre",
+    "Diciembre",
 ]
 
 
@@ -70,17 +80,18 @@ def detectar_vencidos(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
         return pd.DataFrame(), pd.DataFrame()
 
     df_rep = df[df["Estado"].astype(str).str.strip() == "Reportado"].copy()
-    df_rep["ym"] = (
-        pd.to_numeric(df_rep["Año"], errors="coerce").fillna(0).astype(int) * 12
-        + pd.to_numeric(df_rep["Mes"], errors="coerce").fillna(0).astype(int)
-    )
+    df_rep["ym"] = pd.to_numeric(df_rep["Año"], errors="coerce").fillna(0).astype(
+        int
+    ) * 12 + pd.to_numeric(df_rep["Mes"], errors="coerce").fillna(0).astype(int)
     ultimo = df_rep.groupby("Id")["ym"].max().reset_index().rename(columns={"ym": "ultimo_ym"})
 
     meta_cols = [c for c in ["Id", "Periodicidad", "Proceso", "Indicador"] if c in df.columns]
     meta = df[meta_cols].drop_duplicates(subset=["Id"])
     merged = meta.merge(ultimo, on="Id", how="left")
     merged["ultimo_ym"] = merged["ultimo_ym"].fillna(0).astype(int)
-    merged["ventana"] = merged.get("Periodicidad", pd.Series("mensual", index=merged.index)).apply(_ventana)
+    merged["ventana"] = merged.get("Periodicidad", pd.Series("mensual", index=merged.index)).apply(
+        _ventana
+    )
     merged["diff_meses"] = ym_actual - merged["ultimo_ym"]
 
     vencidos = merged[merged["diff_meses"] > merged["ventana"]].copy()
@@ -113,17 +124,39 @@ def apply_filters(
 
 
 def build_filtros(df: pd.DataFrame) -> dict[str, Any]:
-    anios = sorted(
-        pd.to_numeric(df.get("Año", pd.Series(dtype=float)), errors="coerce")
-        .dropna().astype(int).unique().tolist()
-    ) if not df.empty else []
-    meses_nums = sorted(
-        pd.to_numeric(df.get("Mes", pd.Series(dtype=float)), errors="coerce")
-        .dropna().astype(int).unique().tolist()
-    ) if not df.empty else []
+    anios = (
+        sorted(
+            pd.to_numeric(df.get("Año", pd.Series(dtype=float)), errors="coerce")
+            .dropna()
+            .astype(int)
+            .unique()
+            .tolist()
+        )
+        if not df.empty
+        else []
+    )
+    meses_nums = (
+        sorted(
+            pd.to_numeric(df.get("Mes", pd.Series(dtype=float)), errors="coerce")
+            .dropna()
+            .astype(int)
+            .unique()
+            .tolist()
+        )
+        if not df.empty
+        else []
+    )
     meses_nombres = [MESES_NOMBRES[m - 1] for m in meses_nums if 1 <= m <= 12]
-    procesos = sorted(df["Proceso"].dropna().astype(str).unique().tolist()) if "Proceso" in df.columns else []
-    estados = sorted(df["Estado"].dropna().astype(str).unique().tolist()) if "Estado" in df.columns else []
+    procesos = (
+        sorted(df["Proceso"].dropna().astype(str).unique().tolist())
+        if "Proceso" in df.columns
+        else []
+    )
+    estados = (
+        sorted(df["Estado"].dropna().astype(str).unique().tolist())
+        if "Estado" in df.columns
+        else []
+    )
     default_year = 2025 if 2025 in anios else (anios[-1] if anios else None)
     default_mes = 12 if 12 in meses_nums else (meses_nums[-1] if meses_nums else 12)
     return {
@@ -151,22 +184,20 @@ def build_kpis(df: pd.DataFrame) -> dict[str, int]:
 def build_estado_por_proceso(df: pd.DataFrame) -> list[dict[str, Any]]:
     if df.empty or "Proceso" not in df.columns or "Estado" not in df.columns:
         return []
-    grouped = (
-        df.groupby(["Proceso", "Estado"], dropna=False)
-        .size()
-        .reset_index(name="cantidad")
-    )
+    grouped = df.groupby(["Proceso", "Estado"], dropna=False).size().reset_index(name="cantidad")
     result: list[dict[str, Any]] = []
     for proceso in sorted(grouped["Proceso"].astype(str).unique()):
         subset = grouped[grouped["Proceso"].astype(str) == proceso]
         estados = []
         for _, row in subset.iterrows():
             est = str(row["Estado"])
-            estados.append({
-                "estado": est,
-                "cantidad": int(row["cantidad"]),
-                "color": _ESTADO_COLORS.get(est, "#94a3b8"),
-            })
+            estados.append(
+                {
+                    "estado": est,
+                    "cantidad": int(row["cantidad"]),
+                    "color": _ESTADO_COLORS.get(est, "#94a3b8"),
+                }
+            )
         result.append({"proceso": proceso, "estados": estados})
     return result
 
@@ -198,12 +229,16 @@ def build_dashboard(
     mes: int | None = None,
     proceso: str | None = None,
     estado: str | None = None,
+    limit: int = 500,
+    offset: int = 0,
 ) -> dict[str, Any]:
     filtros = build_filtros(df_raw)
     df_view = apply_filters(df_raw, anio=anio, mes=mes, proceso=proceso, estado=estado)
     vencidos, por_vencer = detectar_vencidos(df_raw)
 
     alert_cols = ["Id", "Indicador", "Proceso", "Periodicidad", "diff_meses"]
+    detalle_total = len(df_view)
+    df_page = df_view.iloc[offset : offset + limit]
     return {
         "filtros": filtros,
         "filtros_aplicados": {
@@ -221,6 +256,9 @@ def build_dashboard(
             "por_vencer": _rows_to_dicts(por_vencer, alert_cols),
         },
         "estado_por_proceso": build_estado_por_proceso(df_view),
-        "detalle": _rows_to_dicts(df_view, list(df_view.columns), limit=5000),
+        "detalle": _rows_to_dicts(df_page, list(df_view.columns), limit=limit),
+        "detalle_total": detalle_total,
+        "detalle_limit": limit,
+        "detalle_offset": offset,
         "estado_colores": _ESTADO_COLORS,
     }

@@ -30,10 +30,16 @@ async def seguimiento_dashboard(
     mes: int | None = Query(None, ge=1, le=12),
     proceso: str | None = Query(None),
     estado: str | None = Query(None),
+    limit: int = Query(500, ge=1, le=5000),
+    offset: int = Query(0, ge=0),
     _user: User = Depends(require_reader),
     service: SeguimientoService = Depends(_service),
 ) -> SeguimientoDashboardResponse:
-    return SeguimientoDashboardResponse(**service.get_dashboard(anio=anio, mes=mes, proceso=proceso, estado=estado))
+    return SeguimientoDashboardResponse(
+        **service.get_dashboard(
+            anio=anio, mes=mes, proceso=proceso, estado=estado, limit=limit, offset=offset
+        )
+    )
 
 
 @router.get("/export")

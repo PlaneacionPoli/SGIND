@@ -32,4 +32,6 @@ async def pdi_dashboard(
     service: PDIService = Depends(_service),
 ) -> PDIDashboardResponse:
     """Dashboard PDI/Acreditación con KPIs, treemap, benchmark y tabla."""
-    return PDIDashboardResponse(**service.get_dashboard(estado=estado, macro=macro, horizonte=horizonte))
+    return PDIDashboardResponse(
+        **service.get_dashboard(estado=estado, macro=macro, horizonte=horizonte)
+    )

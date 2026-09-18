@@ -3,7 +3,6 @@ from typing import Literal
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-
 RoleName = Literal["procesos", "calidad", "desempeno"]
 
 
@@ -37,7 +36,11 @@ class Settings(BaseSettings):
     sgind_data_path: str = "../data"
     excel_cache_ttl_seconds: int = 21600
 
-    anthropic_api_key: str = ""
+    # Gemini (Google AI Studio) — free tier, sin tarjeta de crédito, usado por
+    # narrativa_ia_service.py para las narrativas de ficha de indicador.
+    # Reemplaza a Anthropic Claude (de pago) por decisión de producto — ver
+    # Fase 4 del plan de remediación.
+    gemini_api_key: str = ""
 
     @property
     def cors_origins_list(self) -> list[str]:

@@ -311,7 +311,62 @@ class SeguimientoDashboardResponse(BaseModel):
     alertas: dict[str, Any] = Field(default_factory=dict)
     estado_por_proceso: list[dict[str, Any]] = Field(default_factory=list)
     detalle: list[dict[str, Any]] = Field(default_factory=list)
+    detalle_total: int = 0
+    detalle_limit: int = 500
+    detalle_offset: int = 0
     estado_colores: dict[str, str] = Field(default_factory=dict)
+
+
+class DashboardFiltrosResponse(BaseModel):
+    anios: list[int] = Field(default_factory=list)
+    periodos: list[str] = Field(default_factory=list)
+    anio_default: int | None = None
+    vistas: list[str] = Field(default_factory=list)
+
+
+class DashboardNarrativaResponse(BaseModel):
+    titulo: str
+    parrafos: list[str] = Field(default_factory=list)
+
+
+class DashboardResumenCompletoResponse(BaseModel):
+    """Payload unificado de Resumen General — la forma exacta de campos
+    varía por `vista` (indicadores/proyectos/retos/consolidado), de ahí
+    `extra="allow"`: los campos aquí listados son los comunes a todas."""
+
+    model_config = ConfigDict(extra="allow")
+
+    anio: int
+    vista: str
+    chips: list[dict[str, Any]] = Field(default_factory=list)
+    fichas: list[dict[str, Any]] = Field(default_factory=list)
+    sunburst: list[dict[str, Any]] = Field(default_factory=list)
+    narrativa: dict[str, Any] = Field(default_factory=dict)
+    mejoraron: list[dict[str, Any]] = Field(default_factory=list)
+    en_riesgo: list[dict[str, Any]] = Field(default_factory=list)
+    periodo_comparacion: str | None = None
+    total_indicadores: int = 0
+
+
+class IndicatorDetailResponse(BaseModel):
+    """Fila de indicador con columnas dinámicas del Excel origen — mismo
+    patrón que FichaIndicadorResponse (extra="allow")."""
+
+    model_config = ConfigDict(extra="allow")
+
+    Id: Any = None
+
+
+class OMMatrizResponse(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    error: str | None = None
+    anio: int | None = None
+    mes: str | None = None
+    filtros: dict[str, Any] = Field(default_factory=dict)
+    filtros_aplicados: dict[str, Any] = Field(default_factory=dict)
+    kpis: dict[str, Any] = Field(default_factory=dict)
+    filas: list[dict[str, Any]] = Field(default_factory=list)
 
 
 class FichaIndicadorResponse(BaseModel):

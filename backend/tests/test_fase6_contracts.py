@@ -22,6 +22,7 @@ SEMAFORO = {
 
 # ─── Auth checks ──────────────────────────────────────────────────────────────
 
+
 @pytest.mark.asyncio
 async def test_health_no_auth_requerida(client):
     resp = await client.get("/api/v1/health")
@@ -33,6 +34,7 @@ async def test_health_no_auth_requerida(client):
 
 
 # ─── Contratos de estructura — Dashboard ─────────────────────────────────────
+
 
 @pytest.mark.asyncio
 async def test_dashboard_kpis_estructura(client, auth_as_calidad):
@@ -66,6 +68,7 @@ async def test_dashboard_semaphore_estructura(client, auth_as_calidad):
 
 
 # ─── Contratos — CMI ─────────────────────────────────────────────────────────
+
 
 @pytest.mark.asyncio
 async def test_cmi_filtros_estructura(client, auth_as_calidad):
@@ -109,6 +112,7 @@ async def test_cmi_procesos_filtros_estructura(client, auth_as_calidad):
 
 # ─── Contratos — OM ──────────────────────────────────────────────────────────
 
+
 @pytest.mark.asyncio
 async def test_om_list_requiere_auth(client):
     """OM list requiere autenticación — no necesita DB para verificar esto."""
@@ -122,7 +126,10 @@ async def test_om_list_estructura(client, auth_as_calidad):
     try:
         resp = await client.get("/api/v1/om")
     except Exception as e:
-        if any(msg in str(e) for msg in ("password authentication", "Connection refused", "could not connect")):
+        if any(
+            msg in str(e)
+            for msg in ("password authentication", "Connection refused", "could not connect")
+        ):
             pytest.skip("PostgreSQL no disponible en este entorno")
         raise
     assert resp.status_code in (200, 500)
@@ -148,6 +155,7 @@ async def test_om_matriz_estructura(client, auth_as_calidad):
 
 
 # ─── Contratos — Plan de Mejoramiento ────────────────────────────────────────
+
 
 @pytest.mark.asyncio
 async def test_plan_mejoramiento_filtros_auth(client):
@@ -178,6 +186,7 @@ async def test_plan_mejoramiento_dashboard_estructura(client, auth_as_calidad):
 
 # ─── Contratos — Seguimiento ─────────────────────────────────────────────────
 
+
 @pytest.mark.asyncio
 async def test_seguimiento_filtros_estructura(client, auth_as_calidad):
     resp = await client.get("/api/v1/seguimiento/filtros")
@@ -207,6 +216,7 @@ async def test_seguimiento_dashboard_estructura(client, auth_as_calidad):
 
 # ─── Contratos — Informe ─────────────────────────────────────────────────────
 
+
 @pytest.mark.asyncio
 async def test_informe_filtros_estructura(client, auth_as_calidad):
     resp = await client.get("/api/v1/informe/filtros")
@@ -216,6 +226,7 @@ async def test_informe_filtros_estructura(client, auth_as_calidad):
 
 
 # ─── Contratos — PDI ─────────────────────────────────────────────────────────
+
 
 @pytest.mark.asyncio
 async def test_pdi_filtros_requiere_auth(client):
@@ -275,6 +286,7 @@ async def test_pdi_dashboard_filtro_estado(client, auth_as_calidad):
 
 # ─── Consistencia del semáforo (PROJECT_RULES §3.3) ──────────────────────────
 
+
 @pytest.mark.asyncio
 async def test_semaforo_colores_design_tokens():
     """Los colores del semáforo importados desde design_tokens coinciden con PROJECT_RULES §3.3."""
@@ -283,7 +295,9 @@ async def test_semaforo_colores_design_tokens():
     assert NIVEL_COLOR["Peligro"] == SEMAFORO["Peligro"], "Peligro debe ser #ef4444"
     assert NIVEL_COLOR["Alerta"] == SEMAFORO["Alerta"], "Alerta debe ser #f59e0b"
     assert NIVEL_COLOR["Cumplimiento"] == SEMAFORO["Cumplimiento"], "Cumplimiento debe ser #22c55e"
-    assert NIVEL_COLOR["Sobrecumplimiento"] == SEMAFORO["Sobrecumplimiento"], "Sobrecumplimiento debe ser #3b82f6"
+    assert NIVEL_COLOR["Sobrecumplimiento"] == SEMAFORO["Sobrecumplimiento"], (
+        "Sobrecumplimiento debe ser #3b82f6"
+    )
 
 
 @pytest.mark.asyncio
@@ -291,7 +305,10 @@ async def test_semaforo_colores_om_builders():
     """Los colores de categoría en om_builders coinciden con PROJECT_RULES §3.3."""
     from app.domain.om_builders import CATEGORIA_COLORS
 
-    assert CATEGORIA_COLORS["Peligro"].lower() == "#c62828" or CATEGORIA_COLORS["Peligro"].lower() == SEMAFORO["Peligro"].lower()
+    assert (
+        CATEGORIA_COLORS["Peligro"].lower() == "#c62828"
+        or CATEGORIA_COLORS["Peligro"].lower() == SEMAFORO["Peligro"].lower()
+    )
     assert CATEGORIA_COLORS["Cumplimiento"].lower() in {"#2e7d32", SEMAFORO["Cumplimiento"].lower()}
 
 
@@ -307,6 +324,7 @@ def test_semaforo_colores_cmi_builders():
 
 # ─── Paridad numérica básica ─────────────────────────────────────────────────
 
+
 def test_classify_estado_pdi_thresholds():
     """PDIService._classify_estado reutiliza los umbrales centrales de categorizar_cumplimiento (A-01).
 
@@ -318,10 +336,10 @@ def test_classify_estado_pdi_thresholds():
 
     assert _classify_estado(None) == "Sin dato"
     assert _classify_estado(float("nan")) == "Sin dato"
-    assert _classify_estado(50.0) == "Peligro"        # < 80
-    assert _classify_estado(79.9) == "Peligro"        # < 80
-    assert _classify_estado(80.0) == "Alerta"         # 80 <= x < 100
-    assert _classify_estado(99.9) == "Alerta"         # < 100
+    assert _classify_estado(50.0) == "Peligro"  # < 80
+    assert _classify_estado(79.9) == "Peligro"  # < 80
+    assert _classify_estado(80.0) == "Alerta"  # 80 <= x < 100
+    assert _classify_estado(99.9) == "Alerta"  # < 100
     assert _classify_estado(100.0) == "Cumplimiento"  # 100 <= x < 105
     assert _classify_estado(104.9) == "Cumplimiento"  # < 105
     assert _classify_estado(105.0) == "Sobrecumplimiento"  # >= 105
@@ -331,18 +349,24 @@ def test_classify_estado_pdi_thresholds():
 def test_plan_mejoramiento_kpis_no_nan():
     """build_kpis del plan de mejoramiento no produce NaN ni None inesperado."""
     import pandas as pd
+
     from app.domain.plan_mejoramiento_builders import build_kpis
 
     df_empty = pd.DataFrame(columns=["Id", "Factor", "Caracteristica", "Cumplimiento_pct"])
     catalog_empty = pd.DataFrame(columns=["Id", "Factor", "Caracteristica"])
     kpis = build_kpis(df_empty, catalog_empty)
     assert kpis["indicadores_cna"] == 0
-    assert kpis["promedio_cumplimiento"] == 0 or kpis["promedio_cumplimiento"] is None or kpis["promedio_cumplimiento"] == 0.0
+    assert (
+        kpis["promedio_cumplimiento"] == 0
+        or kpis["promedio_cumplimiento"] is None
+        or kpis["promedio_cumplimiento"] == 0.0
+    )
 
 
 def test_om_kpis_no_nan():
     """build_kpis_matriz retorna enteros, no NaN."""
     import pandas as pd
+
     from app.domain.om_builders import build_kpis_matriz
 
     df_empty = pd.DataFrame()

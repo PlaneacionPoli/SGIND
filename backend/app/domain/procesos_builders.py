@@ -191,11 +191,17 @@ def prepare_tracking(df: pd.DataFrame, map_df: pd.DataFrame) -> pd.DataFrame:
             how="left",
         )
         out["Proceso_padre"] = out["Proceso_padre_map"].fillna(out["Proceso"].astype(str))
-        out["Subproceso_final"] = out.get("Subproceso", out["Proceso"]).fillna(out["Proceso"].astype(str))
+        out["Subproceso_final"] = out.get("Subproceso", out["Proceso"]).fillna(
+            out["Proceso"].astype(str)
+        )
         if "Unidad_map" in out.columns:
             out["Unidad"] = out["Unidad_map"].fillna("")
         out = out.drop(
-            columns=[c for c in ["proc_norm", "sub_norm", "Proceso_padre_map", "Unidad_map"] if c in out.columns]
+            columns=[
+                c
+                for c in ["proc_norm", "sub_norm", "Proceso_padre_map", "Unidad_map"]
+                if c in out.columns
+            ]
         )
     else:
         out["Proceso_padre"] = out["Proceso"].astype(str)
@@ -215,7 +221,9 @@ def prepare_tracking(df: pd.DataFrame, map_df: pd.DataFrame) -> pd.DataFrame:
             )
             if "Tipo de proceso" not in out.columns and "Tipo de proceso_y" in out.columns:
                 out["Tipo de proceso"] = out["Tipo de proceso_y"]
-            out = out.drop(columns=[c for c in ["sub_merge_key", "Tipo de proceso_y"] if c in out.columns])
+            out = out.drop(
+                columns=[c for c in ["sub_merge_key", "Tipo de proceso_y"] if c in out.columns]
+            )
 
     return _ensure_cumplimiento_pct(out)
 
@@ -275,8 +283,12 @@ def latest_per_indicator(df: pd.DataFrame) -> pd.DataFrame:
 def build_procesos_kpis(df: pd.DataFrame) -> dict[str, Any]:
     base = calcular_kpis(df)
     base["n_procesos"] = int(df["Proceso_padre"].nunique()) if "Proceso_padre" in df.columns else 0
-    base["n_subprocesos"] = int(df["Subproceso_final"].nunique()) if "Subproceso_final" in df.columns else 0
-    base["n_unidades"] = int(df["Unidad"].replace("", pd.NA).dropna().nunique()) if "Unidad" in df.columns else 0
+    base["n_subprocesos"] = (
+        int(df["Subproceso_final"].nunique()) if "Subproceso_final" in df.columns else 0
+    )
+    base["n_unidades"] = (
+        int(df["Unidad"].replace("", pd.NA).dropna().nunique()) if "Unidad" in df.columns else 0
+    )
     return base
 
 
@@ -360,13 +372,19 @@ def _normalize_tipo(tipo: str) -> str:
     return str(tipo or "Sin tipo").strip()
 
 
-def build_tipo_proceso_cards(df: pd.DataFrame, df_prev: pd.DataFrame | None = None) -> list[dict[str, Any]]:
+def build_tipo_proceso_cards(
+    df: pd.DataFrame, df_prev: pd.DataFrame | None = None
+) -> list[dict[str, Any]]:
     if df.empty or "Tipo de proceso" not in df.columns:
         return []
     cards = []
     for tipo_raw, group in df.groupby("Tipo de proceso", dropna=False):
         tipo = _normalize_tipo(str(tipo_raw))
-        cumpl = _safe_float(group["cumplimiento_pct"].mean()) if "cumplimiento_pct" in group.columns else None
+        cumpl = (
+            _safe_float(group["cumplimiento_pct"].mean())
+            if "cumplimiento_pct" in group.columns
+            else None
+        )
         prev_cumpl = None
         variacion = None
         if df_prev is not None and not df_prev.empty and "Tipo de proceso" in df_prev.columns:
@@ -395,7 +413,9 @@ def build_tipo_proceso_cards(df: pd.DataFrame, df_prev: pd.DataFrame | None = No
     return cards
 
 
-def build_proceso_bars(df: pd.DataFrame, df_prev: pd.DataFrame | None = None) -> list[dict[str, Any]]:
+def build_proceso_bars(
+    df: pd.DataFrame, df_prev: pd.DataFrame | None = None
+) -> list[dict[str, Any]]:
     col = "Proceso_padre" if "Proceso_padre" in df.columns else "Proceso"
     if df.empty or col not in df.columns:
         return []
@@ -403,7 +423,11 @@ def build_proceso_bars(df: pd.DataFrame, df_prev: pd.DataFrame | None = None) ->
     for proceso, group in df.groupby(col, dropna=True):
         if not proceso or str(proceso).strip() in ("", "nan"):
             continue
-        actual = _safe_float(group["cumplimiento_pct"].mean()) if "cumplimiento_pct" in group.columns else None
+        actual = (
+            _safe_float(group["cumplimiento_pct"].mean())
+            if "cumplimiento_pct" in group.columns
+            else None
+        )
         anterior = None
         if df_prev is not None and not df_prev.empty and col in df_prev.columns:
             prev_g = df_prev[df_prev[col].astype(str) == str(proceso)]
@@ -448,7 +472,11 @@ def build_procesos_detalle(df: pd.DataFrame) -> list[dict[str, Any]]:
                 if not sub or str(sub).strip() in ("", "nan"):
                     continue
                 sub_cumpl = _safe_float(sg["cumplimiento_pct"].mean())
-                sub_riesgo = int(sg["Nivel de cumplimiento"].isin(["Peligro", "Alerta"]).sum()) if "Nivel de cumplimiento" in sg.columns else 0
+                sub_riesgo = (
+                    int(sg["Nivel de cumplimiento"].isin(["Peligro", "Alerta"]).sum())
+                    if "Nivel de cumplimiento" in sg.columns
+                    else 0
+                )
                 subprocesos.append(
                     {
                         "subproceso": str(sub),
@@ -461,8 +489,12 @@ def build_procesos_detalle(df: pd.DataFrame) -> list[dict[str, Any]]:
         items.append(
             {
                 "proceso": str(proceso),
-                "unidad": str(group["Unidad"].iloc[0]) if "Unidad" in group.columns and len(group) else "",
-                "tipo_proceso": str(group["Tipo de proceso"].iloc[0]) if "Tipo de proceso" in group.columns and len(group) else "",
+                "unidad": str(group["Unidad"].iloc[0])
+                if "Unidad" in group.columns and len(group)
+                else "",
+                "tipo_proceso": str(group["Tipo de proceso"].iloc[0])
+                if "Tipo de proceso" in group.columns and len(group)
+                else "",
                 "total_indicadores": len(group),
                 "cumplimiento_promedio": cumpl,
                 "categorias": conteo,
@@ -483,8 +515,16 @@ def build_unidades_detalle(df: pd.DataFrame) -> list[dict[str, Any]]:
         if not u:
             continue
         cumpl = _safe_float(group["cumplimiento_pct"].mean())
-        riesgo = int(group["Nivel de cumplimiento"].isin(["Peligro", "Alerta"]).sum()) if "Nivel de cumplimiento" in group.columns else 0
-        criticos = int((group["Nivel de cumplimiento"] == "Peligro").sum()) if "Nivel de cumplimiento" in group.columns else 0
+        riesgo = (
+            int(group["Nivel de cumplimiento"].isin(["Peligro", "Alerta"]).sum())
+            if "Nivel de cumplimiento" in group.columns
+            else 0
+        )
+        criticos = (
+            int((group["Nivel de cumplimiento"] == "Peligro").sum())
+            if "Nivel de cumplimiento" in group.columns
+            else 0
+        )
         procesos = int(group["Proceso_padre"].nunique()) if "Proceso_padre" in group.columns else 0
         estado = cumplimiento_estado(cumpl)
         items.append(
@@ -505,7 +545,9 @@ def build_unidades_detalle(df: pd.DataFrame) -> list[dict[str, Any]]:
     return items
 
 
-def build_catalog_charts(cmi_df: pd.DataFrame, active_ids: set[str]) -> dict[str, list[dict[str, Any]]]:
+def build_catalog_charts(
+    cmi_df: pd.DataFrame, active_ids: set[str]
+) -> dict[str, list[dict[str, Any]]]:
     periodicidad: list[dict[str, Any]] = []
     tipo_ind: list[dict[str, Any]] = []
     if cmi_df.empty or "Id" not in cmi_df.columns:
@@ -517,12 +559,16 @@ def build_catalog_charts(cmi_df: pd.DataFrame, active_ids: set[str]) -> dict[str
     if work.empty:
         return {"periodicidad": periodicidad, "tipo_indicador": tipo_ind}
 
-    per_col = next((c for c in work.columns if "periodicidad" in c.lower() or c == "Frecuencia"), None)
+    per_col = next(
+        (c for c in work.columns if "periodicidad" in c.lower() or c == "Frecuencia"), None
+    )
     if per_col:
         vc = work[per_col].fillna("Sin dato").astype(str).value_counts()
         periodicidad = [{"label": str(k), "count": int(v)} for k, v in vc.items()]
 
-    tipo_col = next((c for c in work.columns if "tipo" in c.lower() and "indicador" in c.lower()), None)
+    tipo_col = next(
+        (c for c in work.columns if "tipo" in c.lower() and "indicador" in c.lower()), None
+    )
     if tipo_col:
         vc = work[tipo_col].fillna("Sin dato").astype(str).value_counts()
         tipo_ind = [{"label": str(k), "count": int(v)} for k, v in vc.items()]
@@ -532,7 +578,14 @@ def build_catalog_charts(cmi_df: pd.DataFrame, active_ids: set[str]) -> dict[str
 
 def build_indicadores_summary(df: pd.DataFrame) -> dict[str, int]:
     if df.empty:
-        return {"total": 0, "metricas": 0, "sobrecumplimiento": 0, "cumplimiento": 0, "alerta": 0, "peligro": 0}
+        return {
+            "total": 0,
+            "metricas": 0,
+            "sobrecumplimiento": 0,
+            "cumplimiento": 0,
+            "alerta": 0,
+            "peligro": 0,
+        }
     unique = latest_per_indicator(df)
     total = len(unique)
     metricas = int(unique["Id"].nunique()) if "Id" in unique.columns else total
@@ -561,7 +614,10 @@ def build_variacion_analisis(df: pd.DataFrame, df_prev: pd.DataFrame) -> dict[st
         if not riesgo_df.empty:
             agg = (
                 riesgo_df.groupby(col)
-                .agg(n_riesgo=("Nivel de cumplimiento", "count"), cumplimiento=("cumplimiento_pct", "mean"))
+                .agg(
+                    n_riesgo=("Nivel de cumplimiento", "count"),
+                    cumplimiento=("cumplimiento_pct", "mean"),
+                )
                 .reset_index()
                 .sort_values("n_riesgo", ascending=False)
                 .head(8)
@@ -575,10 +631,16 @@ def build_variacion_analisis(df: pd.DataFrame, df_prev: pd.DataFrame) -> dict[st
                     }
                 )
 
-    return {"mejoraron": mejoraron[:10], "empeoraron": empeoraron[:10], "top_riesgo_procesos": top_riesgo}
+    return {
+        "mejoraron": mejoraron[:10],
+        "empeoraron": empeoraron[:10],
+        "top_riesgo_procesos": top_riesgo,
+    }
 
 
-def build_comparativa_procesos(df: pd.DataFrame, df_prev: pd.DataFrame | None = None) -> list[dict[str, Any]]:
+def build_comparativa_procesos(
+    df: pd.DataFrame, df_prev: pd.DataFrame | None = None
+) -> list[dict[str, Any]]:
     col = "Proceso_padre" if "Proceso_padre" in df.columns else "Proceso"
     if df.empty or col not in df.columns:
         return []
@@ -586,7 +648,11 @@ def build_comparativa_procesos(df: pd.DataFrame, df_prev: pd.DataFrame | None = 
     for proceso, group in df.groupby(col, dropna=True):
         if not proceso or str(proceso).strip() in ("", "nan"):
             continue
-        actual = _safe_float(group["cumplimiento_pct"].mean()) if "cumplimiento_pct" in group.columns else None
+        actual = (
+            _safe_float(group["cumplimiento_pct"].mean())
+            if "cumplimiento_pct" in group.columns
+            else None
+        )
         anterior = None
         variacion = None
         if df_prev is not None and not df_prev.empty and col in df_prev.columns:
@@ -599,7 +665,11 @@ def build_comparativa_procesos(df: pd.DataFrame, df_prev: pd.DataFrame | None = 
         if "Nivel de cumplimiento" in group.columns:
             criticos = int((group["Nivel de cumplimiento"] == "Peligro").sum())
         estado = cumplimiento_estado(actual)
-        tipo = str(group["Tipo de proceso"].iloc[0]) if "Tipo de proceso" in group.columns and len(group) else ""
+        tipo = (
+            str(group["Tipo de proceso"].iloc[0])
+            if "Tipo de proceso" in group.columns and len(group)
+            else ""
+        )
         items.append(
             {
                 "proceso": str(proceso),
@@ -655,13 +725,17 @@ def build_alertas_criticas(df: pd.DataFrame, *, limit: int = 6) -> list[dict[str
     return items
 
 
-def build_ejecucion_variacion(df: pd.DataFrame, df_prev: pd.DataFrame, *, limit: int = 8) -> dict[str, list[dict[str, Any]]]:
+def build_ejecucion_variacion(
+    df: pd.DataFrame, df_prev: pd.DataFrame, *, limit: int = 8
+) -> dict[str, list[dict[str, Any]]]:
     if df.empty or df_prev.empty or "Id" not in df.columns or "Id" not in df_prev.columns:
         return {"positiva": [], "negativa": []}
     if "Ejecucion" not in df.columns or "Ejecucion" not in df_prev.columns:
         return {"positiva": [], "negativa": []}
 
-    cur = df[["Id", "Indicador", "Ejecucion", "Mes", "Anio"]].drop_duplicates(subset=["Id"], keep="last")
+    cur = df[["Id", "Indicador", "Ejecucion", "Mes", "Anio"]].drop_duplicates(
+        subset=["Id"], keep="last"
+    )
     prev = df_prev[["Id", "Ejecucion"]].drop_duplicates(subset=["Id"], keep="last")
     merged = cur.merge(prev, on="Id", suffixes=("", "_prev"))
     merged["delta"] = pd.to_numeric(merged["Ejecucion"], errors="coerce") - pd.to_numeric(
@@ -699,7 +773,9 @@ def build_vista_global(
     base_mes: int | None,
 ) -> dict[str, Any]:
     latest = latest_per_indicator(df_global)
-    active_ids = set(latest["Id"].astype(str).str.strip().tolist()) if "Id" in latest.columns else set()
+    active_ids = (
+        set(latest["Id"].astype(str).str.strip().tolist()) if "Id" in latest.columns else set()
+    )
     cumpl_global = avg_cumplimiento(latest)
     cumpl_base = avg_cumplimiento(df_base_year)
     return {
@@ -722,7 +798,9 @@ def build_vista_global(
         "procesos_detalle": build_procesos_detalle(latest),
         "unidades_detalle": build_unidades_detalle(latest),
         "comparativa_procesos": build_comparativa_procesos(latest, df_base_year),
-        "variacion": build_variacion_analisis(latest, df_base_year if not df_base_year.empty else df_global),
+        "variacion": build_variacion_analisis(
+            latest, df_base_year if not df_base_year.empty else df_global
+        ),
         "alertas_criticas": build_alertas_criticas(latest),
         "brecha_ambiental": build_brecha_ambiental(latest),
     }
@@ -737,25 +815,48 @@ def build_filtros_options(
 ) -> dict[str, Any]:
     # 2026 pertenece al siguiente ciclo del PDI y aun no tiene datos completos —
     # se excluye de los filtros de anio por ahora (ver cmi_service.MAX_ANIO_FILTROS).
-    anios = sorted(
-        a
-        for a in pd.to_numeric(tracking["Anio"], errors="coerce").dropna().astype(int).unique().tolist()
-        if a <= 2025
-    ) if "Anio" in tracking.columns else [anio]
+    anios = (
+        sorted(
+            a
+            for a in pd.to_numeric(tracking["Anio"], errors="coerce")
+            .dropna()
+            .astype(int)
+            .unique()
+            .tolist()
+            if a <= 2025
+        )
+        if "Anio" in tracking.columns
+        else [anio]
+    )
 
     prepared = prepare_tracking(tracking, map_df)
     year_slice = filter_by_anio_mes(prepared, anio=anio, mes=default_mes(tracking, anio))
 
-    unidades = sorted(year_slice["Unidad"].replace("", pd.NA).dropna().astype(str).unique().tolist()) if "Unidad" in year_slice.columns else []
-    procesos = sorted(year_slice["Proceso_padre"].dropna().astype(str).unique().tolist()) if "Proceso_padre" in year_slice.columns else []
-    subprocesos = sorted(year_slice["Subproceso_final"].dropna().astype(str).unique().tolist()) if "Subproceso_final" in year_slice.columns else []
+    unidades = (
+        sorted(year_slice["Unidad"].replace("", pd.NA).dropna().astype(str).unique().tolist())
+        if "Unidad" in year_slice.columns
+        else []
+    )
+    procesos = (
+        sorted(year_slice["Proceso_padre"].dropna().astype(str).unique().tolist())
+        if "Proceso_padre" in year_slice.columns
+        else []
+    )
+    subprocesos = (
+        sorted(year_slice["Subproceso_final"].dropna().astype(str).unique().tolist())
+        if "Subproceso_final" in year_slice.columns
+        else []
+    )
 
     subprocesos_por_proceso: dict[str, list[str]] = {}
     if "Proceso_padre" in year_slice.columns and "Subproceso_final" in year_slice.columns:
         for proc in procesos:
             subs = sorted(
                 year_slice[year_slice["Proceso_padre"] == proc]["Subproceso_final"]
-                .dropna().astype(str).unique().tolist()
+                .dropna()
+                .astype(str)
+                .unique()
+                .tolist()
             )
             subprocesos_por_proceso[proc] = subs
 
@@ -788,7 +889,11 @@ def build_filtros_options(
 
 
 def build_indicadores_procesos_listado(df: pd.DataFrame) -> list[dict[str, Any]]:
-    cols_extra = [c for c in ["Proceso_padre", "Subproceso_final", "Unidad", "Tipo de proceso"] if c in df.columns]
+    cols_extra = [
+        c
+        for c in ["Proceso_padre", "Subproceso_final", "Unidad", "Tipo de proceso"]
+        if c in df.columns
+    ]
     base_cols = [
         c
         for c in [
@@ -915,12 +1020,20 @@ def generate_ficha_narrativa_heuristica(
         accion = "Estandarizar las prácticas que explican el resultado y documentar un plan de sostenibilidad."
     elif cump >= 95:
         estado = "El indicador está cerca de la meta y requiere ajuste fino para consolidar cumplimiento."
-        riesgo = "Riesgo de cierre en alerta por variaciones menores de ejecución o retrasos operativos."
+        riesgo = (
+            "Riesgo de cierre en alerta por variaciones menores de ejecución o retrasos operativos."
+        )
         accion = "Definir acciones de corto plazo con responsables y seguimiento semanal hasta el próximo corte."
     else:
-        estado = "El indicador presenta brecha frente a la meta y requiere intervención prioritaria."
-        riesgo = "Riesgo de incumplimiento del objetivo asociado y efectos en el balance del proceso."
-        accion = "Implementar plan de recuperación con metas parciales y control quincenal de avance."
+        estado = (
+            "El indicador presenta brecha frente a la meta y requiere intervención prioritaria."
+        )
+        riesgo = (
+            "Riesgo de incumplimiento del objetivo asociado y efectos en el balance del proceso."
+        )
+        accion = (
+            "Implementar plan de recuperación con metas parciales y control quincenal de avance."
+        )
 
     proc_ctx = f" en el proceso <strong>{proceso}</strong>" if proceso else ""
     texto = (
@@ -948,7 +1061,11 @@ def generate_proceso_narrativa_heuristica(
     riesgo = 0
     if "Nivel de cumplimiento" in df.columns:
         riesgo = int(df["Nivel de cumplimiento"].isin(["Peligro", "Alerta"]).sum())
-    cump = cumplimiento_promedio if cumplimiento_promedio is not None else _safe_float(df["cumplimiento_pct"].mean())
+    cump = (
+        cumplimiento_promedio
+        if cumplimiento_promedio is not None
+        else _safe_float(df["cumplimiento_pct"].mean())
+    )
     cump = cump or 0.0
     riesgo_ratio = (riesgo / total) if total else 0.0
 
@@ -983,7 +1100,9 @@ def generate_proceso_narrativa_heuristica(
     }
 
 
-def build_historico_catalog(df: pd.DataFrame, tracking: pd.DataFrame, *, limit: int = 50) -> list[dict[str, Any]]:
+def build_historico_catalog(
+    df: pd.DataFrame, tracking: pd.DataFrame, *, limit: int = 50
+) -> list[dict[str, Any]]:
     if df.empty or tracking.empty or "Id" not in df.columns:
         return []
     ids = set(df["Id"].astype(str).str.strip().tolist())
@@ -1002,7 +1121,9 @@ def build_historico_catalog(df: pd.DataFrame, tracking: pd.DataFrame, *, limit: 
         for _, row in sorted_g.iterrows():
             mes_num = mes_to_num(row.get("Mes"))
             anio = row.get("Anio")
-            periodo = f"{anio}-{int(mes_num):02d}" if mes_num and pd.notna(anio) else str(anio or "")
+            periodo = (
+                f"{anio}-{int(mes_num):02d}" if mes_num and pd.notna(anio) else str(anio or "")
+            )
             pct = row.get("cumplimiento_pct") or row.get("Cumplimiento_norm")
             if pct is not None:
                 try:
@@ -1121,4 +1242,3 @@ def build_analisis_avanzado(
         "variacion_indicadores": variacion,
         "historico_indicadores": historico,
     }
-

@@ -11,7 +11,7 @@ import io
 from typing import Any
 
 from reportlab.lib import colors
-from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
+from reportlab.lib.enums import TA_CENTER, TA_LEFT
 from reportlab.lib.pagesizes import A4, landscape
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import cm
@@ -62,6 +62,7 @@ def _semaforo_hex(estado: str | None) -> str:
 
 
 # ── Estilos ───────────────────────────────────────────────────────────────────
+
 
 def _make_styles() -> dict[str, ParagraphStyle]:
     base = getSampleStyleSheet()
@@ -128,6 +129,7 @@ def _make_styles() -> dict[str, ParagraphStyle]:
 
 # ── Bloque KPI ────────────────────────────────────────────────────────────────
 
+
 def _kpi_row(items: list[tuple[str, str, str | None]], styles: dict) -> Table:
     """Crea una fila de tarjetas KPI (label, valor, color_hex)."""
     n = len(items)
@@ -136,28 +138,36 @@ def _kpi_row(items: list[tuple[str, str, str | None]], styles: dict) -> Table:
     header_cells = [Paragraph(label, styles["kpi_label"]) for label, _, _ in items]
     value_cells = []
     for _, valor, color in items:
-        p = Paragraph(valor, ParagraphStyle(
-            "kpi_v_tmp",
-            fontSize=22,
-            fontName="Helvetica-Bold",
-            alignment=TA_CENTER,
-            textColor=colors.HexColor(color) if color else C_POLI,
-        ))
+        p = Paragraph(
+            valor,
+            ParagraphStyle(
+                "kpi_v_tmp",
+                fontSize=22,
+                fontName="Helvetica-Bold",
+                alignment=TA_CENTER,
+                textColor=colors.HexColor(color) if color else C_POLI,
+            ),
+        )
         value_cells.append(p)
 
     t = Table([header_cells, value_cells], colWidths=[col_w] * n)
-    t.setStyle(TableStyle([
-        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
-        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-        ("ROWBACKGROUNDS", (0, 0), (-1, -1), [C_BG_HEADER, colors.white]),
-        ("GRID", (0, 0), (-1, -1), 0.5, C_BORDER),
-        ("TOPPADDING", (0, 0), (-1, -1), 6),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
-    ]))
+    t.setStyle(
+        TableStyle(
+            [
+                ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                ("ROWBACKGROUNDS", (0, 0), (-1, -1), [C_BG_HEADER, colors.white]),
+                ("GRID", (0, 0), (-1, -1), 0.5, C_BORDER),
+                ("TOPPADDING", (0, 0), (-1, -1), 6),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+            ]
+        )
+    )
     return t
 
 
 # ── Tabla de indicadores ──────────────────────────────────────────────────────
+
 
 def _indicadores_table(indicadores: list[dict[str, Any]], styles: dict) -> Table:
     headers = ["ID", "Indicador", "Meta", "Ejecución", "Estado"]
@@ -169,8 +179,9 @@ def _indicadores_table(indicadores: list[dict[str, Any]], styles: dict) -> Table
         color = _semaforo_color(estado)
         estado_p = Paragraph(
             estado.capitalize(),
-            ParagraphStyle("cell_estado", fontSize=8, leading=10,
-                           fontName="Helvetica-Bold", textColor=color),
+            ParagraphStyle(
+                "cell_estado", fontSize=8, leading=10, fontName="Helvetica-Bold", textColor=color
+            ),
         )
 
         def _fmt(v: Any) -> str:
@@ -181,31 +192,40 @@ def _indicadores_table(indicadores: list[dict[str, Any]], styles: dict) -> Table
             except (TypeError, ValueError):
                 return str(v)
 
-        rows.append([
-            Paragraph(str(ind.get("id") or ind.get("Id") or ""), styles["cell"]),
-            Paragraph(str(ind.get("indicador") or ind.get("Indicador") or "")[:90], styles["cell"]),
-            Paragraph(_fmt(ind.get("meta") or ind.get("Meta")), styles["cell"]),
-            Paragraph(_fmt(ind.get("ejecucion") or ind.get("Ejecucion")), styles["cell"]),
-            estado_p,
-        ])
+        rows.append(
+            [
+                Paragraph(str(ind.get("id") or ind.get("Id") or ""), styles["cell"]),
+                Paragraph(
+                    str(ind.get("indicador") or ind.get("Indicador") or "")[:90], styles["cell"]
+                ),
+                Paragraph(_fmt(ind.get("meta") or ind.get("Meta")), styles["cell"]),
+                Paragraph(_fmt(ind.get("ejecucion") or ind.get("Ejecucion")), styles["cell"]),
+                estado_p,
+            ]
+        )
 
     t = Table(rows, colWidths=col_widths, repeatRows=1)
-    t.setStyle(TableStyle([
-        ("BACKGROUND", (0, 0), (-1, 0), C_POLI),
-        ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-        ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, C_BG_HEADER]),
-        ("GRID", (0, 0), (-1, -1), 0.3, C_BORDER),
-        ("VALIGN", (0, 0), (-1, -1), "TOP"),
-        ("TOPPADDING", (0, 0), (-1, -1), 4),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
-        ("LEFTPADDING", (0, 0), (-1, -1), 4),
-        ("RIGHTPADDING", (0, 0), (-1, -1), 4),
-    ]))
+    t.setStyle(
+        TableStyle(
+            [
+                ("BACKGROUND", (0, 0), (-1, 0), C_POLI),
+                ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+                ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, C_BG_HEADER]),
+                ("GRID", (0, 0), (-1, -1), 0.3, C_BORDER),
+                ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                ("TOPPADDING", (0, 0), (-1, -1), 4),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+                ("LEFTPADDING", (0, 0), (-1, -1), 4),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 4),
+            ]
+        )
+    )
     return t
 
 
 # ── Distribución semáforo ─────────────────────────────────────────────────────
+
 
 def _distribucion_table(dist: dict[str, int], styles: dict) -> Table:
     """Tabla horizontal con conteos de distribución de estados."""
@@ -227,29 +247,41 @@ def _distribucion_table(dist: dict[str, int], styles: dict) -> Table:
         else:
             label_text, color = key.capitalize(), C_SINDAT
         rows_header.append(Paragraph(label_text, styles["kpi_label"]))
-        rows_val.append(Paragraph(
-            str(cnt),
-            ParagraphStyle("d_val", fontSize=18, fontName="Helvetica-Bold",
-                           alignment=TA_CENTER, textColor=color),
-        ))
+        rows_val.append(
+            Paragraph(
+                str(cnt),
+                ParagraphStyle(
+                    "d_val",
+                    fontSize=18,
+                    fontName="Helvetica-Bold",
+                    alignment=TA_CENTER,
+                    textColor=color,
+                ),
+            )
+        )
         widths.append(17 * cm / max(len(dist), 1))
 
     if not rows_header:
         return Spacer(0, 0)  # type: ignore[return-value]
 
     t = Table([rows_header, rows_val], colWidths=widths)
-    t.setStyle(TableStyle([
-        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
-        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-        ("GRID", (0, 0), (-1, -1), 0.5, C_BORDER),
-        ("ROWBACKGROUNDS", (0, 0), (-1, -1), [C_BG_HEADER, colors.white]),
-        ("TOPPADDING", (0, 0), (-1, -1), 6),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
-    ]))
+    t.setStyle(
+        TableStyle(
+            [
+                ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                ("GRID", (0, 0), (-1, -1), 0.5, C_BORDER),
+                ("ROWBACKGROUNDS", (0, 0), (-1, -1), [C_BG_HEADER, colors.white]),
+                ("TOPPADDING", (0, 0), (-1, -1), 6),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+            ]
+        )
+    )
     return t
 
 
 # ── Pie de página ─────────────────────────────────────────────────────────────
+
 
 def _on_page(canvas, doc):
     """Número de página en el pie."""
@@ -279,6 +311,7 @@ def _on_page_landscape(canvas, doc):
 # ─────────────────────────────────────────────────────────────────────────────
 # Reporte 1 — Resumen General
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 def generar_resumen_general(
     anio: int,
@@ -312,10 +345,12 @@ def generar_resumen_general(
 
     # ── Encabezado ──
     story.append(Paragraph("Resumen General de Indicadores", styles["title"]))
-    story.append(Paragraph(
-        f"Año {anio}" + (f" · Generado: {generated_at}" if generated_at else ""),
-        styles["subtitle"],
-    ))
+    story.append(
+        Paragraph(
+            f"Año {anio}" + (f" · Generado: {generated_at}" if generated_at else ""),
+            styles["subtitle"],
+        )
+    )
     story.append(HRFlowable(width="100%", thickness=1, color=C_POLI))
     story.append(Spacer(1, 0.4 * cm))
 
@@ -342,10 +377,12 @@ def generar_resumen_general(
         story.append(_indicadores_table(indicadores, styles))
         if len(indicadores) > 80:
             story.append(Spacer(1, 0.2 * cm))
-            story.append(Paragraph(
-                f"* Se muestran los primeros 80 de {len(indicadores)} indicadores.",
-                styles["subtitle"],
-            ))
+            story.append(
+                Paragraph(
+                    f"* Se muestran los primeros 80 de {len(indicadores)} indicadores.",
+                    styles["subtitle"],
+                )
+            )
     else:
         story.append(Paragraph("Sin datos de indicadores disponibles.", styles["body"]))
 
@@ -356,6 +393,7 @@ def generar_resumen_general(
 # ─────────────────────────────────────────────────────────────────────────────
 # Reporte 2 — Informe por Procesos
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 def generar_informe_procesos(
     anio: int,
@@ -377,8 +415,21 @@ def generar_informe_procesos(
     Returns:
         Bytes del PDF generado.
     """
-    MESES = ["", "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
-             "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"]
+    MESES = [
+        "",
+        "Enero",
+        "Febrero",
+        "Marzo",
+        "Abril",
+        "Mayo",
+        "Junio",
+        "Julio",
+        "Agosto",
+        "Septiembre",
+        "Octubre",
+        "Noviembre",
+        "Diciembre",
+    ]
     mes_nombre = MESES[mes] if 1 <= mes <= 12 else str(mes)
 
     buf = io.BytesIO()
@@ -449,41 +500,61 @@ def generar_informe_procesos(
                 except (TypeError, ValueError):
                     return str(v)
 
-            rows.append([
-                Paragraph(str(ind.get("id") or ind.get("Id") or ""), styles["cell"]),
-                Paragraph(str(ind.get("proceso") or ind.get("Proceso") or "")[:40], styles["cell"]),
-                Paragraph(str(ind.get("indicador") or ind.get("Indicador") or "")[:100], styles["cell"]),
-                Paragraph(_fmt(ind.get("meta") or ind.get("Meta")), styles["cell"]),
-                Paragraph(_fmt(ind.get("ejecucion") or ind.get("Ejecucion")), styles["cell"]),
-                Paragraph(
-                    estado.capitalize(),
-                    ParagraphStyle("est_tmp", fontSize=8, leading=10,
-                                   fontName="Helvetica-Bold", textColor=color),
-                ),
-            ])
+            rows.append(
+                [
+                    Paragraph(str(ind.get("id") or ind.get("Id") or ""), styles["cell"]),
+                    Paragraph(
+                        str(ind.get("proceso") or ind.get("Proceso") or "")[:40], styles["cell"]
+                    ),
+                    Paragraph(
+                        str(ind.get("indicador") or ind.get("Indicador") or "")[:100],
+                        styles["cell"],
+                    ),
+                    Paragraph(_fmt(ind.get("meta") or ind.get("Meta")), styles["cell"]),
+                    Paragraph(_fmt(ind.get("ejecucion") or ind.get("Ejecucion")), styles["cell"]),
+                    Paragraph(
+                        estado.capitalize(),
+                        ParagraphStyle(
+                            "est_tmp",
+                            fontSize=8,
+                            leading=10,
+                            fontName="Helvetica-Bold",
+                            textColor=color,
+                        ),
+                    ),
+                ]
+            )
 
         t = Table(rows, colWidths=col_widths, repeatRows=1)
-        t.setStyle(TableStyle([
-            ("BACKGROUND", (0, 0), (-1, 0), C_POLI),
-            ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-            ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, C_BG_HEADER]),
-            ("GRID", (0, 0), (-1, -1), 0.3, C_BORDER),
-            ("VALIGN", (0, 0), (-1, -1), "TOP"),
-            ("TOPPADDING", (0, 0), (-1, -1), 3),
-            ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
-            ("LEFTPADDING", (0, 0), (-1, -1), 3),
-            ("RIGHTPADDING", (0, 0), (-1, -1), 3),
-        ]))
+        t.setStyle(
+            TableStyle(
+                [
+                    ("BACKGROUND", (0, 0), (-1, 0), C_POLI),
+                    ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+                    ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, C_BG_HEADER]),
+                    ("GRID", (0, 0), (-1, -1), 0.3, C_BORDER),
+                    ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                    ("TOPPADDING", (0, 0), (-1, -1), 3),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
+                    ("LEFTPADDING", (0, 0), (-1, -1), 3),
+                    ("RIGHTPADDING", (0, 0), (-1, -1), 3),
+                ]
+            )
+        )
         story.append(t)
 
         if len(indicadores) > 100:
             story.append(Spacer(1, 0.2 * cm))
-            story.append(Paragraph(
-                f"* Se muestran los primeros 100 de {len(indicadores)} indicadores.",
-                styles["subtitle"],
-            ))
+            story.append(
+                Paragraph(
+                    f"* Se muestran los primeros 100 de {len(indicadores)} indicadores.",
+                    styles["subtitle"],
+                )
+            )
     else:
-        story.append(Paragraph("Sin datos de indicadores para los filtros seleccionados.", styles["body"]))
+        story.append(
+            Paragraph("Sin datos de indicadores para los filtros seleccionados.", styles["body"])
+        )
 
     # ── Análisis IA (texto) ──
     analisis_ia = data.get("analisis_ia") or {}
@@ -491,7 +562,11 @@ def generar_informe_procesos(
         story.append(Paragraph("Análisis IA", styles["section"]))
         for key, texto in analisis_ia.items():
             if texto and isinstance(texto, str):
-                story.append(Paragraph(f"<b>{key.replace('_', ' ').capitalize()}:</b> {texto}", styles["body"]))
+                story.append(
+                    Paragraph(
+                        f"<b>{key.replace('_', ' ').capitalize()}:</b> {texto}", styles["body"]
+                    )
+                )
                 story.append(Spacer(1, 0.2 * cm))
 
     doc.build(story, onFirstPage=_on_page_landscape, onLaterPages=_on_page_landscape)
@@ -501,6 +576,7 @@ def generar_informe_procesos(
 # ─────────────────────────────────────────────────────────────────────────────
 # Reporte 3 — Ficha individual de indicador
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 def generar_ficha_indicador(
     ficha: dict[str, Any],
@@ -560,7 +636,11 @@ def generar_ficha_indicador(
     kpi_items = [
         ("Meta", _fmt(meta), None),
         ("Ejecución", _fmt(ejecucion), None),
-        ("Cumplimiento", f"{float(cumplimiento):.1f}%" if isinstance(cumplimiento, (int, float)) else "—", "#1A3A5C"),
+        (
+            "Cumplimiento",
+            f"{float(cumplimiento):.1f}%" if isinstance(cumplimiento, (int, float)) else "—",
+            "#1A3A5C",
+        ),
         ("Nivel", str(nivel), _semaforo_hex(nivel)),
     ]
     story.append(_kpi_row(kpi_items, styles))
@@ -579,22 +659,28 @@ def generar_ficha_indicador(
         col_widths = [4 * cm, 4 * cm, 4 * cm, 4 * cm]
         rows: list[list] = [[Paragraph(h, styles["cell_bold"]) for h in headers]]
         for item in historico:
-            rows.append([
-                Paragraph(str(item.get("periodo", "")), styles["cell"]),
-                Paragraph(_fmt(item.get("meta")), styles["cell"]),
-                Paragraph(_fmt(item.get("ejecucion")), styles["cell"]),
-                Paragraph(_fmt(item.get("cumplimiento")), styles["cell"]),
-            ])
+            rows.append(
+                [
+                    Paragraph(str(item.get("periodo", "")), styles["cell"]),
+                    Paragraph(_fmt(item.get("meta")), styles["cell"]),
+                    Paragraph(_fmt(item.get("ejecucion")), styles["cell"]),
+                    Paragraph(_fmt(item.get("cumplimiento")), styles["cell"]),
+                ]
+            )
         t = Table(rows, colWidths=col_widths, repeatRows=1)
-        t.setStyle(TableStyle([
-            ("BACKGROUND", (0, 0), (-1, 0), C_POLI),
-            ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-            ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, C_BG_HEADER]),
-            ("GRID", (0, 0), (-1, -1), 0.3, C_BORDER),
-            ("VALIGN", (0, 0), (-1, -1), "TOP"),
-            ("TOPPADDING", (0, 0), (-1, -1), 4),
-            ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
-        ]))
+        t.setStyle(
+            TableStyle(
+                [
+                    ("BACKGROUND", (0, 0), (-1, 0), C_POLI),
+                    ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+                    ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, C_BG_HEADER]),
+                    ("GRID", (0, 0), (-1, -1), 0.3, C_BORDER),
+                    ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                    ("TOPPADDING", (0, 0), (-1, -1), 4),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+                ]
+            )
+        )
         story.append(t)
     else:
         story.append(Paragraph("Sin histórico disponible para este indicador.", styles["body"]))

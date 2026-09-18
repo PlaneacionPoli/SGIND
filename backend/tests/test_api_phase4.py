@@ -1,5 +1,6 @@
 import pytest
 
+
 @pytest.mark.asyncio
 async def test_tp_4_1_health(client):
     response = await client.get("/api/v1/health")

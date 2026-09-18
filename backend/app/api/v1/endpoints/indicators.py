@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from app.api.deps import get_excel_service
 from app.core.security import require_reader
 from app.models.user import User
-from app.schemas.common import IndicatorListResponse
+from app.schemas.common import IndicatorDetailResponse, IndicatorListResponse
 from app.services.excel_reader import ExcelReaderService
 from app.services.indicator_service import IndicatorService
 
@@ -42,14 +42,14 @@ async def list_indicators(
     return IndicatorListResponse(**data)
 
 
-@router.get("/{indicator_id}")
+@router.get("/{indicator_id}", response_model=IndicatorDetailResponse)
 async def get_indicator(
     indicator_id: str,
     anio: int | None = Query(None),
     _user: User = Depends(require_reader),
     service: IndicatorService = Depends(_indicator_service),
-) -> dict:
+) -> IndicatorDetailResponse:
     detail = service.get_indicator(indicator_id, anio=anio)
     if detail is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Indicador no encontrado")
-    return detail
+    return IndicatorDetailResponse(**detail)

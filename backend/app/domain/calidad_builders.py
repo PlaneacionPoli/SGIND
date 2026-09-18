@@ -91,11 +91,16 @@ def load_calidad_data(excel: ExcelReaderService) -> tuple[pd.DataFrame, str | No
             path = candidate
             break
     if path is None:
-        for candidate in (excel.data_root / "raw" / "Monitoreo").glob("Monitoreo_Informacion_Procesos*.xlsx"):
+        for candidate in (excel.data_root / "raw" / "Monitoreo").glob(
+            "Monitoreo_Informacion_Procesos*.xlsx"
+        ):
             path = candidate
             break
     if path is None:
-        return pd.DataFrame(), "No se encontró archivo Monitoreo_Informacion_Procesos en data/raw/Monitoreo/"
+        return (
+            pd.DataFrame(),
+            "No se encontró archivo Monitoreo_Informacion_Procesos en data/raw/Monitoreo/",
+        )
 
     try:
         df = pd.read_excel(path, sheet_name="LISTA DE CHEQUEO", header=4, engine="openpyxl")
@@ -131,7 +136,7 @@ def load_calidad_data(excel: ExcelReaderService) -> tuple[pd.DataFrame, str | No
         rename_map[sub_col] = "Subproceso"
     if tem_col:
         rename_map[tem_col] = "Temática"
-    for crit, src in zip(_CRITERIOS, c_cols):
+    for crit, src in zip(_CRITERIOS, c_cols, strict=False):
         if src:
             rename_map[src] = crit
     out = out.rename(columns=rename_map)
@@ -217,7 +222,9 @@ def build_calidad_dashboard(
     if "Subproceso" not in work.columns:
         work["Subproceso"] = "Sin subproceso"
     work["pct_calidad"] = pd.to_numeric(work.get("pct_calidad"), errors="coerce")
-    score_global = round(float(work["pct_calidad"].mean()), 1) if work["pct_calidad"].notna().any() else None
+    score_global = (
+        round(float(work["pct_calidad"].mean()), 1) if work["pct_calidad"].notna().any() else None
+    )
     dim_scores = build_dim_scores(work)
 
     alertas = [
@@ -240,7 +247,9 @@ def build_calidad_dashboard(
         .reset_index()
     )
     por_proceso["pct_calidad"] = por_proceso["pct_calidad"].round(1)
-    por_proceso_list = por_proceso.sort_values("pct_calidad", ascending=False).to_dict(orient="records")
+    por_proceso_list = por_proceso.sort_values("pct_calidad", ascending=False).to_dict(
+        orient="records"
+    )
 
     por_sub = (
         work.groupby(["Proceso", "Subproceso"], dropna=False)
@@ -248,7 +257,9 @@ def build_calidad_dashboard(
         .reset_index()
     )
     por_sub["pct_calidad"] = por_sub["pct_calidad"].round(1)
-    por_sub_list = por_sub.sort_values("pct_calidad", ascending=False).head(30).to_dict(orient="records")
+    por_sub_list = (
+        por_sub.sort_values("pct_calidad", ascending=False).head(30).to_dict(orient="records")
+    )
 
     registros = []
     for _, row in work.head(100).iterrows():
@@ -259,7 +270,9 @@ def build_calidad_dashboard(
                 "tematica": str(row.get("Temática", "")),
                 "pct_calidad": row.get("pct_calidad"),
                 "estado": str(row.get("Estado calidad", "SIN DATO")),
-                "criterios": {crit: str(row.get(crit, "")) for crit in _CRITERIOS if crit in row.index},
+                "criterios": {
+                    crit: str(row.get(crit, "")) for crit in _CRITERIOS if crit in row.index
+                },
             }
         )
 

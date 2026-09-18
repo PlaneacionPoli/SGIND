@@ -12,6 +12,7 @@ from app.domain.cmi_builders import (
     linea_color,
 )
 
+
 def test_calcular_kpis_basic():
     df = pd.DataFrame(
         {

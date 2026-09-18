@@ -119,9 +119,7 @@ async def test_tp_2_2_upsert_om(db_session: AsyncSession):
     assert second.numero_om == "OM-999"
 
     count = await db_session.execute(
-        text(
-            "SELECT COUNT(*) FROM registros_om WHERE id_indicador = :key"
-        ),
+        text("SELECT COUNT(*) FROM registros_om WHERE id_indicador = :key"),
         {"key": key},
     )
     assert count.scalar_one() == 1

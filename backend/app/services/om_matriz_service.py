@@ -39,7 +39,12 @@ class OMMatrizService:
     ) -> dict[str, Any]:
         df_riesgo = self._load_historico()
         if df_riesgo.empty:
-            return {"error": "No hay datos históricos para Gestión OM.", "filtros": {}, "kpis": {}, "filas": []}
+            return {
+                "error": "No hay datos históricos para Gestión OM.",
+                "filtros": {},
+                "kpis": {},
+                "filas": [],
+            }
 
         if "Categoria" not in df_riesgo.columns and "Nivel de cumplimiento" in df_riesgo.columns:
             df_riesgo = df_riesgo.copy()

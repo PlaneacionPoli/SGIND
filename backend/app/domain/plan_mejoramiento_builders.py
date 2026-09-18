@@ -36,9 +36,21 @@ NIVEL_EMOJI = {
 
 _ACCIONES_PATH = "raw/acciones_mejora.xlsx"
 _FACTOR_PALETTE = [
-    "#8dd3c7", "#ffffb3", "#bebada", "#fb8072", "#80b1d3",
-    "#fdb462", "#b3de69", "#fccde5", "#d9d9d9", "#bc80bd",
-    "#ccebc5", "#ffed6f", "#e41a1c", "#377eb8", "#4daf4a",
+    "#8dd3c7",
+    "#ffffb3",
+    "#bebada",
+    "#fb8072",
+    "#80b1d3",
+    "#fdb462",
+    "#b3de69",
+    "#fccde5",
+    "#d9d9d9",
+    "#bc80bd",
+    "#ccebc5",
+    "#ffed6f",
+    "#e41a1c",
+    "#377eb8",
+    "#4daf4a",
 ]
 
 
@@ -75,11 +87,19 @@ def _estado_tiempo_acciones(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def build_filtros_corte(cierres: pd.DataFrame) -> dict[str, Any]:
-    anios = sorted(
-        a
-        for a in pd.to_numeric(cierres["Anio"], errors="coerce").dropna().astype(int).unique().tolist()
-        if a <= MAX_ANIO_FILTROS
-    ) if not cierres.empty and "Anio" in cierres.columns else []
+    anios = (
+        sorted(
+            a
+            for a in pd.to_numeric(cierres["Anio"], errors="coerce")
+            .dropna()
+            .astype(int)
+            .unique()
+            .tolist()
+            if a <= MAX_ANIO_FILTROS
+        )
+        if not cierres.empty and "Anio" in cierres.columns
+        else []
+    )
     default_year = 2025 if 2025 in anios else (anios[-1] if anios else None)
     return {
         "anios": anios,
@@ -99,7 +119,11 @@ def apply_cna_filters(
     out = df.copy()
     if factor and factor != "Todos" and "Factor" in out.columns:
         out = out[out["Factor"].astype(str) == factor]
-    if caracteristica and caracteristica not in ("Todas", "Todos") and "Caracteristica" in out.columns:
+    if (
+        caracteristica
+        and caracteristica not in ("Todas", "Todos")
+        and "Caracteristica" in out.columns
+    ):
         out = out[out["Caracteristica"].astype(str) == caracteristica]
     if nombre and nombre.strip() and "Indicador" in out.columns:
         out = out[out["Indicador"].astype(str).str.contains(nombre.strip(), case=False, na=False)]
@@ -119,7 +143,11 @@ def _round_pct(val) -> float | None:
 def build_kpis(df: pd.DataFrame, catalog: pd.DataFrame) -> dict[str, Any]:
     total = len(df)
     con_dato = int(df["cumplimiento_pct"].notna().sum()) if "cumplimiento_pct" in df.columns else 0
-    prom = float(df["cumplimiento_pct"].mean()) if con_dato and "cumplimiento_pct" in df.columns else 0.0
+    prom = (
+        float(df["cumplimiento_pct"].mean())
+        if con_dato and "cumplimiento_pct" in df.columns
+        else 0.0
+    )
     n_fact = int(df["Factor"].nunique()) if "Factor" in df.columns else 0
     n_car = int(df["Caracteristica"].nunique()) if "Caracteristica" in df.columns else 0
     total_fact_cat = int(catalog["Factor"].nunique()) if not catalog.empty else n_fact
@@ -139,7 +167,11 @@ def build_graficos(df: pd.DataFrame) -> dict[str, Any]:
     if df.empty:
         return {"factor_bars": [], "nivel_donut": [], "factor_nivel_stacked": [], "treemap": []}
 
-    factor_list = sorted(df["Factor"].dropna().astype(str).unique().tolist()) if "Factor" in df.columns else []
+    factor_list = (
+        sorted(df["Factor"].dropna().astype(str).unique().tolist())
+        if "Factor" in df.columns
+        else []
+    )
     color_map = _factor_colors(factor_list)
 
     factor_bars = []
@@ -153,24 +185,30 @@ def build_graficos(df: pd.DataFrame) -> dict[str, Any]:
         )
         for _, row in by_factor.iterrows():
             f = str(row["Factor"])
-            factor_bars.append({
-                "factor": f,
-                "cumplimiento": _round_pct(row["cumplimiento_pct"]),
-                "color": color_map.get(f, "#888"),
-            })
+            factor_bars.append(
+                {
+                    "factor": f,
+                    "cumplimiento": _round_pct(row["cumplimiento_pct"]),
+                    "color": color_map.get(f, "#888"),
+                }
+            )
 
     nivel_donut = []
     if "Nivel de cumplimiento" in df.columns:
-        niveles = df["Nivel de cumplimiento"].fillna("Pendiente de reporte").value_counts().reset_index()
+        niveles = (
+            df["Nivel de cumplimiento"].fillna("Pendiente de reporte").value_counts().reset_index()
+        )
         niveles.columns = ["nivel", "cantidad"]
         for _, row in niveles.iterrows():
             n = str(row["nivel"])
-            nivel_donut.append({
-                "nivel": n,
-                "cantidad": int(row["cantidad"]),
-                "color": NIVEL_COLOR_EXT.get(n, "#BDBDBD"),
-                "emoji": NIVEL_EMOJI.get(n, "⚪"),
-            })
+            nivel_donut.append(
+                {
+                    "nivel": n,
+                    "cantidad": int(row["cantidad"]),
+                    "color": NIVEL_COLOR_EXT.get(n, "#BDBDBD"),
+                    "emoji": NIVEL_EMOJI.get(n, "⚪"),
+                }
+            )
 
     factor_nivel_stacked = []
     if "Factor" in df.columns and "Nivel de cumplimiento" in df.columns:
@@ -184,25 +222,42 @@ def build_graficos(df: pd.DataFrame) -> dict[str, Any]:
             niveles = []
             for _, row in subset.iterrows():
                 n = str(row["Nivel de cumplimiento"])
-                niveles.append({
-                    "nivel": n,
-                    "cantidad": int(row["cantidad"]),
-                    "color": NIVEL_COLOR_EXT.get(n, "#BDBDBD"),
-                })
-            factor_nivel_stacked.append({"factor": factor, "niveles": niveles, "color": color_map.get(factor, "#888")})
+                niveles.append(
+                    {
+                        "nivel": n,
+                        "cantidad": int(row["cantidad"]),
+                        "color": NIVEL_COLOR_EXT.get(n, "#BDBDBD"),
+                    }
+                )
+            factor_nivel_stacked.append(
+                {"factor": factor, "niveles": niveles, "color": color_map.get(factor, "#888")}
+            )
 
     treemap = []
     if "Factor" in df.columns and "Caracteristica" in df.columns:
-        counts = df.groupby(["Factor", "Caracteristica"], dropna=False).size().reset_index(name="cantidad")
+        counts = (
+            df.groupby(["Factor", "Caracteristica"], dropna=False)
+            .size()
+            .reset_index(name="cantidad")
+        )
         for factor in factor_list:
             subset = counts[counts["Factor"].astype(str) == factor]
             children = []
             for _, row in subset.iterrows():
-                children.append({
-                    "caracteristica": str(row["Caracteristica"]),
-                    "cantidad": int(row["cantidad"]),
-                })
-            treemap.append({"factor": factor, "cantidad": int(subset["cantidad"].sum()), "children": children, "color": color_map.get(factor, "#888")})
+                children.append(
+                    {
+                        "caracteristica": str(row["Caracteristica"]),
+                        "cantidad": int(row["cantidad"]),
+                    }
+                )
+            treemap.append(
+                {
+                    "factor": factor,
+                    "cantidad": int(subset["cantidad"].sum()),
+                    "children": children,
+                    "color": color_map.get(factor, "#888"),
+                }
+            )
 
     return {
         "factor_bars": factor_bars,
@@ -217,10 +272,23 @@ def build_tabla_cna(df: pd.DataFrame) -> list[dict[str, Any]]:
     if df.empty:
         return []
     cols_order = [
-        "Id", "Indicador", "Factor", "Caracteristica", "cumplimiento_pct",
-        "Nivel de cumplimiento", "Meta", "Ejecucion",
-        "Meta_Signo", "Ejecucion_s", "EjecS", "Decimales_Meta", "Decimales_Ejecucion",
-        "Sentido", "Anio", "Mes", "Fecha",
+        "Id",
+        "Indicador",
+        "Factor",
+        "Caracteristica",
+        "cumplimiento_pct",
+        "Nivel de cumplimiento",
+        "Meta",
+        "Ejecucion",
+        "Meta_Signo",
+        "Ejecucion_s",
+        "EjecS",
+        "Decimales_Meta",
+        "Decimales_Ejecucion",
+        "Sentido",
+        "Anio",
+        "Mes",
+        "Fecha",
     ]
     present = [c for c in cols_order if c in df.columns]
     sort_cols = [c for c in ["Factor", "Caracteristica", "Id"] if c in df.columns]
@@ -287,22 +355,36 @@ def build_acciones_section(df_acc: pd.DataFrame, ids_cna: set[str] | None = None
     if estado_col and avance_col:
         grouped = df.groupby(estado_col)[avance_col].mean().reset_index()
         for _, row in grouped.iterrows():
-            avance_por_estado.append({
-                "estado": str(row[estado_col]),
-                "avance": _round_pct(row[avance_col]),
-            })
+            avance_por_estado.append(
+                {
+                    "estado": str(row[estado_col]),
+                    "avance": _round_pct(row[avance_col]),
+                }
+            )
 
     tabla = []
     for _, row in df.head(500).iterrows():
-        tabla.append({
-            "id_indicador": str(row.get("_id", row.get(id_col, ""))) if id_col else None,
-            "accion": str(row[accion_col]) if accion_col and pd.notna(row.get(accion_col)) else None,
-            "estado": str(row[estado_col]) if estado_col and pd.notna(row.get(estado_col)) else None,
-            "estado_tiempo": str(row[tiempo_col]) if tiempo_col and pd.notna(row.get(tiempo_col)) else None,
-            "avance": _round_pct(row[avance_col]) if avance_col else None,
-            "fecha_compromiso": str(row[fecha_col])[:10] if fecha_col and pd.notna(row.get(fecha_col)) else None,
-            "responsable": str(row[resp_col]) if resp_col and pd.notna(row.get(resp_col)) else None,
-        })
+        tabla.append(
+            {
+                "id_indicador": str(row.get("_id", row.get(id_col, ""))) if id_col else None,
+                "accion": str(row[accion_col])
+                if accion_col and pd.notna(row.get(accion_col))
+                else None,
+                "estado": str(row[estado_col])
+                if estado_col and pd.notna(row.get(estado_col))
+                else None,
+                "estado_tiempo": str(row[tiempo_col])
+                if tiempo_col and pd.notna(row.get(tiempo_col))
+                else None,
+                "avance": _round_pct(row[avance_col]) if avance_col else None,
+                "fecha_compromiso": str(row[fecha_col])[:10]
+                if fecha_col and pd.notna(row.get(fecha_col))
+                else None,
+                "responsable": str(row[resp_col])
+                if resp_col and pd.notna(row.get(resp_col))
+                else None,
+            }
+        )
 
     return {
         "kpis": {
@@ -317,7 +399,9 @@ def build_acciones_section(df_acc: pd.DataFrame, ids_cna: set[str] | None = None
     }
 
 
-def build_filtros_cna(df: pd.DataFrame, catalog: pd.DataFrame, factor_sel: str | None = None) -> dict[str, Any]:
+def build_filtros_cna(
+    df: pd.DataFrame, catalog: pd.DataFrame, factor_sel: str | None = None
+) -> dict[str, Any]:
     factores = sorted(
         catalog["Factor"].dropna().astype(str).unique().tolist()
         if not catalog.empty
@@ -329,5 +413,9 @@ def build_filtros_cna(df: pd.DataFrame, catalog: pd.DataFrame, factor_sel: str |
         car_pool = df[df["Factor"] == factor_sel]
     else:
         car_pool = catalog if not catalog.empty else df
-    caracts = sorted(car_pool["Caracteristica"].dropna().astype(str).unique().tolist()) if "Caracteristica" in car_pool.columns else []
+    caracts = (
+        sorted(car_pool["Caracteristica"].dropna().astype(str).unique().tolist())
+        if "Caracteristica" in car_pool.columns
+        else []
+    )
     return {"factores": factores, "caracteristicas": caracts}

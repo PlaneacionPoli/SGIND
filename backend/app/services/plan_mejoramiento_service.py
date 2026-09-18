@@ -29,7 +29,9 @@ class PlanMejoramientoService:
     def get_filtros(self) -> dict:
         """Devuelve los filtros disponibles para Plan de Mejoramiento."""
         cierres = self._loaders.load_cierres()
-        filtros_corte = build_filtros_corte(cierres) if not cierres.empty else {"anios": [], "cortes": []}
+        filtros_corte = (
+            build_filtros_corte(cierres) if not cierres.empty else {"anios": [], "cortes": []}
+        )
         catalog = self._loaders.load_cna_catalog()
         factores: list[str] = []
         if not catalog.empty and "Factor" in catalog.columns:
@@ -61,8 +63,14 @@ class PlanMejoramientoService:
         catalog = self._loaders.load_cna_catalog()
         filtros_cna = build_filtros_cna(df, catalog, factor_sel=factor)
 
-        df_filtered = apply_cna_filters(df, factor=factor, caracteristica=caracteristica, nombre=nombre)
-        ids_cna = set(df_filtered["Id"].astype(str).tolist()) if not df_filtered.empty and "Id" in df_filtered.columns else set()
+        df_filtered = apply_cna_filters(
+            df, factor=factor, caracteristica=caracteristica, nombre=nombre
+        )
+        ids_cna = (
+            set(df_filtered["Id"].astype(str).tolist())
+            if not df_filtered.empty and "Id" in df_filtered.columns
+            else set()
+        )
         acciones = load_acciones_mejora(self._excel)
 
         return {

@@ -21,19 +21,29 @@ class SeguimientoService:
         df = load_tracking(self._excel)
         if df.empty:
             return {"anios": [], "meses": [], "procesos": [], "estados": []}
-        anios: list[int] = sorted(
-            [
-                int(a)
-                for a in df["Año"].dropna().unique().tolist()
-                if str(a).isdigit() and int(a) <= MAX_ANIO_FILTROS
-            ],
-            reverse=True,
-        ) if "Año" in df.columns else []
-        meses: list[int] = sorted(
-            [int(m) for m in df["Mes"].dropna().unique().tolist() if str(m).isdigit()]
-        ) if "Mes" in df.columns else []
-        procesos: list[str] = sorted(df["Proceso"].dropna().unique().tolist()) if "Proceso" in df.columns else []
-        estados: list[str] = sorted(df["Estado"].dropna().unique().tolist()) if "Estado" in df.columns else []
+        anios: list[int] = (
+            sorted(
+                [
+                    int(a)
+                    for a in df["Año"].dropna().unique().tolist()
+                    if str(a).isdigit() and int(a) <= MAX_ANIO_FILTROS
+                ],
+                reverse=True,
+            )
+            if "Año" in df.columns
+            else []
+        )
+        meses: list[int] = (
+            sorted([int(m) for m in df["Mes"].dropna().unique().tolist() if str(m).isdigit()])
+            if "Mes" in df.columns
+            else []
+        )
+        procesos: list[str] = (
+            sorted(df["Proceso"].dropna().unique().tolist()) if "Proceso" in df.columns else []
+        )
+        estados: list[str] = (
+            sorted(df["Estado"].dropna().unique().tolist()) if "Estado" in df.columns else []
+        )
         anio_default = anios[0] if anios else None
         mes_default = max(meses) if meses else None
         return {
@@ -52,13 +62,20 @@ class SeguimientoService:
         mes: int | None = None,
         proceso: str | None = None,
         estado: str | None = None,
+        limit: int = 500,
+        offset: int = 0,
     ) -> dict[str, Any]:
         df = load_tracking(self._excel)
         if df.empty:
-            return {"error": "No se encontró Tracking Mensual en Seguimiento_Reporte.xlsx", "kpis": {}}
+            return {
+                "error": "No se encontró Tracking Mensual en Seguimiento_Reporte.xlsx",
+                "kpis": {},
+            }
         # anio/mes = None es un valor explícito de "Todos" (el frontend siempre
         # envía un valor concreto una vez carga los filtros por defecto).
-        return build_dashboard(df, anio=anio, mes=mes, proceso=proceso, estado=estado)
+        return build_dashboard(
+            df, anio=anio, mes=mes, proceso=proceso, estado=estado, limit=limit, offset=offset
+        )
 
     def export_excel(
         self,

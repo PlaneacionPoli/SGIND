@@ -55,7 +55,11 @@ async def pdf_resumen_general(
     kpis: dict = {}
     if kpis_list:
         for item in kpis_list:
-            d = item if isinstance(item, dict) else (item.model_dump() if hasattr(item, "model_dump") else {})
+            d = (
+                item
+                if isinstance(item, dict)
+                else (item.model_dump() if hasattr(item, "model_dump") else {})
+            )
             kpis.update(d)
 
     indicadores = semaforo if isinstance(semaforo, list) else []
@@ -154,7 +158,9 @@ async def pdf_ficha_indicador(
         ficha = service.get_indicador_ficha(indicador_id, anio=anio, mes=mes, corte=corte)
 
     if ficha is None:
-        raise HTTPException(status_code=404, detail="Indicador no encontrado para el corte seleccionado")
+        raise HTTPException(
+            status_code=404, detail="Indicador no encontrado para el corte seleccionado"
+        )
 
     pdf_bytes = generar_ficha_indicador(ficha, generated_at=_now_iso())
 

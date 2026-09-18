@@ -11,7 +11,7 @@ from app.api.deps import get_excel_service, reset_excel_service_for_tests
 from app.core.config import get_settings
 from app.domain.cmi_filters import _KAWAK_IDS_CACHE, _PROCESOS_IDS_CACHE, _WORKSHEET_CACHE
 from app.domain.procesos_loaders import _PROCESS_MAP_CACHE
-from app.services.cmi_service import CMIService, _YEAR_PREPARED_CACHE
+from app.services.cmi_service import _YEAR_PREPARED_CACHE, CMIService
 from app.services.informe_service import InformeService
 from app.services.tracking_cache import clear_tracking_cache
 

@@ -5,7 +5,7 @@ from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.om import RegistroOM
-from app.schemas.common import RegistroOMCreate, RegistroOMCerrar, RegistroOMUpdate
+from app.schemas.common import RegistroOMCerrar, RegistroOMCreate, RegistroOMUpdate
 
 
 class OMService:

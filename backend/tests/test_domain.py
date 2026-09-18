@@ -1,6 +1,11 @@
 import pandas as pd
 
-from app.domain.calculos import calcular_kpis, enriquecer_dataframe, normalizar_cumplimiento, obtener_ultimo_registro
+from app.domain.calculos import (
+    calcular_kpis,
+    enriquecer_dataframe,
+    normalizar_cumplimiento,
+    obtener_ultimo_registro,
+)
 from app.domain.categorization import categorizar_cumplimiento
 
 
@@ -39,11 +44,13 @@ def test_categorizar_negativo_pct_no_aplica_fuera_de_lista():
 
 
 def test_calcular_kpis():
-    df = pd.DataFrame({
-        "Id": ["1", "2", "3"],
-        "Cumplimiento_norm": [0.70, 0.90, 1.02],
-        "Categoria": ["Peligro", "Alerta", "Cumplimiento"],
-    })
+    df = pd.DataFrame(
+        {
+            "Id": ["1", "2", "3"],
+            "Cumplimiento_norm": [0.70, 0.90, 1.02],
+            "Categoria": ["Peligro", "Alerta", "Cumplimiento"],
+        }
+    )
     total, conteos = calcular_kpis(df)
     assert total == 3
     assert conteos["Peligro"]["n"] == 1
@@ -51,22 +58,26 @@ def test_calcular_kpis():
 
 
 def test_obtener_ultimo_registro():
-    df = pd.DataFrame({
-        "Id": ["1", "1"],
-        "Fecha": ["2025-01-01", "2025-06-01"],
-        "Cumplimiento_norm": [0.8, 0.9],
-        "Categoria": ["Alerta", "Cumplimiento"],
-    })
+    df = pd.DataFrame(
+        {
+            "Id": ["1", "1"],
+            "Fecha": ["2025-01-01", "2025-06-01"],
+            "Cumplimiento_norm": [0.8, 0.9],
+            "Categoria": ["Alerta", "Cumplimiento"],
+        }
+    )
     ultimo = obtener_ultimo_registro(df)
     assert len(ultimo) == 1
     assert ultimo.iloc[0]["Cumplimiento_norm"] == 0.9
 
 
 def test_enriquecer_dataframe():
-    df = pd.DataFrame({
-        "Id": ["373", "100"],
-        "Cumplimiento": [0.96, 0.70],
-    })
+    df = pd.DataFrame(
+        {
+            "Id": ["373", "100"],
+            "Cumplimiento": [0.96, 0.70],
+        }
+    )
     out = enriquecer_dataframe(df)
     assert "Categoria" in out.columns
     assert out.loc[out["Id"] == "373", "Categoria"].iloc[0] == "Cumplimiento"
@@ -76,13 +87,15 @@ def test_enriquecer_dataframe():
 def test_build_proyectos_gantt_span():
     from app.domain.resumen_builders import build_proyectos_gantt
 
-    df = pd.DataFrame({
-        "Id": ["1", "1", "2", "2"],
-        "Indicador": ["Proyecto A", "Proyecto A", "Proyecto B", "Proyecto B"],
-        "Linea": ["Calidad", "Calidad", "Experiencia", "Experiencia"],
-        "Anio": [2022, 2024, 2023, 2025],
-        "cumplimiento_pct": [50.0, 100.0, 0.0, 80.0],
-    })
+    df = pd.DataFrame(
+        {
+            "Id": ["1", "1", "2", "2"],
+            "Indicador": ["Proyecto A", "Proyecto A", "Proyecto B", "Proyecto B"],
+            "Linea": ["Calidad", "Calidad", "Experiencia", "Experiencia"],
+            "Anio": [2022, 2024, 2023, 2025],
+            "cumplimiento_pct": [50.0, 100.0, 0.0, 80.0],
+        }
+    )
     gantt = build_proyectos_gantt(df, anio_min=2022, anio_max=2026)
     assert gantt["anio_min"] == 2022
     assert len(gantt["items"]) == 2

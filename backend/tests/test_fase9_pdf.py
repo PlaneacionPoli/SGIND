@@ -19,20 +19,18 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
 
-import pytest
 from fastapi.testclient import TestClient
 
 # ── PDF Service ───────────────────────────────────────────────────────────────
-
 from app.services.pdf_service import (
+    C_ALERTA,
+    C_CUMPLE,
+    C_PELIGRO,
+    C_SINDAT,
+    C_SOBRE,
     _semaforo_color,
     generar_informe_procesos,
     generar_resumen_general,
-    C_CUMPLE,
-    C_ALERTA,
-    C_PELIGRO,
-    C_SOBRE,
-    C_SINDAT,
 )
 
 
@@ -80,6 +78,7 @@ def _sample_informe_data(indicadores: list[dict] | None = None) -> dict:
 
 
 # ─── Tests del servicio PDF ───────────────────────────────────────────────────
+
 
 def test_resumen_general_pdf_es_valido():
     """generar_resumen_general produce bytes que comienzan con %PDF."""
@@ -129,7 +128,9 @@ def test_semaforo_color_mapping():
     assert _semaforo_color("sin dato") == C_SINDAT
     assert _semaforo_color("sin_dato") == C_SINDAT
     assert _semaforo_color(None) == C_SINDAT
-    assert _semaforo_color("CUMPLIMIENTO") == C_CUMPLE  # lower() hace la conversión: "cumplimiento" → verde
+    assert (
+        _semaforo_color("CUMPLIMIENTO") == C_CUMPLE
+    )  # lower() hace la conversión: "cumplimiento" → verde
     assert _semaforo_color("valor_desconocido") == C_SINDAT  # clave no mapeada → gris
 
 
@@ -144,7 +145,9 @@ def test_informe_pdf_con_muchos_indicadores_no_explota():
     """PDF con 150 indicadores (>100) se genera sin error."""
     inds = _sample_indicadores(150)
     pdf = generar_informe_procesos(
-        anio=2025, mes=3, proceso="Todos",
+        anio=2025,
+        mes=3,
+        proceso="Todos",
         data=_sample_informe_data(inds),
     )
     assert pdf[:4] == b"%PDF"
@@ -163,8 +166,10 @@ def test_resumen_pdf_con_muchos_indicadores_no_explota():
 
 # ─── Tests de los endpoints HTTP ─────────────────────────────────────────────
 
+
 def _make_client() -> TestClient:
     from app.main import app
+
     return TestClient(app, raise_server_exceptions=True)
 
 
@@ -191,8 +196,8 @@ def test_endpoint_informe_procesos_sin_token_401():
 
 def test_endpoint_resumen_general_con_token():
     """GET /reports/resumen-general con token válido devuelve PDF application/pdf."""
-    from app.core.security import require_reader
     from app.api.deps import get_excel_service
+    from app.core.security import require_reader
     from app.main import app
 
     mock_user = _mock_user()
@@ -217,15 +222,17 @@ def test_endpoint_resumen_general_con_token():
             assert resp.status_code == 200
             assert "application/pdf" in resp.headers["content-type"]
             assert resp.content[:4] == b"%PDF"
-            assert 'filename="resumen_general_2025.pdf"' in resp.headers.get("content-disposition", "")
+            assert 'filename="resumen_general_2025.pdf"' in resp.headers.get(
+                "content-disposition", ""
+            )
         finally:
             app.dependency_overrides.clear()
 
 
 def test_endpoint_informe_procesos_con_token():
     """GET /reports/informe-procesos con token válido devuelve PDF application/pdf."""
-    from app.core.security import require_reader
     from app.api.deps import get_excel_service
+    from app.core.security import require_reader
     from app.main import app
 
     mock_user = _mock_user()
@@ -241,7 +248,9 @@ def test_endpoint_informe_procesos_con_token():
         app.dependency_overrides[get_excel_service] = lambda: mock_excel
 
         try:
-            resp = client.get("/api/v1/reports/informe-procesos?anio=2025&mes=6&proceso=Permanencia")
+            resp = client.get(
+                "/api/v1/reports/informe-procesos?anio=2025&mes=6&proceso=Permanencia"
+            )
             assert resp.status_code == 200
             assert "application/pdf" in resp.headers["content-type"]
             assert resp.content[:4] == b"%PDF"

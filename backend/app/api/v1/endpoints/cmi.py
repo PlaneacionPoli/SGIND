@@ -41,7 +41,9 @@ async def cmi_estrategico_dashboard(
     _user: User = Depends(require_reader),
     service: CMIService = Depends(_cmi_service),
 ) -> CMIDashboardResponse:
-    return CMIDashboardResponse(**service.get_dashboard(anio=anio, mes=mes, corte=corte, rango=rango))
+    return CMIDashboardResponse(
+        **service.get_dashboard(anio=anio, mes=mes, corte=corte, rango=rango)
+    )
 
 
 @router.get("/indicador/{indicador_id}", response_model=FichaIndicadorResponse)
@@ -55,7 +57,9 @@ async def cmi_indicador_ficha(
 ) -> FichaIndicadorResponse:
     ficha = service.get_indicador_ficha(indicador_id, anio=anio, mes=mes, corte=corte)
     if ficha is None:
-        raise HTTPException(status_code=404, detail="Indicador no encontrado para el corte seleccionado")
+        raise HTTPException(
+            status_code=404, detail="Indicador no encontrado para el corte seleccionado"
+        )
     return FichaIndicadorResponse(**ficha)
 
 

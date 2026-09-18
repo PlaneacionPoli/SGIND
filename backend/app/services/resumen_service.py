@@ -7,7 +7,11 @@ from typing import Any
 
 import pandas as pd
 
-from app.domain.calculos import aplicar_calculos_cumplimiento, calcular_kpis, obtener_ultimo_registro
+from app.domain.calculos import (
+    aplicar_calculos_cumplimiento,
+    calcular_kpis,
+    obtener_ultimo_registro,
+)
 from app.domain.cmi_filters import CMIFilterService
 from app.domain.linea_order import linea_sort_key
 from app.domain.resumen_builders import (
@@ -71,7 +75,8 @@ class ResumenService:
 
     def _proyectos_multi_anio(self, anios: list[int]) -> pd.DataFrame:
         parts = [
-            ensure_nivel_cumplimiento(self._strategic.preparar_proyectos_con_cierre(y, 12)) for y in anios
+            ensure_nivel_cumplimiento(self._strategic.preparar_proyectos_con_cierre(y, 12))
+            for y in anios
         ]
         parts = [p for p in parts if p is not None and not p.empty]
         df = pd.concat(parts, ignore_index=True) if parts else pd.DataFrame()
@@ -114,7 +119,9 @@ class ResumenService:
                 return col
         return None
 
-    def _filter_period(self, df: pd.DataFrame, anio: int | None, periodo: str | None) -> pd.DataFrame:
+    def _filter_period(
+        self, df: pd.DataFrame, anio: int | None, periodo: str | None
+    ) -> pd.DataFrame:
         out = df
         anio_col = self._anio_column(out)
         if anio is not None and anio_col:
@@ -148,9 +155,11 @@ class ResumenService:
                 out["cumplimiento_pct"] = pd.to_numeric(out["Cumplimiento"], errors="coerce")
             elif "Meta" in out.columns and "Ejecucion" in out.columns:
                 out["cumplimiento_pct"] = out.apply(
-                    lambda r: (r["Ejecucion"] / r["Meta"] * 100)
-                    if pd.notna(r.get("Meta")) and r["Meta"] != 0
-                    else None,
+                    lambda r: (
+                        (r["Ejecucion"] / r["Meta"] * 100)
+                        if pd.notna(r.get("Meta")) and r["Meta"] != 0
+                        else None
+                    ),
                     axis=1,
                 )
         return out
@@ -168,7 +177,9 @@ class ResumenService:
                 obj_df = obj_df.rename(columns={"Línea Estratégica": "Linea"})
             if "Cumplimiento" in obj_df.columns:
                 obj_df = obj_df.rename(columns={"Cumplimiento": "cumplimiento_pct"})
-                obj_df["cumplimiento_pct"] = pd.to_numeric(obj_df["cumplimiento_pct"], errors="coerce") * 100
+                obj_df["cumplimiento_pct"] = (
+                    pd.to_numeric(obj_df["cumplimiento_pct"], errors="coerce") * 100
+                )
             return obj_df
         except Exception:
             return pd.DataFrame()
@@ -223,7 +234,9 @@ class ResumenService:
             "vistas": list(VISTAS),
         }
 
-    def get_kpis(self, *, anio: int | None = None, periodo: str | None = None, vista: str = "indicadores") -> list[dict]:
+    def get_kpis(
+        self, *, anio: int | None = None, periodo: str | None = None, vista: str = "indicadores"
+    ) -> list[dict]:
         df_ultimo = self.get_dataset(anio=anio, periodo=periodo, vista=vista)
         total, conteos = calcular_kpis(df_ultimo)
 
@@ -246,14 +259,38 @@ class ResumenService:
         return [
             {"label": "Indicadores evaluados", "value": total, "unit": "ind"},
             {"label": "Cumplimiento global", "value": cumplimiento_global, "unit": "%"},
-            {"label": "En Peligro", "value": peligro["n"], "unit": "ind", "trend": f"{peligro['pct']}%"},
-            {"label": "En Alerta", "value": alerta["n"], "unit": "ind", "trend": f"{alerta['pct']}%"},
-            {"label": "Sobrecumplimiento", "value": sobre["n"], "unit": "ind", "trend": f"{sobre['pct']}%"},
-            {"label": "En Cumplimiento", "value": cumple["n"], "unit": "ind", "trend": f"{cumple['pct']}%"},
+            {
+                "label": "En Peligro",
+                "value": peligro["n"],
+                "unit": "ind",
+                "trend": f"{peligro['pct']}%",
+            },
+            {
+                "label": "En Alerta",
+                "value": alerta["n"],
+                "unit": "ind",
+                "trend": f"{alerta['pct']}%",
+            },
+            {
+                "label": "Sobrecumplimiento",
+                "value": sobre["n"],
+                "unit": "ind",
+                "trend": f"{sobre['pct']}%",
+            },
+            {
+                "label": "En Cumplimiento",
+                "value": cumple["n"],
+                "unit": "ind",
+                "trend": f"{cumple['pct']}%",
+            },
         ]
 
-    def get_lineas(self, *, anio: int | None = None, periodo: str | None = None, vista: str = "indicadores") -> list[dict]:
-        df_ultimo = self._ensure_cumplimiento_pct(self.get_dataset(anio=anio, periodo=periodo, vista=vista))
+    def get_lineas(
+        self, *, anio: int | None = None, periodo: str | None = None, vista: str = "indicadores"
+    ) -> list[dict]:
+        df_ultimo = self._ensure_cumplimiento_pct(
+            self.get_dataset(anio=anio, periodo=periodo, vista=vista)
+        )
         if "Linea" not in df_ultimo.columns:
             return []
 
@@ -262,7 +299,9 @@ class ResumenService:
             nombre = str(linea).strip()
             if not nombre or nombre.lower() == "nan":
                 continue
-            con_datos = group[group["Cumplimiento_norm"].notna()] if "Cumplimiento_norm" in group else group
+            con_datos = (
+                group[group["Cumplimiento_norm"].notna()] if "Cumplimiento_norm" in group else group
+            )
             promedio = (
                 round(float(con_datos["Cumplimiento_norm"].mean()) * 100, 1)
                 if len(con_datos) and "Cumplimiento_norm" in con_datos
@@ -272,7 +311,11 @@ class ResumenService:
                     else None
                 )
             )
-            riesgo = int((group["Categoria"].isin(["Peligro", "Alerta"])).sum()) if "Categoria" in group else 0
+            riesgo = (
+                int((group["Categoria"].isin(["Peligro", "Alerta"])).sum())
+                if "Categoria" in group
+                else 0
+            )
             lineas.append(
                 {
                     "linea": nombre,
@@ -284,12 +327,17 @@ class ResumenService:
         lineas.sort(key=lambda x: linea_sort_key(x.get("linea", "")))
         return lineas
 
-    def get_semaphore(self, *, anio: int | None = None, periodo: str | None = None, vista: str = "indicadores") -> list[dict]:
+    def get_semaphore(
+        self, *, anio: int | None = None, periodo: str | None = None, vista: str = "indicadores"
+    ) -> list[dict]:
         df_ultimo = self.get_dataset(anio=anio, periodo=periodo, vista=vista)
         total, conteos = calcular_kpis(df_ultimo)
         if total == 0:
             return []
-        return [{"categoria": cat, "count": data["n"], "percent": data["pct"]} for cat, data in conteos.items()]
+        return [
+            {"categoria": cat, "count": data["n"], "percent": data["pct"]}
+            for cat, data in conteos.items()
+        ]
 
     def get_trend(self, *, anio: int | None = None, vista: str = "indicadores") -> list[dict]:
         try:
@@ -304,7 +352,12 @@ class ResumenService:
             if retos.empty:
                 return []
             avg = retos["cumplimiento_pct"].mean() if "cumplimiento_pct" in retos else None
-            return [{"periodo": str(anio), "cumplimiento": round(float(avg), 1) if pd.notna(avg) else None}]
+            return [
+                {
+                    "periodo": str(anio),
+                    "cumplimiento": round(float(avg), 1) if pd.notna(avg) else None,
+                }
+            ]
         df = self._apply_vista(df, vista_norm)
         if df.empty:
             return []
@@ -326,7 +379,15 @@ class ResumenService:
     def get_sunburst(self, *, anio: int | None = None, vista: str = "indicadores") -> list[dict]:
         df = self._ensure_cumplimiento_pct(self.get_dataset(anio=anio, vista=vista))
         if df.empty or "Linea" not in df.columns:
-            return [{"id": "sin_datos", "label": "Sin datos", "parent": "", "value": 1, "color": "#6B728E"}]
+            return [
+                {
+                    "id": "sin_datos",
+                    "label": "Sin datos",
+                    "parent": "",
+                    "value": 1,
+                    "color": "#6B728E",
+                }
+            ]
 
         if "Objetivo" not in df.columns:
             grouped = (
@@ -345,7 +406,9 @@ class ResumenService:
                         "id": linea,
                         "label": linea,
                         "parent": "root",
-                        "value": round(float(row["promedio"]), 1) if pd.notna(row["promedio"]) else 0,
+                        "value": round(float(row["promedio"]), 1)
+                        if pd.notna(row["promedio"])
+                        else 0,
                         "color": _LINE_COLORS.get(linea, "#457B9D"),
                     }
                 )
@@ -357,7 +420,9 @@ class ResumenService:
             .mean()
             .reset_index()
         )
-        nodes: list[dict[str, Any]] = [{"id": "root", "label": "PDI", "parent": "", "value": 0, "color": "#1D3557"}]
+        nodes: list[dict[str, Any]] = [
+            {"id": "root", "label": "PDI", "parent": "", "value": 0, "color": "#1D3557"}
+        ]
         for linea in obj["Linea"].unique():
             linea_str = str(linea).strip()
             if not linea_str:
@@ -383,7 +448,9 @@ class ResumenService:
                         "id": node_id,
                         "label": obj_name,
                         "parent": linea_str,
-                        "value": round(float(row["cumplimiento_pct"]), 1) if pd.notna(row["cumplimiento_pct"]) else 0,
+                        "value": round(float(row["cumplimiento_pct"]), 1)
+                        if pd.notna(row["cumplimiento_pct"])
+                        else 0,
                         "color": _LINE_COLORS.get(linea_str, "#457B9D"),
                     }
                 )
@@ -397,7 +464,9 @@ class ResumenService:
         for item in actual:
             prev_val = prev_map.get(item["linea"])
             curr = item["cumplimiento_promedio"]
-            variacion = round(curr - prev_val, 1) if curr is not None and prev_val is not None else None
+            variacion = (
+                round(curr - prev_val, 1) if curr is not None and prev_val is not None else None
+            )
             rows.append(
                 {
                     "linea": item["linea"],
@@ -414,7 +483,10 @@ class ResumenService:
         df = self.get_dataset(anio=anio, vista=vista)
         total, conteos = calcular_kpis(df)
         if total == 0:
-            return {"titulo": "Sin datos", "parrafos": ["No hay indicadores evaluables para el periodo seleccionado."]}
+            return {
+                "titulo": "Sin datos",
+                "parrafos": ["No hay indicadores evaluables para el periodo seleccionado."],
+            }
 
         cumpl_global = round(float(df["Cumplimiento_norm"].mean()) * 100, 1)
         peligro = conteos.get("Peligro", {}).get("n", 0)
@@ -440,11 +512,25 @@ class ResumenService:
             "parrafos": parrafos,
         }
 
-    def get_resumen_completo(self, *, anio: int, vista: str = "indicadores", rango: bool = False) -> dict[str, Any]:
+    def get_resumen_completo(
+        self, *, anio: int, vista: str = "indicadores", rango: bool = False
+    ) -> dict[str, Any]:
         """Payload unificado alineado con streamlit resumen_general.py."""
         vista_norm = (vista or "indicadores").strip().lower()
-        meses = {1: "Enero", 2: "Febrero", 3: "Marzo", 4: "Abril", 5: "Mayo", 6: "Junio",
-                 7: "Julio", 8: "Agosto", 9: "Septiembre", 10: "Octubre", 11: "Noviembre", 12: "Diciembre"}
+        meses = {
+            1: "Enero",
+            2: "Febrero",
+            3: "Marzo",
+            4: "Abril",
+            5: "Mayo",
+            6: "Junio",
+            7: "Julio",
+            8: "Agosto",
+            9: "Septiembre",
+            10: "Octubre",
+            11: "Noviembre",
+            12: "Diciembre",
+        }
 
         if vista_norm == "indicadores":
             pdi_df = (
@@ -456,7 +542,9 @@ class ResumenService:
             linea_summary = build_linea_summary(pdi_df, unique_count_col="Id")
             historico_df = self._strategic.load_historico_por_linea()
             cards = build_strategy_cards(linea_summary, historico_df, vista=vista_norm)
-            objetivo_cols = [c for c in ["Linea", "Objetivo", "cumplimiento_pct"] if c in pdi_df.columns]
+            objetivo_cols = [
+                c for c in ["Linea", "Objetivo", "cumplimiento_pct"] if c in pdi_df.columns
+            ]
             objetivo_df = pdi_df[objetivo_cols].copy() if objetivo_cols else pd.DataFrame()
             sunburst = build_sunburst_plotly(objetivo_df)
             narrativa = generate_narrative_indicadores(pdi_df, linea_summary, chips)
@@ -469,9 +557,7 @@ class ResumenService:
                     self._strategic.preparar_pdi_con_cierre(anio - 1, prev_month)
                 )
                 best, worst = compute_trends(pdi_df, prev_df)
-                periodo_txt = (
-                    f"Comparando {anio} (cierre anual) vs {anio - 1} ({meses.get(prev_month, prev_month)})"
-                )
+                periodo_txt = f"Comparando {anio} (cierre anual) vs {anio - 1} ({meses.get(prev_month, prev_month)})"
 
             return {
                 "anio": anio,
@@ -491,19 +577,29 @@ class ResumenService:
             proy_df = (
                 self._proyectos_multi_anio(ANIOS_RANGO)
                 if rango
-                else ensure_nivel_cumplimiento(self._strategic.preparar_proyectos_con_cierre(anio, 12))
+                else ensure_nivel_cumplimiento(
+                    self._strategic.preparar_proyectos_con_cierre(anio, 12)
+                )
             )
             chips = get_chip_config_proyectos(proy_df)
             if rango:
                 vigente_total = self._count_proyectos_ciclo_vigente()
-                con_cierre = int(proy_df["Id"].nunique()) if not proy_df.empty and "Id" in proy_df.columns else 0
+                con_cierre = (
+                    int(proy_df["Id"].nunique())
+                    if not proy_df.empty and "Id" in proy_df.columns
+                    else 0
+                )
                 chips[0]["value"] = vigente_total
                 # Proyectos del ciclo sin cierres cargados aun: se cuentan como Planeacion.
                 chips[3]["value"] = chips[3]["value"] + max(vigente_total - con_cierre, 0)
-            linea_summary = build_linea_summary(proy_df, unique_count_col="Id", count_col_name="N_Proyectos")
+            linea_summary = build_linea_summary(
+                proy_df, unique_count_col="Id", count_col_name="N_Proyectos"
+            )
             historico_df = proy_df
             cards = build_strategy_cards(linea_summary, historico_df, vista=vista_norm)
-            objetivo_cols = [c for c in ["Linea", "Objetivo", "cumplimiento_pct"] if c in proy_df.columns]
+            objetivo_cols = [
+                c for c in ["Linea", "Objetivo", "cumplimiento_pct"] if c in proy_df.columns
+            ]
             objetivo_df = proy_df[objetivo_cols].copy() if objetivo_cols else pd.DataFrame()
             sunburst = build_sunburst_plotly(objetivo_df)
             narrativa = generate_narrative_proyectos(proy_df, linea_summary)
@@ -517,9 +613,7 @@ class ResumenService:
                     self._strategic.preparar_proyectos_con_cierre(anio - 1, prev_month_p)
                 )
                 best_p, worst_p = compute_trends(proy_df, prev_proy_df)
-                periodo_txt_p = (
-                    f"Comparando {anio} (cierre anual) vs {anio - 1} ({meses.get(prev_month_p, prev_month_p)})"
-                )
+                periodo_txt_p = f"Comparando {anio} (cierre anual) vs {anio - 1} ({meses.get(prev_month_p, prev_month_p)})"
 
             return {
                 "anio": anio,
@@ -569,8 +663,12 @@ class ResumenService:
                 proy_df = self._proyectos_multi_anio(ANIOS_RANGO)
                 ret_linea_df, ret_obj_df, ret_planes_df = self._retos_multi_anio(ANIOS_RANGO)
             else:
-                pdi_df = ensure_nivel_cumplimiento(self._strategic.preparar_pdi_con_cierre(anio, 12))
-                proy_df = ensure_nivel_cumplimiento(self._strategic.preparar_proyectos_con_cierre(anio, 12))
+                pdi_df = ensure_nivel_cumplimiento(
+                    self._strategic.preparar_pdi_con_cierre(anio, 12)
+                )
+                proy_df = ensure_nivel_cumplimiento(
+                    self._strategic.preparar_proyectos_con_cierre(anio, 12)
+                )
                 ret_linea_df, ret_obj_df = self._retos.load_retos_data(anio)
                 ret_planes_df = self._retos.load_planes(anio)
 
@@ -586,13 +684,23 @@ class ResumenService:
 
             linea_summary, objetivo_df = merge_consolidado_summaries(s1, s2, s3, o1, o2, o3)
 
-            ind_count = int(pdi_df["Id"].nunique()) if not pdi_df.empty and "Id" in pdi_df.columns else 0
+            ind_count = (
+                int(pdi_df["Id"].nunique()) if not pdi_df.empty and "Id" in pdi_df.columns else 0
+            )
             proy_count = (
                 self._count_proyectos_ciclo_vigente()
                 if rango
-                else (int(proy_df["Id"].nunique()) if not proy_df.empty and "Id" in proy_df.columns else 0)
+                else (
+                    int(proy_df["Id"].nunique())
+                    if not proy_df.empty and "Id" in proy_df.columns
+                    else 0
+                )
             )
-            retos_count = int(linea_summary["N_Retos"].sum()) if not linea_summary.empty and "N_Retos" in linea_summary.columns else 0
+            retos_count = (
+                int(linea_summary["N_Retos"].sum())
+                if not linea_summary.empty and "N_Retos" in linea_summary.columns
+                else 0
+            )
             area_count = self._retos.load_area_count(max(ANIOS_RANGO) if rango else anio)
 
             chips = get_chip_config_consolidado(linea_summary, ind_count, proy_count, area_count)
@@ -625,7 +733,12 @@ class ResumenService:
             "chips": get_chip_config_indicadores(pd.DataFrame()),
             "fichas": build_strategy_cards(pd.DataFrame(), None, vista=vista_norm),
             "sunburst": build_sunburst_plotly(pd.DataFrame()),
-            "narrativa": {"texto": "Vista en construcción.", "estado_color": "#6B728E", "estado_icon": "info", "health_rate": 0},
+            "narrativa": {
+                "texto": "Vista en construcción.",
+                "estado_color": "#6B728E",
+                "estado_icon": "info",
+                "health_rate": 0,
+            },
             "mejoraron": [],
             "en_riesgo": [],
             "periodo_comparacion": "",

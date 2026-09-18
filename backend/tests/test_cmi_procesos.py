@@ -6,9 +6,9 @@ import pytest
 from app.domain.procesos_builders import (
     MESES_OPCIONES,
     apply_ui_filters,
-    build_propuesta_accion,
     build_procesos_detalle,
     build_procesos_kpis,
+    build_propuesta_accion,
     build_tipo_proceso_cards,
     filter_by_anio_mes,
     mes_nombre,
@@ -105,7 +105,9 @@ def test_build_vista_global_structure():
             "Mes": ["Junio"],
         }
     )
-    vg = build_vista_global(df, pd.DataFrame(), pd.DataFrame(), anio=2025, mes_corte=6, base_year=2024, base_mes=12)
+    vg = build_vista_global(
+        df, pd.DataFrame(), pd.DataFrame(), anio=2025, mes_corte=6, base_year=2024, base_mes=12
+    )
     assert vg["mes_corte"] == 6
     assert "kpis" in vg
     assert "comparativa_procesos" in vg
