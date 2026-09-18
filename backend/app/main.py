@@ -5,6 +5,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.api.v1.router import api_router
 from app.core.config import get_settings
@@ -63,6 +64,32 @@ app = FastAPI(
     redoc_url="/redoc",
 )
 
+class CatchExceptionsMiddleware(BaseHTTPMiddleware):
+    """Convierte cualquier excepción no controlada en una respuesta 500 JSON.
+
+    IMPORTANTE (2026-09-18): esto reemplaza a `@app.exception_handler(Exception)`.
+    Un exception_handler para la clase base `Exception` corre en
+    Starlette/FastAPI POR FUERA de la cadena de `add_middleware` (incluido
+    CORSMiddleware) — la respuesta de error que genera NUNCA recibe el header
+    `Access-Control-Allow-Origin`. El navegador entonces reporta "bloqueado
+    por política de CORS" en vez de mostrar el 500 real, ocultando el error
+    verdadero (ver docs/migration/PLAN_MIGRACION_PRIORIZADO.md — bug
+    "Network Error" en Resumen General, causado en realidad por un 500).
+    Como middleware (registrado ANTES que CORSMiddleware, por lo tanto más
+    interno en la pila), la respuesta de error SÍ pasa por CORSMiddleware al
+    volver, y recibe el header correctamente.
+    """
+
+    async def dispatch(self, request: Request, call_next):
+        try:
+            return await call_next(request)
+        except Exception as exc:  # noqa: BLE001 — último resguardo, se relanza logueado
+            logging.exception("Error no manejado: %s", exc)
+            return JSONResponse(status_code=500, content={"detail": "Error interno del servidor"})
+
+
+app.add_middleware(CatchExceptionsMiddleware)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins_list,
@@ -71,15 +98,5 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-
-@app.exception_handler(Exception)
-async def global_exception_handler(_request: Request, exc: Exception):
-    logging.exception("Error no manejado: %s", exc)
-    return JSONResponse(
-        status_code=500,
-        content={"detail": "Error interno del servidor"},
-    )
-
 
 app.include_router(api_router, prefix="/api/v1")
