@@ -101,6 +101,18 @@ const config: Config = {
           "0%, 100%": { transform: "translate(0%, 0%) scale(1)" },
           "50%":      { transform: "translate(10%, -8%) scale(1.15)" },
         },
+        "dash-flow": {
+          "0%":   { strokeDashoffset: "0" },
+          "100%": { strokeDashoffset: "-48" },
+        },
+        "glow-pulse": {
+          "0%, 100%": { boxShadow: "0 0 0 0 rgba(201,162,39,0.45)" },
+          "50%":      { boxShadow: "0 0 0 10px rgba(201,162,39,0)" },
+        },
+        twinkle: {
+          "0%, 100%": { opacity: "0.15" },
+          "50%":      { opacity: "0.8" },
+        },
       },
       animation: {
         shimmer:  "shimmer 1.6s ease-in-out infinite",
@@ -111,6 +123,9 @@ const config: Config = {
         "card-in": "card-in 0.35s cubic-bezier(0.16,1,0.3,1) both",
         float:    "float 4s ease-in-out infinite",
         "liquid-shift": "liquid-shift 8s ease-in-out infinite",
+        "dash-flow": "dash-flow 3s linear infinite",
+        "glow-pulse": "glow-pulse 2.4s ease-in-out infinite",
+        twinkle: "twinkle 3s ease-in-out infinite",
       },
 
       // ─── Transiciones ──────────────────────────────────────────────────────
