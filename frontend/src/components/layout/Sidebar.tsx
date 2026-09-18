@@ -16,9 +16,10 @@ export function Sidebar() {
         <Image
           src="/poli-logo.png"
           alt="Politécnico Grancolombiano"
-          width={160}
-          height={40}
-          className="h-8 w-auto object-contain"
+          width={1280}
+          height={728}
+          priority
+          className="h-10 w-auto object-contain"
         />
         <h1 className="mt-1 text-lg font-bold leading-tight">Sistema de Indicadores</h1>
       </div>

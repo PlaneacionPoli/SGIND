@@ -6,8 +6,9 @@ import { KPICard } from "@/components/ui/KPICard";
 import { useDebounce } from "@/hooks/use-debounce";
 import { downloadPlanIndicadoresExport, fetchPlanIndicadoresDashboard } from "@/lib/api";
 import { useAuthReady } from "@/stores/auth-store";
+import { PmBulletProgress } from "./PmBulletProgress";
 import { PmFactorBadge } from "./PmFactorBadge";
-import { PmFactorBarChart } from "./PmFactorBarChart";
+import { PmFactorRings } from "./PmFactorRings";
 import { PmIndicadorModal } from "./PmIndicadorModal";
 import { getFactorColor } from "./pmFactorTheme";
 
@@ -204,7 +205,7 @@ export function PmIndicadoresTab({
           </div>
 
           <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-            <PmFactorBarChart
+            <PmFactorRings
               data={chartData}
               valueSuffix={subvista === "metas" ? "" : "%"}
               emptyMessage="No hay indicadores con este filtro."
@@ -234,11 +235,9 @@ export function PmIndicadoresTab({
                         <>
                           <th className="px-4 py-3">Factor</th>
                           <th className="px-4 py-3">Indicador</th>
-                          <th className="px-4 py-3 text-right">Meta 2025</th>
-                          <th className="px-4 py-3 text-right">Ejec. 2025</th>
+                          <th className="px-4 py-3">Meta vs Ejec. 2025</th>
                           <th className="px-4 py-3 text-right">% Cump 2025</th>
-                          <th className="px-4 py-3 text-right">Meta 2026</th>
-                          <th className="px-4 py-3 text-right">Ejec. 2026</th>
+                          <th className="px-4 py-3">Meta vs Ejec. 2026</th>
                           <th className="px-4 py-3 text-right">% Cump 2026</th>
                         </>
                       )}
@@ -260,7 +259,7 @@ export function PmIndicadoresTab({
                             <td className="px-4 py-2.5">
                               <PmFactorBadge factorNum={row.factor_num} />
                             </td>
-                            <td className="max-w-xs truncate px-4 py-2.5 font-medium text-slate-800">
+                            <td className="whitespace-normal break-words px-4 py-2.5 font-medium text-slate-800">
                               {row.indicador}
                             </td>
                             <td className="px-4 py-2.5">
@@ -277,23 +276,29 @@ export function PmIndicadoresTab({
                             <td className="px-4 py-2.5">
                               <PmFactorBadge factorNum={row.factor_num} />
                             </td>
-                            <td className="max-w-xs truncate px-4 py-2.5 font-medium text-slate-800">
+                            <td className="whitespace-normal break-words px-4 py-2.5 font-medium text-slate-800">
                               {row.indicador}
                             </td>
-                            <td className="px-4 py-2.5 text-right tabular-nums text-slate-700">
-                              {row.meta_2025.valor_fmt}
-                            </td>
-                            <td className="px-4 py-2.5 text-right tabular-nums text-slate-700">
-                              {row.ejecucion_2025.valor_fmt}
+                            <td className="px-4 py-2.5">
+                              <PmBulletProgress
+                                meta={row.meta_2025.valor}
+                                ejecucion={row.ejecucion_2025.valor}
+                                metaFmt={row.meta_2025.valor_fmt}
+                                ejecucionFmt={row.ejecucion_2025.valor_fmt}
+                                color={getFactorColor(row.factor_num)}
+                              />
                             </td>
                             <td className="px-4 py-2.5 text-right tabular-nums font-semibold text-slate-800">
                               {row.cump_2025.valor_fmt}
                             </td>
-                            <td className="px-4 py-2.5 text-right tabular-nums text-slate-700">
-                              {row.meta_2026.valor_fmt}
-                            </td>
-                            <td className="px-4 py-2.5 text-right tabular-nums text-slate-700">
-                              {row.ejecucion_2026.valor_fmt}
+                            <td className="px-4 py-2.5">
+                              <PmBulletProgress
+                                meta={row.meta_2026.valor}
+                                ejecucion={row.ejecucion_2026.valor}
+                                metaFmt={row.meta_2026.valor_fmt}
+                                ejecucionFmt={row.ejecucion_2026.valor_fmt}
+                                color={getFactorColor(row.factor_num)}
+                              />
                             </td>
                             <td className="px-4 py-2.5 text-right tabular-nums font-semibold text-slate-800">
                               {row.cump_2026.valor_fmt}

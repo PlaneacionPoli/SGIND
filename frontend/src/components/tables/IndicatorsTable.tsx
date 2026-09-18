@@ -48,7 +48,7 @@ export function IndicatorsTable({ items, total }: IndicatorsTableProps) {
             {items.map((row, idx) => (
               <tr key={`${row.Id}-${idx}`} className="hover:bg-slate-50">
                 <td className="px-4 py-3 font-mono text-sm text-slate-600">{row.Id}</td>
-                <td className="max-w-xs truncate px-4 py-3 text-slate-800" title={row.Indicador}>
+                <td className="whitespace-normal break-words px-4 py-3 text-slate-800">
                   {row.Indicador ?? "—"}
                 </td>
                 <td className="px-4 py-3 text-slate-600">{row.Proceso ?? "—"}</td>

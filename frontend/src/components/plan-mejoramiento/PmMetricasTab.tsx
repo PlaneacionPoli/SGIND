@@ -7,7 +7,7 @@ import { useDebounce } from "@/hooks/use-debounce";
 import { fetchPlanMetricasDashboard } from "@/lib/api";
 import { useAuthReady } from "@/stores/auth-store";
 import { PmFactorBadge } from "./PmFactorBadge";
-import { PmFactorBarChart } from "./PmFactorBarChart";
+import { PmFactorRings } from "./PmFactorRings";
 import { PmMetricaModal } from "./PmMetricaModal";
 import { PmSparkline } from "./PmSparkline";
 import { getFactorColor } from "./pmFactorTheme";
@@ -106,7 +106,7 @@ export function PmMetricasTab({
               barra para filtrar.
             </p>
             <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-              <PmFactorBarChart
+              <PmFactorRings
                 data={(data?.grafico_por_factor ?? []).map((f) => ({
                   factor: f.factor,
                   factorNum: f.factor_num,
@@ -221,17 +221,17 @@ export function PmMetricasTab({
                             <td className="px-4 py-2.5">
                               <PmFactorBadge factorNum={row.factor_num} />
                             </td>
-                            <td className="max-w-xs px-4 py-2.5 font-medium text-slate-800">
-                              <span className="flex items-center gap-1.5">
+                            <td className="px-4 py-2.5 font-medium text-slate-800">
+                              <span className="flex items-start gap-1.5">
                                 {expandible ? (
                                   <span
-                                    className={`inline-block text-slate-400 transition-transform ${abierto ? "rotate-90" : ""}`}
+                                    className={`inline-block shrink-0 text-slate-400 transition-transform ${abierto ? "rotate-90" : ""}`}
                                     aria-hidden
                                   >
                                     ▸
                                   </span>
                                 ) : null}
-                                <span className="truncate">{row.indicador}</span>
+                                <span className="whitespace-normal break-words">{row.indicador}</span>
                                 {expandible ? (
                                   <span className="shrink-0 rounded-full bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold text-slate-500">
                                     {row.n_desglose}
@@ -261,7 +261,11 @@ export function PmMetricasTab({
                               </span>
                             </td>
                             <td className="px-4 py-2.5">
-                              <PmSparkline values={row.serie} color={getFactorColor(row.factor_num)} />
+                              <PmSparkline
+                                values={row.serie}
+                                color={getFactorColor(row.factor_num)}
+                                trend={row.tendencia}
+                              />
                             </td>
                           </tr>
                           {expandible && abierto
@@ -278,7 +282,7 @@ export function PmMetricasTab({
                                   }
                                 >
                                   <td className="px-4 py-2" />
-                                  <td className="max-w-xs truncate px-4 py-2 pl-9 text-slate-600">
+                                  <td className="whitespace-normal break-words px-4 py-2 pl-9 text-slate-600">
                                     {d.subindicador ?? "—"}
                                   </td>
                                   <td className="px-4 py-2 text-slate-500">{d.proceso ?? "—"}</td>
@@ -301,7 +305,11 @@ export function PmMetricasTab({
                                     </span>
                                   </td>
                                   <td className="px-4 py-2">
-                                    <PmSparkline values={d.serie} color={getFactorColor(row.factor_num)} />
+                                    <PmSparkline
+                                      values={d.serie}
+                                      color={getFactorColor(row.factor_num)}
+                                      trend={d.tendencia}
+                                    />
                                   </td>
                                 </tr>
                               ))
