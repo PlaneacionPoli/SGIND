@@ -51,68 +51,123 @@ function buildWavePath(points: { x: number; y: number }[]) {
   return d;
 }
 
+/** Misma curva desplazada verticalmente — usada para los bordes de neón superior/inferior de la cinta. */
+function buildEdgePath(points: { x: number; y: number }[], offset: number) {
+  return buildWavePath(points.map((p) => ({ x: p.x, y: p.y + offset })));
+}
+
 export function OrbitWaveRow({ items, rowIndex, currentRole }: OrbitWaveRowProps) {
   const points = buildPoints(items.length, rowIndex % 2 === 0);
   const path = buildWavePath(points);
-  const gradientId = `orbit-wave-gradient-${rowIndex}`;
+  const upperEdgePath = buildEdgePath(points, -2.2);
+  const lowerEdgePath = buildEdgePath(points, 2.2);
 
+  const ribbonId = `orbit-wave-ribbon-${rowIndex}`;
   const coreId = `orbit-wave-core-${rowIndex}`;
+  const filamentId = `orbit-wave-filament-${rowIndex}`;
+  const glowId = `orbit-wave-ambient-glow-${rowIndex}`;
 
   return (
     <div className="relative mx-auto w-full max-w-4xl md:aspect-[10/3]">
       <svg
         viewBox={`0 0 ${VIEWBOX_WIDTH} ${VIEWBOX_HEIGHT}`}
         preserveAspectRatio="none"
-        className="absolute inset-0 hidden h-full w-full md:block"
+        className="absolute inset-0 hidden h-full w-full overflow-visible motion-safe:animate-wave-pulse md:block"
         aria-hidden="true"
       >
         <defs>
-          <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#1e5fd9" />
-            <stop offset="55%" stopColor="#38bdf8" />
-            <stop offset="100%" stopColor="#00d4ff" />
+          {/* Cuerpo de la cinta: azul profundo → cian → violeta, translúcido */}
+          <linearGradient id={ribbonId} x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#1e40af" stopOpacity="0.55" />
+            <stop offset="35%" stopColor="#0ea5e9" stopOpacity="0.6" />
+            <stop offset="70%" stopColor="#38bdf8" stopOpacity="0.55" />
+            <stop offset="100%" stopColor="#a855f7" stopOpacity="0.5" />
           </linearGradient>
+          {/* Núcleo brillante interior */}
           <linearGradient id={coreId} x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#bff0ff" />
-            <stop offset="100%" stopColor="#ffffff" />
+            <stop offset="0%" stopColor="#7dd3fc" />
+            <stop offset="50%" stopColor="#ffffff" />
+            <stop offset="100%" stopColor="#e9d5ff" />
           </linearGradient>
+          {/* Filamentos de luz que recorren la cinta */}
+          <linearGradient id={filamentId} x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#22d3ee" />
+            <stop offset="50%" stopColor="#ffffff" />
+            <stop offset="100%" stopColor="#38bdf8" />
+          </linearGradient>
+          <filter id={glowId} x="-20%" y="-200%" width="140%" height="500%">
+            <feGaussianBlur stdDeviation="1.6" />
+          </filter>
         </defs>
 
-        {/* Halo exterior difuso — el "brillo" del cable de fibra óptica */}
+        {/* Capa 1 — resplandor ambiental ancho y difuso */}
         <path
           d={path}
           fill="none"
-          stroke={`url(#${gradientId})`}
-          strokeWidth={3.2}
+          stroke={`url(#${ribbonId})`}
+          strokeWidth={7}
           strokeLinecap="round"
-          vectorEffect="non-scaling-stroke"
-          style={{
-            filter:
-              "drop-shadow(0 0 6px #38bdf8) drop-shadow(0 0 14px #1e5fd9)",
-          }}
+          filter={`url(#${glowId})`}
         />
-        {/* Núcleo brillante del cable */}
+        {/* Capa 2 — cuerpo translúcido de la cinta */}
+        <path d={path} fill="none" stroke={`url(#${ribbonId})`} strokeWidth={4.4} strokeLinecap="round" />
+        {/* Capa 3 — núcleo luminoso interior */}
         <path
           d={path}
           fill="none"
           stroke={`url(#${coreId})`}
-          strokeWidth={1.1}
+          strokeWidth={1.7}
           strokeLinecap="round"
-          vectorEffect="non-scaling-stroke"
           opacity={0.9}
         />
-        {/* Pulso de luz que recorre la onda en bucle continuo */}
+        {/* Capa 4 — bordes de neón superior/inferior, dan efecto de tubo */}
+        <path d={upperEdgePath} fill="none" stroke={`url(#${coreId})`} strokeWidth={0.35} strokeLinecap="round" opacity={0.55} />
+        <path d={lowerEdgePath} fill="none" stroke={`url(#${coreId})`} strokeWidth={0.35} strokeLinecap="round" opacity={0.45} />
+
+        {/* Capa 5 — filamentos de luz viajando en bucle continuo, distintas velocidades */}
         <path
           d={path}
           fill="none"
-          stroke="#ffffff"
-          strokeWidth={2}
+          stroke={`url(#${filamentId})`}
+          strokeWidth={1.6}
           strokeLinecap="round"
-          strokeDasharray="14 190"
-          vectorEffect="non-scaling-stroke"
+          strokeDasharray="20 44"
           className="motion-safe:animate-dash-flow"
-          style={{ filter: "drop-shadow(0 0 6px #ffffff)" }}
         />
+        <path
+          d={upperEdgePath}
+          fill="none"
+          stroke="#e0f7ff"
+          strokeWidth={0.7}
+          strokeLinecap="round"
+          strokeDasharray="6 30"
+          opacity={0.8}
+          style={{ animationDuration: "3.2s" }}
+          className="motion-safe:animate-dash-flow"
+        />
+        <path
+          d={lowerEdgePath}
+          fill="none"
+          stroke="#22d3ee"
+          strokeWidth={0.6}
+          strokeLinecap="round"
+          strokeDasharray="5 26"
+          opacity={0.7}
+          className="motion-safe:animate-dash-flow-reverse"
+        />
+
+        {/* Beacons pulsantes en cada nodo */}
+        {points.map((point, index) => (
+          <circle
+            key={index}
+            cx={point.x}
+            cy={point.y}
+            r={0.9}
+            fill="#e0f7ff"
+            className="motion-safe:animate-twinkle"
+            style={{ animationDelay: `${index * 300}ms` }}
+          />
+        ))}
       </svg>
 
       {/* Fallback vertical para mobile: columna simple sin la onda SVG */}

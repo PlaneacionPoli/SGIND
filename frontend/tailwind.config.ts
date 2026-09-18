@@ -105,6 +105,14 @@ const config: Config = {
           "0%":   { strokeDashoffset: "0" },
           "100%": { strokeDashoffset: "-228" },
         },
+        "dash-flow-reverse": {
+          "0%":   { strokeDashoffset: "0" },
+          "100%": { strokeDashoffset: "228" },
+        },
+        "wave-pulse": {
+          "0%, 100%": { opacity: "0.75" },
+          "50%":      { opacity: "1" },
+        },
         "glow-pulse": {
           "0%, 100%": { boxShadow: "0 0 0 0 rgba(201,162,39,0.45)" },
           "50%":      { boxShadow: "0 0 0 10px rgba(201,162,39,0)" },
@@ -124,6 +132,8 @@ const config: Config = {
         float:    "float 4s ease-in-out infinite",
         "liquid-shift": "liquid-shift 8s ease-in-out infinite",
         "dash-flow": "dash-flow 5s linear infinite",
+        "dash-flow-reverse": "dash-flow-reverse 6.5s linear infinite",
+        "wave-pulse": "wave-pulse 5s ease-in-out infinite",
         "glow-pulse": "glow-pulse 2.4s ease-in-out infinite",
         twinkle: "twinkle 3s ease-in-out infinite",
       },
