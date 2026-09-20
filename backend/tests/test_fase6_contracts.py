@@ -5,7 +5,6 @@ Cubre:
  1. Estructura de respuesta de todos los endpoints principales
  2. Colores de semáforo == PROJECT_RULES §3.3 (fuente única de verdad)
  3. Paridad numérica: los builders no dividen por cero ni retornan NaN
- 4. Endpoint /pdi/dashboard — estructura básica
 """
 
 import pytest
@@ -225,79 +224,7 @@ async def test_informe_filtros_estructura(client, auth_as_calidad):
     assert isinstance(data, dict)
 
 
-# ─── Contratos — PDI ─────────────────────────────────────────────────────────
-
-
-@pytest.mark.asyncio
-async def test_pdi_filtros_requiere_auth(client):
-    resp = await client.get("/api/v1/pdi/filtros")
-    assert resp.status_code == 401
-
-
-@pytest.mark.asyncio
-async def test_pdi_filtros_estructura(client, auth_as_calidad):
-    resp = await client.get("/api/v1/pdi/filtros")
-    assert resp.status_code == 200
-    data = resp.json()
-    assert "estados" in data
-    assert "macros" in data
-    assert "horizontes" in data
-    assert "horizonte_default" in data
-    assert isinstance(data["estados"], list)
-    assert isinstance(data["macros"], list)
-
-
-@pytest.mark.asyncio
-async def test_pdi_dashboard_requiere_auth(client):
-    resp = await client.get("/api/v1/pdi/dashboard")
-    assert resp.status_code == 401
-
-
-@pytest.mark.asyncio
-async def test_pdi_dashboard_estructura(client, auth_as_calidad):
-    resp = await client.get("/api/v1/pdi/dashboard")
-    assert resp.status_code == 200
-    data = resp.json()
-    assert "kpis" in data
-    assert "treemap" in data
-    assert "benchmark" in data
-    assert "evolucion_brechas" in data
-    assert "tabla" in data
-    assert "filtros" in data
-    kpis = data["kpis"]
-    assert "total" in kpis
-
-
-@pytest.mark.asyncio
-async def test_pdi_dashboard_filtro_estado(client, auth_as_calidad):
-    """Filtro de estado reduce o mantiene el total de indicadores."""
-    resp_all = await client.get("/api/v1/pdi/dashboard")
-    resp_peligro = await client.get("/api/v1/pdi/dashboard", params={"estado": "Peligro"})
-
-    assert resp_all.status_code == 200
-    assert resp_peligro.status_code == 200
-
-    total_all = resp_all.json()["kpis"]["total"]
-    total_peligro = resp_peligro.json()["kpis"]["total"]
-
-    # Filtrado no puede tener más que el total
-    assert total_peligro <= total_all
-
-
 # ─── Consistencia del semáforo (PROJECT_RULES §3.3) ──────────────────────────
-
-
-@pytest.mark.asyncio
-async def test_semaforo_colores_design_tokens():
-    """Los colores del semáforo importados desde design_tokens coinciden con PROJECT_RULES §3.3."""
-    from app.services.pdi_service import NIVEL_COLOR
-
-    assert NIVEL_COLOR["Peligro"] == SEMAFORO["Peligro"], "Peligro debe ser #ef4444"
-    assert NIVEL_COLOR["Alerta"] == SEMAFORO["Alerta"], "Alerta debe ser #f59e0b"
-    assert NIVEL_COLOR["Cumplimiento"] == SEMAFORO["Cumplimiento"], "Cumplimiento debe ser #22c55e"
-    assert (
-        NIVEL_COLOR["Sobrecumplimiento"] == SEMAFORO["Sobrecumplimiento"]
-    ), "Sobrecumplimiento debe ser #3b82f6"
 
 
 @pytest.mark.asyncio
@@ -323,27 +250,6 @@ def test_semaforo_colores_cmi_builders():
 
 
 # ─── Paridad numérica básica ─────────────────────────────────────────────────
-
-
-def test_classify_estado_pdi_thresholds():
-    """PDIService._classify_estado reutiliza los umbrales centrales de categorizar_cumplimiento (A-01).
-
-    Umbrales en escala fracción (UMBRAL_PELIGRO=0.80, UMBRAL_ALERTA=1.00,
-    UMBRAL_SOBRECUMPLIMIENTO=1.05) — no la escala 75/100/105 legacy que
-    causaba semáforos inconsistentes entre PDI y CMI/Resumen General.
-    """
-    from app.services.pdi_service import _classify_estado
-
-    assert _classify_estado(None) == "Sin dato"
-    assert _classify_estado(float("nan")) == "Sin dato"
-    assert _classify_estado(50.0) == "Peligro"  # < 80
-    assert _classify_estado(79.9) == "Peligro"  # < 80
-    assert _classify_estado(80.0) == "Alerta"  # 80 <= x < 100
-    assert _classify_estado(99.9) == "Alerta"  # < 100
-    assert _classify_estado(100.0) == "Cumplimiento"  # 100 <= x < 105
-    assert _classify_estado(104.9) == "Cumplimiento"  # < 105
-    assert _classify_estado(105.0) == "Sobrecumplimiento"  # >= 105
-    assert _classify_estado(130.0) == "Sobrecumplimiento"
 
 
 def test_plan_mejoramiento_kpis_no_nan():

@@ -1,10 +1,8 @@
 import {
   Activity,
-  Award,
   ClipboardList,
   FileText,
   LayoutDashboard,
-  Search,
   Target,
   TrendingUp,
   Workflow,
@@ -23,10 +21,11 @@ export const NAV_ITEMS = [
   { href: "/gestion-om", label: "Gestión OM", icon: "◈" },
 ] as const;
 
-export const BETA_ITEMS: ReadonlyArray<{ href: string; label: string }> = [
-  { href: "/pdi-acreditacion", label: "PDI Acreditación" },
-  { href: "/diagnostico", label: "Diagnóstico" },
-];
+// PDI/Acreditación se eliminó por completo (código, endpoints y esta entrada
+// de navegación) — ver docs/tecnico/09-gaps-y-riesgos.md (G-16).
+// Diagnóstico es una herramienta interna/técnica, deliberadamente excluida
+// de toda navegación de usuario final (nunca debe volver a listarse aquí).
+export const BETA_ITEMS: ReadonlyArray<{ href: string; label: string }> = [];
 
 /** Paleta de acento del launcher — claves con clases Tailwind literales en LauncherCard. */
 export type AccentKey =
@@ -112,17 +111,4 @@ export const NAV_ITEM_META: Record<string, NavItemMeta> = {
   },
 };
 
-export const BETA_ITEM_META: Record<string, NavItemMeta> = {
-  "/pdi-acreditacion": {
-    Icon: Award,
-    description: "Plan de desarrollo institucional para acreditación",
-    accent: "indigo",
-    pillColor: "#4338CA",
-  },
-  "/diagnostico": {
-    Icon: Search,
-    description: "Diagnóstico institucional",
-    accent: "slate",
-    pillColor: "#475569",
-  },
-};
+export const BETA_ITEM_META: Record<string, NavItemMeta> = {};

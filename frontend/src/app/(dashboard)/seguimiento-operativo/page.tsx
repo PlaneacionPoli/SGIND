@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import dynamic from "next/dynamic";
+import { DataFreshnessFooter } from "@/components/layout/DataFreshnessFooter";
 import { KPICard } from "@/components/ui/KPICard";
 import { YearSegmentedControl } from "@/components/ui/YearSegmentedControl";
 import { downloadSeguimientoExport, fetchSeguimientoDashboard } from "@/lib/api";
@@ -262,6 +263,8 @@ export default function SeguimientoOperativoPage() {
           ) : null}
         </>
       )}
+
+      <DataFreshnessFooter />
     </div>
   );
 }

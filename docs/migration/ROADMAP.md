@@ -1,8 +1,13 @@
 # Roadmap de Migración — SGIND v2
 
 **Proyecto:** Sistema de Indicadores Estratégicos, CMI y Planeación Institucional — Poli  
-**Última actualización:** 2026-06-19  
+**Última actualización:** 2026-09-20 (Oleada 1, ver `docs/tecnico/`)  
 **Objetivo:** Migrar de Streamlit (Python monolítico) a **Next.js 14 + FastAPI + PostgreSQL** sin pérdida de funcionalidad ni datos.
+
+> **Corrección de estructura (2026-09-20):** este documento describía una
+> carpeta `sgind-v2/` que no existe en este repositorio — la estructura
+> real tiene `backend/`, `frontend/`, `database/`, `scripts/`, `docs/` en la
+> raíz. Rutas ya corregidas. Ver `docs/tecnico/01-arquitectura.md`.
 
 ---
 
@@ -40,7 +45,7 @@
 
 ## Stack Legacy vs. Stack Nuevo
 
-| Capa        | Legacy (producción activa)         | Nuevo (sgind-v2/)                          |
+| Capa        | Legacy (producción activa)         | Nuevo (este repo)                          |
 |-------------|------------------------------------|--------------------------------------------|
 | Frontend    | Streamlit (Python)                 | Next.js 14, TypeScript, Tailwind, Zustand  |
 | Backend     | Python monolítico                  | FastAPI, SQLAlchemy async, Pydantic v2     |
@@ -59,7 +64,7 @@
 
 ### Fase 0 — Levantamiento ✅ Completada
 
-> Entregables en `sgind-v2/docs/phase-0/`
+> Entregables en `docs/phase-0/`
 
 - [x] E0.1 Documento Funcional
 - [x] E0.2 Documento Técnico
@@ -74,7 +79,7 @@
 
 ### Fase 1 — Arquitectura ✅ Completada
 
-> Entregables en `sgind-v2/docs/architecture/`
+> Entregables en `docs/architecture/`
 
 - [x] ADR-001: Persistencia (PostgreSQL)
 - [x] ADR-002: Frontend (Next.js 14 App Router)
@@ -82,16 +87,19 @@
 - [x] ADR-004: Autenticación (Azure AD + JWT)
 - [x] ADR-005: Gráficos (Plotly.js + Recharts)
 - [x] ADR-006: Caché (TTL en memoria)
-- [x] ADR-007: IA (Claude API integración)
+- [x] ADR-007: IA (documenta Anthropic Claude; **desactualizado** — el código real usa
+      `google-genai`/Gemini, ver `backend/app/core/config.py` y G-20 en
+      `docs/tecnico/09-gaps-y-riesgos.md`)
 - [x] ADR-008: Despliegue (Docker Compose)
+- [x] ADR-009: Decisiones bloque 11a (agregado a la lista — faltaba, ver G-13)
 - [x] Matriz RBAC (`RBAC_MATRIX.md`)
-- [x] Docker Compose multi-servicio (`sgind-v2/docker-compose.yml`)
+- [x] Docker Compose multi-servicio (`docker-compose.yml`)
 
 ---
 
 ### Fase 2 — Modelo de Datos ✅ Completada
 
-> Entregables en `sgind-v2/docs/phase-2/` y `sgind-v2/database/`
+> Entregables en `docs/phase-2/` y `database/`
 
 - [x] Esquema PostgreSQL: `database/migrations/001_initial_schema.sql`
 - [x] Seed de prompts IA: `database/migrations/002_seed_ai_prompts.sql`
@@ -174,15 +182,22 @@
 > Framework sugerido: **Playwright**  
 > Directorio: `frontend/e2e/` (a crear)
 
-- [x] Instalar y configurar Playwright en `sgind-v2/frontend/` (`playwright.config.ts`)
+- [x] Instalar y configurar Playwright en `frontend/` (`playwright.config.ts`)
 - [x] Test: flujo login → Resumen General → KPIs visibles (`e2e/login.spec.ts`, `e2e/kpis.spec.ts`)
-- [x] Test: navegación — todas las 9 rutas cargan correctamente (`e2e/navegacion.spec.ts`)
-- [x] Tests de semaforización: colores §3.3 validados en PDI y Resumen General (`e2e/semaforo.spec.ts`)
+- [x] Test: navegación — las 7 rutas del dashboard cargan correctamente (`e2e/navegacion.spec.ts`; no incluye `/diagnostico`, herramienta interna sin enlace de navegación — ver G-16)
+- [x] Tests de semaforización: colores §3.3 validados en Resumen General (`e2e/semaforo.spec.ts`)
 - [x] Tests de API contract: estructura de respuesta de todos los endpoints (`tests/test_fase6_contracts.py`)
 - [x] Tests de paridad numérica: `_classify_estado`, `build_kpis_matriz`, colores design tokens
-- [x] Integrar tests en CI — jobs: `sgind-v2-backend`, `sgind-v2-frontend-build`, `sgind-v2-e2e`
 
-**Hito F6:** Suite E2E pasa completa en CI. KPIs numéricamente equivalentes entre v2 y sistema legacy.
+> **Corrección (2026-09-20):** este ítem afirmaba integración en CI con
+> jobs `sgind-v2-backend`/`sgind-v2-frontend-build`/`sgind-v2-e2e` — no
+> existen en `.github/workflows/` (solo hay `backend-lint.yml` y
+> `keep-alive.yml`). La suite E2E existe y corre localmente vía
+> `playwright.config.ts`, pero no está integrada en CI. Ver
+> `docs/tecnico/08-testing.md`.
+
+**Hito F6:** Suite E2E existe y corre localmente. Integración en CI
+pendiente (no confirmada, corregir cuando se implemente).
 
 ---
 
@@ -262,16 +277,16 @@ Migración real se ejecuta cuando PostgreSQL de producción esté disponible.
 
 ### Fase 10 — Deploy Staging v2 ✅ Completada
 
-> Archivos clave: `sgind-v2/docker-compose.staging.yml`, `.github/workflows/deploy-staging.yml`
+> Archivos clave: `docker-compose.staging.yml`, `.github/workflows/deploy-staging.yml`
 
 - [x] `deploy-staging.yml` reescrito: 4 jobs — build-backend, build-frontend, deploy, smoke-test
   - Build y push Docker a GHCR (GitHub Container Registry)
   - Deploy SSH condicional (si `STAGING_HOST` secret configurado)
   - Smoke tests automáticos post-deploy
-- [x] `sgind-v2/docker-compose.staging.yml` — compose para staging con imágenes GHCR, sin dev-login, sin puertos BD expuestos
-- [x] `sgind-v2/.env.staging` — template completo con comentarios, en .gitignore
-- [x] `sgind-v2/scripts/smoke_test.py` — smoke tests con retries, `--skip-if-unconfigured` para CI sin staging real
-- [x] `sgind-v2/docs/migration/STAGING_RUNBOOK.md` — primer deploy manual, rollback, NGINX, backups PG
+- [x] `docker-compose.staging.yml` — compose para staging con imágenes GHCR, sin dev-login, sin puertos BD expuestos
+- [x] `.env.staging` — template completo con comentarios, en .gitignore
+- [x] `scripts/smoke_test.py` — smoke tests con retries, `--skip-if-unconfigured` para CI sin staging real
+- [x] `docs/migration/STAGING_RUNBOOK.md` — primer deploy manual, rollback, NGINX, backups PG
 - [x] Tests: `test_fase10_staging.py` — 24 passed (compose válido, .env, workflow, smoke tests, Dockerfiles)
 
 **Acciones manuales pendientes para activar staging real:**
@@ -281,7 +296,7 @@ Migración real se ejecuta cuando PostgreSQL de producción esté disponible.
 | Configurar `STAGING_HOST`, `STAGING_USER`, `STAGING_SSH_KEY` | GitHub → Settings → Secrets → Actions |
 | Configurar `STAGING_URL`, `STAGING_API_URL`, `STAGING_DEPLOY_DIR` | GitHub → Settings → Variables → Actions |
 | Subir `data/` al servidor | SSH al servidor + `rsync` |
-| Crear `.env.staging` en el servidor | `/opt/sgind-v2/.env.staging` con credenciales reales |
+| Crear `.env.staging` en el servidor | `/opt/.env.staging` con credenciales reales |
 
 **Hito F10 ✅:** Pipeline CI/CD construye y publica imágenes Docker en cada merge a `main`. Servidor listo para activar con 4 secrets de GitHub.
 
@@ -289,7 +304,7 @@ Migración real se ejecuta cuando PostgreSQL de producción esté disponible.
 
 ### Fase 11 — UAT y Validación con Usuarios 🔄 En progreso
 
-> Artefactos UAT creados en `sgind-v2/docs/migration/` y `sgind-v2/scripts/`
+> Artefactos UAT creados en `docs/migration/` y `scripts/`
 
 - [x] Preparar checklist de aceptación por módulo → `UAT_CHECKLIST.md`
 - [x] Crear plantilla de registro de bugs y feedback → `UAT_BUGS.md`
@@ -310,7 +325,7 @@ Migración real se ejecuta cuando PostgreSQL de producción esté disponible.
 ### Fase 11.5 — Cierre de Hallazgos del Comparativo 🔄 En progreso
 
 > Plan detallado en [`PLAN_CIERRE_HALLAZGOS.md`](PLAN_CIERRE_HALLAZGOS.md), derivado del informe comparativo Streamlit vs. SGING.
-> **Priorización vigente (2026-09-18)**: [`PLAN_MIGRACION_PRIORIZADO.md`](PLAN_MIGRACION_PRIORIZADO.md) reclasifica estos hallazgos por prioridad real (Alta/Media/Baja) tras verificarlos contra el código actual, y agrega el hallazgo de mayor prioridad detectado: el módulo Plan de Mejoramiento fue rediseñado por completo en Streamlit esta semana (pestañas Indicadores/Métricas, catálogo Signo/Decimales) y SGING tiene una versión anterior ya reemplazada, no una parcial de la actual.
+> **Priorización vigente (2026-09-18)**: [`PLAN_MIGRACION_PRIORIZADO.md`](PLAN_MIGRACION_PRIORIZADO.md) reclasifica estos hallazgos por prioridad real (Crítica/Alta/Media/Baja) tras verificarlos contra el código actual. **Hallazgo crítico**: el pipeline ETL de producción de datos (`scripts/` del legacy, ~130 archivos auditados) nunca se migró a SGING — bloquea la Fase 12 (Cutover) tal como está planeada, no solo la paridad funcional. También agrega que el módulo Plan de Mejoramiento fue rediseñado por completo en Streamlit esta semana (pestañas Indicadores/Métricas, catálogo Signo/Decimales) y SGING tiene una versión anterior ya reemplazada, no una parcial de la actual.
 
 - [ ] Fase 0 del plan — Higiene base (lint backend con ruff, Vitest en frontend)
 - [ ] Fase 1 del plan — Consolidar paleta de semáforo (5 fuentes distintas → 1)
@@ -328,7 +343,7 @@ Migración real se ejecuta cuando PostgreSQL de producción esté disponible.
 
 ### Fase 12 — Cutover a Producción 🔄 En progreso
 
-> Artefactos de cutover creados en `sgind-v2/docs/migration/` y `sgind-v2/scripts/`
+> Artefactos de cutover creados en `docs/migration/` y `scripts/`
 
 - [x] Crear runbook de cutover → `CUTOVER_RUNBOOK.md`
 - [x] Crear plantillas de comunicación → `COMUNICACION_USUARIOS.md`
@@ -386,16 +401,16 @@ Referencia completa: `.ai/PROJECT_RULES.md`
 
 ```bash
 # Levantar stack completo local
-cd sgind-v2 && docker compose up -d
+docker compose up -d
 # Frontend: http://localhost:3000
 # Backend docs: http://localhost:8000/docs
 
 # Tests backend
-cd sgind-v2/backend
+cd backend
 SGIND_DATA_PATH=../../data PYTHONPATH=. pytest tests/ -q --cov=app
 
 # Build frontend
-cd sgind-v2/frontend
+cd frontend
 npm run build
 
 # Lint frontend
@@ -405,7 +420,7 @@ npm run lint
 npx tsc --noEmit
 
 # Tests E2E (Fase 6+)
-cd sgind-v2/frontend
+cd frontend
 npx playwright test
 ```
 
@@ -415,12 +430,12 @@ npx playwright test
 
 | Archivo | Propósito |
 |---------|-----------|
-| `sgind-v2/docs/migration/STATUS.md` | Estado actualizado por fase |
-| `sgind-v2/docs/migration/PLAN_CIERRE_HALLAZGOS.md` | Plan de implementación para cerrar hallazgos del comparativo Streamlit vs. SGING (paleta, filtros, paginación, menús, admin de usuarios) |
-| `sgind-v2/docs/architecture/adrs/` | 8 Architectural Decision Records |
-| `sgind-v2/docs/architecture/RBAC_MATRIX.md` | Roles y permisos |
-| `sgind-v2/backend/app/domain/calculos.py` | Fórmulas de indicadores (debe ser fuente única) |
-| `sgind-v2/frontend/src/lib/api.ts` | Cliente Axios — todos los endpoints del frontend |
-| `sgind-v2/frontend/src/lib/types.ts` | Tipos TypeScript de respuestas de la API |
-| `sgind-v2/database/scripts/migrate_sqlite_to_postgres.py` | Migración de datos legacy |
+| `docs/migration/STATUS.md` | Estado actualizado por fase |
+| `docs/migration/PLAN_CIERRE_HALLAZGOS.md` | Plan de implementación para cerrar hallazgos del comparativo Streamlit vs. SGING (paleta, filtros, paginación, menús, admin de usuarios) |
+| `docs/architecture/adrs/` | 9 Architectural Decision Records (ADR-001 a ADR-009; corregido, antes decía 8 — ver G-13) |
+| `docs/architecture/RBAC_MATRIX.md` | Roles y permisos |
+| `backend/app/domain/calculos.py` | Fórmulas de indicadores (debe ser fuente única) |
+| `frontend/src/lib/api.ts` | Cliente Axios — todos los endpoints del frontend |
+| `frontend/src/lib/types.ts` | Tipos TypeScript de respuestas de la API |
+| `database/scripts/migrate_sqlite_to_postgres.py` | Migración de datos legacy |
 | `.ai/PROJECT_RULES.md` | Reglas obligatorias de desarrollo |

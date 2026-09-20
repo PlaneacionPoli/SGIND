@@ -10,9 +10,11 @@
   válido en `backend/.venv312`** (Python 3.12.10 + SQLAlchemy 2.0.36,
   alineado con `requirements.txt`), documentado en `backend/README.md`
   desde el 2026-09-18 (antes de esta auditoría). Con
-  `backend/.venv312/Scripts/python.exe -m pytest`, la suite sí corre:
-  **123 passed, 16 skipped, 36 failed** (SGIND_DATA_PATH=../data).
-- **Los 36 fallos reales, triados:**
+  `backend/.venv312/Scripts/python.exe -m pytest`, la suite corre:
+  **109 passed, 16 skipped, 35 failed** (SGIND_DATA_PATH=../data; cifra
+  actualizada en Oleada 1 tras eliminar el módulo PDI y sus 14 tests, ver
+  `09-gaps-y-riesgos.md` G-16).
+- **Los 35 fallos reales, triados:**
   - `tests/test_fase10_staging.py` (18 fallos) — esperan una estructura
     `sgind-v2/*` que no existe en este repo (mismo problema que G-08 en
     `STATUS.md`/`ROADMAP.md`); tests a reescribir con las rutas reales, no
@@ -22,15 +24,18 @@
     base de datos en el entorno local, no por un bug.
   - `tests/test_fase8_migration.py` (3 fallos, `ModuleNotFoundError`) —
     import roto, a revisar.
-  - `tests/test_fase6_contracts.py::test_semaforo_colores_design_tokens` —
-    **relacionado directamente con G-03**: falla porque los colores de
-    semáforo no son consistentes entre las implementaciones duplicadas.
   - `tests/test_domain.py::test_retos_category_umbral_95` — a revisar,
-    podría ser otro síntoma de la duplicación de umbrales (G-03).
+    podría ser un síntoma de la duplicación de umbrales (G-03).
   - `tests/test_operational_modules.py`, `tests/test_performance_cache.py`
     — dependen de `Resultados Consolidados.xlsx` con datos reales o de
     rendimiento bajo caché caliente; a revisar caso por caso.
-  - Ninguno de estos 36 fallos es un problema del entorno Python — el
+  - **Corrección:** el fallo `test_fase6_contracts.py::test_semaforo_colores_design_tokens`
+    que se atribuyó inicialmente a G-03 (duplicación de semáforo) era en
+    realidad específico de `app/services/pdi_service.py` — ya no existe,
+    el test se eliminó junto con el módulo PDI (Oleada 1). G-03 sigue
+    siendo un hallazgo real (ver `05-reglas-de-negocio.md`), pero este
+    test en particular no era su evidencia.
+  - Ninguno de estos 35 fallos es un problema del entorno Python — el
     entorno ya funciona.
 - **Cifras de tests de `STATUS.md`/`ROADMAP.md`:** con el entorno correcto
   se pueden verificar de nuevo; quedan pendientes de comparar una por una

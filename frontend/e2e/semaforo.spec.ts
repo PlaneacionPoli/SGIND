@@ -139,40 +139,5 @@ test("badges de nivel en tablas usan colores correctos", async ({ page }) => {
   // El test pasa si no hay excepciones — la verificación cualitativa es suficiente en E2E
 });
 
-test("página PDI usa colores de semáforo en badges de estado", async ({ page }) => {
-  // Mock con datos de PDI que incluyen estados
-  await page.route("**/api/v1/pdi/dashboard**", (r) =>
-    r.fulfill({
-      json: {
-        error: null,
-        filtros: { estados: ["Peligro", "Alerta", "Cumplimiento"], macros: [], horizontes: [], horizonte_default: "" },
-        filtros_aplicados: {},
-        kpis: { total: 5, cumplimiento_promedio: 78.5, brecha_promedio: 8.2 },
-        treemap: [],
-        benchmark: [],
-        evolucion_brechas: [],
-        tabla: [
-          { Id: "A-01", Indicador: "Test", Linea: "Docencia", Objetivo: "Obj1", cumplimiento_pct: 65, Meta: 100, Ejecucion: 65, Estado: "Peligro", brecha: 35, estado_color: "#ef4444" },
-          { Id: "A-02", Indicador: "Test 2", Linea: "Docencia", Objetivo: "Obj1", cumplimiento_pct: 88, Meta: 100, Ejecucion: 88, Estado: "Alerta", brecha: 12, estado_color: "#f59e0b" },
-        ],
-      },
-    })
-  );
-
-  await page.goto("/pdi-acreditacion");
-  await page.waitForLoadState("networkidle");
-  await page.waitForTimeout(1_200);
-
-  // Verificar que los badges de estado tienen los colores correctos
-  const peligroBadge = page.locator("span").filter({ hasText: "Peligro" }).first();
-  if (await peligroBadge.isVisible()) {
-    const style = await peligroBadge.getAttribute("style");
-    expect(style).toContain(SEMAFORO.Peligro);
-  }
-
-  const alertaBadge = page.locator("span").filter({ hasText: "Alerta" }).first();
-  if (await alertaBadge.isVisible()) {
-    const style = await alertaBadge.getAttribute("style");
-    expect(style).toContain(SEMAFORO.Alerta);
-  }
-});
+// El módulo PDI/Acreditación se eliminó (ver docs/tecnico/09-gaps-y-riesgos.md,
+// G-16) — este test cubría sus badges de estado y se retiró junto con él.

@@ -13,13 +13,13 @@ import type {
   DashboardFiltrosResponse,
   DashboardKPIsResponse,
   DevTokenResponse,
+  ExcelFileInfo,
   HealthResponse,
   IndicatorListResponse,
   NarrativaResponse,
   InformeDashboardResponse,
   OMMatrizResponse,
   OMPlanAccionActividad,
-  PDIDashboardResponse,
   PlanIndicadorDetalleResponse,
   PlanIndicadoresDashboardResponse,
   PlanMejoramientoDashboardResponse,
@@ -128,6 +128,11 @@ export async function fetchResumenCompleto(params: {
 
 export async function fetchDashboardFiltros(): Promise<DashboardFiltrosResponse> {
   const { data } = await api.get<DashboardFiltrosResponse>("/dashboard/filtros");
+  return data;
+}
+
+export async function fetchExcelFiles(): Promise<ExcelFileInfo[]> {
+  const { data } = await api.get<ExcelFileInfo[]>("/dashboard/excel-files");
   return data;
 }
 
@@ -439,15 +444,6 @@ export async function fetchInformeDashboard(params: {
   frecuencia?: string;
 }): Promise<InformeDashboardResponse> {
   const { data } = await api.get<InformeDashboardResponse>("/informe/dashboard", { params });
-  return data;
-}
-
-export async function fetchPDIDashboard(params?: {
-  estado?: string;
-  macro?: string;
-  horizonte?: string;
-}): Promise<PDIDashboardResponse> {
-  const { data } = await api.get<PDIDashboardResponse>("/pdi/dashboard", { params });
   return data;
 }
 

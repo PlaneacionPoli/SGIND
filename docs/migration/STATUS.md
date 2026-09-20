@@ -1,6 +1,14 @@
 # Estado de Migración — SGIND v2
 
-**Última actualización:** 2026-06-19
+**Última actualización:** 2026-09-20 (Oleada 1 de `docs/tecnico/`)
+
+> **Corrección de estructura (2026-09-20):** este documento y `ROADMAP.md`
+> describían una carpeta `sgind-v2/` (`sgind-v2/backend`, `sgind-v2/frontend`,
+> etc.) que **no existe en este repositorio**. La estructura real tiene
+> `backend/`, `frontend/`, `database/`, `scripts/`, `docs/` directamente en
+> la raíz del repo. Todos los comandos de abajo ya se corrigieron a las
+> rutas reales — ver `docs/tecnico/01-arquitectura.md` para el detalle
+> completo verificado contra el código.
 
 ## Resumen
 
@@ -45,7 +53,7 @@
 | PostgreSQL | localhost:5433 |
 
 ```bash
-cd sgind-v2 && docker compose up -d
+docker compose up -d
 ```
 
 ## Uso rápido
@@ -65,10 +73,10 @@ cd sgind-v2 && docker compose up -d
 
 ```bash
 # Ejecutar verificación numérica UAT (backend corriendo):
-python sgind-v2/scripts/uat_verify.py --api-url http://localhost:8000 --anio 2025
+python scripts/uat_verify.py --api-url http://localhost:8000 --anio 2025
 
 # Con reporte JSON:
-python sgind-v2/scripts/uat_verify.py --api-url http://localhost:8000 --output-json uat_results.json
+python scripts/uat_verify.py --api-url http://localhost:8000 --output-json uat_results.json
 ```
 
 ## Fase 11.5 — Cierre de Hallazgos del Comparativo
@@ -76,7 +84,7 @@ python sgind-v2/scripts/uat_verify.py --api-url http://localhost:8000 --output-j
 | Artefacto | Ruta | Propósito |
 |-----------|------|-----------|
 | Plan de implementación | `docs/migration/PLAN_CIERRE_HALLAZGOS.md` | 8 fases: paleta de semáforo, tipado de endpoints, paginación, filtros compartidos, visuales, reactivación de menú, admin usuarios, comparativos multi-año |
-| **Plan priorizado vigente** | [`docs/migration/PLAN_MIGRACION_PRIORIZADO.md`](PLAN_MIGRACION_PRIORIZADO.md) | Fuente de verdad de priorización funcional/visual (2026-09-18), verificada contra código real (no contra este STATUS.md). Incluye el hallazgo de mayor prioridad: el módulo Plan de Mejoramiento fue rediseñado en Streamlit esta semana y SGING tiene una versión anterior, no una parcial de la actual. |
+| **Plan priorizado vigente** | [`docs/migration/PLAN_MIGRACION_PRIORIZADO.md`](PLAN_MIGRACION_PRIORIZADO.md) | Fuente de verdad de priorización funcional/visual (2026-09-18), verificada contra código real (no contra este STATUS.md). **Hallazgo crítico (ítem -1):** el pipeline ETL que produce los datos (`scripts/` del legacy, ~130 archivos) nunca se migró — SGING solo lee Excel ya producidos, sin ningún equivalente que los genere; bloquea el cutover de Fase 12 tal como está planeado. También incluye que el módulo Plan de Mejoramiento fue rediseñado en Streamlit esta semana y SGING tiene una versión anterior, no una parcial de la actual. |
 
 ## Fase 12 — Cutover
 
@@ -89,21 +97,21 @@ python sgind-v2/scripts/uat_verify.py --api-url http://localhost:8000 --output-j
 
 ```bash
 # Activar modo mantenimiento en Streamlit (durante cutover):
-python sgind-v2/scripts/set_streamlit_readonly.py --enable --v2-url https://sgind-v2.poli.edu.co
+python scripts/set_streamlit_readonly.py --enable --v2-url https://sgind-v2.poli.edu.co
 
 # Estado actual:
-python sgind-v2/scripts/set_streamlit_readonly.py --status
+python scripts/set_streamlit_readonly.py --status
 
 # Desactivar (rollback):
-python sgind-v2/scripts/set_streamlit_readonly.py --disable
+python scripts/set_streamlit_readonly.py --disable
 ```
 
 ## Comandos
 
 ```bash
 # Frontend
-cd sgind-v2/frontend && npm run build
+cd frontend && npm run build
 
-# Backend tests
-cd sgind-v2/backend && SGIND_DATA_PATH=../../data PYTHONPATH=. pytest tests/ -q
+# Backend tests (usar el venv correcto, ver backend/README.md — G-02)
+cd backend && SGIND_DATA_PATH=../data PYTHONPATH=. .venv312/Scripts/python.exe -m pytest tests/ -q
 ```

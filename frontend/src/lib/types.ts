@@ -18,6 +18,13 @@ export interface DashboardKPIsResponse {
   source: string;
 }
 
+export interface ExcelFileInfo {
+  name: string;
+  path: string;
+  size_bytes: number;
+  modified_at: string;
+}
+
 export interface SemaphoreItem {
   categoria: string;
   count: number;
@@ -926,41 +933,6 @@ export interface InformeDashboardResponse extends CMIProcesosDashboardResponse {
     mostrados_peligro: number;
     mostrados_alerta: number;
   };
-}
-
-export interface PDIDashboardResponse {
-  error: string | null;
-  filtros: {
-    estados: string[];
-    macros: string[];
-    horizontes: string[];
-    horizonte_default: string;
-  };
-  filtros_aplicados: Record<string, string>;
-  kpis: {
-    total: number;
-    cumplimiento_promedio: number | null;
-    brecha_promedio: number | null;
-  };
-  treemap: Array<{
-    id: string;
-    label: string;
-    parent: string;
-    value: number;
-    color?: string;
-    color_value?: number | null;
-  }>;
-  benchmark: Array<{
-    proceso: string;
-    cumplimiento: number;
-    benchmark: number;
-  }>;
-  evolucion_brechas: Array<{
-    periodo: string;
-    proceso: string;
-    brecha: number;
-  }>;
-  tabla: Array<Record<string, string | number | null>>;
 }
 
 export interface RegistroOMCreate {

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { SunburstPlotlyChart } from "@/components/charts/SunburstPlotlyChart";
 import { ProyectosGanttChart } from "@/components/charts/ProyectosGanttChart";
+import { DataFreshnessFooter } from "@/components/layout/DataFreshnessFooter";
 import { DetailTables } from "@/components/tables/DetailTables";
 import { TrendVariationTables } from "@/components/tables/TrendVariationTables";
 import { ChipRow } from "@/components/ui/ChipRow";
@@ -200,6 +201,8 @@ export default function ResumenGeneralPage() {
           )}
         </>
       ) : null}
+
+      <DataFreshnessFooter />
     </div>
   );
 }

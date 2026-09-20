@@ -3,6 +3,7 @@
 import { Suspense, useCallback, useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { CmiProcesosCalidadSection } from "@/components/cmi/CmiProcesosCalidadSection";
+import { DataFreshnessFooter } from "@/components/layout/DataFreshnessFooter";
 import { CmiProcesosFichaModal } from "@/components/cmi/CmiProcesosFichaModal";
 import { CmiProcesosFilters } from "@/components/cmi/CmiProcesosFilters";
 import { CmiProcesosListadoTab } from "@/components/cmi/CmiProcesosListadoTab";
@@ -381,6 +382,8 @@ function InformeContent() {
           />
         </>
       )}
+
+      <DataFreshnessFooter />
     </div>
   );
 }

@@ -4,6 +4,7 @@ import { Suspense, useCallback, useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
 import { CmiAlertasTab } from "@/components/cmi/CmiAlertasTab";
+import { DataFreshnessFooter } from "@/components/layout/DataFreshnessFooter";
 import { CmiFichaModal } from "@/components/cmi/CmiFichaModal";
 import { CmiFilters } from "@/components/cmi/CmiFilters";
 import { CmiLineasTab } from "@/components/cmi/CmiLineasTab";
@@ -178,6 +179,8 @@ function CMIEstrategicoContent() {
         onDownloadPdf={handleDownloadFichaPdf}
         downloadingPdf={downloadingFichaPdf}
       />
+
+      <DataFreshnessFooter />
     </div>
   );
 }

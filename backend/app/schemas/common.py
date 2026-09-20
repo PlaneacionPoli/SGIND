@@ -225,24 +225,6 @@ class CMIDashboardResponse(BaseModel):
     alertas: dict[str, Any] = Field(default_factory=dict)
 
 
-class PDIFiltrosResponse(BaseModel):
-    estados: list[str] = Field(default_factory=list)
-    macros: list[str] = Field(default_factory=list)
-    horizontes: list[str] = Field(default_factory=list)
-    horizonte_default: str = ""
-
-
-class PDIDashboardResponse(BaseModel):
-    error: str | None = None
-    filtros: PDIFiltrosResponse
-    filtros_aplicados: dict[str, str] = Field(default_factory=dict)
-    kpis: dict[str, Any] = Field(default_factory=dict)
-    treemap: list[dict[str, Any]] = Field(default_factory=list)
-    benchmark: list[dict[str, Any]] = Field(default_factory=list)
-    evolucion_brechas: list[dict[str, Any]] = Field(default_factory=list)
-    tabla: list[dict[str, Any]] = Field(default_factory=list)
-
-
 class PlanMejoramientoFiltrosResponse(BaseModel):
     anios: list[int] = Field(default_factory=list)
     anio_default: int | None = None

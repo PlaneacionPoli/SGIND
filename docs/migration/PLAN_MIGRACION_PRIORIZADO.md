@@ -1,5 +1,15 @@
 # Plan de Migración Priorizado — Lógica, Módulos, Visuales y Filtros
 
+> **⚠ Superado (2026-09-20).** Este documento se conserva como referencia
+> histórica, no como fuente de verdad vigente. Fue verificado contra código
+> el 2026-09-18, pero ya quedó parcialmente desactualizado dos días
+> después (su hallazgo sobre el módulo Plan de Mejoramiento — "sin ningún
+> equivalente en SGING" — ya no era cierto para el 2026-09-20; ver G-09 en
+> `docs/tecnico/09-gaps-y-riesgos.md`). El plan de transformación vigente,
+> con auditoría de código más reciente y priorizado por oleadas, es
+> `docs/migration/PROMPT_AUDITORIA_ACTUAL.md` y la documentación en
+> `docs/tecnico/` + `docs/funcional/`.
+
 **Fecha:** 2026-09-18
 **Origen:** auditoría de código independiente sobre `Sistema_Indicadores_Poli/` (Streamlit legacy) y este repositorio (SGING v2), verificando cada afirmación de [`STATUS.md`](STATUS.md) y [`ROADMAP.md`](ROADMAP.md) directamente contra el código fuente, no contra lo que esos documentos dicen. Complementa (no reemplaza) [`PLAN_CIERRE_HALLAZGOS.md`](PLAN_CIERRE_HALLAZGOS.md), del que retoma varias fases reclasificándolas por prioridad real.
 
@@ -14,6 +24,39 @@ Aplican a todos los ítems de este plan, no son tareas aparte:
 - **DDD (Domain-Driven Design)**: las reglas de negocio (categorización de cumplimiento, cálculo de cumplimiento faltante, bandas Kawak, clasificación de tendencia, estado de un indicador del plan, etc.) viven exclusivamente en la capa de dominio (`backend/app/domain/`), como funciones puras sin dependencia de framework/infraestructura. `categorization.py` ya sigue este patrón — es la referencia a imitar en cualquier módulo de reglas nuevo o portado.
 - **Arquitectura Limpia / Hexagonal**: separación disciplinada dominio (reglas puras) → aplicación/servicios (orquestación, ej. `pdi_service.py`) → infraestructura (lectura de Excel/Postgres) → presentación (endpoints/UI). Al reactivar o construir un módulo (ver Prioridad Alta ítem 0, y Media ítems 8-10), estructurarlo así desde el inicio en vez de replicar el patrón de "builder monolítico" ya señalado como problema (`informe_por_procesos.py` 1211 líneas y `resumen_por_proceso.py` 4210 líneas en el legacy; builders de dominio igual de largos ya en SGING).
 - **Refactorización constante**: cualquier ítem que toque un archivo con código muerto, duplicación, o una función de más de 150-200 líneas incluye su descomposición como parte del mismo cambio — no como tarea aparte que nunca se prioriza. Ejemplo: al consolidar la paleta de semáforo (ítem 1) se elimina la duplicación, no se agrega una cuarta fuente "por si acaso".
+
+---
+
+## Prioridad Crítica — bloquea el cutover (Fase 12), no solo la paridad funcional
+
+### -1. Migrar el pipeline ETL que produce los datos — hoy vive exclusivamente en `scripts/` del legacy, sin ningún equivalente en SGING
+
+**Hallazgo (2026-09-18, a partir de una pregunta directa del usuario):** toda la migración hasta ahora portó el **lado de lectura** (dashboards/API) asumiendo que los archivos Excel consolidados (`Resultados Consolidados.xlsx`, `Resultados_Consolidados_CNA.xlsx`, etc.) ya existen. Nadie migró el proceso que **produce** esos archivos. Confirmado en código: `backend/app/services/etl_pipeline.py` (nombre engañoso, "ETLPipelineService") no extrae ni consolida nada — solo lee el Excel ya generado y renombra columnas para el dashboard.
+
+**Por qué no se migró (causa raíz, no un descuido puntual):** decisión de alcance documentada desde el inicio en `ROADMAP.md`: *"Ejecución paralela. Streamlit permanece activo en producción hasta el cutover (Fase 12). Los datos Excel en `data/` se montan como volumen read-only en el nuevo backend."* SGING fue diseñado desde el ADR-001 como consumidor de solo lectura. Ninguna fase del roadmap (0-12) contempla portar el pipeline de producción de datos — la Fase 8 "Migración de Datos" solo migró datos *ya producidos* (SQLite→Postgres), no el proceso que los genera.
+
+**Consecuencia si se ejecuta el cutover tal como está planeado:** SGING se queda sin forma de refrescar los datos institucionales. Los indicadores se congelan en el último Excel que exista al apagar Streamlit. Esto no es un hallazgo de paridad — es un bloqueante de viabilidad del cutover.
+
+**Alcance real, auditado archivo por archivo (~130 scripts en `Sistema_Indicadores_Poli/scripts/`):**
+
+**a) Ruta de producción real — lo que hay que portar primero.** Confirmado por `.github/workflows/pipeline_automatico.yml` (cron día 5 de cada mes) y `config/settings.toml`:
+- `scripts/agent_runner.py` → `scripts/run_pipeline.py` orquestan, en orden: `consolidar_api.py` → `actualizar_consolidado.py` → `generar_reporte.py`.
+- `consolidar_api.py`: lee `data/raw/Kawak/{año}.xlsx` (catálogo maestro) + `data/raw/API/{año}.xlsx` (extracción API Kawak) → produce `Indicadores Kawak.xlsx` + `Consolidado_API_Kawak.xlsx`.
+- `actualizar_consolidado.py` (el archivo más reciente de todo el pipeline, modificado 2026-08-18): orquestador monolítico — carga fuente, valida contrato (Gate 1), carga catálogo/metadatos, purga filas inválidas, construye registros (histórico/semestral/cierres) vía `scripts/etl/builders.py`, expande sub-indicadores y cronogramas de proyectos, aplica **correcciones AGENT5** (reglas de negocio sobre Ejecución>1.3 y Meta=0/NULL), valida (Gate 2/3), escribe, repara, deduplica, actualiza catálogo, guarda con backup + rollback automático si falla. Produce `data/output/Resultados Consolidados.xlsx`.
+- `scripts/etl/*.py` (23 módulos: `normalizacion`, `fuentes`, `catalogo`, `builders`, `agent5_corrections`, `escritura`, `purga`, `signos`, `formulas_excel`, `versioning`, `audit`, `retry_handler`, `notifications`, `validation_gate`, etc.) — toda la lógica de negocio del ETL real, importada por `actualizar_consolidado.py`.
+- `generar_reporte.py`: calcula métricas de calidad del run (filas, IDs únicos, cumplimiento promedio, nulos).
+
+**b) `scripts/cna_extraction/` (creado 2026-09-17, la semana del rediseño de Plan de Mejoramiento) — el mejor candidato para portar primero.** Pipeline en 2 fases con límites de escritura explícitos (Fase 1 solo diagnóstico, Fase 2 escritura incremental), produce `data/output/Resultados_Consolidados_CNA.xlsx`. Es el más nuevo, el mejor diseñado, y el que menos deuda técnica acumulada tiene — sin cron/automatización todavía, ejecución manual.
+
+**c) `scripts/pipeline_steps/` (13 pasos + `runner_server.py`, un servidor HTTP local con UI web para correr el pipeline paso a paso) — NO está en la ruta de producción real** (confirmado por grep: ningún workflow/Dockerfile lo referencia), es una reimplementación más nueva (2026-07-15) de la misma lógica de `actualizar_consolidado.py`, pensada para debug manual. Útil como **referencia de diseño de boundaries** para los endpoints del nuevo pipeline (los 13 pasos ya son una descomposición natural), pero el comportamiento de negocio a portar es el de `actualizar_consolidado.py` (el que realmente corre).
+
+**d) `scripts/consolidation/` (paquete "v8 modular" completo, con orquestador/extractores/workers propios) — OBSOLETO/EXPERIMENTAL NO ADOPTADO.** Apunta al mismo archivo de salida que `actualizar_consolidado.py`, pero no está referenciado por ningún workflow ni por el pipeline real; sus fechas de modificación son anteriores al último cambio de `actualizar_consolidado.py`. No usar como base de lógica de negocio — a lo sumo, su idea de paralelización/workers puede inspirar el diseño del nuevo backend.
+
+**e) ~40 scripts de diagnóstico/auditoría puntual y migraciones de una sola pasada** (`scripts/diagnostics/*`, `scripts/agent1-9_*.py` salvo `agent5_corrections` que sí es de producción, `scripts/_archived/*`, `scripts/_patch_*`, `scripts/migrar_*`, `scripts/validar_*` sueltos, etc.) — **no migrar**: son herramientas de un solo uso o ya ejecutadas, varias con rutas hardcodeadas al computador de un desarrollador específico, confirmadas por evidencia (no por nombre) como no importadas por el core activo.
+
+**f) Estado incierto, requiere confirmación con el equipo antes de descartar:** `scripts/backup_sqlite.py` (¿corre vía Windows Task Scheduler en algún servidor real?), `scripts/panel_monitoreo.py` / `scripts/ingesta_plantillas.py` (¿siguen enlazados a la app Streamlit activa?), `scripts/analytics/{data_preparator,predictor}.py` (sin imports encontrados en el resto del repo, posible funcionalidad en desarrollo nunca integrada).
+
+**Acción propuesta:** este ítem requiere su propio diseño de arquitectura (¿el pipeline corre como job programado del backend FastAPI, como función serverless separada, o se mantiene como script operado manualmente contra Postgres?) — no es una tarea de "portar código", es una decisión de infraestructura de datos que aún no se ha tomado. Orden recomendado: (1) decidir la arquitectura del pipeline en el nuevo stack, (2) portar `cna_extraction/` primero (menor deuda, ya aislado en 2 fases), (3) portar la cadena `consolidar_api → actualizar_consolidado → generar_reporte` completa incluyendo las reglas de negocio de `scripts/etl/*` (esto es, en volumen de lógica, comparable o mayor a todo lo demás migrado hasta ahora), (4) confirmar con el equipo el estado incierto de (f) antes de dar el pipeline por completo.
 
 ---
 
@@ -106,6 +149,7 @@ En los módulos que aún no la validaron explícitamente (regla ya definida en `
 
 | # | Prioridad | Ítem | Origen | Estado verificado | Principio transversal |
 |---|---|---|---|---|---|
+| -1 | **Crítica** | Migrar el pipeline ETL de producción de datos (`scripts/`, ~130 archivos auditados) | Hallazgo nuevo (pregunta directa del usuario, 2026-09-18) | Sin ningún equivalente en SGING — confirmado archivo por archivo | Arq. Limpia (decisión de infraestructura pendiente) |
 | 0 | Alta | Portar módulo completo Plan de Mejoramiento (Indicadores + Métricas + catálogo Signo) | Hallazgo nuevo (código legacy rediseñado 10-17 sep 2026) | Sin ningún equivalente en SGING — confirmado por grep | DDD, Arq. Limpia |
 | 1 | Alta | Consolidar paleta de semáforo | `PLAN_CIERRE_HALLAZGOS.md` Fase 1 | Vigente — 3 paletas hex distintas | Refactor constante |
 | 2 | Alta | Paginar tablas de alertas (Seguimiento Operativo) | Comparativo jul-2026 + verificación esta auditoría | Parcial — tabla principal ya paginada, alertas no | — |

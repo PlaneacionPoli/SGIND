@@ -2,7 +2,21 @@
 
 import { useEffect, useState } from "react";
 import { fetchHealth, api } from "@/lib/api";
-import { useAuthReady } from "@/stores/auth-store";
+import { useAuthReady, useAuthStore } from "@/stores/auth-store";
+import { isDevLoginEnabled } from "@/hooks/use-dev-login";
+import { isEmailLoginMode } from "@/hooks/use-email-login";
+
+/**
+ * Herramienta interna de soporte técnico — deliberadamente sin enlace en
+ * ningún menú de usuario final (ver docs/tecnico/09-gaps-y-riesgos.md, G-16).
+ * Fuera de desarrollo local, requiere NEXT_PUBLIC_ENABLE_DIAGNOSTICS=true.
+ */
+function isDiagnosticsEnabled(): boolean {
+  return (
+    process.env.NEXT_PUBLIC_ENABLE_DIAGNOSTICS === "true" ||
+    process.env.NODE_ENV === "development"
+  );
+}
 
 interface CheckResult {
   label: string;
@@ -102,8 +116,6 @@ const MODULOS = [
   { modulo: "Plan de Mejoramiento", ruta: "/plan-mejoramiento", check: "Plan de Mejoramiento" },
   { modulo: "Seguimiento Operativo", ruta: "/seguimiento-operativo", check: "Datos Seguimiento" },
   { modulo: "Informe por Procesos", ruta: "/informe-procesos", check: "Datos CMI" },
-  { modulo: "PDI / Acreditación", ruta: "/pdi-acreditacion", check: "Backend API" },
-  { modulo: "Diagnóstico", ruta: "/diagnostico", check: "Backend API" },
 ] as const;
 
 const MODULE_STATUS_STYLES: Record<
@@ -116,9 +128,41 @@ const MODULE_STATUS_STYLES: Record<
   loading: { label: "Verificando…", badge: "bg-slate-100 text-slate-600" },
 };
 
+function AuthModeSummary({ isAuthenticated }: { isAuthenticated: boolean }) {
+  const email = useAuthStore((s) => s.email);
+  const role = useAuthStore((s) => s.role);
+
+  const modes: string[] = [];
+  if (isDevLoginEnabled()) modes.push("dev login");
+  if (isEmailLoginMode()) modes.push("login por email institucional");
+  modes.push("Azure AD");
+
+  if (!isAuthenticated) {
+    return <>Sin sesión — modos habilitados: {modes.join(", ")}</>;
+  }
+  return (
+    <>
+      Sesión activa ({email ?? "sin email"} · rol {role ?? "sin rol"}) — modos
+      habilitados: {modes.join(", ")}
+    </>
+  );
+}
+
 export default function DiagnosticoPage() {
   const { isAuthenticated } = useAuthReady();
   const checks = useSystemChecks(isAuthenticated);
+
+  if (!isDiagnosticsEnabled()) {
+    return (
+      <div className="rounded-xl border border-slate-200 bg-white p-6 text-slate-600">
+        <h2 className="text-lg font-semibold text-slate-900">Herramienta interna</h2>
+        <p className="mt-1 text-sm">
+          Diagnóstico es una herramienta de soporte técnico, no un módulo de negocio. No
+          está disponible en este entorno.
+        </p>
+      </div>
+    );
+  }
 
   const okCount = checks.filter((c) => c.status === "ok").length;
   const errCount = checks.filter((c) => c.status === "error").length;
@@ -178,15 +222,19 @@ export default function DiagnosticoPage() {
             ["Frontend", "Next.js 14 App Router · TypeScript · Tailwind"],
             ["Backend", "FastAPI · SQLAlchemy 2.0 async · asyncpg"],
             ["Base de datos", "PostgreSQL 16"],
-            ["Auth", "Dev login activo (Azure AD en Fase 7)"],
             ["API URL", process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000"],
-            ["Sesión", isAuthenticated ? "Autenticada" : "Sin sesión"],
           ].map(([label, value]) => (
             <div key={label} className="flex gap-2">
               <dt className="min-w-[110px] font-medium text-slate-500">{label}:</dt>
               <dd className="text-slate-800">{value}</dd>
             </div>
           ))}
+          <div className="flex gap-2 sm:col-span-2">
+            <dt className="min-w-[110px] font-medium text-slate-500">Auth:</dt>
+            <dd className="text-slate-800">
+              <AuthModeSummary isAuthenticated={isAuthenticated} />
+            </dd>
+          </div>
         </dl>
       </div>
 

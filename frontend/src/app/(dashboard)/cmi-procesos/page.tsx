@@ -3,6 +3,7 @@
 import { Suspense, useCallback, useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { CmiProcesosFichaModal } from "@/components/cmi/CmiProcesosFichaModal";
+import { DataFreshnessFooter } from "@/components/layout/DataFreshnessFooter";
 import { CmiProcesosAlertasTab } from "@/components/cmi/CmiProcesosAlertasTab";
 import { CmiProcesosAnalisisTab } from "@/components/cmi/CmiProcesosAnalisisTab";
 import { CmiProcesosFilters } from "@/components/cmi/CmiProcesosFilters";
@@ -315,6 +316,8 @@ function CMIProcesosContent() {
         onDownloadPdf={handleDownloadFichaPdf}
         downloadingPdf={downloadingFichaPdf}
       />
+
+      <DataFreshnessFooter />
     </div>
   );
 }

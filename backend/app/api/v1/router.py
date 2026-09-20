@@ -8,7 +8,6 @@ from app.api.v1.endpoints import (
     indicators,
     informe,
     om,
-    pdi,
     plan_mejoramiento,
     reports,
     seguimiento,
@@ -26,5 +25,4 @@ api_router.include_router(
     plan_mejoramiento.router, prefix="/plan-mejoramiento", tags=["plan-mejoramiento"]
 )
 api_router.include_router(informe.router, prefix="/informe", tags=["informe"])
-api_router.include_router(pdi.router, prefix="/pdi", tags=["pdi"])
 api_router.include_router(reports.router, prefix="/reports", tags=["reports"])

@@ -133,9 +133,6 @@ export async function mockAPI(page: Page) {
   await page.route(`**${API_BASE}/informe/**`, (r) =>
     r.fulfill({ json: {} })
   );
-  await page.route(`**${API_BASE}/pdi/**`, (r) =>
-    r.fulfill({ json: { error: null, filtros: { estados: [], macros: [], horizontes: [], horizonte_default: "" }, filtros_aplicados: {}, kpis: { total: 0, cumplimiento_promedio: null, brecha_promedio: null }, treemap: [], benchmark: [], evolucion_brechas: [], tabla: [] } })
-  );
 }
 
 /** Realiza el flujo de dev-login desde la página /login y espera que el dashboard cargue. */

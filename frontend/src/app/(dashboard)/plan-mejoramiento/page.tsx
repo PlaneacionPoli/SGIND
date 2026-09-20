@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ClipboardList, LineChart } from "lucide-react";
+import { DataFreshnessFooter } from "@/components/layout/DataFreshnessFooter";
 import { PmIndicadoresTab } from "@/components/plan-mejoramiento/PmIndicadoresTab";
 import { PmMetricasTab } from "@/components/plan-mejoramiento/PmMetricasTab";
 
@@ -86,6 +87,8 @@ export default function PlanMejoramientoPage() {
         Panel generado a partir de &quot;Indicadores Plan de Mejoramiento&quot; y &quot;Resultados Consolidados
         CNA – Métricas&quot; · Politécnico Grancolombiano
       </p>
+
+      <DataFreshnessFooter />
     </div>
   );
 }

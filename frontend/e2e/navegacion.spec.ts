@@ -1,10 +1,14 @@
 /**
- * Tests E2E — Navegación entre las 9 páginas del dashboard
+ * Tests E2E — Navegación entre las 7 páginas del dashboard
  *
  * Verifica que todas las rutas del dashboard:
  * 1. Responden con HTTP 200
  * 2. Renderizan el título de la sección correspondiente
  * 3. No generan errores de JavaScript sin capturar
+ *
+ * No incluye /diagnostico (herramienta interna, deliberadamente sin enlace
+ * de navegación y gateada fuera de desarrollo — ver docs/tecnico/09-gaps-y-riesgos.md
+ * G-16) ni /pdi-acreditacion (módulo eliminado, mismo hallazgo).
  */
 
 import { test, expect, type Page } from "@playwright/test";
@@ -18,8 +22,6 @@ const PAGINAS = [
   { ruta: "/plan-mejoramiento", titulo: /plan de mejoramiento/i },
   { ruta: "/seguimiento-operativo", titulo: /seguimiento operativo/i },
   { ruta: "/informe-procesos", titulo: /informe.*procesos/i },
-  { ruta: "/pdi-acreditacion", titulo: /pdi.*acreditación/i },
-  { ruta: "/diagnostico", titulo: /diagnóstico/i },
 ];
 
 test.describe("Navegación — todas las rutas del dashboard", () => {
