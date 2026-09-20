@@ -78,7 +78,9 @@ class ResumenService:
 
     def _proyectos_multi_anio(self, anios: list[int]) -> pd.DataFrame:
         parts = [
-            ensure_nivel_cumplimiento(self._strategic.preparar_proyectos_con_cierre(y, 12))
+            ensure_nivel_cumplimiento(
+                self._strategic.preparar_proyectos_con_cierre(y, 12), regimen="plan_anual"
+            )
             for y in anios
         ]
         parts = [p for p in parts if p is not None and not p.empty]
@@ -596,7 +598,7 @@ class ResumenService:
                 self._proyectos_multi_anio(ANIOS_RANGO)
                 if rango
                 else ensure_nivel_cumplimiento(
-                    self._strategic.preparar_proyectos_con_cierre(anio, 12)
+                    self._strategic.preparar_proyectos_con_cierre(anio, 12), regimen="plan_anual"
                 )
             )
             chips = get_chip_config_proyectos(proy_df)
@@ -628,7 +630,8 @@ class ResumenService:
             periodo_txt_p = f"Solo datos de {anio} — sin período anterior disponible"
             if prev_month_p:
                 prev_proy_df = ensure_nivel_cumplimiento(
-                    self._strategic.preparar_proyectos_con_cierre(anio - 1, prev_month_p)
+                    self._strategic.preparar_proyectos_con_cierre(anio - 1, prev_month_p),
+                    regimen="plan_anual",
                 )
                 best_p, worst_p = compute_trends(proy_df, prev_proy_df)
                 periodo_txt_p = f"Comparando {anio} (cierre anual) vs {anio - 1} ({meses.get(prev_month_p, prev_month_p)})"
@@ -685,7 +688,7 @@ class ResumenService:
                     self._strategic.preparar_pdi_con_cierre(anio, 12)
                 )
                 proy_df = ensure_nivel_cumplimiento(
-                    self._strategic.preparar_proyectos_con_cierre(anio, 12)
+                    self._strategic.preparar_proyectos_con_cierre(anio, 12), regimen="plan_anual"
                 )
                 ret_linea_df, ret_obj_df = self._retos.load_retos_data(anio)
                 ret_planes_df = self._retos.load_planes(anio)

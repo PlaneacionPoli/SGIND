@@ -85,7 +85,10 @@ def test_build_comparativa_procesos_colors():
     out = build_comparativa_procesos(df, prev)
     assert len(out) == 2
     assert out[0]["color"] == cumplimiento_semaforo_color(95.0)
-    assert out[1]["estado"] == "Crítico"
+    # Vocabulario canónico desde Oleada 2 (categorizar_cumplimiento), antes
+    # decía "Crítico" (vocabulario propio ya eliminado) — ver
+    # docs/tecnico/05-reglas-de-negocio.md.
+    assert out[1]["estado"] == "Peligro"
 
 
 def test_build_vista_global_structure():

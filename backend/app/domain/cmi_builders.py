@@ -9,6 +9,8 @@ from typing import Any
 
 import pandas as pd
 
+from app.domain.categorization import categorizar_cumplimiento
+from app.domain.constants import COLOR_CATEGORIA as _COLOR_CATEGORIA_BASE
 from app.domain.linea_order import linea_sort_key
 from app.domain.resumen_builders import compute_trends, ensure_nivel_cumplimiento
 
@@ -24,11 +26,11 @@ LINEA_COLORES: dict[str, str] = {
     "Educación para toda la vida": "#0F385A",
 }
 
+# Fuente única: domain/constants.py — extendido con "Pendiente de reporte"
+# (usado en el pipeline para filas sin reportar aún, distinto de "Sin dato"
+# que categorizar_cumplimiento devuelve para un valor NaN puntual).
 COLOR_CATEGORIA: dict[str, str] = {
-    "Sobrecumplimiento": "#6699FF",
-    "Cumplimiento": "#43A047",
-    "Alerta": "#FBAF17",
-    "Peligro": "#D32F2F",
+    **_COLOR_CATEGORIA_BASE,
     "Pendiente de reporte": "#9E9E9E",
 }
 
@@ -205,48 +207,65 @@ def _nivel_counts(df_linea: pd.DataFrame) -> dict[str, int]:
     }
 
 
-def _estado_linea_card(cump: float, tiene_datos: bool) -> dict[str, str]:
-    if not tiene_datos:
-        return {
-            "estado_label": "Sin datos",
-            "estado_icon": "—",
-            "estado_color": "#6B7280",
-            "estado_bg": "#F3F4F6",
-            "estado_text": "#4B5563",
-        }
-    if cump >= 100:
-        return {
-            "estado_label": "Meta alcanzada",
-            "estado_icon": "↑",
-            "estado_color": "#43A047",
-            "estado_bg": "#E8F5E9",
-            "estado_text": "#2E7D32",
-        }
-    if cump >= 80:
-        return {
-            "estado_label": "En proceso",
-            "estado_icon": "→",
-            "estado_color": "#FBAF17",
-            "estado_bg": "#FFF8E1",
-            "estado_text": "#F57F17",
-        }
-    return {
+# Estilo rico (bg/text) por categoría canónica — la etiqueta narrativa y los
+# colores base se derivan de categorizar_cumplimiento, no de un umbral propio.
+_ESTADO_LINEA_CARD_STYLE: dict[str, dict[str, str]] = {
+    "Sobrecumplimiento": {
+        "estado_label": "Meta alcanzada",
+        "estado_icon": "↑",
+        "estado_color": "#43A047",
+        "estado_bg": "#E8F5E9",
+        "estado_text": "#2E7D32",
+    },
+    "Cumplimiento": {
+        "estado_label": "Meta alcanzada",
+        "estado_icon": "↑",
+        "estado_color": "#43A047",
+        "estado_bg": "#E8F5E9",
+        "estado_text": "#2E7D32",
+    },
+    "Alerta": {
+        "estado_label": "En proceso",
+        "estado_icon": "→",
+        "estado_color": "#FBAF17",
+        "estado_bg": "#FFF8E1",
+        "estado_text": "#F57F17",
+    },
+    "Peligro": {
         "estado_label": "Requiere atención",
         "estado_icon": "⚠",
         "estado_color": "#D32F2F",
         "estado_bg": "#FFEBEE",
         "estado_text": "#B71C1C",
-    }
+    },
+}
+
+_ESTADO_LINEA_CARD_SIN_DATOS: dict[str, str] = {
+    "estado_label": "Sin datos",
+    "estado_icon": "—",
+    "estado_color": "#6B7280",
+    "estado_bg": "#F3F4F6",
+    "estado_text": "#4B5563",
+}
+
+
+def _estado_linea_card(cump: float, tiene_datos: bool) -> dict[str, str]:
+    """Delega el corte de categoría a categorizar_cumplimiento (régimen
+    general). Corregido en Oleada 2: antes usaba umbrales propios (100/80)
+    en vez de los canónicos (100/105) — ver docs/tecnico/05-reglas-de-negocio.md."""
+    if not tiene_datos:
+        return _ESTADO_LINEA_CARD_SIN_DATOS
+    categoria = categorizar_cumplimiento(cump / 100.0)
+    return _ESTADO_LINEA_CARD_STYLE.get(categoria, _ESTADO_LINEA_CARD_SIN_DATOS)
 
 
 def _estado_linea(cump: float) -> tuple[str, str]:
-    if cump >= 100:
-        return "Sobrecumplimiento", COLOR_CATEGORIA["Sobrecumplimiento"]
-    if cump >= 95:
-        return "Cumplimiento", COLOR_CATEGORIA["Cumplimiento"]
-    if cump >= 80:
-        return "Alerta", COLOR_CATEGORIA["Alerta"]
-    return "Peligro", COLOR_CATEGORIA["Peligro"]
+    """Delega a categorizar_cumplimiento (régimen general). Corregido en
+    Oleada 2: antes usaba el corte de Plan Anual (95/100) para TODAS las
+    líneas, mezclando dos regímenes distintos — ver
+    docs/tecnico/05-reglas-de-negocio.md."""
+    categoria = categorizar_cumplimiento(cump / 100.0)
+    return categoria, COLOR_CATEGORIA[categoria]
 
 
 def build_vista_rapida_lineas(df: pd.DataFrame) -> list[dict[str, Any]]:
@@ -467,11 +486,16 @@ def generate_linea_narrativa_heuristica(
     cump = cumplimiento_promedio or 0.0
     riesgo_ratio = (float(total_riesgo) / float(total_ind)) if total_ind else 0.0
 
-    if cump >= 100:
+    # Corregido en Oleada 2: antes usaba su propio corte 95/100 (mezcla del
+    # régimen Plan Anual con vocabulario general) — ahora delega a
+    # categorizar_cumplimiento (régimen general) — ver
+    # docs/tecnico/05-reglas-de-negocio.md.
+    categoria = categorizar_cumplimiento(cump / 100.0)
+    if categoria in ("Cumplimiento", "Sobrecumplimiento"):
         estado = "La línea presenta desempeño agregado favorable y supera la meta institucional."
         estado_color = "#16A34A"
         estado_icon = "success"
-    elif cump >= 95:
+    elif categoria == "Alerta":
         estado = "La línea presenta desempeño estable, con brechas acotadas que requieren monitoreo cercano."
         estado_color = "#2563EB"
         estado_icon = "chart"

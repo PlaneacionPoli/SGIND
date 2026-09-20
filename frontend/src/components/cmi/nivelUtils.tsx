@@ -1,4 +1,6 @@
-const NIVEL_STYLES: Record<string, { text: string; bg: string }> = {
+// Única fuente de los tonos "muted" (texto oscuro / fondo claro) usados en
+// badges y leyendas — Oleada 2, ver docs/tecnico/05-reglas-de-negocio.md.
+export const NIVEL_STYLES: Record<string, { text: string; bg: string }> = {
   Peligro: { text: "#B71C1C", bg: "#FEE2E2" },
   Alerta: { text: "#B45309", bg: "#FEF3C7" },
   Cumplimiento: { text: "#166534", bg: "#DCFCE7" },

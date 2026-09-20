@@ -4,24 +4,26 @@ import type { CMIProcesosVistaGlobal } from "@/lib/types";
 import { CmiCatalogChartsPlotly } from "@/components/cmi/CmiCatalogChartsPlotly";
 import { CmiDonutNivelPlotly } from "@/components/cmi/CmiDonutNivelPlotly";
 import { CmiMetricCard } from "@/components/cmi/CmiMetricCard";
-import { fmtNum, fmtPct } from "@/components/cmi/nivelUtils";
+import { fmtNum, fmtPct, NIVEL_STYLES } from "@/components/cmi/nivelUtils";
 
 interface CmiProcesosResumenTabProps {
   vista: CMIProcesosVistaGlobal;
   baseAnio: number;
 }
 
+// Fuente única: nivelUtils.tsx (antes tenía su propia copia de estos tonos
+// — Oleada 2, ver docs/tecnico/05-reglas-de-negocio.md).
 const NIVEL_COLOR: Record<string, string> = {
-  sobrecumplimiento: "#1D4ED8",
-  cumplimiento: "#166534",
-  alerta: "#B45309",
-  peligro: "#B71C1C",
+  sobrecumplimiento: NIVEL_STYLES.Sobrecumplimiento.text,
+  cumplimiento: NIVEL_STYLES.Cumplimiento.text,
+  alerta: NIVEL_STYLES.Alerta.text,
+  peligro: NIVEL_STYLES.Peligro.text,
 };
 const NIVEL_BG: Record<string, string> = {
-  sobrecumplimiento: "#EFF6FF",
-  cumplimiento: "#F0FDF4",
-  alerta: "#FFFBEB",
-  peligro: "#FFF1F2",
+  sobrecumplimiento: NIVEL_STYLES.Sobrecumplimiento.bg,
+  cumplimiento: NIVEL_STYLES.Cumplimiento.bg,
+  alerta: NIVEL_STYLES.Alerta.bg,
+  peligro: NIVEL_STYLES.Peligro.bg,
 };
 
 // Fallback solo si el backend no envía "nivel" (ya clasificado por indicador

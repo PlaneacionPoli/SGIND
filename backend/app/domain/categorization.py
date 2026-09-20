@@ -31,20 +31,32 @@ def get_ids_plan_anual() -> frozenset[str]:
     return _ids_plan_anual if _ids_plan_anual is not None else IDS_PLAN_ANUAL_DEFAULT
 
 
-def categorizar_cumplimiento(cumplimiento, id_indicador=None) -> str:
+def categorizar_cumplimiento(cumplimiento, id_indicador=None, regimen=None) -> str:
+    """Categoriza un valor de cumplimiento en Peligro/Alerta/Cumplimiento/
+    Sobrecumplimiento/Sin dato.
+
+    El régimen (general/plan_anual/negativo_pct) se determina por `id_indicador`
+    contra las listas de `constants.py`, salvo que se pase `regimen`
+    explícitamente — usado por categorías que aplican Plan Anual
+    incondicionalmente por tipo (Retos, Proyectos), no por pertenecer a la
+    lista de IDs. Ver docs/tecnico/05-reglas-de-negocio.md."""
     try:
         if pd.isna(cumplimiento):
             return CategoriaCumplimiento.SIN_DATO.value
     except (ValueError, TypeError):
         return CategoriaCumplimiento.SIN_DATO.value
 
-    es_plan_anual = False
-    if id_indicador is not None:
-        es_plan_anual = str(id_indicador).strip() in get_ids_plan_anual()
+    if regimen is not None:
+        es_plan_anual = regimen == "plan_anual"
+        es_negativo_pct = regimen == "negativo_pct"
+    else:
+        es_plan_anual = False
+        if id_indicador is not None:
+            es_plan_anual = str(id_indicador).strip() in get_ids_plan_anual()
 
-    es_negativo_pct = False
-    if not es_plan_anual and id_indicador is not None:
-        es_negativo_pct = str(id_indicador).strip() in IDS_NEGATIVO_PCT
+        es_negativo_pct = False
+        if not es_plan_anual and id_indicador is not None:
+            es_negativo_pct = str(id_indicador).strip() in IDS_NEGATIVO_PCT
 
     try:
         if isinstance(cumplimiento, str):

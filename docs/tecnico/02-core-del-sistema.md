@@ -1,39 +1,34 @@
 # CORE del sistema — indicadores, cálculo y consolidación
 
-## Motor de cálculo/semaforización — NO es una fuente única
+## Motor de cálculo/semaforización — fuente única desde Oleada 2 (2026-09-20)
 
-`backend/app/domain/calculos.py` reutiliza correctamente
-`categorizar_cumplimiento` (`domain/categorization.py:34-82`) y
-`recalcular_cumplimiento_faltante` (`domain/health_metrics.py:13-63`) como
-el motor "canónico". Los umbrales oficiales viven en
-`domain/constants.py:5-14`:
+`backend/app/domain/calculos.py` reutiliza `categorizar_cumplimiento`
+(`domain/categorization.py`) y `recalcular_cumplimiento_faltante`
+(`domain/health_metrics.py`) como el motor canónico. Los umbrales oficiales
+viven en `domain/constants.py`:
 
 - General: Peligro `<0.80`, Alerta `<1.00`, Cumplimiento `<1.05`,
   Sobrecumplimiento `>=1.05`.
-- Variante "Plan Anual": alerta `<0.95`, sobrecumplimiento `>=1.00`.
-- Variante "Negativo-Porcentual": `1.02`/`1.10`.
+- Plan Anual: Peligro `<0.80`, Alerta `<0.95`, Cumplimiento `<=1.00`,
+  Sobrecumplimiento `>1.00` — aplica a 11 IDs fijos **y, de forma
+  incondicional por tipo, a todos los subindicadores de Retos y todos los
+  Proyectos** (parámetro `regimen="plan_anual"`, confirmado con negocio).
+- Negativo-Porcentual: Cumplimiento `<1.02`, Alerta `<=1.10`, Peligro
+  `>1.10` — aplica a 4 IDs fijos.
 
-**Pero hay 4 reimplementaciones divergentes de la misma regla** en otros
-archivos, con umbrales y nombres distintos a los canónicos:
+Paleta oficial (`COLOR_CATEGORIA`, debe coincidir con
+`frontend/src/lib/design-tokens.ts::SEMAFORO`): Peligro `#D32F2F`, Alerta
+`#f59e0b`, Cumplimiento `#22c55e`, Sobrecumplimiento `#3b82f6`, Sin dato
+`#BDBDBD`.
 
-| Ubicación | Umbrales usados | Problema |
-|---|---|---|
-| `domain/procesos_builders.py:63-80` (`cumplimiento_semaforo_color`/`cumplimiento_estado`) | 2 niveles: `>=100` / `>=80` | Sin tercer nivel "Sobrecumplimiento", sin variantes Plan Anual/Negativo-Porcentual |
-| `domain/cmi_builders.py:208-239` (`_estado_linea_card`) | `>=100` / `>=80` | Otro set de 2 niveles distinto al anterior |
-| `domain/cmi_builders.py:242-249` (`_estado_linea`) | `>=100` / `>=95` / `>=80` | 3 niveles con los mismos nombres que `CategoriaCumplimiento` pero cortes numéricos distintos (95/100 en vez de 100/105) |
-| `domain/cmi_builders.py:459-481` (`generate_linea_narrativa_heuristica`) | `>=100` / `>=95` | Colores propios que no coinciden con `COLOR_CATEGORIA` |
-
-El propio código documenta en un comentario (`domain/pdi_service.py:16-19`)
-que ya hubo un intento previo de unificar una paleta divergente — es un
-problema conocido y recurrente, no resuelto del todo.
-
-**En el frontend se repite el mismo patrón**: 4 mapas de color distintos
-para el mismo dominio semántico (`cmiChartColors.ts`, `nivelUtils.tsx`,
-`CmiProcesosResumenTab.tsx`, `CmiVistaRapidaCards.tsx`), y un fallback de
-clasificación en `CmiProcesosResumenTab.tsx:29-46` que reimplementa umbrales
-80/100/105 sin conocer los regímenes especiales (Plan Anual, etc.) del
-backend — si el backend deja de mandar el campo `nivel`, el frontend
-clasificaría mal esos casos.
+**Hasta Oleada 2 había 6 reimplementaciones divergentes** en backend
+(`domain/procesos_builders.py`, `domain/cmi_builders.py` x3,
+`domain/resumen_builders.py::_retos_category`,
+`domain/om_builders.py::CATEGORIA_COLORS`) y 3 copias de paleta en frontend
+(`cmiChartColors.ts`, `CmiVistaRapidaCards.tsx`,
+`CmiProcesosResumenTab.tsx`) — todas ahora delegan a la fuente única. Ver
+el detalle histórico y la evidencia de cada una en
+[`05-reglas-de-negocio.md`](05-reglas-de-negocio.md).
 
 ## El pipeline de consolidación (productor real de los datos)
 

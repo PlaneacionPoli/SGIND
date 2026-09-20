@@ -6,6 +6,7 @@ from typing import Any
 
 import pandas as pd
 
+from app.domain.constants import COLOR_CATEGORIA as CATEGORIA_COLORS
 from app.domain.loader_utils import id_a_str
 
 MESES_NOMBRES = [
@@ -32,13 +33,6 @@ TIPO_ACCION_COLORS = {
     "Sin acción": "#94A3B8",
 }
 
-CATEGORIA_COLORS = {
-    "Peligro": "#C62828",
-    "Alerta": "#F9A825",
-    "Cumplimiento": "#2E7D32",
-    "Sobrecumplimiento": "#6699FF",
-    "Sin dato": "#6E7781",
-}
 
 _PLAN_ACCION_DIR = "raw/Plan de accion"
 

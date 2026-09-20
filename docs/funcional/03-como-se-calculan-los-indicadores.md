@@ -60,19 +60,22 @@ Otros regímenes usan cortes distintos porque su naturaleza es diferente:
 - **Negativo-Porcentual** (indicadores donde "menos es mejor" en escala
   0-100): Cumplimiento `<102%`, Alerta `102%–110%`, Peligro `>110%`.
 
-## Una inconsistencia conocida que debes tener en cuenta
+## Corrección: ya no hay inconsistencia de color entre pantallas
 
-Existen **varias formas de calcular este mismo color** repartidas en
-distintas partes del sistema, y no todas usan exactamente los mismos
-cortes. En la práctica esto significa que **el mismo indicador podría
-mostrarse con un color ligeramente distinto según en qué pantalla lo
-consultes** (por ejemplo, entre el Informe por Procesos y el CMI
-Estratégico), especialmente para los indicadores con reglas especiales
-(Plan Anual). Esto ya está identificado como algo a corregir — ver la
-oportunidad de mejora M-06 en la documentación técnica — pero mientras se
-corrige, si ves un color distinto para el mismo indicador en dos pantallas,
-no asumas que es un error de captura de datos: puede ser esta
-inconsistencia conocida del sistema.
+Hasta el 2026-09-20 existían varias formas de calcular este mismo color
+repartidas en distintas partes del sistema, con el riesgo de que el mismo
+indicador se mostrara con un color distinto según la pantalla. Esto ya se
+corrigió (oportunidad M-06): todas las pantallas calculan el color desde el
+mismo lugar. Si aun así ves algo que no cuadra, ya no es un problema
+conocido del sistema — repórtalo como un caso nuevo.
+
+## Retos y Proyectos usan el régimen Plan Anual
+
+Los subindicadores del **Plan de Retos** y todos los **Proyectos**
+institucionales usan el régimen "Plan Anual" (80/95/100) descrito arriba
+para su color de cumplimiento, sin importar si tienen o no un Id en la
+lista de 11 indicadores especiales — es una regla que aplica por el tipo
+de ítem, confirmada con el equipo de negocio.
 
 ## Tendencia (Plan de Mejoramiento)
 

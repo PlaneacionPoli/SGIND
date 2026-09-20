@@ -12,7 +12,7 @@ import pytest
 # ─── Colores canónicos (PROJECT_RULES §3.3) ───────────────────────────────────
 
 SEMAFORO = {
-    "Peligro": "#ef4444",
+    "Peligro": "#D32F2F",
     "Alerta": "#f59e0b",
     "Cumplimiento": "#22c55e",
     "Sobrecumplimiento": "#3b82f6",
@@ -229,24 +229,74 @@ async def test_informe_filtros_estructura(client, auth_as_calidad):
 
 @pytest.mark.asyncio
 async def test_semaforo_colores_om_builders():
-    """Los colores de categoría en om_builders coinciden con PROJECT_RULES §3.3."""
+    """om_builders.CATEGORIA_COLORS es un alias directo de domain.constants.COLOR_CATEGORIA
+    (Oleada 2 — antes era una copia propia con valores distintos)."""
     from app.domain.om_builders import CATEGORIA_COLORS
 
-    assert (
-        CATEGORIA_COLORS["Peligro"].lower() == "#c62828"
-        or CATEGORIA_COLORS["Peligro"].lower() == SEMAFORO["Peligro"].lower()
-    )
-    assert CATEGORIA_COLORS["Cumplimiento"].lower() in {"#2e7d32", SEMAFORO["Cumplimiento"].lower()}
+    assert CATEGORIA_COLORS["Peligro"].lower() == SEMAFORO["Peligro"].lower()
+    assert CATEGORIA_COLORS["Alerta"].lower() == SEMAFORO["Alerta"].lower()
+    assert CATEGORIA_COLORS["Cumplimiento"].lower() == SEMAFORO["Cumplimiento"].lower()
+    assert CATEGORIA_COLORS["Sobrecumplimiento"].lower() == SEMAFORO["Sobrecumplimiento"].lower()
 
 
 def test_semaforo_colores_cmi_builders():
-    """COLOR_CATEGORIA en cmi_builders usa los valores del semáforo o derivados cercanos."""
+    """COLOR_CATEGORIA en cmi_builders coincide exactamente con la paleta
+    oficial (Oleada 2 — antes tenía su propia copia con valores distintos)."""
     from app.domain.cmi_builders import COLOR_CATEGORIA
 
-    assert "Peligro" in COLOR_CATEGORIA
-    assert "Alerta" in COLOR_CATEGORIA
-    assert "Cumplimiento" in COLOR_CATEGORIA
-    assert "Sobrecumplimiento" in COLOR_CATEGORIA
+    assert COLOR_CATEGORIA["Peligro"].lower() == SEMAFORO["Peligro"].lower()
+    assert COLOR_CATEGORIA["Alerta"].lower() == SEMAFORO["Alerta"].lower()
+    assert COLOR_CATEGORIA["Cumplimiento"].lower() == SEMAFORO["Cumplimiento"].lower()
+    assert COLOR_CATEGORIA["Sobrecumplimiento"].lower() == SEMAFORO["Sobrecumplimiento"].lower()
+
+
+def test_semaforo_colores_procesos_builders():
+    """cumplimiento_estado/cumplimiento_semaforo_color en procesos_builders
+    delegan a categorizar_cumplimiento + COLOR_CATEGORIA (Oleada 2 — antes
+    tenían umbrales y vocabulario propios: Saludable/Crítico, 100/80)."""
+    from app.domain.procesos_builders import cumplimiento_estado, cumplimiento_semaforo_color
+
+    assert cumplimiento_semaforo_color(110.0) == SEMAFORO["Sobrecumplimiento"]
+    assert cumplimiento_semaforo_color(102.0) == SEMAFORO["Cumplimiento"]
+    assert cumplimiento_semaforo_color(85.0) == SEMAFORO["Alerta"]
+    assert cumplimiento_semaforo_color(50.0) == SEMAFORO["Peligro"]
+
+    estado = cumplimiento_estado(50.0)
+    assert estado["label"] == "Peligro"
+    assert estado["color"] == SEMAFORO["Peligro"]
+
+
+def test_semaforo_regimen_plan_anual_por_tipo_retos_proyectos():
+    """Retos y Proyectos usan el régimen Plan Anual (95/100) de forma
+    incondicional por tipo, confirmado con negocio 2026-09-20 (Oleada 2) —
+    no dependen de que su Id esté en IDS_PLAN_ANUAL_DEFAULT."""
+    from app.domain.categorization import categorizar_cumplimiento
+    from app.domain.resumen_builders import _retos_category
+
+    # Id fuera de cualquier lista especial: sin regimen, sería régimen general.
+    assert categorizar_cumplimiento(0.95, id_indicador="999999") == "Alerta"
+    # Con regimen="plan_anual" forzado (Retos/Proyectos), 95% ya es Cumplimiento.
+    assert (
+        categorizar_cumplimiento(0.95, id_indicador="999999", regimen="plan_anual")
+        == "Cumplimiento"
+    )
+
+    assert _retos_category(99.9) == "Cumplimiento"
+    assert _retos_category(95.0) == "Cumplimiento"
+    assert _retos_category(94.9) == "Alerta"
+    assert _retos_category(79.9) == "Peligro"
+    assert _retos_category(105.0) == "Sobrecumplimiento"
+
+
+def test_semaforo_estado_linea_cmi_builders_regimen_general():
+    """_estado_linea (cards de línea CMI) delega al régimen general (100/105),
+    no al de Plan Anual (95/100) que usaba antes por error — mezclaba dos
+    regímenes distintos para todas las líneas (Oleada 2)."""
+    from app.domain.cmi_builders import _estado_linea
+
+    assert _estado_linea(96.0) == ("Alerta", SEMAFORO["Alerta"])
+    assert _estado_linea(102.0) == ("Cumplimiento", SEMAFORO["Cumplimiento"])
+    assert _estado_linea(105.0) == ("Sobrecumplimiento", SEMAFORO["Sobrecumplimiento"])
 
 
 # ─── Paridad numérica básica ─────────────────────────────────────────────────

@@ -10,7 +10,16 @@ from typing import Any
 import pandas as pd
 
 from app.domain.categorization import categorizar_cumplimiento
+from app.domain.constants import UMBRAL_ALERTA_PA, UMBRAL_PELIGRO, UMBRAL_SOBRECUMPLIMIENTO_PA
 from app.domain.linea_order import linea_sort_key
+
+# Umbrales narrativos de Retos, alineados al régimen Plan Anual (95/100) que
+# aplica a Retos por tipo (ver _retos_category) — Oleada 2. El umbral de
+# "avances parciales" (50%) es un matiz narrativo adicional, sin equivalente
+# en el semáforo oficial de 4 categorías.
+RETOS_UMBRAL_SOBRECUMPLIMIENTO = UMBRAL_SOBRECUMPLIMIENTO_PA * 100
+RETOS_UMBRAL_CUMPLIMIENTO = UMBRAL_ALERTA_PA * 100
+RETOS_UMBRAL_ALERTA = UMBRAL_PELIGRO * 100
 
 
 def _safe_pct(value: Any, *, default: float | None = None) -> float | None:
@@ -144,7 +153,11 @@ def norm_key(value: str | None) -> str:
     return _sunburst_norm_key(str(value))
 
 
-def ensure_nivel_cumplimiento(df: pd.DataFrame) -> pd.DataFrame:
+def ensure_nivel_cumplimiento(df: pd.DataFrame, regimen: str | None = None) -> pd.DataFrame:
+    """Agrega/recalcula 'Nivel de cumplimiento' con la fuente única de verdad
+    (categorizar_cumplimiento). `regimen` fuerza un régimen explícito
+    (p.ej. "plan_anual" para Proyectos) en vez de detectarlo por Id — ver
+    docs/tecnico/05-reglas-de-negocio.md."""
     out = df.copy()
     if "Cumplimiento" in out.columns and "cumplimiento_pct" not in out.columns:
         out = out.rename(columns={"Cumplimiento": "cumplimiento_pct"})
@@ -161,7 +174,9 @@ def ensure_nivel_cumplimiento(df: pd.DataFrame) -> pd.DataFrame:
                 return "Pendiente de reporte"
             if math.isnan(pct):
                 return "Pendiente de reporte"
-            return categorizar_cumplimiento(pct / 100.0, id_indicador=row.get("Id"))
+            return categorizar_cumplimiento(
+                pct / 100.0, id_indicador=row.get("Id"), regimen=regimen
+            )
 
         out["Nivel de cumplimiento"] = out.apply(_map_level, axis=1)
         return out
@@ -625,23 +640,15 @@ def generate_narrative_indicadores(
     return {"texto": texto, "estado_color": color, "estado_icon": icon, "health_rate": health_rate}
 
 
-RETOS_UMBRAL_CUMPLIMIENTO = 100.0
-RETOS_UMBRAL_ALERTA = 80.0
-RETOS_UMBRAL_SOBRECUMPLIMIENTO = 105.0
-
-
 def _retos_category(pct: float | None) -> str:
-    """Categoría Plan de Retos: cumple desde 100% (igual al Streamlit original)."""
-    if pd.isna(pct):
+    """Categoría de subindicadores de Retos — régimen Plan Anual
+    incondicional por tipo (80/95/100), no por lista de Id. Corregido en
+    Oleada 2: antes usaba el régimen general (80/100/105) de forma
+    hardcodeada, divergente de categorizar_cumplimiento — ver
+    docs/tecnico/05-reglas-de-negocio.md (RN antigua sin delegar)."""
+    if pct is None or pd.isna(pct):
         return "Sin dato"
-    pct = float(pct)
-    if pct >= RETOS_UMBRAL_SOBRECUMPLIMIENTO:
-        return "Sobrecumplimiento"
-    if pct >= RETOS_UMBRAL_CUMPLIMIENTO:
-        return "Cumplimiento"
-    if pct >= RETOS_UMBRAL_ALERTA:
-        return "Alerta"
-    return "Peligro"
+    return categorizar_cumplimiento(float(pct) / 100.0, regimen="plan_anual")
 
 
 def build_linea_summary_retos(
@@ -1102,10 +1109,14 @@ def build_proyectos_gantt(
 
 
 def build_proyectos_tabla(proy_df: pd.DataFrame) -> list[dict]:
+    """Nota: 'estado' (Cerrado/En ejecución/Planeación) es un estado
+    administrativo de ciclo de vida, no un semáforo de desempeño — se
+    mantiene con su corte propio en 100% deliberadamente (confirmado con
+    negocio, 2026-09-20). Solo 'nivel' usa el régimen Plan Anual."""
     if proy_df.empty:
         return []
     cols = ["Id", "Indicador", "Linea", "cumplimiento_pct", "Nivel de cumplimiento"]
-    work = ensure_nivel_cumplimiento(proy_df.copy())
+    work = ensure_nivel_cumplimiento(proy_df.copy(), regimen="plan_anual")
     available = [c for c in cols if c in work.columns]
     if not available:
         return []

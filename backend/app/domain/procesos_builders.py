@@ -10,11 +10,13 @@ from typing import Any
 
 import pandas as pd
 
+from app.domain.categorization import categorizar_cumplimiento
 from app.domain.cmi_builders import (
     build_distribucion_nivel,
     calcular_kpis,
     df_to_records,
 )
+from app.domain.constants import COLOR_CATEGORIA
 from app.domain.resumen_builders import compute_trends
 
 MESES_OPCIONES = [
@@ -60,24 +62,35 @@ TIPO_PROCESO_ICONS: dict[str, str] = {
 STRATEGIC_PALETTE = ["#FBAF17", "#42F2F2", "#EC0677", "#1FB2DE", "#A6CE38", "#0F385A"]
 
 
+_ICONO_CATEGORIA: dict[str, str] = {
+    "Sobrecumplimiento": "🟢",
+    "Cumplimiento": "🟢",
+    "Alerta": "🟡",
+    "Peligro": "🔴",
+    "Sin dato": "—",
+}
+
+
 def cumplimiento_semaforo_color(val: float | None) -> str:
-    if val is None:
-        return "#9E9E9E"
-    if val >= 100:
-        return "#2E7D32"
-    if val >= 80:
-        return "#F9A825"
-    return "#C62828"
+    """Color por régimen general (agregados de proceso, sin Id único) —
+    delega a categorizar_cumplimiento, fuente única de verdad. Corregido en
+    Oleada 2: antes usaba umbrales propios (100/80), divergentes del
+    régimen general canónico (100/105 para Sobrecumplimiento) — ver
+    docs/tecnico/05-reglas-de-negocio.md."""
+    categoria = categorizar_cumplimiento(val / 100.0 if val is not None else None)
+    return COLOR_CATEGORIA[categoria]
 
 
 def cumplimiento_estado(val: float | None) -> dict[str, str]:
-    if val is None:
-        return {"label": "Sin dato", "icon": "—", "color": "#6B7280"}
-    if val >= 100:
-        return {"label": "Saludable", "icon": "🟢", "color": "#2E7D32"}
-    if val >= 80:
-        return {"label": "Alerta", "icon": "🟡", "color": "#F9A825"}
-    return {"label": "Crítico", "icon": "🔴", "color": "#C62828"}
+    """Ídem cumplimiento_semaforo_color, con label/icon — vocabulario
+    canónico (Peligro/Alerta/Cumplimiento/Sobrecumplimiento/Sin dato) en
+    vez del propio (Saludable/Crítico) que tenía antes."""
+    categoria = categorizar_cumplimiento(val / 100.0 if val is not None else None)
+    return {
+        "label": categoria,
+        "icon": _ICONO_CATEGORIA[categoria],
+        "color": COLOR_CATEGORIA[categoria],
+    }
 
 
 def _norm_text(value: object) -> str:

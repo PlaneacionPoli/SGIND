@@ -1,14 +1,16 @@
 "use client";
 
 import type { CMIVistaRapidaLinea } from "@/lib/types";
-import { fmtPct } from "@/components/cmi/nivelUtils";
+import { fmtPct, NIVEL_STYLES } from "@/components/cmi/nivelUtils";
 
+// Fuente única: nivelUtils.tsx (antes tenía su propia copia idéntica de
+// estos tonos — Oleada 2, ver docs/tecnico/05-reglas-de-negocio.md).
 const DOT_COLORS = {
-  sobrecumplimiento: "#1D4ED8",
-  cumplimiento: "#166534",
-  alerta: "#B45309",
-  riesgo: "#B71C1C",
-  pendiente: "#475569",
+  sobrecumplimiento: NIVEL_STYLES.Sobrecumplimiento.text,
+  cumplimiento: NIVEL_STYLES.Cumplimiento.text,
+  alerta: NIVEL_STYLES.Alerta.text,
+  riesgo: NIVEL_STYLES.Peligro.text,
+  pendiente: NIVEL_STYLES["Pendiente de reporte"].text,
 };
 
 interface CmiVistaRapidaCardsProps {

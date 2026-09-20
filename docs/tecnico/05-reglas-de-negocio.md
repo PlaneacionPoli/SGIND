@@ -1,5 +1,19 @@
 # Inventario de reglas de negocio
 
+> **Actualización Oleada 2 (2026-09-20):** las reglas RN-03 a RN-07 y
+> RN-13/RN-14/RN-15 (semaforización duplicada) quedaron **consolidadas**.
+> Ver el detalle en la tabla de abajo y en
+> [`09-gaps-y-riesgos.md`](09-gaps-y-riesgos.md) (G-03). Paleta oficial
+> confirmada con negocio: Peligro `#D32F2F`, Alerta `#f59e0b`, Cumplimiento
+> `#22c55e`, Sobrecumplimiento `#3b82f6` (fuente única:
+> `backend/app/domain/constants.py::COLOR_CATEGORIA` y
+> `frontend/src/lib/design-tokens.ts::SEMAFORO`, que deben coincidir
+> exactamente). `categorizar_cumplimiento()` ahora acepta un parámetro
+> `regimen` explícito ("plan_anual"/"negativo_pct") para clasificar por
+> **tipo** de entidad (Retos, Proyectos) en vez de solo por pertenencia a
+> una lista de Id — confirmado con negocio que Retos y Proyectos usan
+> Plan Anual (95/100) incondicionalmente.
+
 > **Alcance de este inventario — léase antes de usarlo.** Cubre el motor de
 > semaforización/cumplimiento (RN-01 a RN-07, RN-13 a RN-15) y las reglas
 > propias de Plan de Mejoramiento ya identificadas (RN-08, RN-09, RN-16,
@@ -57,33 +71,35 @@ indicador". Ver gap G-19 en
 |---|---|---|---|---|---|
 | RN-01 | Normalización de cumplimiento (string %, coma decimal, escala 0-100→0-1) | `domain/calculos.py::normalizar_cumplimiento` (16-44) | valor crudo | float [0.0, 1.3] o NaN | No |
 | RN-02 | Recálculo de cumplimiento faltante (Ejecución/Meta según sentido) | `domain/health_metrics.py::recalcular_cumplimiento_faltante` (13-63) | meta, ejecución, sentido, id | float acotado a 1.0 o 1.3 | No |
-| RN-03 | Categorización canónica de cumplimiento (semáforo) | `domain/categorization.py::categorizar_cumplimiento` (34-82) | cumplimiento decimal, id | Peligro/Alerta/Cumplimiento/Sobrecumplimiento/Sin dato | **Sí — ver RN-04 a RN-07** |
-| RN-04 | Semaforización de procesos (2 niveles, sin variantes) | `domain/procesos_builders.py::cumplimiento_semaforo_color`/`cumplimiento_estado` (63-80) | valor % | color/label | Duplicado divergente de RN-03 |
-| RN-05 | Estado de línea para cards (2 niveles) | `domain/cmi_builders.py::_estado_linea_card` (208-239) | cumplimiento %, tiene_datos | dict label/color | Duplicado divergente de RN-03 |
-| RN-06 | Estado de línea (3 niveles, mismos nombres, cortes distintos) | `domain/cmi_builders.py::_estado_linea` (242-249) | cumplimiento % | (label, color) | Duplicado divergente de RN-03 (95/100 en vez de 100/105) |
-| RN-07 | Narrativa heurística por línea | `domain/cmi_builders.py::generate_linea_narrativa_heuristica` (459-481) | cumplimiento promedio, riesgo | texto/color/icon | Duplicado divergente de RN-03, colores propios |
+| RN-03 | Categorización canónica de cumplimiento (semáforo), con parámetro `regimen` explícito desde Oleada 2 | `domain/categorization.py::categorizar_cumplimiento` (ampliada) | cumplimiento decimal, id, regimen opcional | Peligro/Alerta/Cumplimiento/Sobrecumplimiento/Sin dato | No — única fuente, ver corrección abajo |
+| RN-04 | ~~Semaforización de procesos (2 niveles, sin variantes)~~ **Corregido en Oleada 2** — ahora delega a RN-03 | `domain/procesos_builders.py::cumplimiento_semaforo_color`/`cumplimiento_estado` | valor % | color/label (vocabulario canónico) | Ya no duplica |
+| RN-05 | ~~Estado de línea para cards (2 niveles)~~ **Corregido en Oleada 2** — el corte de categoría delega a RN-03, se conserva el estilo rico (bg/text) por categoría | `domain/cmi_builders.py::_estado_linea_card` | cumplimiento %, tiene_datos | dict label/color/bg/text | Ya no duplica |
+| RN-06 | ~~Estado de línea (3 niveles, cortes distintos)~~ **Corregido en Oleada 2** — ahora delega a RN-03 (100/105 general, ya no 95/100 de Plan Anual aplicado a todas las líneas) | `domain/cmi_builders.py::_estado_linea` | cumplimiento % | (label, color) | Ya no duplica |
+| RN-07 | ~~Narrativa heurística por línea~~ **Corregido en Oleada 2** — el corte de categoría delega a RN-03 | `domain/cmi_builders.py::generate_linea_narrativa_heuristica` | cumplimiento promedio, riesgo | texto/color/icon | Ya no duplica |
+| RN-18 | ~~Categoría de subindicadores de Retos (régimen general hardcodeado)~~ **Corregido en Oleada 2** — ahora delega a RN-03 con `regimen="plan_anual"` forzado, confirmado con negocio | `domain/resumen_builders.py::_retos_category` | pct | Peligro/Alerta/Cumplimiento/Sobrecumplimiento/Sin dato | Ya no duplica |
+| RN-19 | ~~Paleta de colores propia en Gestión OM~~ **Corregido en Oleada 2** — `CATEGORIA_COLORS` es ahora un alias directo de RN-03's `COLOR_CATEGORIA` | `domain/om_builders.py::CATEGORIA_COLORS` | categoría (string) | color hex | Ya no duplica |
 | RN-08 | Clasificación de tendencia histórica (variación interanual) | `domain/plan_mejoramiento_builders.py::_classify_tendencia_historico` (986-996) | variación % promedio, n años con dato | Creciente/Decreciente/Estable/Sin suficiente historia | No |
 | RN-09 | Detección de escala porcentual (fracción vs. 0-100) | `domain/plan_mejoramiento_builders.py::_detecta_escala_pct` (999-1007) | signo, lista de valores | bool | No |
 | RN-10 | Cierre de OM | `services/om_service.py::OMService.cerrar` (65-77) | registro_id, comentario | RegistroOM actualizado (`tiene_om=0`) | No |
 | RN-11 | Cálculo de KPIs agregados | `domain/calculos.py::calcular_kpis` (64-79) | DataFrame con Cumplimiento_norm/Categoria | (total, conteos/%) | No |
 | RN-12 | Derivación de Periodo/Mes/Año faltantes | `services/etl_pipeline.py::fase4_fechas` (141-169) | DataFrame con Fecha | DataFrame con Anio/Mes/Periodo completos | No |
-| RN-13 (frontend) | Fallback de clasificación de semáforo (2 niveles + sobrecumplimiento) | `frontend/src/components/cmi/CmiProcesosResumenTab.tsx::nivelKeyFallback` (29-46) | pct | nivel | Duplicado divergente de RN-03, no conoce regímenes especiales (Plan Anual, Negativo-Porcentual) |
-| RN-14 (frontend, código muerto) | Formateo de % asumiendo fracción 0-1 | `frontend/src/components/tables/IndicatorsTable.tsx::formatPct` (14-17) | valor | "%" | Contradice a RN-15; componente no usado en ninguna página hoy |
-| RN-15 (frontend) | Formateo de % asumiendo escala 0-100 | `frontend/src/components/cmi/nivelUtils.tsx::fmtPct` (23-26) | valor | "%" | Usado en casi toda la app; opuesta semánticamente a RN-14 |
+| RN-13 (frontend) | Fallback de clasificación de semáforo (solo si el backend no envía `nivel`) — **se conserva deliberadamente** como respaldo, ya no es la fuente de color (esa es RN-20) | `frontend/src/components/cmi/CmiProcesosResumenTab.tsx::nivelKeyFallback` | pct | nivel | Fallback defensivo, no divergencia activa (backend ya envía `nivel` siempre que hay `cumplimiento_pct`) |
+| RN-14 | ~~Formateo de % asumiendo fracción 0-1~~ **Eliminado en Oleada 1** junto con `IndicatorsTable.tsx` (código muerto con este bug) | — | — | — | Eliminado |
+| RN-15 (frontend) | Formateo de % asumiendo escala 0-100 | `frontend/src/components/cmi/nivelUtils.tsx::fmtPct` | valor | "%" | Único ahora que RN-14 se eliminó |
+| RN-20 (frontend) | ~~3 copias de paleta de color~~ **Corregido en Oleada 2** — `cmiChartColors.ts`, `CmiVistaRapidaCards.tsx` y `CmiProcesosResumenTab.tsx` ahora importan de `design-tokens.ts::SEMAFORO` (solares) y `nivelUtils.tsx::NIVEL_STYLES` (tonos muted de badge/leyenda) en vez de definir sus propios hex | `frontend/src/lib/design-tokens.ts`, `frontend/src/components/cmi/nivelUtils.tsx` | — | — | Ya no duplica |
 | RN-16 | Estado del Indicador dentro de Plan de Mejoramiento (distinto del semáforo de cumplimiento) | `domain/plan_mejoramiento_builders.py::classify_plan_indicador_estado` (526-544) | Estado_Aprobacion, Tipo, medición 2025/2026 | Activo (aprobado + Tipo=Indicador + con medición) / Aprobado (aprobado sin medición) / Pendiente | No — solo aplica a filas de Plan de Mejoramiento, no al indicador general del dashboard |
 | RN-17 | Exclusión de "subtotal fantasma" en desglose de Métricas | `domain/plan_mejoramiento_builders.py::_excluye_subtotal_fantasma` (1010-1028) | filas de una Métrica con y sin `Subindicador` | filas sin el subtotal duplicado | No — corrige un caso real de doble conteo detectado en "Matrícula de estudiantes" (5.881 vs. 58.398 real, 2026-09-18) |
 
 ## Regla que sí es única y bien centralizada
 
-`domain/categorization.py` (RN-03) es la referencia correcta a seguir para
-cualquier regla de semaforización nueva — los servicios que la reutilizan
-en vez de reimplementarla (`services/pdi_service.py`,
-`domain/resumen_builders.py`, `services/strategic_loaders.py`) no presentan
-duplicación.
+`domain/categorization.py` (RN-03) es la única fuente desde Oleada 2 — todos
+los builders (`domain/resumen_builders.py`, `domain/cmi_builders.py`,
+`domain/procesos_builders.py`, `domain/om_builders.py`,
+`services/strategic_loaders.py`) delegan a ella en vez de reimplementarla.
 
-## Consecuencia práctica de la duplicación (RN-03 a RN-07, RN-13)
+## Estado histórico (antes de Oleada 2) — consecuencia práctica de la duplicación
 
-El mismo indicador puede mostrarse con un color/estado en Resumen General o
+El mismo indicador podía mostrarse con un color/estado en Resumen General o
 CMI Estratégico (que usan RN-03 correctamente) y con un color/estado
 distinto en Informe por Procesos o en las cards de línea estratégica (que
 usan RN-04/05/06/07), especialmente para indicadores bajo el régimen "Plan

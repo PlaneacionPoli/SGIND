@@ -25,11 +25,16 @@ IDS_NEGATIVO_PCT = frozenset({"121", "207", "377", "561"})
 RANGO_CUMPLIMIENTO_MIN = 0.0
 RANGO_CUMPLIMIENTO_MAX = 1.3
 
+# Paleta oficial confirmada con negocio 2026-09-20 (Oleada 2) — debe coincidir
+# exactamente con frontend/src/lib/design-tokens.ts (SEMAFORO), fuente única
+# de color en toda la app. Peligro se mantiene en el rojo institucional
+# existente; Alerta/Cumplimiento/Sobrecumplimiento adoptan la paleta Tailwind
+# que el frontend ya usaba en sus gráficos Plotly/Recharts.
 COLOR_CATEGORIA = {
     "Peligro": "#D32F2F",
-    "Alerta": "#FBAF17",
-    "Cumplimiento": "#43A047",
-    "Sobrecumplimiento": "#6699FF",
+    "Alerta": "#f59e0b",
+    "Cumplimiento": "#22c55e",
+    "Sobrecumplimiento": "#3b82f6",
     "Sin dato": "#BDBDBD",
 }
 

@@ -17,8 +17,11 @@ export const POLI = {
 } as const;
 
 // ─── Semáforo (fuente única — §3.3 PROJECT_RULES) ────────────────────────────
+// Peligro confirmado con negocio 2026-09-20 (Oleada 2) como el rojo
+// institucional #D32F2F, en vez del rojo Tailwind genérico — debe coincidir
+// con backend/app/domain/constants.py::COLOR_CATEGORIA.
 export const SEMAFORO = {
-  peligro:         "#ef4444",
+  peligro:         "#D32F2F",
   peligroBg:       "#fef2f2",
   alerta:          "#f59e0b",
   alertaBg:        "#fffbeb",
