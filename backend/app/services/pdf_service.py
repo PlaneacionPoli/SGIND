@@ -363,7 +363,7 @@ def generar_resumen_general(
 
     kpi_items = [
         ("Total indicadores", str(total), None),
-        ("% Cumplimiento", f"{pct:.1f}%" if isinstance(pct, (int, float)) else str(pct), "#22c55e"),
+        ("% Cumplimiento", f"{pct:.1f}%" if isinstance(pct, int | float) else str(pct), "#22c55e"),
         ("En cumplimiento", str(cumple), "#22c55e"),
         ("En alerta", str(alerta), "#f59e0b"),
         ("En peligro", str(peligro), "#ef4444"),
@@ -638,7 +638,7 @@ def generar_ficha_indicador(
         ("Ejecución", _fmt(ejecucion), None),
         (
             "Cumplimiento",
-            f"{float(cumplimiento):.1f}%" if isinstance(cumplimiento, (int, float)) else "—",
+            f"{float(cumplimiento):.1f}%" if isinstance(cumplimiento, int | float) else "—",
             "#1A3A5C",
         ),
         ("Nivel", str(nivel), _semaforo_hex(nivel)),

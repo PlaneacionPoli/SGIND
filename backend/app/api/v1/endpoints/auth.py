@@ -83,8 +83,12 @@ async def dev_token(
     role: str = Query("calidad"),
     settings: Settings = Depends(get_settings),
 ) -> TokenResponse:
-    """Solo desarrollo — genera JWT sin OIDC ni BD."""
-    if settings.environment == "production":
+    """Solo desarrollo — genera JWT sin OIDC ni BD.
+
+    Requiere ENABLE_DEV_AUTH=true explícito. Antes se bloqueaba solo si
+    environment=="production", lo que dejaba el endpoint activo en
+    cualquier staging/QA con otro nombre de entorno (ver G-04)."""
+    if not settings.enable_dev_auth:
         from fastapi import HTTPException, status
 
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)

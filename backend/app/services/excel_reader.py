@@ -8,11 +8,13 @@ import pandas as pd
 from app.core.config import Settings
 from app.schemas.common import ExcelFileInfo
 
-# Archivos Excel principales del sistema legacy
+# Archivos Excel principales del sistema legacy.
+# Las rutas de los candidatos 2 y 3 estaban rotas (apuntaban a archivos
+# inexistentes) — corregido en Oleada 0, ver docs/tecnico/09-gaps-y-riesgos.md (G-05).
 PRIMARY_EXCEL_FILES = [
     "output/Resultados Consolidados.xlsx",
-    "output/Consolidado_API_Kawak.xlsx",
-    "raw/Excel_Entrada/CMI.xlsx",
+    "raw/Fuentes Consolidadas/Consolidado_API_Kawak.xlsx",
+    "raw/Indicadores por CMI.xlsx",
 ]
 
 

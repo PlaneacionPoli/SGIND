@@ -320,7 +320,7 @@ def build_tabla_cna(df: pd.DataFrame) -> list[dict[str, Any]]:
                 rec["nivel"] = n
                 rec["nivel_emoji"] = NIVEL_EMOJI.get(n, "⚪")
                 rec["nivel_color"] = NIVEL_COLOR_EXT.get(n, "#BDBDBD")
-            elif isinstance(val, (int, float)):
+            elif isinstance(val, int | float):
                 rec[c] = float(val) if isinstance(val, float) else int(val)
             else:
                 rec[c] = str(val)
@@ -497,7 +497,7 @@ def _factor_nombre(factor_label) -> str:
 def _parse_meta_ejecucion(value: object) -> float | None:
     if value is None or (isinstance(value, float) and pd.isna(value)):
         return None
-    if isinstance(value, (int, float)):
+    if isinstance(value, int | float):
         return float(value)
     text = str(value).strip()
     if not text or text.lower() in {"n/a", "na", "pendiente", "linea base", "línea base"}:
@@ -593,10 +593,26 @@ def load_catalogo_plan_indicadores(excel) -> pd.DataFrame:
     return df[[c for c in cols if c in df.columns]].drop_duplicates(subset=["Factor", "Indicador"])
 
 
-_PLAN_REAL_VALUE_COLS = ["Meta_2025", "Meta_2026", "Ejecucion_2025", "Cump_2025", "Ejecucion_2026", "Cump_2026"]
+_PLAN_REAL_VALUE_COLS = [
+    "Meta_2025",
+    "Meta_2026",
+    "Ejecucion_2025",
+    "Cump_2025",
+    "Ejecucion_2026",
+    "Cump_2026",
+]
 _PLAN_DESCRIPTIVO_COLS = [
-    "Caracteristica", "Accion_Mejora", "Id_Kawak", "Tipo", "Observacion", "Estado_raw",
-    "Estado_Aprobacion", "Formula", "Fuente", "Responsable", "Periodicidad",
+    "Caracteristica",
+    "Accion_Mejora",
+    "Id_Kawak",
+    "Tipo",
+    "Observacion",
+    "Estado_raw",
+    "Estado_Aprobacion",
+    "Formula",
+    "Fuente",
+    "Responsable",
+    "Periodicidad",
 ]
 
 
@@ -653,19 +669,35 @@ def _load_plan_indicadores_uncached(excel) -> pd.DataFrame:
         return pd.DataFrame()
 
     if "Factor" in df.columns and "Indicador" in df.columns and "Factor" in df_real.columns:
-        real_cols = ["Factor", "Indicador"] + [c for c in _PLAN_REAL_VALUE_COLS if c in df_real.columns]
-        df = df.merge(df_real[real_cols], on=["Factor", "Indicador"], how="outer", suffixes=("", "_real"))
+        real_cols = ["Factor", "Indicador"] + [
+            c for c in _PLAN_REAL_VALUE_COLS if c in df_real.columns
+        ]
+        df = df.merge(
+            df_real[real_cols], on=["Factor", "Indicador"], how="outer", suffixes=("", "_real")
+        )
         if "Meta_2025_real" in df.columns:
-            df["Meta_2025"] = df["Meta_2025_real"] if "Meta_2025" not in df.columns else df["Meta_2025"].combine_first(df["Meta_2025_real"])
+            df["Meta_2025"] = (
+                df["Meta_2025_real"]
+                if "Meta_2025" not in df.columns
+                else df["Meta_2025"].combine_first(df["Meta_2025_real"])
+            )
             df = df.drop(columns=["Meta_2025_real"])
         for col in _PLAN_DESCRIPTIVO_COLS:
             real_col = f"{col}_real"
             if real_col in df.columns:
-                df[col] = df[real_col] if col not in df.columns else df[col].combine_first(df[real_col])
+                df[col] = (
+                    df[real_col] if col not in df.columns else df[col].combine_first(df[real_col])
+                )
                 df = df.drop(columns=[real_col])
 
     for col in (
-        "Factor", "Caracteristica", "Indicador", "Tipo", "Estado_raw", "Estado_Aprobacion", "Periodicidad",
+        "Factor",
+        "Caracteristica",
+        "Indicador",
+        "Tipo",
+        "Estado_raw",
+        "Estado_Aprobacion",
+        "Periodicidad",
     ):
         if col in df.columns:
             df[col] = df[col].astype(str).str.strip()
@@ -682,7 +714,7 @@ def _load_plan_indicadores_uncached(excel) -> pd.DataFrame:
             if col in df.columns:
                 if prefix == "Cump":
                     df[f"{prefix}_num_{year}"] = df[col].apply(
-                        lambda v: float(v) if isinstance(v, (int, float)) and pd.notna(v) else None
+                        lambda v: float(v) if isinstance(v, int | float) and pd.notna(v) else None
                     )
                 else:
                     df[f"{prefix}_num_{year}"] = df[col].apply(_parse_meta_ejecucion)
@@ -707,11 +739,17 @@ def _load_plan_indicadores_uncached(excel) -> pd.DataFrame:
     df["tiene_medicion"] = df[existentes].notna().any(axis=1) if existentes else False
 
     for year in ("2025", "2026"):
-        meta_col, ejec_col, cump_col = f"Meta_num_{year}", f"Ejecucion_num_{year}", f"Cump_calc_{year}"
+        meta_col, ejec_col, cump_col = (
+            f"Meta_num_{year}",
+            f"Ejecucion_num_{year}",
+            f"Cump_calc_{year}",
+        )
         if meta_col in df.columns and ejec_col in df.columns:
             df[cump_col] = None
             mask = df[meta_col].notna() & df[ejec_col].notna() & (df[meta_col] != 0)
-            df.loc[mask, cump_col] = (df.loc[mask, ejec_col] / df.loc[mask, meta_col]).clip(upper=1.3)
+            df.loc[mask, cump_col] = (df.loc[mask, ejec_col] / df.loc[mask, meta_col]).clip(
+                upper=1.3
+            )
         else:
             df[cump_col] = None
 
@@ -721,9 +759,13 @@ def _load_plan_indicadores_uncached(excel) -> pd.DataFrame:
     else:
         df["Signo"], df["Decimales"], df["Decimales_Cump"] = pd.NA, pd.NA, pd.NA
     df["Signo"] = df["Signo"].fillna(_SIGNO_DEFAULT)
-    df["Decimales"] = pd.to_numeric(df["Decimales"], errors="coerce").fillna(_DECIMALES_DEFAULT).astype(int)
+    df["Decimales"] = (
+        pd.to_numeric(df["Decimales"], errors="coerce").fillna(_DECIMALES_DEFAULT).astype(int)
+    )
     df["Decimales_Cump"] = (
-        pd.to_numeric(df["Decimales_Cump"], errors="coerce").fillna(_DECIMALES_CUMP_DEFAULT).astype(int)
+        pd.to_numeric(df["Decimales_Cump"], errors="coerce")
+        .fillna(_DECIMALES_CUMP_DEFAULT)
+        .astype(int)
     )
 
     sort_cols = [c for c in ("Factor_num", "Indicador") if c in df.columns]
@@ -829,7 +871,11 @@ def build_plan_indicadores_tabla_historico(df: pd.DataFrame) -> list[dict[str, A
 
     records = []
     for _, row in rows_sorted.iterrows():
-        signo, decimales, dec_cump = row.get("Signo"), row.get("Decimales"), row.get("Decimales_Cump")
+        signo, decimales, dec_cump = (
+            row.get("Signo"),
+            row.get("Decimales"),
+            row.get("Decimales_Cump"),
+        )
         fnum = row.get("Factor_num")
         records.append(
             {
@@ -867,7 +913,10 @@ def build_indicador_metas_futuras_texto(row: pd.Series) -> str:
     """Línea 'Metas 2026-2030' del modal de detalle — paridad con
     plan_mejoramiento_utils.py::build_indicador_metas_futuras_texto."""
     signo, decimales = row.get("Signo"), row.get("Decimales")
-    partes = [f"{y}: {fmt_valor_plan(row.get(f'Meta_num_{y}'), signo, decimales)}" for y in _METAS_ALL_YEARS]
+    partes = [
+        f"{y}: {fmt_valor_plan(row.get(f'Meta_num_{y}'), signo, decimales)}"
+        for y in _METAS_ALL_YEARS
+    ]
     return " · ".join(partes)
 
 
@@ -902,9 +951,25 @@ _METRICAS_CNA_PATH = "output/Resultados_Consolidados_CNA.xlsx"
 _SHEET_METRICAS = "Metricas"
 
 _METRICAS_COLS = [
-    "Id", "Indicador", "Subindicador", "Factor", "Caracteristica", "Proceso",
-    "Periodicidad", "Sentido", "Fecha", "Año", "Mes", "Periodo", "Meta",
-    "Ejecución", "Ejecución s", "Llave", "Decimales", "DecimalesEje", "Proyecto",
+    "Id",
+    "Indicador",
+    "Subindicador",
+    "Factor",
+    "Caracteristica",
+    "Proceso",
+    "Periodicidad",
+    "Sentido",
+    "Fecha",
+    "Año",
+    "Mes",
+    "Periodo",
+    "Meta",
+    "Ejecución",
+    "Ejecución s",
+    "Llave",
+    "Decimales",
+    "DecimalesEje",
+    "Proyecto",
 ]
 
 # Umbral para detectar que un indicador con signo "%" guarda la fracción
@@ -920,7 +985,7 @@ TENDENCIA_METRICAS_FILTRO_OPTIONS = ["Toda tendencia", "Creciente", "Decreciente
 def _parse_ejecucion_metrica(value, unidad: str) -> float | None:
     if value is None or (isinstance(value, float) and pd.isna(value)):
         return None
-    if isinstance(value, (int, float)):
+    if isinstance(value, int | float):
         return float(value)
     text = str(value).strip()
     if not text:
@@ -956,7 +1021,14 @@ def load_metricas_raw(excel) -> pd.DataFrame:
     keep = [c for c in _METRICAS_COLS if c in df.columns]
     df = df[keep].copy()
     for col in (
-        "Factor", "Caracteristica", "Indicador", "Subindicador", "Periodo", "Sentido", "Proceso", "Periodicidad",
+        "Factor",
+        "Caracteristica",
+        "Indicador",
+        "Subindicador",
+        "Periodo",
+        "Sentido",
+        "Proceso",
+        "Periodicidad",
     ):
         if col in df.columns:
             df[col] = df[col].astype(str).str.strip()
@@ -974,16 +1046,22 @@ def load_metricas_raw(excel) -> pd.DataFrame:
     if "Ejecución" in df.columns:
         df["Ejecucion_num"] = [
             _parse_ejecucion_metrica(val, unidad)
-            for val, unidad in zip(df["Ejecución"], df.get("Ejecución s", pd.Series(dtype=str)), strict=False)
+            for val, unidad in zip(
+                df["Ejecución"], df.get("Ejecución s", pd.Series(dtype=str)), strict=False
+            )
         ]
     else:
         df["Ejecucion_num"] = None
-    df["Meta_num"] = pd.to_numeric(df.get("Meta"), errors="coerce") if "Meta" in df.columns else None
+    df["Meta_num"] = (
+        pd.to_numeric(df.get("Meta"), errors="coerce") if "Meta" in df.columns else None
+    )
 
     return df.sort_values(["Periodo_anio", "Periodo_sem"]).reset_index(drop=True)
 
 
-def _classify_tendencia_historico(variacion_promedio_pct: float | None, n_anios_con_dato: int) -> str:
+def _classify_tendencia_historico(
+    variacion_promedio_pct: float | None, n_anios_con_dato: int
+) -> str:
     """Paridad con plan_mejoramiento_loader.py::_classify_tendencia_historico:
     >+3% Creciente, <-3% Decreciente, si no Estable, "Sin suficiente historia"
     si hay menos de 2 años con dato."""
@@ -1070,8 +1148,16 @@ def _build_metricas_historico_uncached(excel) -> pd.DataFrame:
     for keys, grupo in anual.groupby(group_cols, dropna=False):
         grupo = grupo.sort_values("Periodo_anio")
 
-        signo = grupo["Ejecución s"].dropna().iloc[-1] if not grupo["Ejecución s"].dropna().empty else None
-        decimales = grupo["Decimales"].dropna().iloc[-1] if "Decimales" in grupo and not grupo["Decimales"].dropna().empty else _DECIMALES_DEFAULT
+        signo = (
+            grupo["Ejecución s"].dropna().iloc[-1]
+            if not grupo["Ejecución s"].dropna().empty
+            else None
+        )
+        decimales = (
+            grupo["Decimales"].dropna().iloc[-1]
+            if "Decimales" in grupo and not grupo["Decimales"].dropna().empty
+            else _DECIMALES_DEFAULT
+        )
         pct_scale = _detecta_escala_pct(signo, grupo["Ejecucion_num"].tolist())
         factor_valor = 100.0 if pct_scale else 1.0
 
@@ -1084,7 +1170,12 @@ def _build_metricas_historico_uncached(excel) -> pd.DataFrame:
                 "ejecucion": None if pd.isna(ejec) else float(ejec) * factor_valor,
                 "meta": None if pd.isna(meta) else float(meta) * factor_valor,
             }
-            for anio, ejec, meta in zip(con_anio["Periodo_anio"], con_anio["Ejecucion_num"], con_anio["Meta_num"], strict=True)
+            for anio, ejec, meta in zip(
+                con_anio["Periodo_anio"],
+                con_anio["Ejecucion_num"],
+                con_anio["Meta_num"],
+                strict=True,
+            )
             if pd.notna(anio)
         ]
 
@@ -1107,7 +1198,9 @@ def _build_metricas_historico_uncached(excel) -> pd.DataFrame:
         if n_anios_con_dato >= 2:
             previo = con_dato["Ejecucion_num"].iloc[-2]
             if pd.notna(previo) and previo != 0:
-                variacion_ultima_pct = float((con_dato["Ejecucion_num"].iloc[-1] - previo) / previo * 100)
+                variacion_ultima_pct = float(
+                    (con_dato["Ejecucion_num"].iloc[-1] - previo) / previo * 100
+                )
 
         variaciones = []
         valores_lista = con_dato["Ejecucion_num"].tolist()
@@ -1120,10 +1213,16 @@ def _build_metricas_historico_uncached(excel) -> pd.DataFrame:
         row = dict(zip(group_cols, keys, strict=True))
         row.update(
             {
-                "Proceso": grupo["Proceso"].dropna().iloc[-1] if not grupo["Proceso"].dropna().empty else None,
-                "Sentido": grupo["Sentido"].dropna().iloc[-1] if not grupo["Sentido"].dropna().empty else None,
+                "Proceso": grupo["Proceso"].dropna().iloc[-1]
+                if not grupo["Proceso"].dropna().empty
+                else None,
+                "Sentido": grupo["Sentido"].dropna().iloc[-1]
+                if not grupo["Sentido"].dropna().empty
+                else None,
                 "Periodicidad": (
-                    grupo["Periodicidad"].dropna().iloc[-1] if not grupo["Periodicidad"].dropna().empty else None
+                    grupo["Periodicidad"].dropna().iloc[-1]
+                    if not grupo["Periodicidad"].dropna().empty
+                    else None
                 ),
                 "signo": signo,
                 "decimales": decimales,
@@ -1133,7 +1232,9 @@ def _build_metricas_historico_uncached(excel) -> pd.DataFrame:
                 "variacion_ultima_pct": variacion_ultima_pct,
                 "variacion_promedio_pct": variacion_promedio_pct,
                 "n_anios_con_dato": n_anios_con_dato,
-                "tendencia": _classify_tendencia_historico(variacion_promedio_pct, n_anios_con_dato),
+                "tendencia": _classify_tendencia_historico(
+                    variacion_promedio_pct, n_anios_con_dato
+                ),
             }
         )
         rows.append(row)
@@ -1221,7 +1322,9 @@ def build_metricas_tabla(df: pd.DataFrame) -> list[dict[str, Any]]:
     sparkline (equivalente a st.column_config.LineChartColumn en el legacy)."""
     if df.empty:
         return []
-    rows_sorted = df.sort_values("ultimo_anio", ascending=False, na_position="last").reset_index(drop=True)
+    rows_sorted = df.sort_values("ultimo_anio", ascending=False, na_position="last").reset_index(
+        drop=True
+    )
     records = []
     for _, row in rows_sorted.iterrows():
         ind, sub = row.get("Indicador"), _clean(row.get("Subindicador"))
@@ -1241,8 +1344,12 @@ def build_metricas_tabla(df: pd.DataFrame) -> list[dict[str, Any]]:
                 "ultimo_valor": ultimo_valor,
                 "valor_fmt": fmt_valor_plan(ultimo_valor, row.get("signo"), row.get("decimales")),
                 "variacion_ultima_pct": _clean(row.get("variacion_ultima_pct")),
-                "tendencia": tendencia if tendencia in ("Creciente", "Decreciente", "Estable") else "—",
-                "serie": [p["ejecucion"] for p in row.get("serie", []) if p.get("ejecucion") is not None],
+                "tendencia": tendencia
+                if tendencia in ("Creciente", "Decreciente", "Estable")
+                else "—",
+                "serie": [
+                    p["ejecucion"] for p in row.get("serie", []) if p.get("ejecucion") is not None
+                ],
             }
         )
     return records
@@ -1277,9 +1384,15 @@ def _agrega_filas(filas: list[dict[str, Any]], signo: str | None, decimales) -> 
     valores = [f["ultimo_valor"] for f in filas if f["ultimo_valor"] is not None]
     valor = None
     if valores:
-        valor = float(pd.Series(valores).mean()) if signo in _TASA_SIGNOS else float(pd.Series(valores).sum())
+        valor = (
+            float(pd.Series(valores).mean())
+            if signo in _TASA_SIGNOS
+            else float(pd.Series(valores).sum())
+        )
     anios = [f["ultimo_anio"] for f in filas if f["ultimo_anio"] is not None]
-    variaciones = [f["variacion_ultima_pct"] for f in filas if f["variacion_ultima_pct"] is not None]
+    variaciones = [
+        f["variacion_ultima_pct"] for f in filas if f["variacion_ultima_pct"] is not None
+    ]
     tendencias = [f["tendencia"] for f in filas if f["tendencia"] != "—"]
     return {
         "ultimo_anio": max(anios) if anios else None,
@@ -1290,7 +1403,9 @@ def _agrega_filas(filas: list[dict[str, Any]], signo: str | None, decimales) -> 
     }
 
 
-def _detecta_grupos_intermedios(grupo: pd.DataFrame, desglose: list[dict[str, Any]]) -> list[dict[str, Any]] | None:
+def _detecta_grupos_intermedios(
+    grupo: pd.DataFrame, desglose: list[dict[str, Any]]
+) -> list[dict[str, Any]] | None:
     """Si el Subindicador sigue el patrón uniforme "Grupo - Hoja" en TODAS
     las filas con nombre (p.ej. "Presencial - Universitario",
     "Virtual - Maestría"), reconstruye el nivel intermedio real
@@ -1372,14 +1487,29 @@ def build_metricas_tabla_agrupada(df: pd.DataFrame) -> list[dict[str, Any]]:
 
         if len(grupo) == 1:
             principal = desglose[0]
-            agregado = {k: principal[k] for k in ("ultimo_anio", "ultimo_valor", "valor_fmt", "variacion_ultima_pct", "tendencia")}
+            agregado = {
+                k: principal[k]
+                for k in (
+                    "ultimo_anio",
+                    "ultimo_valor",
+                    "valor_fmt",
+                    "variacion_ultima_pct",
+                    "tendencia",
+                )
+            }
             serie = principal["serie"]
         elif homogeneo:
             agregado = _agrega_filas(desglose, grupo["signo"].iloc[0], grupo["decimales"].iloc[0])
             serie = []
             grupos_intermedios = _detecta_grupos_intermedios(grupo, desglose)
         else:
-            agregado = {"ultimo_anio": None, "ultimo_valor": None, "valor_fmt": "—", "variacion_ultima_pct": None, "tendencia": "—"}
+            agregado = {
+                "ultimo_anio": None,
+                "ultimo_valor": None,
+                "valor_fmt": "—",
+                "variacion_ultima_pct": None,
+                "tendencia": "—",
+            }
             serie = []
 
         records.append(
@@ -1387,7 +1517,9 @@ def build_metricas_tabla_agrupada(df: pd.DataFrame) -> list[dict[str, Any]]:
                 "factor": factor,
                 "factor_num": None if fnum is None or pd.isna(fnum) else int(fnum),
                 "indicador": indicador,
-                "proceso": grupo["Proceso"].dropna().iloc[-1] if not grupo["Proceso"].dropna().empty else None,
+                "proceso": grupo["Proceso"].dropna().iloc[-1]
+                if not grupo["Proceso"].dropna().empty
+                else None,
                 **agregado,
                 "serie": serie,
                 "n_desglose": len(desglose),

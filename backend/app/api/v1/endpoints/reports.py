@@ -160,7 +160,9 @@ async def pdf_ficha_indicador(
             subproceso=subproceso,
         )
     else:
-        ficha = await run_sync(service.get_indicador_ficha, indicador_id, anio=anio, mes=mes, corte=corte)
+        ficha = await run_sync(
+            service.get_indicador_ficha, indicador_id, anio=anio, mes=mes, corte=corte
+        )
 
     if ficha is None:
         raise HTTPException(

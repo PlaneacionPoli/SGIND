@@ -1,0 +1,44 @@
+{
+  "impact_matrix": [
+    {
+      "componente": "domain/categorization.py (categorizar_cumplimiento)",
+      "impacto_directo": ["domain/calculos.py", "services/pdi_service.py", "domain/resumen_builders.py", "services/strategic_loaders.py"],
+      "impacto_indirecto": ["todos los endpoints de dashboard/cmi/pdi/informe que usan esos servicios"],
+      "impacto_funcional": ["Resumen General", "CMI Estratégico", "PDI/Acreditación"],
+      "impacto_datos": ["ninguno directo (opera en memoria sobre DataFrame leído de Excel)"],
+      "impacto_visual": ["todas las pantallas que muestran semáforo vía este camino"],
+      "impacto_documental": ["docs/tecnico/02-core-del-sistema.md", "docs/tecnico/05-reglas-de-negocio.md", "docs/funcional/03-como-se-calculan-los-indicadores.md"],
+      "nota": "Cambiar los umbrales aquí NO afecta automáticamente a cmi_builders.py ni procesos_builders.py, que tienen su propia copia divergente de la regla — cualquier cambio debe replicarse manualmente en 4 lugares más hasta que se resuelva M-06"
+    },
+    {
+      "componente": "scripts/actualizar_consolidado.py (pipeline ETL)",
+      "impacto_directo": ["data/output/Resultados Consolidados.xlsx", "data/output/Resultados Consolidados.bak.xlsx", "data/output/Resultados Consolidados VALORES.xlsx"],
+      "impacto_indirecto": ["backend/app/services/etl_pipeline.py", "backend/app/services/excel_reader.py", "backend/app/services/strategic_loaders.py"],
+      "impacto_funcional": ["Resumen General", "CMI Estratégico", "CMI Procesos", "Informe por Procesos", "Seguimiento Operativo"],
+      "impacto_datos": ["ninguna tabla Postgres — flujo 100% Excel"],
+      "impacto_visual": ["todo el dashboard de indicadores, salvo Gestión OM"],
+      "impacto_documental": ["docs/tecnico/03-modelo-de-datos.md", "docs/tecnico/06-flujos-end-to-end.md"],
+      "nota": "Si este script falla o no se ejecuta, ningún endpoint de dashboard se entera — no hay mecanismo de alerta (ver gap G-01/M-08)"
+    },
+    {
+      "componente": "backend/app/models/om.py (RegistroOM)",
+      "impacto_directo": ["services/om_service.py", "tabla registros_om"],
+      "impacto_indirecto": ["endpoint om.py", "trigger de audit_log"],
+      "impacto_funcional": ["Gestión de Oportunidades de Mejora"],
+      "impacto_datos": ["registros_om", "audit_log (vía trigger)"],
+      "impacto_visual": ["página /gestion-om"],
+      "impacto_documental": ["docs/tecnico/03-modelo-de-datos.md", "docs/tecnico/06-flujos-end-to-end.md (Flujo 3)"],
+      "nota": "Único componente CORE con impacto en Postgres; cualquier cambio de esquema aquí requiere nueva migración SQL"
+    },
+    {
+      "componente": "backend/app/core/security.py (require_reader/require_admin, dev-token)",
+      "impacto_directo": ["todos los endpoints de backend/app/api/v1/endpoints/"],
+      "impacto_indirecto": ["frontend AuthGuard", "frontend canEdit en Gestión OM"],
+      "impacto_funcional": ["toda la aplicación"],
+      "impacto_datos": ["ninguno directo"],
+      "impacto_visual": ["pantalla de login, acceso a todos los módulos"],
+      "impacto_documental": ["docs/tecnico/07-seguridad.md", "docs/architecture/RBAC_MATRIX.md (desactualizado, ver G-12)"],
+      "nota": "Es el componente de mayor radio de impacto de todo el sistema — cualquier cambio aquí debe probarse contra todos los endpoints"
+    }
+  ]
+}

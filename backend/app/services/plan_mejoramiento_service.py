@@ -23,13 +23,13 @@ from app.domain.plan_mejoramiento_builders import (
     build_metrica_detalle,
     build_metricas_historico,
     build_metricas_kpis,
-    get_metricas_agrupado_total,
     build_metricas_por_factor,
     build_metricas_tabla_agrupada,
     build_plan_indicadores_kpis,
     build_plan_indicadores_tabla_historico,
     build_plan_indicadores_tabla_metas,
     build_tabla_cna,
+    get_metricas_agrupado_total,
     load_acciones_mejora,
     load_plan_indicadores,
 )
@@ -130,8 +130,13 @@ class PlanMejoramientoService:
             df = df[df["Tipo"] != "Metrica"]
         if df.empty:
             return {
-                "kpis": {"total": 0, "con_meta_futura": 0, "con_cumplimiento_historico": 0,
-                         "aprobados": 0, "pct_aprobados": 0},
+                "kpis": {
+                    "total": 0,
+                    "con_meta_futura": 0,
+                    "con_cumplimiento_historico": 0,
+                    "aprobados": 0,
+                    "pct_aprobados": 0,
+                },
                 "filtros": {"factores": [], "caracteristicas": [], "tipos": []},
                 "tabla": [],
                 "total": 0,
@@ -238,9 +243,19 @@ class PlanMejoramientoService:
         df = build_metricas_historico(self._excel)
         if df.empty:
             return {
-                "kpis": {"total": 0, "factores_cubiertos": 0, "n_creciente": 0, "n_decreciente": 0,
-                         "pct_creciente": 0, "pct_decreciente": 0},
-                "filtros": {"factores": [], "caracteristicas": [], "tendencias": TENDENCIA_METRICAS_FILTRO_OPTIONS},
+                "kpis": {
+                    "total": 0,
+                    "factores_cubiertos": 0,
+                    "n_creciente": 0,
+                    "n_decreciente": 0,
+                    "pct_creciente": 0,
+                    "pct_decreciente": 0,
+                },
+                "filtros": {
+                    "factores": [],
+                    "caracteristicas": [],
+                    "tendencias": TENDENCIA_METRICAS_FILTRO_OPTIONS,
+                },
                 "grafico_por_factor": [],
                 "tabla": [],
                 "total": 0,

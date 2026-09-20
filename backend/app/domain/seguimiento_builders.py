@@ -214,7 +214,7 @@ def _rows_to_dicts(df: pd.DataFrame, cols: list[str], limit: int = 20) -> list[d
             val = row[c]
             if pd.isna(val):
                 rec[c] = None
-            elif isinstance(val, (int, float)):
+            elif isinstance(val, int | float):
                 rec[c] = float(val) if isinstance(val, float) else int(val)
             else:
                 rec[c] = str(val)

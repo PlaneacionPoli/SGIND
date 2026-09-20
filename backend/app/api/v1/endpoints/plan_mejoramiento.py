@@ -70,7 +70,11 @@ async def plan_mejoramiento_indicadores(
     return PlanIndicadoresDashboardResponse(
         **await run_sync(
             service.get_indicadores_dashboard,
-            subvista=subvista, factor=factor, caracteristica=caracteristica, tipo=tipo, nombre=nombre,
+            subvista=subvista,
+            factor=factor,
+            caracteristica=caracteristica,
+            tipo=tipo,
+            nombre=nombre,
         )
     )
 
@@ -87,9 +91,15 @@ async def plan_mejoramiento_indicadores_export(
 ) -> Response:
     content = await run_sync(
         service.export_indicadores_excel,
-        subvista=subvista, factor=factor, caracteristica=caracteristica, tipo=tipo, nombre=nombre,
+        subvista=subvista,
+        factor=factor,
+        caracteristica=caracteristica,
+        tipo=tipo,
+        nombre=nombre,
     )
-    filename = "indicadores_metas.xlsx" if subvista != "historico" else "indicadores_cumplimiento.xlsx"
+    filename = (
+        "indicadores_metas.xlsx" if subvista != "historico" else "indicadores_cumplimiento.xlsx"
+    )
     return Response(
         content=content,
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -125,7 +135,10 @@ async def plan_mejoramiento_metricas(
     return PlanMetricasDashboardResponse(
         **await run_sync(
             service.get_metricas_dashboard,
-            factor=factor, caracteristica=caracteristica, tendencia=tendencia, nombre=nombre,
+            factor=factor,
+            caracteristica=caracteristica,
+            tendencia=tendencia,
+            nombre=nombre,
         )
     )
 

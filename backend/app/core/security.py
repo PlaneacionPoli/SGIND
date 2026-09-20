@@ -66,7 +66,7 @@ async def get_current_user(
     if not email:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token inválido")
 
-    if settings.environment == "development":
+    if settings.enable_dev_auth:
         return _dev_user_from_payload(payload)
 
     result = await db.execute(

@@ -102,7 +102,7 @@ def mes_to_num(value: object, periodicidad: object = None) -> float | None:
     if pd.isna(value):
         return None
     period_norm = str(periodicidad or "").strip().lower()
-    if isinstance(value, (int, float)):
+    if isinstance(value, int | float):
         try:
             v = int(value)
             if period_norm == "semestral":

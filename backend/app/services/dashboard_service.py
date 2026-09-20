@@ -8,11 +8,9 @@ from app.services.resumen_service import ResumenService
 
 class DashboardService:
     def __init__(self, excel: ExcelReaderService) -> None:
-
         self._resumen = ResumenService(excel)
 
     def get_filtros(self) -> dict:
-
         return self._resumen.get_filtros()
 
     def get_kpis(
@@ -21,7 +19,6 @@ class DashboardService:
         periodo: str | None = None,
         vista: str = "indicadores",
     ) -> list[dict]:
-
         return self._resumen.get_kpis(anio=anio, periodo=periodo, vista=vista)
 
     def get_lineas(
@@ -30,7 +27,6 @@ class DashboardService:
         periodo: str | None = None,
         vista: str = "indicadores",
     ) -> list[dict]:
-
         return self._resumen.get_lineas(anio=anio, periodo=periodo, vista=vista)
 
     def get_semaphore(
@@ -39,7 +35,6 @@ class DashboardService:
         periodo: str | None = None,
         vista: str = "indicadores",
     ) -> list[dict]:
-
         return self._resumen.get_semaphore(anio=anio, periodo=periodo, vista=vista)
 
     def get_trend(
@@ -47,15 +42,12 @@ class DashboardService:
         anio: int | None = None,
         vista: str = "indicadores",
     ) -> list[dict]:
-
         return self._resumen.get_trend(anio=anio, vista=vista)
 
     def get_sunburst(self, anio: int | None = None, vista: str = "indicadores") -> list[dict]:
-
         return self._resumen.get_sunburst(anio=anio, vista=vista)
 
     def get_yoy(self, anio: int, vista: str = "indicadores") -> list[dict]:
-
         return self._resumen.get_yoy(anio=anio, vista=vista)
 
     def get_narrativa(self, anio: int | None = None, vista: str = "indicadores") -> dict:

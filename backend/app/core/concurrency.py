@@ -4,7 +4,8 @@ main.py::_warm_caches (asyncio.to_thread); este helper lo hace reutilizable
 desde cada endpoint sin repetir el `await asyncio.to_thread(...)` inline."""
 
 import asyncio
-from typing import Callable, TypeVar
+from collections.abc import Callable
+from typing import TypeVar
 
 T = TypeVar("T")
 

@@ -112,7 +112,7 @@ def _clean_value(val: Any) -> Any:
         return None
     if pd.isna(val):
         return None
-    if isinstance(val, (int, float, str, bool)):
+    if isinstance(val, int | float | str | bool):
         return val
     return str(val)
 

@@ -27,7 +27,6 @@ def _excel_service(settings: Settings = Depends(get_settings)) -> ExcelReaderSer
 
 
 def _dashboard_service(excel: ExcelReaderService = Depends(_excel_service)) -> DashboardService:
-
     return DashboardService(excel)
 
 
@@ -39,7 +38,6 @@ async def get_kpis(
     _user: User = Depends(require_reader),
     dashboard: DashboardService = Depends(_dashboard_service),
 ) -> DashboardKPIsResponse:
-
     raw = await run_sync(dashboard.get_kpis, anio=anio, periodo=periodo, vista=vista)
 
     return DashboardKPIsResponse(
@@ -55,7 +53,6 @@ async def list_excel_files(
     _user: User = Depends(require_reader),
     excel: ExcelReaderService = Depends(_excel_service),
 ) -> list[ExcelFileInfo]:
-
     return await run_sync(excel.list_available_files)
 
 
@@ -67,7 +64,6 @@ async def get_semaphore(
     _user: User = Depends(require_reader),
     dashboard: DashboardService = Depends(_dashboard_service),
 ) -> list[SemaphoreItem]:
-
     raw = await run_sync(dashboard.get_semaphore, anio=anio, periodo=periodo, vista=vista)
 
     return [SemaphoreItem(**item) for item in raw]
@@ -80,7 +76,6 @@ async def get_trend(
     _user: User = Depends(require_reader),
     dashboard: DashboardService = Depends(_dashboard_service),
 ) -> list[TrendItem]:
-
     raw = await run_sync(dashboard.get_trend, anio=anio, vista=vista)
 
     return [TrendItem(**item) for item in raw]
@@ -91,7 +86,6 @@ async def get_filtros(
     _user: User = Depends(require_reader),
     dashboard: DashboardService = Depends(_dashboard_service),
 ) -> DashboardFiltrosResponse:
-
     return DashboardFiltrosResponse(**await run_sync(dashboard.get_filtros))
 
 
@@ -103,7 +97,6 @@ async def get_lineas(
     _user: User = Depends(require_reader),
     dashboard: DashboardService = Depends(_dashboard_service),
 ) -> list[CMILineaItem]:
-
     raw = await run_sync(dashboard.get_lineas, anio=anio, periodo=periodo, vista=vista)
 
     return [CMILineaItem(**item) for item in raw]
@@ -116,7 +109,6 @@ async def get_sunburst(
     _user: User = Depends(require_reader),
     dashboard: DashboardService = Depends(_dashboard_service),
 ) -> list[dict]:
-
     return await run_sync(dashboard.get_sunburst, anio=anio, vista=vista)
 
 
@@ -127,7 +119,6 @@ async def get_yoy(
     _user: User = Depends(require_reader),
     dashboard: DashboardService = Depends(_dashboard_service),
 ) -> list[dict]:
-
     return await run_sync(dashboard.get_yoy, anio=anio, vista=vista)
 
 
@@ -151,5 +142,6 @@ async def get_narrativa(
     _user: User = Depends(require_reader),
     dashboard: DashboardService = Depends(_dashboard_service),
 ) -> DashboardNarrativaResponse:
-
-    return DashboardNarrativaResponse(**await run_sync(dashboard.get_narrativa, anio=anio, vista=vista))
+    return DashboardNarrativaResponse(
+        **await run_sync(dashboard.get_narrativa, anio=anio, vista=vista)
+    )

@@ -39,7 +39,12 @@ async def seguimiento_dashboard(
     return SeguimientoDashboardResponse(
         **await run_sync(
             service.get_dashboard,
-            anio=anio, mes=mes, proceso=proceso, estado=estado, limit=limit, offset=offset,
+            anio=anio,
+            mes=mes,
+            proceso=proceso,
+            estado=estado,
+            limit=limit,
+            offset=offset,
         )
     )
 
@@ -53,7 +58,9 @@ async def seguimiento_export(
     _user: User = Depends(require_reader),
     service: SeguimientoService = Depends(_service),
 ) -> Response:
-    content = await run_sync(service.export_excel, anio=anio, mes=mes, proceso=proceso, estado=estado)
+    content = await run_sync(
+        service.export_excel, anio=anio, mes=mes, proceso=proceso, estado=estado
+    )
     return Response(
         content=content,
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",

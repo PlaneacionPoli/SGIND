@@ -295,9 +295,9 @@ async def test_semaforo_colores_design_tokens():
     assert NIVEL_COLOR["Peligro"] == SEMAFORO["Peligro"], "Peligro debe ser #ef4444"
     assert NIVEL_COLOR["Alerta"] == SEMAFORO["Alerta"], "Alerta debe ser #f59e0b"
     assert NIVEL_COLOR["Cumplimiento"] == SEMAFORO["Cumplimiento"], "Cumplimiento debe ser #22c55e"
-    assert NIVEL_COLOR["Sobrecumplimiento"] == SEMAFORO["Sobrecumplimiento"], (
-        "Sobrecumplimiento debe ser #3b82f6"
-    )
+    assert (
+        NIVEL_COLOR["Sobrecumplimiento"] == SEMAFORO["Sobrecumplimiento"]
+    ), "Sobrecumplimiento debe ser #3b82f6"
 
 
 @pytest.mark.asyncio

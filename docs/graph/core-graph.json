@@ -1,0 +1,23 @@
+{
+  "description": "Vista simplificada del CORE: Indicador -> cálculo -> consolidación -> presentación",
+  "chain": [
+    {"step": 1, "node": "pipeline-scripts", "label": "Pipeline manual (scripts/) consolida fuentes Kawak/API en un Excel"},
+    {"step": 2, "node": "excel-resultados-consolidados", "label": "Resultados Consolidados.xlsx (fuente de verdad de indicadores)"},
+    {"step": 3, "node": "etl-pipeline-service", "label": "Backend lee el Excel y lo enriquece (merges + fechas) — no lo genera"},
+    {"step": 4, "node": "domain-calculos", "label": "Normalización y cálculo de cumplimiento (fuente única correcta)"},
+    {"step": 5, "node": "domain-categorization", "label": "Categorización canónica de semáforo — pero con 4 reimplementaciones divergentes en cmi_builders.py y procesos_builders.py"},
+    {"step": 6, "node": "endpoint-dashboard", "label": "Endpoints REST exponen los datos ya calculados"},
+    {"step": 7, "node": "page-resumen-general", "label": "Frontend consume y muestra (con riesgo de recalcular semáforo distinto en algunos componentes)"}
+  ],
+  "parallel_chain_om": [
+    {"step": 1, "node": "page-gestion-om", "label": "Único módulo con escritura real"},
+    {"step": 2, "node": "endpoint-om", "label": "CRUD protegido con require_admin"},
+    {"step": 3, "node": "service-om", "label": "Orquesta la escritura"},
+    {"step": 4, "node": "model-om", "label": "ORM SQLAlchemy"},
+    {"step": 5, "node": "table-registros-om", "label": "PostgreSQL — único flujo transaccional real del sistema"}
+  ],
+  "gap_critico": {
+    "descripcion": "No existe ninguna arista entre 'backend/app' y 'scripts/' — el pipeline que produce el dato fuente nunca es invocado por el backend. Es una discontinuidad deliberada de diseño (ADR-001: datos Excel montados read-only), no un bug, pero bloquea cualquier automatización end-to-end.",
+    "afecta": ["pipeline-scripts", "etl-pipeline-service"]
+  }
+}

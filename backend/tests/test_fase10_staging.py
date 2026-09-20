@@ -130,9 +130,9 @@ def test_env_staging_no_contiene_secretos_reales():
     """sgind-v2/.env.staging es un template, no debe tener secretos reales."""
     content = (SGIND_V2 / ".env.staging").read_text(encoding="utf-8")
     # Verifica que las contraseñas son placeholders
-    assert "CHANGE_ME" in content or "sgind_dev_password" not in content, (
-        ".env.staging parece contener credenciales reales (no placeholders)"
-    )
+    assert (
+        "CHANGE_ME" in content or "sgind_dev_password" not in content
+    ), ".env.staging parece contener credenciales reales (no placeholders)"
 
 
 def test_env_staging_en_gitignore():
@@ -141,9 +141,9 @@ def test_env_staging_en_gitignore():
     if not gitignore.exists():
         pytest.skip(".gitignore no encontrado")
     content = gitignore.read_text(encoding="utf-8")
-    assert "env.staging" in content or ".env.staging" in content, (
-        ".env.staging no está en .gitignore — riesgo de commitear credenciales"
-    )
+    assert (
+        "env.staging" in content or ".env.staging" in content
+    ), ".env.staging no está en .gitignore — riesgo de commitear credenciales"
 
 
 # ─── deploy-staging.yml ───────────────────────────────────────────────────────

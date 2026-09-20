@@ -444,7 +444,7 @@ def matriz_to_records(df: pd.DataFrame) -> list[dict[str, Any]]:
             val = row[col]
             if pd.isna(val):
                 rec[col] = None
-            elif isinstance(val, (int, float)):
+            elif isinstance(val, int | float):
                 rec[col] = float(val) if isinstance(val, float) else int(val)
             else:
                 rec[col] = str(val)

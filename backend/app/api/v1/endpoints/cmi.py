@@ -56,7 +56,9 @@ async def cmi_indicador_ficha(
     _user: User = Depends(require_reader),
     service: CMIService = Depends(_cmi_service),
 ) -> FichaIndicadorResponse:
-    ficha = await run_sync(service.get_indicador_ficha, indicador_id, anio=anio, mes=mes, corte=corte)
+    ficha = await run_sync(
+        service.get_indicador_ficha, indicador_id, anio=anio, mes=mes, corte=corte
+    )
     if ficha is None:
         raise HTTPException(
             status_code=404, detail="Indicador no encontrado para el corte seleccionado"
@@ -72,7 +74,9 @@ async def cmi_estrategico(
     _user: User = Depends(require_reader),
     service: CMIService = Depends(_cmi_service),
 ) -> CMIEstrategicoResponse:
-    return CMIEstrategicoResponse(**await run_sync(service.get_estrategico, anio=anio, mes=mes, corte=corte))
+    return CMIEstrategicoResponse(
+        **await run_sync(service.get_estrategico, anio=anio, mes=mes, corte=corte)
+    )
 
 
 @router.get("/procesos/filtros", response_model=CMIProcesosFiltrosResponse)

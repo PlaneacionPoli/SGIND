@@ -23,9 +23,12 @@ async def test_auth_login_redirige_o_503(client):
     resp = await client.get("/api/v1/auth/login", follow_redirects=False)
     # Sin Azure configurado → 503 (OIDC no configurado)
     # Con Azure configurado → 302 a login.microsoftonline.com
-    assert resp.status_code in (302, 303, 307, 503), (
-        f"Se esperaba redirección o 503, se obtuvo {resp.status_code}"
-    )
+    assert resp.status_code in (
+        302,
+        303,
+        307,
+        503,
+    ), f"Se esperaba redirección o 503, se obtuvo {resp.status_code}"
 
 
 @pytest.mark.asyncio
@@ -162,6 +165,6 @@ def test_dev_token_endpoint_oculto_en_schema():
     ]
     for route in dev_routes:
         # Verificar que include_in_schema=False (no visible en docs)
-        assert not getattr(route, "include_in_schema", True), (
-            "/auth/dev-token no debe aparecer en el schema OpenAPI"
-        )
+        assert not getattr(
+            route, "include_in_schema", True
+        ), "/auth/dev-token no debe aparecer en el schema OpenAPI"

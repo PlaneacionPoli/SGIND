@@ -424,14 +424,26 @@ class CMIService:
         frontend, y _warm_caches (main.py) precalienta exactamente los
         valores por defecto al arrancar."""
         key = (
-            id(self._excel), anio, mes, unidad, proceso, subproceso, clasificacion, frecuencia,
+            id(self._excel),
+            anio,
+            mes,
+            unidad,
+            proceso,
+            subproceso,
+            clasificacion,
+            frecuencia,
         )
         return cache_get(
             _PROCESOS_DASHBOARD_CACHE,
             key,
             lambda: self._get_procesos_dashboard_uncached(
-                anio=anio, mes=mes, unidad=unidad, proceso=proceso,
-                subproceso=subproceso, clasificacion=clasificacion, frecuencia=frecuencia,
+                anio=anio,
+                mes=mes,
+                unidad=unidad,
+                proceso=proceso,
+                subproceso=subproceso,
+                clasificacion=clasificacion,
+                frecuencia=frecuencia,
             ),
             ttl=self._excel.ttl,
         )

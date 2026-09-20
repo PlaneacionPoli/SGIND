@@ -16,6 +16,14 @@ class Settings(BaseSettings):
     environment: str = "development"
     log_level: str = "INFO"
 
+    # Habilita /auth/dev-token y el bypass de BD en get_current_user.
+    # Por defecto False en todo entorno: antes se activaba con
+    # environment=="development", lo que dejaba el bypass activo en
+    # cualquier staging/QA que no se llamara literalmente "production"
+    # (ver docs/tecnico/07-seguridad.md, G-04). Debe activarse
+    # explícitamente solo en desarrollo local.
+    enable_dev_auth: bool = False
+
     database_url: str = "postgresql+asyncpg://sgind:sgind_dev_password@localhost:5432/sgind"
 
     secret_key: str = "change-me-in-production"

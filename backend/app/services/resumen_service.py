@@ -7,6 +7,7 @@ from typing import Any
 
 import pandas as pd
 
+from app.core.ttl_cache import cache_get
 from app.domain.calculos import (
     aplicar_calculos_cumplimiento,
     calcular_kpis,
@@ -34,7 +35,6 @@ from app.domain.resumen_builders import (
     get_chip_config_retos,
     merge_consolidado_summaries,
 )
-from app.core.ttl_cache import cache_get
 from app.domain.strategic_processors import StrategicProcessors
 from app.services.etl_pipeline import ETLPipelineService
 from app.services.excel_reader import ExcelReaderService

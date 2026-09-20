@@ -64,6 +64,7 @@ app = FastAPI(
     redoc_url="/redoc",
 )
 
+
 class CatchExceptionsMiddleware(BaseHTTPMiddleware):
     """Convierte cualquier excepción no controlada en una respuesta 500 JSON.
 

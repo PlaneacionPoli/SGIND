@@ -1,0 +1,34 @@
+{
+  "relationships": [
+    {"source": "xf-kawak", "target": "proc-consolidar-api", "type": "READS", "evidence": "scripts/consolidar_api.py"},
+    {"source": "xf-api", "target": "proc-consolidar-api", "type": "READS", "evidence": "scripts/consolidar_api.py"},
+    {"source": "proc-consolidar-api", "target": "xf-indicadores-kawak", "type": "PERSISTS", "evidence": "scripts/consolidar_api.py"},
+    {"source": "proc-consolidar-api", "target": "xf-consolidado-api-kawak", "type": "PERSISTS", "evidence": "scripts/consolidar_api.py"},
+    {"source": "xf-indicadores-kawak", "target": "proc-actualizar-consolidado", "type": "READS", "evidence": "scripts/actualizar_consolidado.py paso 1"},
+    {"source": "xf-consolidado-api-kawak", "target": "proc-actualizar-consolidado", "type": "READS", "evidence": "scripts/actualizar_consolidado.py paso 1"},
+    {"source": "proc-actualizar-consolidado", "target": "xf-resultados", "type": "PERSISTS", "evidence": "scripts/actualizar_consolidado.py paso 15"},
+    {"source": "proc-actualizar-consolidado", "target": "xf-resultados-valores", "type": "PERSISTS", "evidence": "scripts/actualizar_consolidado.py paso 15, formulas_excel"},
+    {"source": "proc-cna-extraction", "target": "xf-cna", "type": "PERSISTS", "evidence": "scripts/cna_extraction/writer.py"},
+    {"source": "xf-plan-indicadores", "target": "proc-catalogo-plan", "type": "READS", "evidence": "scripts/plan_mejoramiento/build_catalogo_indicadores.py"},
+    {"source": "proc-catalogo-plan", "target": "xf-catalogo-plan", "type": "PERSISTS", "evidence": "scripts/plan_mejoramiento/build_catalogo_indicadores.py"},
+
+    {"source": "svc-etl-pipeline", "target": "xf-resultados", "type": "READS", "evidence": "backend/app/services/etl_pipeline.py fase 1"},
+    {"source": "svc-excel-reader", "target": "xf-resultados", "type": "READS", "evidence": "backend/app/services/excel_reader.py PRIMARY_EXCEL_FILES"},
+    {"source": "svc-plan-mejoramiento", "target": "xf-cna", "type": "READS", "evidence": "backend/app/domain/plan_mejoramiento_builders.py:901"},
+    {"source": "svc-plan-mejoramiento", "target": "xf-plan-indicadores", "type": "READS", "evidence": "backend/app/domain/plan_mejoramiento_builders.py load_plan_indicadores"},
+    {"source": "svc-plan-mejoramiento", "target": "xf-catalogo-plan", "type": "READS", "evidence": "backend/app/domain/plan_mejoramiento_builders.py load_catalogo_plan_indicadores"},
+    {"source": "svc-seguimiento", "target": "xf-seguimiento", "type": "READS", "evidence": "backend/app/services/seguimiento_service.py"},
+
+    {"source": "svc-om", "target": "pg-registros-om", "type": "PERSISTS", "evidence": "backend/app/models/om.py SQLAlchemy ORM"},
+    {"source": "pg-registros-om", "target": "pg-audit-log", "type": "TRIGGERS", "evidence": "trigger Postgres trg_registros_om_audit en 001_initial_schema.sql"},
+    {"source": "pg-users", "target": "pg-roles", "type": "USES", "evidence": "users.role_id FK -> roles.id"},
+    {"source": "pg-audit-log", "target": "pg-users", "type": "USES", "evidence": "audit_log.user_id FK -> users.id ON DELETE SET NULL"},
+    {"source": "svc-plan-mejoramiento-service", "target": "pg-acciones", "type": "READS", "evidence": "backend/app/services/plan_mejoramiento_service.py"}
+  ],
+  "gap": {
+    "source": "svc-excel-reader",
+    "target": "xf-residuales",
+    "descripcion": "backend/app/services/excel_reader.py declara output/Consolidado_API_Kawak.xlsx como archivo primario, pero ese archivo no existe en data/output/ (el real está en data/raw/Fuentes Consolidadas/). Ruta rota, ver G-05 en 09-gaps-y-riesgos.md."
+  },
+  "nota": "No existe ninguna relación directa entre el silo PostgreSQL y el silo Excel — son dos sistemas de datos completamente desacoplados que conviven en el mismo backend. El único servicio que toca ambos mundos a la vez es plan_mejoramiento_service.py (lee Excel para indicadores/métricas del plan, y la tabla acciones de Postgres para las acciones de mejora asociadas)."
+}

@@ -23,9 +23,9 @@ def _json_safe(value: Any) -> Any:
             return None
     except (TypeError, ValueError):
         pass
-    if isinstance(value, (np.integer,)):
+    if isinstance(value, np.integer):
         return int(value)
-    if isinstance(value, (np.floating, float)):
+    if isinstance(value, np.floating | float):
         if math.isnan(value):
             return None
         return round(float(value), 4)

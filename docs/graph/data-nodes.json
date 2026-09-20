@@ -1,0 +1,36 @@
+{
+  "description": "Nodos del grafo de datos: dos silos reales (PostgreSQL y Excel/pipeline) sin ninguna arista directa entre ellos.",
+  "nodes": [
+    {"id": "pg-roles", "type": "table", "name": "roles", "layer": "postgres", "core": false, "detail": "id SERIAL PK, name UNIQUE, description"},
+    {"id": "pg-users", "type": "table", "name": "users", "layer": "postgres", "core": true, "detail": "id UUID PK, email UNIQUE, role_id FK, azure_oid UNIQUE"},
+    {"id": "pg-registros-om", "type": "table", "name": "registros_om", "layer": "postgres", "core": true, "detail": "id SERIAL PK, UNIQUE(id_indicador,periodo,anio), tiene_om IN (0,1)"},
+    {"id": "pg-acciones", "type": "table", "name": "acciones", "layer": "postgres", "core": false, "detail": "id BIGSERIAL PK, marker_col/marker_value, payload JSONB"},
+    {"id": "pg-audit-log", "type": "table", "name": "audit_log", "layer": "postgres", "core": false, "detail": "user_id FK -> users, sin consumidor en backend/app"},
+    {"id": "pg-ai-configs", "type": "table", "name": "ai_configs", "layer": "postgres", "core": false, "detail": "sin consumidor en backend/app"},
+    {"id": "pg-ai-prompts", "type": "table", "name": "ai_prompts", "layer": "postgres", "core": false, "detail": "3 prompts sembrados, sin consumidor en backend/app"},
+
+    {"id": "proc-consolidar-api", "type": "process", "name": "scripts/consolidar_api.py", "layer": "proceso", "core": true, "detail": "Fase 1 del pipeline manual"},
+    {"id": "proc-actualizar-consolidado", "type": "process", "name": "scripts/actualizar_consolidado.py", "layer": "proceso", "core": true, "detail": "Orquestador real; usa 23 módulos de scripts/etl/*"},
+    {"id": "proc-cna-extraction", "type": "process", "name": "scripts/cna_extraction/", "layer": "proceso", "core": true, "detail": "2 fases: diagnóstico y escritura"},
+    {"id": "proc-catalogo-plan", "type": "process", "name": "scripts/plan_mejoramiento/build_catalogo_indicadores.py", "layer": "proceso", "core": false, "detail": "Borrador heurístico, revisión manual pendiente"},
+
+    {"id": "xf-kawak", "type": "excel", "name": "data/raw/Kawak/{año}.xlsx", "layer": "excel", "core": false, "detail": "Catálogo maestro por año"},
+    {"id": "xf-api", "type": "excel", "name": "data/raw/API/{año}.xlsx", "layer": "excel", "core": false, "detail": "Extracción API Kawak por año"},
+    {"id": "xf-indicadores-kawak", "type": "excel", "name": "data/raw/Fuentes Consolidadas/Indicadores Kawak.xlsx", "layer": "excel", "core": false, "detail": "Fuente intermedia"},
+    {"id": "xf-consolidado-api-kawak", "type": "excel", "name": "data/raw/Fuentes Consolidadas/Consolidado_API_Kawak.xlsx", "layer": "excel", "core": false, "detail": "Fuente intermedia"},
+    {"id": "xf-resultados", "type": "excel", "name": "data/output/Resultados Consolidados.xlsx", "layer": "excel", "core": true, "detail": "Fuente de verdad activa. Hojas: Consolidado Semestral, Historico, Cierres, Catalogo Indicadores"},
+    {"id": "xf-resultados-valores", "type": "excel", "name": "data/output/Resultados Consolidados VALORES.xlsx", "layer": "excel", "core": true, "detail": "Fallback con fórmulas materializadas"},
+    {"id": "xf-cna", "type": "excel", "name": "data/output/Resultados_Consolidados_CNA.xlsx", "layer": "excel", "core": true, "detail": "Hoja Metricas: Subindicador, tendencia"},
+    {"id": "xf-seguimiento", "type": "excel", "name": "data/output/Seguimiento_Reporte.xlsx", "layer": "excel", "core": true, "detail": "Fecha de modificación más antigua que el resto"},
+    {"id": "xf-plan-indicadores", "type": "excel", "name": "data/raw/Plan de mejoramiento/Indicadores Plan de Mejoramiento.xlsx", "layer": "excel", "core": true, "detail": "Hojas: Indicadores Plan de Mejor, Indicadores Real"},
+    {"id": "xf-catalogo-plan", "type": "excel", "name": "data/raw/Plan de mejoramiento/Catalogo_Indicadores_Plan_Mejoramiento.xlsx", "layer": "excel", "core": false, "detail": "Signo/Decimales, borrador heurístico sin validar fila a fila"},
+    {"id": "xf-residuales", "type": "excel", "name": "Archivos residuales (~6, sin referencias en código)", "layer": "obsoleto", "core": false, "detail": "- copia, - copia - copia, revvv.xlsx, Metricas CNA.xlsx"},
+
+    {"id": "svc-etl-pipeline", "type": "service", "name": "backend/app/services/etl_pipeline.py", "layer": "backend", "core": true, "detail": "Lee y enriquece; nunca ejecuta el pipeline"},
+    {"id": "svc-excel-reader", "type": "service", "name": "backend/app/services/excel_reader.py", "layer": "backend", "core": true, "detail": "PRIMARY_EXCEL_FILES; 1 ruta declarada no existe (G-05)"},
+    {"id": "svc-plan-mejoramiento", "type": "service", "name": "backend/app/domain/plan_mejoramiento_builders.py", "layer": "backend", "core": true, "detail": "Lee Metricas CNA + Plan Indicadores + Catálogo"},
+    {"id": "svc-seguimiento", "type": "service", "name": "backend/app/services/seguimiento_service.py", "layer": "backend", "core": true, "detail": "Lee Seguimiento_Reporte.xlsx"},
+    {"id": "svc-om", "type": "service", "name": "backend/app/services/om_service.py", "layer": "backend", "core": true, "detail": "Único servicio con escritura transaccional real"},
+    {"id": "svc-plan-mejoramiento-service", "type": "service", "name": "backend/app/services/plan_mejoramiento_service.py", "layer": "backend", "core": true, "detail": "Lee tabla acciones (Postgres); único cruce backend/Postgres fuera de OM"}
+  ]
+}
