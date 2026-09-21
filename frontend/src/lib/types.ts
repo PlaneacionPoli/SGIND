@@ -830,6 +830,20 @@ export interface PlanMetricaFila {
   serie: number[];
   n_desglose: number;
   desglose: PlanMetricaDesglose[];
+  /** Nivel intermedio (p.ej. Modalidad) cuando el desglose es "Grupo - Hoja"; null si es plano. */
+  grupos: PlanMetricaGrupo[] | null;
+}
+
+export interface PlanMetricaGrupo {
+  nombre: string;
+  n_hojas: number;
+  hojas: PlanMetricaDesglose[];
+  ultimo_anio: number | null;
+  ultimo_valor: number | null;
+  valor_fmt: string;
+  variacion_ultima_pct: number | null;
+  tendencia: "Creciente" | "Decreciente" | "Estable" | "—";
+  serie: number[];
 }
 
 export interface PlanMetricaDetalleResponse {
@@ -858,6 +872,28 @@ export interface PlanMetricaDetalleResponse {
   serie: PlanMetricaPunto[];
   /** Solo en consolidados: categorías en el orden del archivo. */
   desglose: PlanMetricaDetalleDesglose[];
+  /** Solo en consolidados de 3 niveles: total y serie de cada grupo (p.ej. Virtual / Presencial). */
+  grupos: PlanMetricaDetalleGrupo[] | null;
+  /** Total o grupo con subvariables (Títulos/Volúmenes): cada una con su valor, variación y serie. */
+  variables: PlanMetricaDetalleVariable[] | null;
+}
+
+export interface PlanMetricaDetalleVariable {
+  nombre: string;
+  valor_fmt: string;
+  ultimo_anio: number | null;
+  variacion_ultima_pct: number | null;
+  variacion_promedio_pct: number | null;
+  tendencia: "Creciente" | "Decreciente" | "Estable" | "—";
+  serie: PlanMetricaPunto[];
+}
+
+export interface PlanMetricaDetalleGrupo {
+  nombre: string;
+  valor_fmt: string;
+  variacion_ultima_pct: number | null;
+  tendencia: "Creciente" | "Decreciente" | "Estable" | "—";
+  serie: PlanMetricaPunto[];
 }
 
 export interface PlanMetricaPunto {
@@ -870,6 +906,9 @@ export interface PlanMetricaPunto {
 
 export interface PlanMetricaDetalleDesglose {
   subindicador: string | null;
+  /** Grupo y nombre corto de la hoja cuando el consolidado tiene 3 niveles. */
+  grupo?: string | null;
+  nombre?: string | null;
   valor_fmt: string;
   ultimo_anio: number | null;
   variacion_ultima_pct: number | null;

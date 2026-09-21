@@ -148,11 +148,16 @@ async def plan_mejoramiento_metrica_detalle(
     factor: str = Query(...),
     indicador: str = Query(...),
     subindicador: str | None = Query(None),
+    grupo: str | None = Query(None, description="Subtotal (nivel intermedio) cuya ficha se pide"),
     _user: User = Depends(require_reader),
     service: PlanMejoramientoService = Depends(_service),
 ) -> PlanMetricaDetalleResponse:
     detalle = await run_sync(
-        service.get_metrica_detalle, factor=factor, indicador=indicador, subindicador=subindicador
+        service.get_metrica_detalle,
+        factor=factor,
+        indicador=indicador,
+        subindicador=subindicador,
+        grupo=grupo,
     )
     if detalle is None:
         raise HTTPException(status_code=404, detail="Métrica no encontrada")

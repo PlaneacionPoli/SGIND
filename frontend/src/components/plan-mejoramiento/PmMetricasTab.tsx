@@ -12,6 +12,7 @@ import { PmFactorBadge } from "./PmFactorBadge";
 import { PmMetricaModal } from "./PmMetricaModal";
 import { PmSparkline } from "./PmSparkline";
 import { getFactorColor } from "./pmFactorTheme";
+import type { PlanMetricaDesglose } from "@/lib/types";
 import { fmtVariacion, variacionClass } from "./pmVariacion";
 
 const TENDENCIA_BADGE: Record<string, string> = {
@@ -20,6 +21,85 @@ const TENDENCIA_BADGE: Record<string, string> = {
   Estable: "bg-slate-100 text-slate-600",
   "—": "bg-slate-50 text-slate-400",
 };
+
+type DatosFila = Pick<
+  PlanMetricaDesglose,
+  "ultimo_anio" | "valor_fmt" | "variacion_ultima_pct" | "tendencia" | "serie"
+> & { fuente?: string | null };
+
+/** Fila de desglose (nivel 1 = grupo o categoría directa, nivel 2 = hoja de un grupo). */
+function DesgloseFila({
+  nombre,
+  d,
+  color,
+  nivel,
+  badge,
+  abierto,
+  onClick,
+  onToggle,
+}: {
+  nombre: string;
+  d: DatosFila;
+  color: string;
+  nivel: 1 | 2;
+  badge?: number;
+  abierto?: boolean;
+  onClick: () => void;
+  onToggle?: () => void;
+}) {
+  const esGrupo = abierto !== undefined;
+  return (
+    <tr
+      className={`cursor-pointer hover:bg-slate-100 ${esGrupo ? "bg-slate-100/70 font-medium" : "bg-slate-50/70"}`}
+      onClick={onClick}
+    >
+      <td className="px-4 py-2" />
+      <td
+        className={`whitespace-normal break-words px-4 py-2 text-slate-600 ${nivel === 1 ? "pl-9" : "pl-14"}`}
+      >
+        <span className="flex items-start gap-1.5">
+          {esGrupo ? (
+            <button
+              type="button"
+              aria-label={abierto ? "Contraer" : "Expandir"}
+              className={`inline-block shrink-0 rounded px-1 text-slate-400 transition-transform hover:bg-slate-200 hover:text-slate-700 ${abierto ? "rotate-90" : ""}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                onToggle?.();
+              }}
+            >
+              ▸
+            </button>
+          ) : null}
+          <span>{nombre}</span>
+          {badge ? (
+            <span className="shrink-0 rounded-full bg-white px-1.5 py-0.5 text-[10px] font-semibold text-slate-500">
+              {badge}
+            </span>
+          ) : null}
+        </span>
+      </td>
+      <td className="px-4 py-2 text-slate-500">{d.fuente ?? "—"}</td>
+      <td className="px-4 py-2 text-right tabular-nums text-slate-600">{d.ultimo_anio ?? "—"}</td>
+      <td className="px-4 py-2 text-right tabular-nums text-slate-700">{d.valor_fmt}</td>
+      <td className={`px-4 py-2 text-right font-medium tabular-nums ${variacionClass(d.variacion_ultima_pct)}`}>
+        {fmtVariacion(d.variacion_ultima_pct)}
+      </td>
+      <td className="px-4 py-2">
+        <span
+          className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
+            TENDENCIA_BADGE[d.tendencia] ?? TENDENCIA_BADGE["—"]
+          }`}
+        >
+          {d.tendencia}
+        </span>
+      </td>
+      <td className="px-4 py-2">
+        <PmSparkline values={d.serie} color={color} trend={d.tendencia} />
+      </td>
+    </tr>
+  );
+}
 
 interface PmMetricasTabProps {
   /** Factor y Característica son filtros globales del módulo — el estado
@@ -48,6 +128,7 @@ export function PmMetricasTab({
     factor: string;
     indicador: string;
     subindicador: string | null;
+    grupo?: string | null;
   } | null>(null);
 
   const toggleExpandido = (key: string) => {
@@ -192,16 +273,14 @@ export function PmMetricasTab({
                         <Fragment key={key}>
                           <tr
                             className={`group border-l-2 border-l-transparent transition-colors hover:border-l-4 hover:!bg-slate-50 ${
-                              expandible ? "cursor-pointer" : "cursor-default"
+                              "cursor-pointer"
                             } ${i % 2 === 1 ? "bg-slate-50/40" : ""}`}
                             onMouseEnter={(e) =>
                               (e.currentTarget.style.borderLeftColor = getFactorColor(row.factor_num))
                             }
                             onMouseLeave={(e) => (e.currentTarget.style.borderLeftColor = "transparent")}
                             onClick={() =>
-                              expandible
-                                ? toggleExpandido(key)
-                                : setSeleccion({ factor: row.factor, indicador: row.indicador, subindicador: null })
+                              setSeleccion({ factor: row.factor, indicador: row.indicador, subindicador: null })
                             }
                           >
                             <td className="px-4 py-2.5">
@@ -210,12 +289,17 @@ export function PmMetricasTab({
                             <td className="px-4 py-2.5 font-medium text-slate-800">
                               <span className="flex items-start gap-1.5">
                                 {expandible ? (
-                                  <span
-                                    className={`inline-block shrink-0 text-slate-400 transition-transform ${abierto ? "rotate-90" : ""}`}
-                                    aria-hidden
+                                  <button
+                                    type="button"
+                                    aria-label={abierto ? "Contraer" : "Expandir"}
+                                    className={`inline-block shrink-0 rounded px-1 text-slate-400 transition-transform hover:bg-slate-200 hover:text-slate-700 ${abierto ? "rotate-90" : ""}`}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      toggleExpandido(key);
+                                    }}
                                   >
                                     ▸
-                                  </span>
+                                  </button>
                                 ) : null}
                                 <span className="whitespace-normal break-words">{row.indicador}</span>
                                 {expandible ? (
@@ -255,50 +339,65 @@ export function PmMetricasTab({
                             </td>
                           </tr>
                           {expandible && abierto
-                            ? row.desglose.map((d, j) => (
-                                <tr
-                                  key={`${key}|${j}`}
-                                  className="cursor-pointer bg-slate-50/70 hover:bg-slate-100"
-                                  onClick={() =>
-                                    setSeleccion({
-                                      factor: row.factor,
-                                      indicador: row.indicador,
-                                      subindicador: d.subindicador,
-                                    })
-                                  }
-                                >
-                                  <td className="px-4 py-2" />
-                                  <td className="whitespace-normal break-words px-4 py-2 pl-9 text-slate-600">
-                                    {d.subindicador ?? "—"}
-                                  </td>
-                                  <td className="px-4 py-2 text-slate-500">{d.fuente ?? "—"}</td>
-                                  <td className="px-4 py-2 text-right tabular-nums text-slate-600">
-                                    {d.ultimo_anio ?? "—"}
-                                  </td>
-                                  <td className="px-4 py-2 text-right tabular-nums text-slate-700">{d.valor_fmt}</td>
-                                  <td
-                                    className={`px-4 py-2 text-right font-medium tabular-nums ${variacionClass(d.variacion_ultima_pct)}`}
-                                  >
-                                    {fmtVariacion(d.variacion_ultima_pct)}
-                                  </td>
-                                  <td className="px-4 py-2">
-                                    <span
-                                      className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
-                                        TENDENCIA_BADGE[d.tendencia] ?? TENDENCIA_BADGE["—"]
-                                      }`}
-                                    >
-                                      {d.tendencia}
-                                    </span>
-                                  </td>
-                                  <td className="px-4 py-2">
-                                    <PmSparkline
-                                      values={d.serie}
+                            ? row.grupos
+                              ? row.grupos.flatMap((g) => {
+                                  const gKey = `${key}|${g.nombre}`;
+                                  const gAbierto = expandidos.has(gKey);
+                                  return [
+                                    <DesgloseFila
+                                      key={gKey}
+                                      nombre={g.nombre}
+                                      d={{ ...g, fuente: row.fuente }}
                                       color={getFactorColor(row.factor_num)}
-                                      trend={d.tendencia}
-                                    />
-                                  </td>
-                                </tr>
-                              ))
+                                      nivel={1}
+                                      badge={g.n_hojas}
+                                      abierto={gAbierto}
+                                      onClick={() =>
+                                        setSeleccion({
+                                          factor: row.factor,
+                                          indicador: row.indicador,
+                                          subindicador: null,
+                                          grupo: g.nombre,
+                                        })
+                                      }
+                                      onToggle={() => toggleExpandido(gKey)}
+                                    />,
+                                    ...(gAbierto
+                                      ? g.hojas.map((h, k) => (
+                                          <DesgloseFila
+                                            key={`${gKey}|${k}`}
+                                            nombre={h.subindicador ?? "—"}
+                                            d={h}
+                                            color={getFactorColor(row.factor_num)}
+                                            nivel={2}
+                                            onClick={() =>
+                                              setSeleccion({
+                                                factor: row.factor,
+                                                indicador: row.indicador,
+                                                subindicador: `${g.nombre} - ${h.subindicador}`,
+                                              })
+                                            }
+                                          />
+                                        ))
+                                      : []),
+                                  ];
+                                })
+                              : row.desglose.map((d, j) => (
+                                  <DesgloseFila
+                                    key={`${key}|${j}`}
+                                    nombre={d.subindicador ?? "—"}
+                                    d={d}
+                                    color={getFactorColor(row.factor_num)}
+                                    nivel={1}
+                                    onClick={() =>
+                                      setSeleccion({
+                                        factor: row.factor,
+                                        indicador: row.indicador,
+                                        subindicador: d.subindicador,
+                                      })
+                                    }
+                                  />
+                                ))
                             : null}
                         </Fragment>
                       );

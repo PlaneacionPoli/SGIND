@@ -18,6 +18,11 @@ from typing import Any
 
 import pandas as pd
 
+from app.domain.agregacion_anual import (
+    IDS_SIN_TOTAL_GLOBAL,
+    IDS_SUMA_SEMESTRAL,
+    IDS_TOTAL_NO_APLICA,
+)
 from app.domain.loader_utils import find_col, id_a_str
 
 CORTE_SEMESTRAL = {"Junio": 6, "Diciembre": 12}
@@ -180,7 +185,7 @@ def build_graficos(df: pd.DataFrame) -> dict[str, Any]:
         return {"factor_bars": [], "nivel_donut": [], "factor_nivel_stacked": [], "treemap": []}
 
     factor_list = (
-        sorted(df["Factor"].dropna().astype(str).unique().tolist())
+        sort_factores(df["Factor"].dropna().astype(str).unique().tolist())
         if "Factor" in df.columns
         else []
     )
@@ -414,7 +419,7 @@ def build_acciones_section(df_acc: pd.DataFrame, ids_cna: set[str] | None = None
 def build_filtros_cna(
     df: pd.DataFrame, catalog: pd.DataFrame, factor_sel: str | None = None
 ) -> dict[str, Any]:
-    factores = sorted(
+    factores = sort_factores(
         catalog["Factor"].dropna().astype(str).unique().tolist()
         if not catalog.empty
         else (df["Factor"].dropna().astype(str).unique().tolist() if "Factor" in df.columns else [])
@@ -486,6 +491,19 @@ _METAS_ALL_YEARS = ("2026", "2027", "2028", "2029", "2030")
 def _factor_num(factor_label) -> int | None:
     match = _FACTOR_NUM_RE.search(str(factor_label or ""))
     return int(match.group(1)) if match else None
+
+
+def sort_factores(factores) -> list[str]:
+    """Factores en orden numérico (Factor 1, 2, … 12), no alfabético — el orden
+    de texto pone "Factor 10" antes que "Factor 2". Etiquetas sin número, al final."""
+    return sorted(
+        factores,
+        key=lambda f: (
+            _factor_num(f) is None,
+            _factor_num(f) or 0,
+            str(f),
+        ),
+    )
 
 
 def _factor_nombre(factor_label) -> str:
@@ -675,7 +693,7 @@ def _load_plan_indicadores_uncached(excel) -> pd.DataFrame:
 
     if "Factor" in df.columns and "Indicador" in df.columns and "Factor" in df_real.columns:
         real_cols = ["Factor", "Indicador"] + [
-            c for c in _PLAN_REAL_VALUE_COLS if c in df_real.columns
+            c for c in (*_PLAN_REAL_VALUE_COLS, *_PLAN_DESCRIPTIVO_COLS) if c in df_real.columns
         ]
         df = df.merge(
             df_real[real_cols], on=["Factor", "Indicador"], how="outer", suffixes=("", "_real")
@@ -726,6 +744,12 @@ def _load_plan_indicadores_uncached(excel) -> pd.DataFrame:
 
     if "Meta_2026" in df.columns:
         df["Meta_num_2026"] = df["Meta_2026"].apply(_parse_meta_ejecucion)
+        if "2026" in df.columns:
+            df["Meta_num_2026"] = df["Meta_num_2026"].combine_first(
+                df["2026"].apply(_parse_meta_ejecucion)
+            )
+    elif "2026" in df.columns:
+        df["Meta_num_2026"] = df["2026"].apply(_parse_meta_ejecucion)
     for year in _FUTURE_RAW_YEARS:
         if year in df.columns:
             df[f"Meta_num_{year}"] = df[year].apply(_parse_meta_ejecucion)
@@ -773,8 +797,24 @@ def _load_plan_indicadores_uncached(excel) -> pd.DataFrame:
         .astype(int)
     )
 
-    sort_cols = [c for c in ("Factor_num", "Indicador") if c in df.columns]
-    return df.sort_values(sort_cols).reset_index(drop=True) if sort_cols else df
+    return sort_plan_indicadores(df)
+
+
+_TIPO_ORDEN = {"Indicador": 0, "Pendiente": 1}
+
+
+def sort_plan_indicadores(df: pd.DataFrame) -> pd.DataFrame:
+    """Orden de la tabla: Tipo (Indicador, luego Pendiente, luego el resto),
+    después Factor y nombre del indicador."""
+    if df.empty:
+        return df
+    out = df.assign(
+        _tipo_orden=df["Tipo"].map(_TIPO_ORDEN).fillna(len(_TIPO_ORDEN))
+        if "Tipo" in df.columns
+        else 0
+    )
+    sort_cols = ["_tipo_orden"] + [c for c in ("Factor_num", "Indicador") if c in df.columns]
+    return out.sort_values(sort_cols).drop(columns="_tipo_orden").reset_index(drop=True)
 
 
 def apply_plan_indicadores_filters(
@@ -828,8 +868,7 @@ def build_plan_indicadores_kpis(df: pd.DataFrame) -> dict[str, Any]:
 def build_plan_indicadores_tabla_metas(df: pd.DataFrame) -> list[dict[str, Any]]:
     """Filas de la sub-vista 'Metas 2026-2030' — todos los indicadores del
     filtro, incluidos los pendientes de meta (celdas en "—")."""
-    sort_cols = [c for c in ("Factor_num",) if c in df.columns]
-    rows_sorted = df.sort_values(sort_cols).reset_index(drop=True) if sort_cols else df
+    rows_sorted = sort_plan_indicadores(df)
 
     records = []
     for _, row in rows_sorted.iterrows():
@@ -857,8 +896,7 @@ def build_plan_indicadores_tabla_metas(df: pd.DataFrame) -> list[dict[str, Any]]
 def build_plan_indicadores_tabla_historico(df: pd.DataFrame) -> list[dict[str, Any]]:
     """Filas de la sub-vista 'Cumplimiento histórico' — todos los indicadores
     del filtro, incluidos los pendientes de dato real (celdas en "—")."""
-    sort_cols = [c for c in ("Factor_num",) if c in df.columns]
-    rows_sorted = df.sort_values(sort_cols).reset_index(drop=True) if sort_cols else df
+    rows_sorted = sort_plan_indicadores(df)
 
     def _valor(row, col, signo, decimales) -> dict[str, Any]:
         v = row.get(col)
@@ -976,6 +1014,7 @@ _METRICAS_COLS = [
     "DecimalesEje",
     "Proyecto",
     "Fuente",
+    "Variable",
 ]
 
 # Umbral para detectar que un indicador con signo "%" guarda la fracción
@@ -1126,17 +1165,34 @@ def _anota_variaciones(serie: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return serie
 
 
-def _classify_tendencia_historico(
-    variacion_promedio_pct: float | None, n_anios_con_dato: int
-) -> str:
-    """Paridad con plan_mejoramiento_loader.py::_classify_tendencia_historico:
-    >+3% Creciente, <-3% Decreciente, si no Estable, "Sin suficiente historia"
-    si hay menos de 2 años con dato."""
-    if n_anios_con_dato < 2 or variacion_promedio_pct is None or pd.isna(variacion_promedio_pct):
+_UMBRAL_TENDENCIA_PCT = 3.0
+
+
+def _tendencia_lineal(serie: list[dict[str, Any]]) -> str:
+    """Tendencia de una serie anual según la pendiente de su recta de mínimos
+    cuadrados (la misma "Tendencia (lineal)" que se dibuja en el gráfico),
+    expresada como % del nivel promedio de la serie por año: >+3% Creciente,
+    <-3% Decreciente, si no Estable; "Sin suficiente historia" con menos de 2
+    datos.
+
+    Antes se promediaban las variaciones año a año (paridad con el loader
+    legacy), pero un solo salto porcentual enorme (65 -> 2.578 = +3.866%)
+    dominaba el promedio y una serie que en conjunto baja salía "Creciente"."""
+    puntos = [(i, p["ejecucion"]) for i, p in enumerate(serie) if p.get("ejecucion") is not None]
+    if len(puntos) < 2:
         return "Sin suficiente historia"
-    if variacion_promedio_pct > 3:
+    n = len(puntos)
+    media_x = sum(x for x, _ in puntos) / n
+    media_y = sum(y for _, y in puntos) / n
+    sxx = sum((x - media_x) ** 2 for x, _ in puntos)
+    nivel = sum(abs(y) for _, y in puntos) / n
+    if sxx == 0 or nivel == 0:
+        return "Estable"
+    pendiente = sum((x - media_x) * (y - media_y) for x, y in puntos) / sxx
+    pct_anual = pendiente / nivel * 100
+    if pct_anual > _UMBRAL_TENDENCIA_PCT:
         return "Creciente"
-    if variacion_promedio_pct < -3:
+    if pct_anual < -_UMBRAL_TENDENCIA_PCT:
         return "Decreciente"
     return "Estable"
 
@@ -1187,6 +1243,55 @@ def _excluye_subtotal_fantasma(df: pd.DataFrame) -> pd.DataFrame:
     return df[~es_subtotal_fantasma]
 
 
+def _excluye_subtotales_de_grupo(df: pd.DataFrame) -> pd.DataFrame:
+    """Tablas de 3 niveles (Total > Modalidad > Nivel, p.ej. Tabla 7 y 214): la
+    hoja trae el subtotal de cada modalidad como una fila más, con el nombre
+    del grupo repetido ("Virtual - Virtual"). Como fila de desglose el total
+    del indicador contaba cada dato dos veces (13.064 en vez de 6.532).
+
+    El subtotal se descarta solo si se valida contra los datos: repite su
+    etiqueta, tiene hermanas en su grupo ("Virtual - ...") y en todos los
+    periodos comparables su valor es igual a la suma de ellas. El nivel
+    intermedio no se pierde: se reconstruye desde las hojas (ver
+    _detecta_grupos_intermedios). Sin hermanas ("Cátedra - Cátedra") o si no
+    suma, la fila se conserva."""
+    if df.empty or "Subindicador" not in df.columns:
+        return df
+
+    def normaliza(texto: str) -> str:
+        return " ".join(texto.split()).casefold()
+
+    descartar: list[tuple[Any, Any, str]] = []
+    for (factor, indicador), g in df.groupby(["Factor", "Indicador"], dropna=False):
+        subs = [x for x in g["Subindicador"].dropna().unique() if isinstance(x, str)]
+        candidatas = {}
+        for sub in subs:
+            partes = [normaliza(x) for x in sub.split(" - ")]
+            if len(partes) >= 2 and partes[-1] == partes[-2]:
+                candidatas[sub] = " - ".join(partes[:-1]) + " - "
+        if not candidatas:
+            continue
+        piv = g.pivot_table(index="Periodo", columns="Subindicador", values="Ejecucion_num", aggfunc="last")
+        for sub, prefijo in candidatas.items():
+            hermanas = [
+                c for c in piv.columns if c != sub and c not in candidatas and normaliza(c).startswith(prefijo)
+            ]
+            if not hermanas or sub not in piv.columns:
+                continue
+            suma = piv[hermanas].sum(axis=1, min_count=1)
+            comparables = piv[sub].notna() & suma.notna()
+            # El Excel redondea en millones: 124.322 + 337.600 = 461.922 vs 461.923.
+            holgura = (suma.abs() * 1e-3).clip(lower=1e-9)
+            if comparables.any() and ((piv[sub] - suma).abs() <= holgura)[comparables].all():
+                descartar.append((factor, indicador, sub))
+    if not descartar:
+        return df
+    marca = pd.Series(False, index=df.index)
+    for factor, indicador, sub in descartar:
+        marca |= (df["Factor"] == factor) & (df["Indicador"] == indicador) & (df["Subindicador"] == sub)
+    return df[~marca]
+
+
 _metricas_historico_cache: dict[int, tuple[float, pd.DataFrame]] = {}
 
 
@@ -1219,11 +1324,29 @@ def _build_metricas_historico_uncached(excel) -> pd.DataFrame:
     if df.empty:
         return pd.DataFrame()
     df = _excluye_subtotal_fantasma(df)
+    df = _excluye_subtotales_de_grupo(df)
 
     group_cols = ["Factor", "Factor_num", "Caracteristica", "Indicador", "Subindicador"]
-    anual = df.sort_values(["Periodo_anio", "Periodo_sem"]).drop_duplicates(
-        subset=group_cols + ["Periodo_anio"], keep="last"
-    )
+    claves_anio = [*group_cols, "Periodo_anio"]
+    anual = df.sort_values(["Periodo_anio", "Periodo_sem"]).drop_duplicates(subset=claves_anio, keep="last")
+    # Indicadores de participación/actividad: el dato del año es la SUMA de sus
+    # semestres, no solo el último (ver agregacion_anual.py).
+    if "Id" in df.columns:
+        suma_ids = df["Id"].astype(str).isin(IDS_SUMA_SEMESTRAL)
+        if suma_ids.any():
+            totales = (
+                df[suma_ids]
+                .groupby(claves_anio, dropna=False)[["Ejecucion_num", "Meta_num"]]
+                .sum(min_count=1)
+                .reset_index()
+            )
+            es_suma = anual["Id"].astype(str).isin(IDS_SUMA_SEMESTRAL)
+            sumados = (
+                anual[es_suma]
+                .drop(columns=["Ejecucion_num", "Meta_num"])
+                .merge(totales, on=claves_anio, how="left")
+            )
+            anual = pd.concat([anual[~es_suma], sumados], ignore_index=True)
 
     rows = []
     for keys, grupo in anual.groupby(group_cols, dropna=False):
@@ -1290,6 +1413,8 @@ def _build_metricas_historico_uncached(excel) -> pd.DataFrame:
                 if not grupo["Proceso"].dropna().empty
                 else None,
                 "Fuente": _ultimo_texto(grupo.get("Fuente")),
+                "Id": _ultimo_texto(grupo.get("Id")),
+                "Es_variable": bool(grupo["Variable"].notna().any()) if "Variable" in grupo.columns else False,
                 "Periodo_nombre": _ultimo_texto(grupo.get("Periodo_nombre")),
                 "Sentido": grupo["Sentido"].dropna().iloc[-1]
                 if not grupo["Sentido"].dropna().empty
@@ -1308,9 +1433,7 @@ def _build_metricas_historico_uncached(excel) -> pd.DataFrame:
                 "variacion_ultima_pct": variacion_ultima_pct,
                 "variacion_promedio_pct": variacion_promedio_pct,
                 "n_anios_con_dato": n_anios_con_dato,
-                "tendencia": _classify_tendencia_historico(
-                    variacion_promedio_pct, n_anios_con_dato
-                ),
+                "tendencia": _tendencia_lineal(serie),
             }
         )
         rows.append(row)
@@ -1511,38 +1634,127 @@ def _estadisticas_serie(serie: list[dict[str, Any]]) -> dict[str, Any]:
         "ultimo_valor": con_dato[-1]["ejecucion"] if con_dato else None,
         "variacion_ultima_pct": variacion_ultima,
         "variacion_promedio_pct": variacion_promedio,
-        "tendencia": _classify_tendencia_historico(variacion_promedio, len(con_dato)),
+        "tendencia": _tendencia_lineal(serie),
     }
 
 
-def _detecta_grupos_intermedios(
-    grupo: pd.DataFrame, desglose: list[dict[str, Any]]
-) -> list[dict[str, Any]] | None:
-    """Si el Subindicador sigue el patrón uniforme "Grupo - Hoja" en TODAS
-    las filas con nombre (p.ej. "Presencial - Universitario",
-    "Virtual - Maestría"), reconstruye el nivel intermedio real
-    (Presencial/Virtual) que el Excel fuente sí tiene pero que el campo
-    Subindicador aplana en un solo texto — ver validación de negocio
-    2026-09-18. Si el patrón no es uniforme (categorías de una sola
-    palabra, sin separador consistente, o un único grupo), no aplica y se
-    deja el desglose plano de 2 niveles."""
-    con_nombre = [d for d in desglose if d["subindicador"]]
-    if len(con_nombre) < 2:
-        return None
-
-    partes = []
-    for d in con_nombre:
-        texto = d["subindicador"]
+def _partes_grupo(subindicadores: list[str | None]) -> list[tuple[int, str, str]] | None:
+    """(posición, grupo, hoja) si el Subindicador sigue el patrón uniforme
+    "Grupo - Hoja" en TODAS las filas con nombre y hay al menos dos grupos con
+    varias hojas; si no, None (categorías de una sola palabra, sin separador
+    consistente, o un único grupo)."""
+    partes: list[tuple[int, str, str]] = []
+    for i, texto in enumerate(subindicadores):
+        if not texto:
+            continue
         if " - " not in texto:
             return None
         prefijo, _, sufijo = texto.partition(" - ")
         prefijo, sufijo = prefijo.strip(), sufijo.strip()
         if not prefijo or not sufijo:
             return None
-        partes.append((prefijo, sufijo, d))
+        partes.append((i, prefijo, sufijo))
+    prefijos = {p for _, p, _ in partes}
+    if len(partes) < 2 or len(prefijos) < 2 or len(prefijos) >= len(partes):
+        return None
+    return partes
 
-    prefijos = list(dict.fromkeys(p for p, _, _ in partes))  # orden de aparición
-    if len(prefijos) < 2 or len(prefijos) >= len(partes):
+
+def _agregado_serie(serie: list[dict[str, Any]], signo: str | None, decimales) -> dict[str, Any] | None:
+    """Campos de la fila principal a partir de una serie anual ya agregada
+    (None si la serie no trae ningún dato)."""
+    est = _estadisticas_serie(serie)
+    if est["ultimo_valor"] is None:
+        return None
+    return {
+        "ultimo_anio": est["ultimo_anio"],
+        "ultimo_valor": est["ultimo_valor"],
+        "valor_fmt": fmt_valor_plan(est["ultimo_valor"], signo, decimales),
+        "variacion_ultima_pct": est["variacion_ultima_pct"],
+        "tendencia": _tendencia_visible(est["tendencia"]),
+    }
+
+
+def _id_no_aplica(df: pd.DataFrame) -> bool:
+    """Ítems de naturaleza distinta: el total no se suma y se muestra "No aplica"."""
+    return "Id" in df.columns and bool(df["Id"].astype(str).isin(IDS_TOTAL_NO_APLICA).any())
+
+
+def _id_sin_total_global(df: pd.DataFrame) -> bool:
+    return "Id" in df.columns and bool(df["Id"].astype(str).isin(IDS_SIN_TOTAL_GLOBAL).any())
+
+
+def _es_total_sub(sub: Any) -> bool:
+    return isinstance(sub, str) and sub.split(" - ")[0].strip().casefold() == "total"
+
+
+def _es_tabla_de_variables(df: pd.DataFrame) -> bool:
+    """Tablas con subvariables (Títulos/Volúmenes, Tabla 40): cada fila del
+    histórico es ÁREA - variable y las variables no se suman entre sí."""
+    return "Es_variable" in df.columns and len(df) > 1 and bool(df["Es_variable"].fillna(False).astype(bool).all())
+
+
+def _agregado_variables(hojas: list[dict[str, Any]]) -> dict[str, Any]:
+    """Fila de un grupo/total con subvariables: el valor muestra todas
+    ("Títulos: 1.844 · Volúmenes: 5.366"); serie, variación y tendencia son las
+    de la primera variable."""
+    if not hojas:
+        return {
+            "ultimo_anio": None,
+            "ultimo_valor": None,
+            "valor_fmt": "—",
+            "variacion_ultima_pct": None,
+            "tendencia": "—",
+            "serie": [],
+        }
+    primera = hojas[0]
+    anios = [h["ultimo_anio"] for h in hojas if h["ultimo_anio"] is not None]
+    return {
+        "ultimo_anio": max(anios) if anios else None,
+        "ultimo_valor": primera["ultimo_valor"],
+        "valor_fmt": " · ".join(f"{h['subindicador']}: {h['valor_fmt']}" for h in hojas),
+        "variacion_ultima_pct": primera["variacion_ultima_pct"],
+        "tendencia": primera["tendencia"],
+        "serie": primera["serie"],
+    }
+
+
+def _fila_variables(
+    factor: Any, fnum: Any, indicador: Any, grupo: pd.DataFrame, desglose: list[dict[str, Any]]
+) -> dict[str, Any]:
+    """Registro de la tabla para un indicador con subvariables: la fila
+    principal es el TOTAL, las áreas son el nivel 2 y sus variables el nivel 3."""
+    totales, areas = [], []
+    for d in desglose:
+        sub = d["subindicador"] or ""
+        prefijo, _, variable = sub.rpartition(" - ")
+        (totales if _es_total_sub(sub) else areas).append((prefijo or sub, {**d, "subindicador": variable or sub}))
+    grupos = []
+    for nombre in dict.fromkeys(pref for pref, _ in areas):
+        hojas = [h for pref, h in areas if pref == nombre]
+        grupos.append({"nombre": nombre, "n_hojas": len(hojas), "hojas": hojas, **_agregado_variables(hojas)})
+    return {
+        "factor": factor,
+        "factor_num": None if fnum is None or pd.isna(fnum) else int(fnum),
+        "indicador": indicador,
+        "fuente": _ultimo_texto(grupo["Fuente"]) if "Fuente" in grupo.columns else None,
+        **_agregado_variables([h for _, h in totales]),
+        "n_desglose": len(areas),
+        "desglose": [d for d in desglose if not _es_total_sub(d["subindicador"])],
+        "grupos": grupos or None,
+    }
+
+
+def _detecta_grupos_intermedios(
+    grupo: pd.DataFrame, desglose: list[dict[str, Any]]
+) -> list[dict[str, Any]] | None:
+    """Reconstruye el nivel intermedio real (Presencial/Virtual) que el Excel
+    fuente sí tiene pero que el campo Subindicador aplana en "Grupo - Hoja" —
+    ver validación de negocio 2026-09-18. Cada grupo trae su propio total,
+    serie y tendencia, calculados desde sus hojas (que coinciden con el
+    subtotal de la hoja: ver _excluye_subtotales_de_grupo)."""
+    partes = _partes_grupo([d["subindicador"] for d in desglose])
+    if partes is None:
         return None
 
     # signo/decimales del subgrupo: todas sus hojas comparten unidad porque
@@ -1551,11 +1763,22 @@ def _detecta_grupos_intermedios(
     decimales_sub = grupo["decimales"].iloc[0]
 
     grupos = []
-    for prefijo in prefijos:
-        hojas = [{**d, "subindicador": sufijo} for p, sufijo, d in partes if p == prefijo]
-        agregado = _agrega_filas(hojas, signo_sub, decimales_sub)
-        grupos.append({"nombre": prefijo, "n_hojas": len(hojas), "hojas": hojas, **agregado})
-
+    for prefijo in dict.fromkeys(p for _, p, _ in partes):  # orden de aparición
+        items = [(i, sufijo) for i, p, sufijo in partes if p == prefijo]
+        hojas = [{**desglose[i], "subindicador": sufijo} for i, sufijo in items]
+        serie = _agrega_series(grupo.iloc[[i for i, _ in items]], signo_sub)
+        agregado = _agregado_serie(serie, signo_sub, decimales_sub) or _agrega_filas(
+            hojas, signo_sub, decimales_sub
+        )
+        grupos.append(
+            {
+                "nombre": prefijo,
+                "n_hojas": len(hojas),
+                "hojas": hojas,
+                **agregado,
+                "serie": [p["ejecucion"] for p in serie if p["ejecucion"] is not None],
+            }
+        )
     return grupos
 
 
@@ -1591,9 +1814,12 @@ def build_metricas_tabla_agrupada(df: pd.DataFrame) -> list[dict[str, Any]]:
         fnum = grupo["Factor_num"].iloc[0]
 
         desglose = [_fila_desglose(row) for _, row in grupo.iterrows()]
+        if _es_tabla_de_variables(grupo):
+            records.append(_fila_variables(factor, fnum, indicador, grupo, desglose))
+            continue
 
         unidades = grupo[["signo", "decimales"]].drop_duplicates()
-        homogeneo = len(unidades) <= 1
+        homogeneo = len(unidades) <= 1 and not _id_no_aplica(grupo)
         grupos_intermedios = None
 
         if len(grupo) == 1:
@@ -1612,27 +1838,22 @@ def build_metricas_tabla_agrupada(df: pd.DataFrame) -> list[dict[str, Any]]:
         elif homogeneo:
             signo, decimales = grupo["signo"].iloc[0], grupo["decimales"].iloc[0]
             serie_agregada = _agrega_series(grupo, signo)
-            est = _estadisticas_serie(serie_agregada)
-            if est["ultimo_valor"] is not None:
-                agregado = {
-                    "ultimo_anio": est["ultimo_anio"],
-                    "ultimo_valor": est["ultimo_valor"],
-                    "valor_fmt": fmt_valor_plan(est["ultimo_valor"], signo, decimales),
-                    "variacion_ultima_pct": est["variacion_ultima_pct"],
-                    "tendencia": est["tendencia"]
-                    if est["tendencia"] in ("Creciente", "Decreciente", "Estable")
-                    else "—",
-                }
-            else:
-                # Sin serie anual (Periodo vacío en el Excel): último dato de cada categoría.
-                agregado = _agrega_filas(desglose, signo, decimales)
+            # Sin serie anual (Periodo vacío en el Excel): último dato de cada categoría.
+            agregado = _agregado_serie(serie_agregada, signo, decimales) or _agrega_filas(
+                desglose, signo, decimales
+            )
             serie = [p["ejecucion"] for p in serie_agregada if p["ejecucion"] is not None]
             grupos_intermedios = _detecta_grupos_intermedios(grupo, desglose)
+            if grupos_intermedios and _id_sin_total_global(grupo):
+                # Activos = Pasivos + Patrimonio: la fila principal muestra cada grupo.
+                agregado = _agregado_variables([{**g, "subindicador": g["nombre"]} for g in grupos_intermedios])
+                serie = agregado.pop("serie")
         else:
+            # Unidades mezcladas o ítems distintos: no se inventa un total.
             agregado = {
                 "ultimo_anio": None,
                 "ultimo_valor": None,
-                "valor_fmt": "—",
+                "valor_fmt": "No aplica",
                 "variacion_ultima_pct": None,
                 "tendencia": "—",
             }
@@ -1684,7 +1905,53 @@ def _rango_anios(serie: list[dict[str, Any]], texto_nombre: str | None) -> dict[
     }
 
 
-def build_metrica_detalle(match: pd.DataFrame, *, consolidado: bool = False) -> dict[str, Any]:
+def _detalle_variables(base: dict[str, Any], match: pd.DataFrame, grupo: str | None) -> dict[str, Any]:
+    """Ficha de un total o de un grupo con subvariables (Títulos/Volúmenes):
+    cada variable con su propio valor, variación, tendencia y serie."""
+    es_total = match["Subindicador"].map(_es_total_sub)
+    filas = match if grupo is not None else match[es_total]
+    resto = match.iloc[0:0] if grupo is not None else match[~es_total]
+
+    def datos(row: pd.Series) -> dict[str, Any]:
+        return {
+            "subindicador": _clean(row.get("Subindicador")),
+            "nombre": str(row.get("Subindicador")).rpartition(" - ")[2],
+            "valor_fmt": fmt_valor_plan(_clean(row.get("ultimo_valor")), row.get("signo"), row.get("decimales")),
+            "ultimo_anio": _int_o_none(row.get("ultimo_anio")),
+            "variacion_ultima_pct": _clean(row.get("variacion_ultima_pct")),
+            "variacion_promedio_pct": _clean(row.get("variacion_promedio_pct")),
+            "tendencia": _tendencia_visible(row.get("tendencia")),
+            "serie": row.get("serie", []),
+        }
+
+    variables = [datos(r) for _, r in filas.iterrows()]
+    primera = variables[0] if variables else {}
+    anios = [v["ultimo_anio"] for v in variables if v["ultimo_anio"] is not None]
+    referencia = filas.iloc[0] if not filas.empty else match.iloc[0]
+    return {
+        **base,
+        "subindicador": grupo,
+        "consolidado": True,
+        "agregacion": None,
+        "signo": _clean(referencia.get("signo")),
+        "decimales": _int_o_none(referencia.get("decimales")),
+        "ultimo_anio": max(anios) if anios else None,
+        "ultimo_valor": primera.get("ultimo_valor"),
+        "valor_fmt": " · ".join(f"{v['nombre']}: {v['valor_fmt']}" for v in variables) or "—",
+        "tendencia": primera.get("tendencia", "—"),
+        "variacion_ultima_pct": primera.get("variacion_ultima_pct"),
+        "variacion_promedio_pct": primera.get("variacion_promedio_pct"),
+        "serie": primera.get("serie", []),
+        **_rango_anios([p for v in variables for p in v["serie"]], _ultimo_texto(match.get("Periodo_nombre"))),
+        "variables": variables,
+        "desglose": [datos(r) for _, r in resto.iterrows()],
+        "grupos": None,
+    }
+
+
+def build_metrica_detalle(
+    match: pd.DataFrame, *, consolidado: bool = False, grupo: str | None = None
+) -> dict[str, Any]:
     """Datos del modal de detalle de una métrica — paridad con
     pages/plan_mejoramiento.py::_open_metrica_modal.
 
@@ -1722,7 +1989,11 @@ def build_metrica_detalle(match: pd.DataFrame, *, consolidado: bool = False) -> 
             "serie": first.get("serie", []),
             **_rango_anios(first.get("serie", []), _ultimo_texto(match.get("Periodo_nombre"))),
             "desglose": [],
+            "grupos": None,
         }
+
+    if _es_tabla_de_variables(match):
+        return _detalle_variables(base, match, grupo)
 
     unidades = match[["signo", "decimales"]].drop_duplicates()
     signo, decimales = first["signo"], first["decimales"]
@@ -1741,19 +2012,86 @@ def build_metrica_detalle(match: pd.DataFrame, *, consolidado: bool = False) -> 
     ]
     serie: list[dict[str, Any]] = []
     est: dict[str, Any] = {}
-    if len(unidades) <= 1:
+    grupos: list[dict[str, Any]] | None = None
+    if len(unidades) <= 1 and not _id_no_aplica(match):
         serie = _agrega_series(match, signo)
         est = _estadisticas_serie(serie)
+        partes = _partes_grupo([d["subindicador"] for d in desglose])
+        if partes is not None:
+            grupos = []
+            for prefijo in dict.fromkeys(p for _, p, _ in partes):
+                posiciones = [i for i, p, _ in partes if p == prefijo]
+                serie_g = _agrega_series(match.iloc[posiciones], signo)
+                est_g = _estadisticas_serie(serie_g)
+                grupos.append(
+                    {
+                        "nombre": prefijo,
+                        "valor_fmt": fmt_valor_plan(est_g["ultimo_valor"], signo, decimales),
+                        "variacion_ultima_pct": est_g["variacion_ultima_pct"],
+                        "tendencia": _tendencia_visible(est_g["tendencia"]),
+                        "serie": serie_g,
+                    }
+                )
+            for i, p, sufijo in partes:
+                desglose[i] = {**desglose[i], "grupo": p, "nombre": sufijo}
+    variables_grupos: list[dict[str, Any]] | None = None
+    if grupos and grupo is None and _id_sin_total_global(match):
+        # Estado financiero: la ficha muestra una línea por grupo (Activos, Pasivos, Patrimonio).
+        variables_grupos = []
+        for g in grupos:
+            est_g = _estadisticas_serie(g["serie"])
+            variables_grupos.append(
+                {
+                    "subindicador": g["nombre"],
+                    "nombre": g["nombre"],
+                    "valor_fmt": g["valor_fmt"],
+                    "ultimo_anio": est_g["ultimo_anio"],
+                    "variacion_ultima_pct": est_g["variacion_ultima_pct"],
+                    "variacion_promedio_pct": est_g["variacion_promedio_pct"],
+                    "tendencia": _tendencia_visible(est_g["tendencia"]),
+                    "serie": g["serie"],
+                }
+            )
+    if variables_grupos:
+        primera = variables_grupos[0]
+        return {
+            **base,
+            "subindicador": None,
+            "consolidado": True,
+            "agregacion": None,
+            "signo": _clean(signo),
+            "decimales": _int_o_none(decimales),
+            "ultimo_anio": max((v["ultimo_anio"] for v in variables_grupos if v["ultimo_anio"] is not None), default=None),
+            "ultimo_valor": None,
+            "valor_fmt": " · ".join(f"{v['nombre']}: {v['valor_fmt']}" for v in variables_grupos),
+            "tendencia": primera["tendencia"],
+            "variacion_ultima_pct": primera["variacion_ultima_pct"],
+            "variacion_promedio_pct": primera["variacion_promedio_pct"],
+            "serie": primera["serie"],
+            **_rango_anios([p for v in variables_grupos for p in v["serie"]], _ultimo_texto(match.get("Periodo_nombre"))),
+            "variables": variables_grupos,
+            "desglose": desglose,
+            "grupos": grupos,
+        }
+    if grupo is not None:
+        # Ficha de un subtotal (p.ej. Virtual): las categorías se nombran sin el prefijo del grupo.
+        prefijo = f"{grupo} - "
+        desglose = [
+            {**d, "nombre": (d["subindicador"] or "")[len(prefijo) :]}
+            if (d["subindicador"] or "").startswith(prefijo)
+            else d
+            for d in desglose
+        ]
     return {
         **base,
-        "subindicador": None,
+        "subindicador": grupo,
         "consolidado": True,
         "signo": _clean(signo),
         "decimales": _int_o_none(decimales),
         "agregacion": None if not serie else ("Promedio" if signo in _TASA_SIGNOS else "Total"),
         "ultimo_anio": est.get("ultimo_anio"),
         "ultimo_valor": est.get("ultimo_valor"),
-        "valor_fmt": fmt_valor_plan(est.get("ultimo_valor"), signo, decimales),
+        "valor_fmt": fmt_valor_plan(est.get("ultimo_valor"), signo, decimales) if serie else "No aplica",
         "tendencia": _tendencia_visible(est.get("tendencia")),
         "variacion_ultima_pct": est.get("variacion_ultima_pct"),
         "variacion_promedio_pct": est.get("variacion_promedio_pct"),
@@ -1762,4 +2100,5 @@ def build_metrica_detalle(match: pd.DataFrame, *, consolidado: bool = False) -> 
             serie or [p for c in desglose for p in c["serie"]], _ultimo_texto(match.get("Periodo_nombre"))
         ),
         "desglose": desglose,
+        "grupos": grupos,
     }

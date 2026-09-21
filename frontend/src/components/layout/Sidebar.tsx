@@ -52,14 +52,7 @@ export function Sidebar() {
                       : "text-slate-300 hover:bg-white/10 hover:text-white"
                   )}
                 >
-                  <Image
-                    src={item.iconSrc}
-                    alt=""
-                    width={56}
-                    height={56}
-                    className="h-7 w-7 flex-shrink-0 rounded-full"
-                    aria-hidden="true"
-                  />
+                  <span className="text-base opacity-80">{item.icon}</span>
                   {item.label}
                 </Link>
               </li>

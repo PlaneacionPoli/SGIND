@@ -61,6 +61,8 @@ def build_records(
             "filas_sin_etiqueta_categoria": 0,
             "totales_sin_etiqueta_reclasificados": 0,
             "filas_sin_etiqueta_omitidas": 0,
+            "valores_separador_de_miles_corregidos": 0,
+            "filas_resumen_omitidas": 0,
         }
         all_records: list[dict[str, Any]] = []
         catalogo_sin_hoja: list[str] = []
@@ -137,7 +139,7 @@ def main() -> None:
         records = [r for r in records if str(r["Id"]).upper() in ids]
         if not records:
             raise SystemExit(f"El Anexo no produjo filas para {sorted(ids)}; no se modificó el consolidado.")
-        result = replace_ids(records, ids, args.output)
+        result = replace_ids(records, ids, args.output, factor_caracteristica_rows=factor_caracteristica_rows)
         print(f"Archivo de salida: {args.output}")
         print(f"Ids reprocesados: {', '.join(sorted(ids))}")
         print(f"Filas reemplazadas: {result['filas_reemplazadas']} -> nuevas: {result['filas_nuevas']}")
@@ -170,6 +172,8 @@ def main() -> None:
     print(f"Filas sin etiqueta de categoría (desambiguadas, revisar manualmente): {stats['filas_sin_etiqueta_categoria']}")
     print(f"Filas sin etiqueta que eran el Total (reclasificadas/omitidas): {stats['totales_sin_etiqueta_reclasificados']}")
     print(f"Filas sin etiqueta que no eran el Total (omitidas): {stats['filas_sin_etiqueta_omitidas']}")
+    print(f"Filas de resumen (%Part/Ingreso, Subtotal) omitidas en tablas de inversión: {stats['filas_resumen_omitidas']}")
+    print(f"Valores con separador de miles leído como decimal (corregidos, validados con el Total): {stats['valores_separador_de_miles_corregidos']}")
 
     # El número de tablas/indicadores del Anexo Estadístico cambia con el
     # tiempo — esto NO se puede asumir estático de un año a otro. Estos dos

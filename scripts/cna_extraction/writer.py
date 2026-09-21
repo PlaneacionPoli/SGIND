@@ -52,6 +52,7 @@ METRICAS_COLUMNS = [
     "Proyecto",
     "Llave",
     "Fuente",  # columna "Fuente" de la hoja "Índice Tablas" del Anexo (por tabla/gráfico)
+    "Variable",  # subvariable (Títulos/Volúmenes) cuando el encabezado la trae; no se suma entre sí
 ]
 
 
@@ -170,6 +171,7 @@ def replace_ids(
     records: list[dict[str, Any]],
     ids: set[str],
     output_file: Path = OUTPUT_FILE,
+    factor_caracteristica_rows: list[dict[str, str]] | None = None,
 ) -> dict[str, int]:
     """Reemplaza en `output_file` todas las filas de los `ids` indicados (p.ej.
     {"T3"}) por `records` (ya filtrados a esos Ids), dejando intactas las demás
@@ -184,6 +186,12 @@ def replace_ids(
     conservar = existentes[~existentes["Id"].astype(str).isin(ids)]
     nuevas = pd.DataFrame(records, columns=METRICAS_COLUMNS).drop_duplicates(subset=["Llave"])
     hojas[SHEET_METRICAS] = pd.concat([conservar, nuevas], ignore_index=True)
+    if factor_caracteristica_rows is not None:
+        # Una tabla puede cambiar de Factor/Característica en el Anexo (Tabla 29):
+        # el catálogo Factor -> Característica se refresca completo.
+        hojas[SHEET_FACTOR_CARACTERISTICA] = pd.DataFrame(
+            factor_caracteristica_rows, columns=["Factor", "Caracteristica"]
+        )
 
     VersionManager(base_file=output_file).crear_version(tag="pre_cna_refresh_ids")
     with pd.ExcelWriter(output_file, engine="openpyxl") as writer:

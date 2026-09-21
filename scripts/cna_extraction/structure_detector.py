@@ -27,6 +27,7 @@ NA_STRINGS = {"-", "", "\xa0", " ", " ", "n/a", "na", "nd"}
 
 _YEAR_RE = re.compile(r"^(19|20)\d{2}$")
 _SEMESTER_RE = re.compile(r"^(19|20)\d{2}-[12]$")
+_SEMESTER_DOT_RE = re.compile(r"^(19|20)\d{2}\.[12]$")  # typo frecuente en el Anexo: "2024.1"
 _HEADER_LABEL_RE = re.compile(r"^(tabla\s*n[oº°]?\.?|gr[aá]fico\s*n[oº°]?\.?|\*)$", re.IGNORECASE)
 _NUM_RE = re.compile(r"(\d+)")
 
@@ -52,6 +53,8 @@ def is_period_label(label: Any) -> str | None:
     text = str(label).strip()
     if _SEMESTER_RE.match(text):
         return text
+    if isinstance(label, str) and _SEMESTER_DOT_RE.match(text):
+        return text.replace(".", "-")
     if _YEAR_RE.match(text):
         return text
     return None
@@ -127,25 +130,108 @@ def detect_event_log(raw_rows: list[list[Any]], data_start_row: int) -> bool:
     return has_actividad and has_poblacion
 
 
+_TRAS_ANIO_RE = re.compile(r"^a[ñn]o\s+del\s+", re.IGNORECASE)
+
+
+def _etiqueta_categoria(valor: Any, encabezado: Any) -> Any:
+    """Una categoría que es solo un año ("2019") se confunde con un periodo. Si
+    la columna tiene encabezado ("AÑO DEL INFORME", Tabla 29) se usa para
+    nombrarla: "Informe 2019"."""
+    if (
+        isinstance(valor, (int, float))
+        and not isinstance(valor, bool)
+        and float(valor).is_integer()
+        and 1900 <= int(valor) <= 2100
+        and isinstance(encabezado, str)
+        and encabezado.strip()
+    ):
+        nombre = _TRAS_ANIO_RE.sub("", encabezado.strip()).strip()
+        return f"{nombre.capitalize()} {int(valor)}"
+    return valor
+
+
+_INICIO_BLOQUE_RE = re.compile(r"^(nombre|tabla\s*n[oº°]?\.?|gr[aá]fico\s*n[oº°]?\.?)$", re.IGNORECASE)
+_TOTAL_CON_NOMBRE_RE = re.compile(r"^total\s+\S", re.IGNORECASE)
+_TOTAL_PREFIJO_RE = re.compile(r"^\s*total\s+", re.IGNORECASE)
+
+
+def _es_titulo_de_bloque(row: list[Any]) -> bool:
+    etiqueta = str(row[0]).strip() if row and row[0] is not None else ""
+    return bool(etiqueta and _INICIO_BLOQUE_RE.match(etiqueta))
+
+
+def _es_inicio_de_otro_bloque(row: list[Any]) -> bool:
+    """Fila que abre un bloque distinto de la hoja (otro título "Nombre"/"Tabla"
+    o un nuevo encabezado de periodos), no una continuación de los datos."""
+    etiqueta = str(row[0]).strip() if row and row[0] is not None else ""
+    if etiqueta and _INICIO_BLOQUE_RE.match(etiqueta):
+        return True
+    # Encabezado de periodos: TODAS las celdas con valor (salvo la primera) son
+    # periodos. Un dato suelto como 2023 en una fila de cifras no lo convierte en
+    # encabezado (Tablas 77 y 173).
+    celdas = [v for v in row[1:] if v is not None]
+    return len(celdas) >= 2 and all(is_period_label(v) for v in celdas)
+
+
+def _bloques_de_datos(raw_rows: list[list[Any]], data_row_start: int) -> list[list[int]]:
+    """Índices de las filas de datos agrupadas en bloques separados por filas en
+    blanco. Las filas en blanco INICIALES se ignoran (Tablas 61, 65, 68 traen una
+    fila vacía entre el encabezado y los datos: antes se leían 0 filas)."""
+    bloques: list[list[int]] = [[]]
+    for idx in range(data_row_start, len(raw_rows)):
+        row = raw_rows[idx]
+        if _row_is_blank(row):
+            if bloques[-1]:
+                bloques.append([])
+            continue
+        # Un encabezado a mitad de un bloque contiguo (Tablas 122 y 224 repiten la
+        # fila de periodos) es parte de la hoja, como se leía antes; solo abre un
+        # bloque nuevo si viene tras una fila en blanco o es un título "Nombre/Tabla".
+        if _es_inicio_de_otro_bloque(row) and (not bloques[-1] or _es_titulo_de_bloque(row)):
+            break
+        bloques[-1].append(idx)
+    return [b for b in bloques if b]
+
+
 def _extract_rows(
     raw_rows: list[list[Any]],
     data_row_start: int,
     category_columns: list[int],
     period_columns: list[PeriodColumn],
+    category_headers: dict[int, Any] | None = None,
 ) -> tuple[list[dict[str, Any]], bool]:
     rows: list[dict[str, Any]] = []
     has_explicit_total = False
     state: dict[int, Any] = {}
     ambiguous_seen: dict[tuple[Any, ...], int] = {}
 
-    for row in raw_rows[data_row_start:]:
-        if _row_is_blank(row):
-            break
+    bloques = _bloques_de_datos(raw_rows, data_row_start)
 
+    def tiene_total(idx: int) -> bool:
+        # "Total Activos", "Total Pasivos": total NOMBRADO de su bloque. Un
+        # "Total" a secas cierra la tabla, no define un grupo.
+        return any(
+            isinstance(raw_rows[idx][c], str) and _TOTAL_CON_NOMBRE_RE.match(raw_rows[idx][c].strip())
+            for c in category_columns
+            if c < len(raw_rows[idx])
+        )
+
+    # Varios bloques, cada uno con su propio "Total" (Tabla 66: Total Activos,
+    # Total Pasivos, Patrimonio): es una jerarquía de 3 niveles, no un solo
+    # bloque. Otras hojas con bloques (porcentajes, notas, revistas) no cumplen
+    # esto y se leen solo hasta la primera fila en blanco, como antes.
+    multibloque = sum(1 for b in bloques if any(tiene_total(i) for i in b)) >= 2
+    indices = [(n, i) for n, b in enumerate(bloques) for i in b] if multibloque else [(0, i) for i in bloques[:1][0]] if bloques else []
+
+    items: list[dict[str, Any]] = []
+    for n_bloque, idx in indices:
+        row = raw_rows[idx]
         category_path: list[Any] = []
         row_has_raw_category = False
         for col in category_columns:
             val = normalize_missing(row[col]) if col < len(row) else None
+            if val is not None and category_headers:
+                val = _etiqueta_categoria(val, category_headers.get(col))
             if val is not None:
                 state[col] = val
                 row_has_raw_category = True
@@ -172,32 +258,93 @@ def _extract_rows(
             ambiguous_seen[key] = ambiguous_seen.get(key, 0) + 1
             category_path = [*category_path, f"(sin etiqueta #{ambiguous_seen[key]})"]
 
+        items.append(
+            {
+                "row": row,
+                "path": category_path,
+                "kind": row_kind,
+                "ambiguous": category_ambiguous,
+                "bloque": n_bloque,
+            }
+        )
+
+    if multibloque:
+        has_explicit_total = False
+        for n_bloque in {it["bloque"] for it in items}:
+            del_bloque = [it for it in items if it["bloque"] == n_bloque]
+            total = next((it for it in del_bloque if it["kind"] == "total_explicito"), None)
+            if total is not None:
+                etiqueta = str(total["path"][-1])
+                grupo = _TOTAL_PREFIJO_RE.sub("", etiqueta).strip() or etiqueta
+            elif len(del_bloque) == 1:
+                grupo = str(del_bloque[0]["path"][-1])
+            else:
+                grupo = "Otros"
+            for it in del_bloque:
+                es_subtotal = it is total
+                it["path"] = [grupo, grupo] if (es_subtotal or len(del_bloque) == 1) else [grupo, *it["path"]]
+                it["kind"] = "detalle"
+
+    for it in items:
         for pc in period_columns:
-            value = normalize_missing(row[pc.col_index]) if pc.col_index < len(row) else None
-            rows.append(
-                {
-                    "category_path": category_path,
-                    "period": pc.period,
-                    "value": value,
-                    "row_kind": row_kind,
-                    "category_ambiguous": category_ambiguous,
-                }
-            )
+            value = normalize_missing(it["row"][pc.col_index]) if pc.col_index < len(it["row"]) else None
+            fila = {
+                "category_path": it["path"],
+                "period": pc.period,
+                "value": value,
+                "row_kind": it["kind"],
+                "category_ambiguous": it["ambiguous"],
+            }
+            if multibloque:
+                # Los grupos (Activos/Pasivos/Patrimonio) no se suman entre sí.
+                fila["sin_total_global"] = True
+            if pc.variable:
+                # Subvariable (Títulos/Volúmenes): el TOTAL es un grupo más
+                # ("TOTAL - Títulos"), no el total del indicador, porque las
+                # variables no se suman entre sí.
+                fila["variable"] = pc.variable
+                fila["row_kind"] = "detalle"
+            rows.append(fila)
 
     return rows, has_explicit_total
 
 
-def _extract_vertical_rows(raw_rows: list[list[Any]], header_row_idx: int) -> list[dict[str, Any]]:
+_NUM_TEXTO_RE = re.compile(r"^-?\d{1,3}(?:\.\d{3})+(?:,\d+)?$|^-?\d+(?:[.,]\d+)?$")
+
+
+def _es_numerico(valor: Any) -> bool:
+    if isinstance(valor, bool):
+        return False
+    if isinstance(valor, (int, float)):
+        return True
+    if isinstance(valor, str):
+        return bool(_NUM_TEXTO_RE.match(valor.replace("$", "").replace("%", "").strip()))
+    return False
+
+
+def _columna_de_periodo(raw_rows: list[list[Any]], header_row_idx: int) -> int | None:
+    """Columna (0-2) cuyos valores, hacia abajo, son periodos: la 0 en lo habitual;
+    la 1 cuando la 0 va vacía (Gráficos 6 y 8: años en la segunda columna)."""
+    for col in range(3):
+        n = sum(1 for r in raw_rows[header_row_idx + 1 :] if col < len(r) and is_period_label(r[col]))
+        if n >= 2:
+            return col
+    return None
+
+
+def _extract_vertical_rows(
+    raw_rows: list[list[Any]], header_row_idx: int, period_col: int = 0
+) -> list[dict[str, Any]]:
     if header_row_idx >= len(raw_rows):
         return []
     header_row = raw_rows[header_row_idx]
-    if is_period_label(header_row[0] if header_row else None):
-        col_labels = {i: f"col_{i}" for i in range(1, len(header_row))}
+    if is_period_label(header_row[period_col] if len(header_row) > period_col else None):
+        col_labels = {i: f"col_{i}" for i in range(period_col + 1, len(header_row))}
         first_data_row = header_row_idx
     else:
         col_labels = {
             i: header_row[i]
-            for i in range(1, len(header_row))
+            for i in range(period_col + 1, len(header_row))
             if normalize_missing(header_row[i]) is not None
         }
         first_data_row = header_row_idx + 1
@@ -206,7 +353,7 @@ def _extract_vertical_rows(raw_rows: list[list[Any]], header_row_idx: int) -> li
     for row in raw_rows[first_data_row:]:
         if _row_is_blank(row):
             break
-        period = is_period_label(row[0] if row else None)
+        period = is_period_label(row[period_col] if len(row) > period_col else None)
         if period is None:
             continue
         for col, label in col_labels.items():
@@ -225,6 +372,9 @@ def _extract_vertical_rows(raw_rows: list[list[Any]], header_row_idx: int) -> li
 
 
 def _extract_snapshot_rows(raw_rows: list[list[Any]], header_row_idx: int) -> list[dict[str, Any]]:
+    """Hoja sin eje de periodos: filas de categorías (una o varias columnas de
+    texto, con etiquetas combinadas hacia abajo) y una o más columnas numéricas.
+    Tabla 189: Beneficio | Nivel de formación | Monto."""
     if header_row_idx >= len(raw_rows):
         return []
     header_row = raw_rows[header_row_idx]
@@ -233,20 +383,47 @@ def _extract_snapshot_rows(raw_rows: list[list[Any]], header_row_idx: int) -> li
         for i in range(1, len(header_row))
         if normalize_missing(header_row[i]) is not None
     }
-
-    rows: list[dict[str, Any]] = []
+    filas: list[list[Any]] = []
     for row in raw_rows[header_row_idx + 1 :]:
         if _row_is_blank(row):
             break
-        label = normalize_missing(row[0]) if row else None
-        if label is None:
+        filas.append(row)
+
+    def celdas(col: int) -> list[Any]:
+        return [normalize_missing(r[col]) for r in filas if col < len(r) and normalize_missing(r[col]) is not None]
+
+    numericas = [c for c in col_labels if celdas(c) and sum(_es_numerico(v) for v in celdas(c)) * 2 >= len(celdas(c))]
+    textuales = [c for c in col_labels if c not in numericas]
+    if textuales and numericas and (
+        max(textuales) > min(numericas) or any(len(celdas(c)) < len(filas) for c in textuales)
+    ):
+        # Columnas de texto DESPUÉS de las numéricas (listas en paralelo, p.ej.
+        # país/valor/país/valor) o incompletas (rellenar hacia abajo inventaría
+        # categorías, Tabla 217): no es una jerarquía de categorías.
+        textuales = []
+        numericas = list(col_labels)
+    columnas_categoria = [0, *textuales]
+
+    rows: list[dict[str, Any]] = []
+    estado: dict[int, Any] = {}
+    for row in filas:
+        camino: list[Any] = []
+        hay_etiqueta = False
+        for col in columnas_categoria:
+            valor = normalize_missing(row[col]) if col < len(row) else None
+            if valor is not None:
+                estado[col] = valor
+                hay_etiqueta = True
+            if estado.get(col) is not None:
+                camino.append(estado[col])
+        if not hay_etiqueta or not camino:
             continue
-        row_kind = "total_explicito" if is_total_label(label) else "detalle"
-        for col, sub_label in col_labels.items():
+        row_kind = "total_explicito" if any(is_total_label(v) for v in camino) else "detalle"
+        for col in numericas or ([] if textuales else list(col_labels)):
             value = normalize_missing(row[col]) if col < len(row) else None
             rows.append(
                 {
-                    "category_path": [label, sub_label],
+                    "category_path": [*camino, col_labels[col]] if (not textuales or len(numericas) > 1) else camino,
                     "period": None,
                     "value": value,
                     "row_kind": row_kind,
@@ -254,6 +431,43 @@ def _extract_snapshot_rows(raw_rows: list[list[Any]], header_row_idx: int) -> li
                 }
             )
     return rows
+
+
+def _detecta_encabezado_transpuesto(
+    raw_rows: list[list[Any]], candidate_idx: int
+) -> tuple[list[PeriodColumn], list[int]] | None:
+    """Encabezado de 2 niveles con el PERIODO arriba (combinado sobre varias
+    columnas) y la VARIABLE abajo, p.ej. Tabla 40:
+
+        (vacío) | 2025    |            | 2026    |
+        Áreas   | Títulos | Volúmenes  | Títulos | Volúmenes
+
+    Cada columna con etiqueta abajo es (periodo de arriba, variable de abajo).
+    Devuelve (columnas de periodo, columnas de categoría) o None si la hoja no
+    tiene esa forma."""
+    if candidate_idx + 1 >= len(raw_rows):
+        return None
+    arriba, abajo = raw_rows[candidate_idx], raw_rows[candidate_idx + 1]
+    n_periodos_arriba = sum(1 for v in arriba if is_period_label(v))
+    etiquetas = [
+        (i, str(v).strip())
+        for i, v in enumerate(abajo)
+        if i > 0 and isinstance(v, str) and v.strip() and is_period_label(v) is None
+    ]
+    if n_periodos_arriba == 0 or any(is_period_label(v) for v in abajo):
+        return None
+    if len(etiquetas) < 2 or len(etiquetas) <= n_periodos_arriba:
+        return None
+
+    arriba_ff = forward_fill(arriba)
+    columnas = []
+    for col, variable in etiquetas:
+        periodo = is_period_label(arriba_ff[col])
+        if periodo is None:
+            return None
+        columnas.append(PeriodColumn(col_index=col, label=arriba_ff[col], period=periodo, variable=variable))
+    primera = min(c.col_index for c in columnas)
+    return columnas, list(range(primera))
 
 
 def detect_structure(raw_rows: list[list[Any]], catalog_numero: int | None) -> SheetStructure:
@@ -293,6 +507,26 @@ def detect_structure(raw_rows: list[list[Any]], catalog_numero: int | None) -> S
                 header_row_idx = next_idx
                 group_row_idx = candidate_idx
 
+    transpuesto = _detecta_encabezado_transpuesto(raw_rows, candidate_idx)
+    if transpuesto is not None:
+        period_columns, category_columns = transpuesto
+        rows, has_explicit_total = _extract_rows(
+            raw_rows,
+            candidate_idx + 2,
+            category_columns,
+            period_columns,
+            {c: raw_rows[candidate_idx + 1][c] for c in category_columns},
+        )
+        return SheetStructure(
+            catalog_numero=catalog_numero,
+            kind="horizontal_periods_2level_header",
+            header=header,
+            period_columns=period_columns,
+            category_columns=category_columns,
+            rows=rows,
+            has_explicit_total=has_explicit_total,
+        )
+
     header_row = raw_rows[header_row_idx]
     group_labels = forward_fill(raw_rows[group_row_idx]) if group_row_idx is not None else None
 
@@ -322,7 +556,13 @@ def detect_structure(raw_rows: list[list[Any]], catalog_numero: int | None) -> S
 
     if period_columns:
         data_row_start = header_row_idx + 1
-        rows, has_explicit_total = _extract_rows(raw_rows, data_row_start, category_columns, period_columns)
+        rows, has_explicit_total = _extract_rows(
+            raw_rows,
+            data_row_start,
+            category_columns,
+            period_columns,
+            {c: header_row[c] for c in category_columns},
+        )
         if group_row_idx is not None:
             kind = "horizontal_periods_2level_header"
         elif len(category_columns) >= 2:
@@ -341,11 +581,9 @@ def detect_structure(raw_rows: list[list[Any]], catalog_numero: int | None) -> S
         )
 
     # Sin periodos horizontales: intentar vertical, luego snapshot.
-    vertical_candidates = [
-        r for r in raw_rows[header_row_idx + 1 :] if r and is_period_label(r[0])
-    ]
-    if len(vertical_candidates) >= 2:
-        rows = _extract_vertical_rows(raw_rows, header_row_idx)
+    period_col = _columna_de_periodo(raw_rows, header_row_idx)
+    if period_col is not None:
+        rows = _extract_vertical_rows(raw_rows, header_row_idx, period_col)
         return SheetStructure(
             catalog_numero=catalog_numero,
             kind="vertical_periods",

@@ -302,6 +302,8 @@ class PlanMetricaDetalleResponse(BaseModel):
     variacion_promedio_pct: float | None = None
     serie: list[dict[str, Any]] = Field(default_factory=list)
     desglose: list[dict[str, Any]] = Field(default_factory=list)
+    grupos: list[dict[str, Any]] | None = None
+    variables: list[dict[str, Any]] | None = None
 
 
 class InformeFiltrosResponse(BaseModel):

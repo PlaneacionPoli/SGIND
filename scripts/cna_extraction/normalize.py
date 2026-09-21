@@ -35,6 +35,7 @@ derivadas directamente de la hoja "Metricas" existente):
 
 from __future__ import annotations
 
+import re
 from datetime import date
 from math import isclose
 from typing import Any
@@ -93,6 +94,17 @@ def make_llave(id_: str, subindicador: str | None, periodo: str | None) -> str:
     return f"{id_}|{subindicador or ''}|{periodo or ''}"
 
 
+_MONTO_ES_RE = re.compile(r"^-?\d{1,3}(?:\.\d{3})+(?:,\d+)?$|^-?\d+,\d+$")
+
+
+def _parse_monto_es(text: str) -> float | None:
+    """"$ 1.461.442.920,21" -> 1461442920.21 (miles con punto, decimales con coma)."""
+    limpio = text.replace("$", "").strip()
+    if _MONTO_ES_RE.match(limpio):
+        return float(limpio.replace(".", "").replace(",", "."))
+    return None
+
+
 def infer_ejecucion(value: Any) -> tuple[float | None, str | None, bool]:
     """Separa el valor crudo en (Ejecución numérica, Ejecución s = código de
     unidad inferido, es_cualitativo). Solo infiere entre ENT/DEC/% — no hay
@@ -111,6 +123,9 @@ def infer_ejecucion(value: Any) -> tuple[float | None, str | None, bool]:
         return float(value), "DEC", False
 
     text = str(value).strip()
+    monto = _parse_monto_es(text)
+    if monto is not None:
+        return monto, "$" if "$" in text else ("ENT" if monto.is_integer() else "DEC"), False
     cleaned = text.replace("$", "").replace("%", "").replace(",", "").strip()
     try:
         parsed = float(cleaned)
@@ -134,6 +149,130 @@ def infer_decimales(ejecucion: float | None, unidad: str | None) -> tuple[int, i
     if unidad == "DEC":
         return 2, 2
     return 0, 0
+
+
+_INVERSION_RE = re.compile(r"^\s*inversi", re.IGNORECASE)
+
+
+def _es_fila_de_resumen(path: list[Any]) -> bool:
+    """"%Part/Ingreso", "Part% sobre Ingreso" o "Subtotal Bienestar"."""
+    etiqueta = str(path[-1]) if path else ""
+    return "%" in etiqueta or etiqueta.strip().casefold().startswith("subtotal")
+
+
+def _ajusta_tabla_de_inversion(
+    detector_rows: list[dict[str, Any]], catalog_record: CatalogRecord, stats: dict[str, int]
+) -> list[dict[str, Any]]:
+    """Tablas de inversión (Tablas 67-77): solo importan los desgloses y el Total.
+
+    - Se omiten las filas de porcentaje ("%Part/Ingreso") y los subtotales
+      ("Subtotal Bienestar"): no son desgloses y el subtotal duplica datos.
+    - Si la hoja no trae una fila "Total", la última fila que equivale a la suma
+      de las demás en todos los periodos ES el total aunque lleve el nombre del
+      tema (Tabla 74: "Infraestructura" = Operación + Inversión Capex)."""
+    if not _INVERSION_RE.match(catalog_record.nombre or ""):
+        return detector_rows
+
+    resultado = []
+    for row in detector_rows:
+        if row["row_kind"] != "total_explicito" and _es_fila_de_resumen(row["category_path"]):
+            stats["filas_resumen_omitidas"] = stats.get("filas_resumen_omitidas", 0) + 1
+            continue
+        resultado.append(row)
+
+    if any(r["row_kind"] == "total_explicito" for r in resultado):
+        return resultado
+
+    orden: list[tuple[str, ...]] = []
+    valores: dict[tuple[str, ...], dict[str, float]] = {}
+    for row in resultado:
+        ejecucion, _, cualitativo = infer_ejecucion(row["value"])
+        clave = tuple(map(str, row["category_path"]))
+        if clave not in valores:
+            orden.append(clave)
+            valores[clave] = {}
+        if ejecucion is not None and not cualitativo and row["period"]:
+            valores[clave][row["period"]] = ejecucion
+    if len(orden) < 3:
+        return resultado
+    candidata = orden[-1]
+    comparables = 0
+    for periodo, valor in valores[candidata].items():
+        otros = [valores[c][periodo] for c in orden[:-1] if periodo in valores[c]]
+        if not otros:
+            continue
+        comparables += 1
+        # El Excel redondea en millones: 46.368 de la suma vs 46.367 de la fila.
+        if abs(valor - sum(otros)) > max(1.5, abs(valor) * 1e-3):
+            return resultado
+    if not comparables:
+        return resultado
+    return [
+        {**r, "row_kind": "total_explicito"} if tuple(map(str, r["category_path"])) == candidata else r
+        for r in resultado
+    ]
+
+
+def _corrige_separador_de_miles(
+    detector_rows: list[dict[str, Any]], stats: dict[str, int]
+) -> list[dict[str, Any]]:
+    """Algunas columnas del Anexo (Tabla 36, 2019-2023) traen el separador de
+    miles como si fuera coma decimal: "18.233" quedó guardado como el número
+    18,233 y se leía como 18 en vez de 18.233.
+
+    Se corrige por periodo y SOLO si se valida contra el TOTAL de la hoja: con
+    las cifras tal cual la suma de las categorías NO cuadra con el total, pero
+    al multiplicar por 1.000 los valores con decimales (los enteros como 476 ya
+    están completos) la suma SÍ cuadra. Si no hay total o no cuadra, el
+    periodo no se toca."""
+    def es_decimal_de_miles(v: float) -> bool:
+        return not float(v).is_integer() and abs(v * 1000 - round(v * 1000)) < 1e-6
+
+    def corrige(v: float) -> float:
+        return float(round(v * 1000)) if es_decimal_de_miles(v) else v
+
+    por_periodo: dict[str, dict[str, list[float]]] = {}
+    for row in detector_rows:
+        ejecucion, _, cualitativo = infer_ejecucion(row["value"])
+        if ejecucion is None or cualitativo or not row["period"]:
+            continue
+        grupo = por_periodo.setdefault(row["period"], {"detalle": [], "total": []})
+        es_total = row["row_kind"] == "total_explicito" and not row.get("variable")
+        grupo["total" if es_total else "detalle"].append(ejecucion)
+
+    def cuadra_corregido(g: dict[str, list[float]]) -> bool:
+        return isclose(sum(corrige(v) for v in g["detalle"]), sum(corrige(v) for v in g["total"]), abs_tol=0.5)
+
+    periodos: set[str] = set()
+    candidatos = {p: g for p, g in por_periodo.items() if g["total"] and g["detalle"]}
+    for periodo, g in candidatos.items():
+        if isclose(sum(g["detalle"]), sum(g["total"]), rel_tol=1e-9, abs_tol=1e-6):
+            continue  # ya cuadra tal cual
+        if any(es_decimal_de_miles(v) for v in g["detalle"]) and cuadra_corregido(g):
+            periodos.add(periodo)
+    if not periodos:
+        return detector_rows
+    # Columnas que cuadran tal cual pero con TODOS sus valores en decimales de
+    # miles (2019 de la Tabla 36: ninguna cifra menor a 1.000): comparten el
+    # formato de las columnas ya validadas de la misma hoja.
+    for periodo, g in candidatos.items():
+        if periodo in periodos:
+            continue
+        no_enteros = [v for v in g["detalle"] + g["total"] if not float(v).is_integer()]
+        if no_enteros and all(es_decimal_de_miles(v) for v in no_enteros) and cuadra_corregido(g):
+            periodos.add(periodo)
+
+    resultado = []
+    for row in detector_rows:
+        if row["period"] in periodos:
+            ejecucion, _, cualitativo = infer_ejecucion(row["value"])
+            if ejecucion is not None and not cualitativo and es_decimal_de_miles(ejecucion):
+                stats["valores_separador_de_miles_corregidos"] = (
+                    stats.get("valores_separador_de_miles_corregidos", 0) + 1
+                )
+                row = {**row, "value": corrige(ejecucion)}
+        resultado.append(row)
+    return resultado
 
 
 def _reclasifica_totales_sin_etiqueta(
@@ -197,6 +336,8 @@ def _build_from_generic_rows(
 ) -> list[dict[str, Any]]:
     id_ = make_id(catalog_record)
     indicador = catalog_record.nombre
+    detector_rows = _ajusta_tabla_de_inversion(detector_rows, catalog_record, stats)
+    detector_rows = _corrige_separador_de_miles(detector_rows, stats)
     detector_rows = _reclasifica_totales_sin_etiqueta(detector_rows, stats)
 
     detalle_by_period: dict[str, list[tuple[list[Any], float]]] = {}
@@ -217,7 +358,13 @@ def _build_from_generic_rows(
         if ejecucion is None:
             continue  # celda vacía, no es un dato a reportar
 
-        subindicador = None if row["row_kind"] == "total_explicito" else _join_category_path(category_path)
+        variable = row.get("variable")
+        if variable:
+            # Con subvariables el nombre conserva todos los niveles, incluido
+            # "TOTAL": ARTES - Títulos, TOTAL - Volúmenes.
+            subindicador = " - ".join(str(c) for c in [*category_path, variable])
+        else:
+            subindicador = None if row["row_kind"] == "total_explicito" else _join_category_path(category_path)
         fecha, anio, mes, periodo = period_to_fecha_anio_mes(periodo_raw)
         decimales, decimales_eje = infer_decimales(ejecucion, unidad)
 
@@ -243,6 +390,7 @@ def _build_from_generic_rows(
                 "Proyecto": None,
                 "Llave": make_llave(id_, subindicador, periodo),
                 "Fuente": catalog_record.fuente.strip() or None,
+                "Variable": variable or None,
             }
         )
 
@@ -256,8 +404,11 @@ def _build_from_generic_rows(
     # Con una sola categoría el "total" sería una copia exacta de esa fila (el
     # dashboard lo sumaba dos veces), así que no se sintetiza.
     categorias = {tuple(map(str, path)) for entries in detalle_by_period.values() for path, _ in entries}
+    con_variables = any(r.get("variable") or r.get("sin_total_global") for r in detector_rows)
     for periodo, entries in detalle_by_period.items():
-        if periodo in total_periods_present or len(categorias) < 2:
+        # Con subvariables (Títulos/Volúmenes) sumar no tiene sentido: cada
+        # variable trae su propio TOTAL en la hoja.
+        if periodo in total_periods_present or len(categorias) < 2 or con_variables:
             continue
         total_value = sum(v for _, v in entries)
         fecha, anio, mes, periodo_norm = period_to_fecha_anio_mes(periodo)
@@ -284,6 +435,7 @@ def _build_from_generic_rows(
                 "Proyecto": None,
                 "Llave": make_llave(id_, None, periodo_norm),
                 "Fuente": catalog_record.fuente.strip() or None,
+                "Variable": None,
             }
         )
         stats["totales_calculados_por_suma"] += 1

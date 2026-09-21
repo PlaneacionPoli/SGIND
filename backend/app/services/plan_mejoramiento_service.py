@@ -30,6 +30,7 @@ from app.domain.plan_mejoramiento_builders import (
     build_tabla_cna,
     load_acciones_mejora,
     load_plan_indicadores,
+    sort_factores,
 )
 from app.domain.strategic_processors import StrategicProcessors
 from app.services.excel_reader import ExcelReaderService
@@ -51,7 +52,7 @@ class PlanMejoramientoService:
         catalog = self._loaders.load_cna_catalog()
         factores: list[str] = []
         if not catalog.empty and "Factor" in catalog.columns:
-            factores = sorted(catalog["Factor"].dropna().unique().tolist())
+            factores = sort_factores(catalog["Factor"].dropna().unique().tolist())
         caracteristicas: list[str] = []
         if not catalog.empty and "Característica" in catalog.columns:
             caracteristicas = sorted(catalog["Característica"].dropna().unique().tolist())
@@ -149,7 +150,7 @@ class PlanMejoramientoService:
             if subvista == "historico"
             else build_plan_indicadores_tabla_metas(rows)
         )
-        factores = sorted(df["Factor"].dropna().unique().tolist()) if "Factor" in df.columns else []
+        factores = sort_factores(df["Factor"].dropna().unique().tolist()) if "Factor" in df.columns else []
         caracteristicas = build_caracteristicas_cascade(df, factor)
         tipos = sorted(df["Tipo"].dropna().unique().tolist()) if "Tipo" in df.columns else []
 
@@ -266,7 +267,7 @@ class PlanMejoramientoService:
         )
         tabla = build_metricas_tabla_agrupada(rows)
         kpis = build_metricas_kpis(tabla)  # sobre lo filtrado, igual que la tabla
-        factores = sorted(df["Factor"].dropna().unique().tolist()) if "Factor" in df.columns else []
+        factores = sort_factores(df["Factor"].dropna().unique().tolist()) if "Factor" in df.columns else []
         caracteristicas = build_caracteristicas_cascade(df, factor)
 
         return {
@@ -281,12 +282,23 @@ class PlanMejoramientoService:
         }
 
     def get_metrica_detalle(
-        self, *, factor: str, indicador: str, subindicador: str | None = None
+        self,
+        *,
+        factor: str,
+        indicador: str,
+        subindicador: str | None = None,
+        grupo: str | None = None,
     ) -> dict[str, Any] | None:
         df = build_metricas_historico(self._excel)
         if df.empty or "Factor" not in df.columns or "Indicador" not in df.columns:
             return None
         mask = (df["Factor"] == factor.strip()) & (df["Indicador"] == indicador.strip())
+        if grupo is not None and "Subindicador" in df.columns:
+            # Ficha de un subtotal (nivel intermedio): todas las filas "Grupo - ...".
+            prefijo = f"{grupo.strip()} - ".casefold()
+            mask &= df["Subindicador"].astype(str).str.casefold().str.startswith(prefijo)
+            match = df[mask]
+            return build_metrica_detalle(match, consolidado=True, grupo=grupo.strip()) if not match.empty else None
         if subindicador is not None and "Subindicador" in df.columns:
             mask &= df["Subindicador"] == subindicador.strip()
         match = df[mask]

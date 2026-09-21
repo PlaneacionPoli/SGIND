@@ -29,7 +29,10 @@ export function PmFactorRings({
   }
 
   const max = Math.max(...data.map((d) => d.value), 1);
-  const sorted = [...data].sort((a, b) => b.value - a.value);
+  // Orden por número de factor (1…12), no por valor: así la posición de cada factor es siempre la misma.
+  const factorOrder = (d: (typeof data)[number]) =>
+    d.factorNum ?? Number(/\d+/.exec(d.factor)?.[0] ?? Number.MAX_SAFE_INTEGER);
+  const sorted = [...data].sort((a, b) => factorOrder(a) - factorOrder(b));
 
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">

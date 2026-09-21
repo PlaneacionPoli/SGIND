@@ -410,6 +410,7 @@ export async function fetchPlanMetricaDetalle(params: {
   factor: string;
   indicador: string;
   subindicador?: string;
+  grupo?: string;
 }): Promise<PlanMetricaDetalleResponse> {
   const { data } = await api.get<PlanMetricaDetalleResponse>("/plan-mejoramiento/metricas/detalle", { params });
   return data;

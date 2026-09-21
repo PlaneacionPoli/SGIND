@@ -1,14 +1,17 @@
 export type Role = "procesos" | "calidad" | "desempeno" | "administrador";
 
-/** Iconos en public/icons/nav/ (PNG circular con transparencia, generados desde assets/Iconos/). */
+/**
+ * `icon` = glifo de texto del sidebar; `iconSrc` = PNG circular del menú de inicio
+ * (public/icons/nav/, generado desde assets/Iconos/).
+ */
 export const NAV_ITEMS = [
-  { href: "/resumen-general", label: "Resumen General", iconSrc: "/icons/nav/resumen-general.png" },
-  { href: "/cmi-estrategico", label: "CMI Estratégico", iconSrc: "/icons/nav/cmi-estrategico.png" },
-  { href: "/cmi-procesos", label: "CMI por Procesos", iconSrc: "/icons/nav/cmi-procesos.png" },
-  { href: "/informe-procesos", label: "Informe por Procesos", iconSrc: "/icons/nav/informe-procesos.png" },
-  { href: "/plan-mejoramiento", label: "Plan de Mejoramiento", iconSrc: "/icons/nav/plan-mejoramiento.png" },
-  { href: "/seguimiento-operativo", label: "Seguimiento Operativo", iconSrc: "/icons/nav/seguimiento-operativo.png" },
-  { href: "/gestion-om", label: "Gestión OM", iconSrc: "/icons/nav/gestion-om.png" },
+  { href: "/resumen-general", label: "Resumen General", icon: "◫", iconSrc: "/icons/nav/resumen-general.png" },
+  { href: "/cmi-estrategico", label: "CMI Estratégico", icon: "⌂", iconSrc: "/icons/nav/cmi-estrategico.png" },
+  { href: "/cmi-procesos", label: "CMI por Procesos", icon: "◷", iconSrc: "/icons/nav/cmi-procesos.png" },
+  { href: "/informe-procesos", label: "Informe por Procesos", icon: "◯", iconSrc: "/icons/nav/informe-procesos.png" },
+  { href: "/plan-mejoramiento", label: "Plan de Mejoramiento", icon: "◐", iconSrc: "/icons/nav/plan-mejoramiento.png" },
+  { href: "/seguimiento-operativo", label: "Seguimiento Operativo", icon: "◧", iconSrc: "/icons/nav/seguimiento-operativo.png" },
+  { href: "/gestion-om", label: "Gestión OM", icon: "◈", iconSrc: "/icons/nav/gestion-om.png" },
 ] as const;
 
 /**

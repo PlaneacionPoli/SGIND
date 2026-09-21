@@ -71,6 +71,9 @@ class PeriodColumn:
     label: Any
     period: str | None
     group_label: Any | None = None
+    # Subvariable de un encabezado de 2 niveles con el periodo ARRIBA y la variable
+    # ABAJO (Tabla 40: 2025|2026 sobre Títulos|Volúmenes).
+    variable: str | None = None
 
 
 @dataclass
