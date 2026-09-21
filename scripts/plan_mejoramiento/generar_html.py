@@ -188,7 +188,7 @@ def build_metricas(excel: ExcelLocal) -> dict[str, Any]:
 
     carac = df.groupby(["Factor", "Indicador"])["Caracteristica"].first().to_dict()
     sub_texto = df.groupby(["Factor", "Indicador"])["Subindicador"].apply(
-        lambda s: " ".join(str(x) for x in s.dropna())
+        lambda s: " ".join(sorted({str(x) for x in s.dropna()}))
     ).to_dict()
 
     # Los filtros del backend (tendencia, texto) actúan sobre filas Subindicador ANTES de agrupar,
@@ -272,6 +272,7 @@ def main() -> None:
     modificados = [(data_root / rel).stat().st_mtime for _, rel in FUENTES]
     payload = {
         "generado": datetime.now().isoformat(timespec="seconds"),
+        "anio_cierre": pm.MAX_ANIO_FILTROS,  # último año cerrado: 2026 es parcial (ver backend)
         "datos_actualizados": datetime.fromtimestamp(max(modificados)).isoformat(timespec="seconds"),
         "fuentes": [
             {"nombre": n, "archivo": Path(rel).name, "modificado": datetime.fromtimestamp((data_root / rel).stat().st_mtime).isoformat(timespec="seconds")}

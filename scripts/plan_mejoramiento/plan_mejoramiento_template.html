@@ -253,9 +253,11 @@ function fmtValor(v, signo, decimales) {
 }
 const fmtVariacion = (v) => (v == null ? "—" : (v > 0 ? "+" : "") + fmtNumero(v, 1) + "%");
 const variacionClass = (v) => (v == null || Math.abs(v) < 0.05 ? "v-zero" : v > 0 ? "v-pos" : "v-neg");
-function lineaTendencia(valores) {
+/** Recta de mínimos cuadrados sobre los años cerrados (2026 es parcial y no cuenta); null después del cierre. */
+function lineaTendencia(valores, anios) {
+  const cerrado = (i) => anios[i] <= D.anio_cierre;
   const pts = [];
-  valores.forEach((v, i) => { if (v != null) pts.push([i, v]); });
+  valores.forEach((v, i) => { if (v != null && cerrado(i)) pts.push([i, v]); });
   if (pts.length < 2) return valores.map(() => null);
   const n = pts.length;
   const sx = pts.reduce((a, [x]) => a + x, 0), sy = pts.reduce((a, [, y]) => a + y, 0);
@@ -263,7 +265,7 @@ function lineaTendencia(valores) {
   const den = n * sxx - sx * sx;
   const m = den === 0 ? 0 : (n * sxy - sx * sy) / den;
   const b = (sy - m * sx) / n;
-  return valores.map((_, i) => b + m * i);
+  return valores.map((_, i) => (cerrado(i) ? b + m * i : null));
 }
 /** round() de Python (mitades al par): los % de los KPI deben coincidir con los del backend. */
 function pyRound(x) { const f = Math.floor(x), d = x - f; return d < 0.5 ? f : d > 0.5 ? f + 1 : (f % 2 === 0 ? f : f + 1); }
@@ -628,7 +630,7 @@ function abrirMetrica(factor, indicador, sub, grupo) {
     ? variables.map((v, i) => ({ clave: v.nombre, serie: v.serie, color: PALETA[i % PALETA.length] }))
     : [{ clave: "Resultado", serie: d.serie || [], color }];
   const anios = [...new Set(lineas.flatMap((l) => l.serie.map((p) => p.anio)))].sort((a, b) => a - b);
-  const ajustes = lineas.map((l) => lineaTendencia(anios.map((a) => (l.serie.find((p) => p.anio === a) || {}).ejecucion ?? null)));
+  const ajustes = lineas.map((l) => lineaTendencia(anios.map((a) => (l.serie.find((p) => p.anio === a) || {}).ejecucion ?? null), anios));
   const chartData = anios.map((a, i) => {
     const f = { anio: a };
     lineas.forEach((l, k) => {
