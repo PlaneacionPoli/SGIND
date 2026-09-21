@@ -1,0 +1,198 @@
+name: Actualizar consolidado (mensual)
+
+# Cron sincronizado a mano con config/settings.toml [schedule].cron.
+# "0 11 5 * *" = dia 5 de cada mes, 11:00 UTC = 06:00 hora Colombia (UTC-5).
+on:
+  schedule:
+    - cron: "0 11 5 * *"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Correr con --no-exec (solo validaciones/QA, sin ejecutar el pipeline ni tocar data/)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: actualizar-datos
+  cancel-in-progress: false
+
+jobs:
+  pipeline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Checkout Sistema_Indicadores_Poli (fuente de respaldo del catalogo CMI)
+        uses: actions/checkout@v4
+        with:
+          repository: Ximena5745/Sistema_Indicadores_Poli
+          path: _fuente_externa_poli
+          sparse-checkout: |
+            data/raw/Indicadores por CMI.xlsx
+          sparse-checkout-cone-mode: false
+
+      - name: Copiar catalogo CMI actualizado
+        run: |
+          src="_fuente_externa_poli/data/raw/Indicadores por CMI.xlsx"
+          if [ -f "$src" ]; then
+            cp "$src" "data/raw/Indicadores por CMI.xlsx"
+            echo "Copiado catalogo CMI desde Sistema_Indicadores_Poli."
+          else
+            echo "[AVISO] No se encontro 'Indicadores por CMI.xlsx' en Sistema_Indicadores_Poli, se omite esta fuente."
+          fi
+          rm -rf _fuente_externa_poli
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Instalar dependencias del pipeline
+        run: pip install -r scripts/requirements-pipeline.txt
+
+      - name: Ejecutar pipeline
+        id: run_pipeline
+        run: |
+          if [ "${{ inputs.dry_run }}" = "true" ]; then
+            python scripts/run_pipeline.py --settings config/settings.toml --no-exec
+          else
+            python scripts/run_pipeline.py --settings config/settings.toml
+          fi
+        continue-on-error: true
+
+      - name: Detectar cambios en las rutas de datos
+        id: diff
+        if: always()
+        run: |
+          git add data/output/ "data/raw/Fuentes Consolidadas/" \
+            "data/raw/Catalogo de Indicadores.xlsx" "data/raw/Indicadores por CMI.xlsx" \
+            artifacts/
+          if git diff --cached --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Commit de outputs (solo si el pipeline fue exitoso y hay cambios)
+        if: steps.run_pipeline.outcome == 'success' && steps.diff.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git commit -m "chore(data): actualizar consolidado automatico [$(date -u +%Y-%m-%d)]"
+          git push origin HEAD:main
+
+      - name: Disparar redeploy en Render
+        if: steps.run_pipeline.outcome == 'success' && steps.diff.outputs.changed == 'true'
+        run: curl -fsS -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
+
+      - name: Subir artifacts como evidencia
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pipeline-run-${{ github.run_id }}
+          path: |
+            artifacts/pipeline_run_*.json
+            artifacts/pipeline_run_*.log
+          retention-days: 90
+          if-no-files-found: ignore
+
+      - name: Abrir Issue si el pipeline fallo
+        if: steps.run_pipeline.outcome == 'failure'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require("fs");
+            const path = require("path");
+            const artifactsDir = "artifacts";
+            let logExcerpt = "(no se encontro archivo .log)";
+            try {
+              const files = fs.readdirSync(artifactsDir)
+                .filter(f => f.startsWith("pipeline_run_") && f.endsWith(".log"))
+                .sort()
+                .reverse();
+              if (files.length > 0) {
+                const full = fs.readFileSync(path.join(artifactsDir, files[0]), "utf8");
+                logExcerpt = full.length > 6000 ? full.slice(-6000) : full;
+              }
+            } catch (e) {
+              logExcerpt = "(error leyendo el log: " + e.message + ")";
+            }
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const title = `Fallo en actualizacion automatica de datos - ${new Date().toISOString().slice(0, 10)}`;
+            const body = [
+              "El workflow `actualizar-datos` fallo en la corrida programada.",
+              "",
+              `- Run: ${runUrl}`,
+              `- Commit: ${context.sha}`,
+              "",
+              "No se hizo commit de datos ni se disparo el redeploy de Render.",
+              "",
+              "### Ultimas lineas del log",
+              "```",
+              logExcerpt,
+              "```",
+            ].join("\n");
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title,
+              body,
+              labels: ["pipeline-datos", "automatizado"],
+            });
+
+      - name: Abrir Issue informativo si hay avisos (hoja nueva sin catalogo, etc.)
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require("fs");
+            const artifactsDir = "artifacts";
+            let avisos = [];
+            try {
+              const files = fs.readdirSync(artifactsDir)
+                .filter(f => f.startsWith("pipeline_run_") && f.endsWith(".json"))
+                .sort()
+                .reverse();
+              if (files.length > 0) {
+                const report = JSON.parse(fs.readFileSync(`${artifactsDir}/${files[0]}`, "utf8"));
+                avisos = report.avisos || [];
+              }
+            } catch (e) {
+              return; // sin reporte legible, no hay nada que avisar
+            }
+            if (avisos.length === 0) return;
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const title = `Aviso: revisar catalogo del Anexo Estadistico - ${new Date().toISOString().slice(0, 10)}`;
+            const body = [
+              "El pipeline automatico detecto hojas del Anexo Estadistico sin registro en el catalogo",
+              "'Indice Tablas' (o viceversa). Esto puede significar que hay un indicador nuevo del CNA",
+              "que no se esta extrayendo. Revisar manualmente y, si aplica, correr",
+              "`scripts/plan_mejoramiento/build_catalogo_indicadores.py` (requiere revision fila por fila",
+              "antes de usarse en produccion, no se ejecuta automaticamente).",
+              "",
+              `- Run: ${runUrl}`,
+              "",
+              "### Avisos",
+              "```",
+              avisos.join("\n"),
+              "```",
+            ].join("\n");
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title,
+              body,
+              labels: ["pipeline-datos", "revision-manual"],
+            });
+
+      - name: Marcar el job como fallido
+        if: steps.run_pipeline.outcome == 'failure'
+        run: exit 1

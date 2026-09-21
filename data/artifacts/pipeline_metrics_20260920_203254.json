@@ -1,0 +1,17 @@
+{
+  "pipeline": "SGIND_ETL",
+  "status": "ok",
+  "total_duration_seconds": 699.12,
+  "steps_count": 1,
+  "total_input_rows": 13096,
+  "total_output_rows": 13096,
+  "steps": [
+    {
+      "name": "cargar_fuente",
+      "duration_seconds": 0.305,
+      "input_rows": 13096,
+      "output_rows": 13096,
+      "status": "ok"
+    }
+  ]
+}

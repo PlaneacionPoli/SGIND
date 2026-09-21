@@ -15362,5 +15362,397 @@
       "registros_cierres": 1442,
       "total_nuevos": 3571
     }
+  },
+  {
+    "timestamp": "2026-09-18T19:28:49.884702",
+    "evento": "consolidacion_iniciada",
+    "usuario": "etl_script",
+    "exitoso": true,
+    "detalles": {
+      "a\u00f1o_cierre": 2026,
+      "timestamp_inicio": "2026-09-18T19:28:49.884670",
+      "registros_api": 13080
+    }
+  },
+  {
+    "timestamp": "2026-09-18T19:28:57.215058",
+    "evento": "cambio_datos_backup",
+    "usuario": "etl_script",
+    "exitoso": true,
+    "detalles": {
+      "tabla": "Resultados Consolidados",
+      "registros_afectados": 0,
+      "descripcion": "Versi\u00f3n de seguridad previa a consolidaci\u00f3n"
+    }
+  },
+  {
+    "timestamp": "2026-09-18T19:29:23.159197",
+    "evento": "cambio_datos_informaci\u00f3n",
+    "usuario": "etl_agent5",
+    "exitoso": true,
+    "detalles": {
+      "tabla": "Consolidado Historico",
+      "registros_afectados": "5",
+      "descripcion": "Ejecuci\u00f3n > 1.3 detectada (no se recorta, escala propia del indicador)"
+    }
+  },
+  {
+    "timestamp": "2026-09-18T19:29:23.240571",
+    "evento": "cambio_datos_validaci\u00f3n_cr\u00edtica",
+    "usuario": "etl_agent5",
+    "exitoso": true,
+    "detalles": {
+      "tabla": "Consolidado Historico",
+      "registros_afectados": "30",
+      "descripcion": "Detectados 30 registros con meta=0 (requiere revisi\u00f3n)"
+    }
+  },
+  {
+    "timestamp": "2026-09-18T19:29:23.332020",
+    "evento": "cambio_datos_informaci\u00f3n",
+    "usuario": "etl_agent5",
+    "exitoso": true,
+    "detalles": {
+      "tabla": "Consolidado Semestral",
+      "registros_afectados": "3",
+      "descripcion": "Ejecuci\u00f3n > 1.3 detectada (no se recorta, escala propia del indicador)"
+    }
+  },
+  {
+    "timestamp": "2026-09-18T19:29:23.401426",
+    "evento": "cambio_datos_validaci\u00f3n_cr\u00edtica",
+    "usuario": "etl_agent5",
+    "exitoso": true,
+    "detalles": {
+      "tabla": "Consolidado Semestral",
+      "registros_afectados": "1",
+      "descripcion": "Detectados 1 registros con meta=0 (requiere revisi\u00f3n)"
+    }
+  },
+  {
+    "timestamp": "2026-09-18T19:29:23.484638",
+    "evento": "cambio_datos_informaci\u00f3n",
+    "usuario": "etl_agent5",
+    "exitoso": true,
+    "detalles": {
+      "tabla": "Consolidado Cierres",
+      "registros_afectados": "743",
+      "descripcion": "Ejecuci\u00f3n > 1.3 detectada (no se recorta, escala propia del indicador)"
+    }
+  },
+  {
+    "timestamp": "2026-09-18T19:29:23.546501",
+    "evento": "cambio_datos_validaci\u00f3n_cr\u00edtica",
+    "usuario": "etl_agent5",
+    "exitoso": true,
+    "detalles": {
+      "tabla": "Consolidado Cierres",
+      "registros_afectados": "29",
+      "descripcion": "Detectados 29 registros con meta=0 (requiere revisi\u00f3n)"
+    }
+  },
+  {
+    "timestamp": "2026-09-18T19:42:39.907084",
+    "evento": "consolidacion_iniciada",
+    "usuario": "etl_script",
+    "exitoso": true,
+    "detalles": {
+      "a\u00f1o_cierre": 2026,
+      "timestamp_inicio": "2026-09-18T19:42:39.907061",
+      "registros_api": 13080
+    }
+  },
+  {
+    "timestamp": "2026-09-18T19:42:45.775645",
+    "evento": "cambio_datos_backup",
+    "usuario": "etl_script",
+    "exitoso": true,
+    "detalles": {
+      "tabla": "Resultados Consolidados",
+      "registros_afectados": 0,
+      "descripcion": "Versi\u00f3n de seguridad previa a consolidaci\u00f3n"
+    }
+  },
+  {
+    "timestamp": "2026-09-18T19:43:13.348722",
+    "evento": "cambio_datos_informaci\u00f3n",
+    "usuario": "etl_agent5",
+    "exitoso": true,
+    "detalles": {
+      "tabla": "Consolidado Historico",
+      "registros_afectados": "5",
+      "descripcion": "Ejecuci\u00f3n > 1.3 detectada (no se recorta, escala propia del indicador)"
+    }
+  },
+  {
+    "timestamp": "2026-09-18T19:43:13.435524",
+    "evento": "cambio_datos_validaci\u00f3n_cr\u00edtica",
+    "usuario": "etl_agent5",
+    "exitoso": true,
+    "detalles": {
+      "tabla": "Consolidado Historico",
+      "registros_afectados": "30",
+      "descripcion": "Detectados 30 registros con meta=0 (requiere revisi\u00f3n)"
+    }
+  },
+  {
+    "timestamp": "2026-09-18T19:43:13.534668",
+    "evento": "cambio_datos_informaci\u00f3n",
+    "usuario": "etl_agent5",
+    "exitoso": true,
+    "detalles": {
+      "tabla": "Consolidado Semestral",
+      "registros_afectados": "3",
+      "descripcion": "Ejecuci\u00f3n > 1.3 detectada (no se recorta, escala propia del indicador)"
+    }
+  },
+  {
+    "timestamp": "2026-09-18T19:43:13.636222",
+    "evento": "cambio_datos_validaci\u00f3n_cr\u00edtica",
+    "usuario": "etl_agent5",
+    "exitoso": true,
+    "detalles": {
+      "tabla": "Consolidado Semestral",
+      "registros_afectados": "1",
+      "descripcion": "Detectados 1 registros con meta=0 (requiere revisi\u00f3n)"
+    }
+  },
+  {
+    "timestamp": "2026-09-18T19:43:13.775749",
+    "evento": "cambio_datos_informaci\u00f3n",
+    "usuario": "etl_agent5",
+    "exitoso": true,
+    "detalles": {
+      "tabla": "Consolidado Cierres",
+      "registros_afectados": "743",
+      "descripcion": "Ejecuci\u00f3n > 1.3 detectada (no se recorta, escala propia del indicador)"
+    }
+  },
+  {
+    "timestamp": "2026-09-18T19:43:13.884688",
+    "evento": "cambio_datos_validaci\u00f3n_cr\u00edtica",
+    "usuario": "etl_agent5",
+    "exitoso": true,
+    "detalles": {
+      "tabla": "Consolidado Cierres",
+      "registros_afectados": "29",
+      "descripcion": "Detectados 29 registros con meta=0 (requiere revisi\u00f3n)"
+    }
+  },
+  {
+    "timestamp": "2026-09-18T19:53:57.199554",
+    "evento": "consolidacion_completada",
+    "usuario": "etl_script",
+    "exitoso": true,
+    "detalles": {
+      "registros_historico": 1430,
+      "registros_semestral": 699,
+      "registros_cierres": 1442,
+      "total_nuevos": 3571
+    }
+  },
+  {
+    "timestamp": "2026-09-18T21:01:34.622685",
+    "evento": "diagnostico_cna_extraction",
+    "usuario": "sistema",
+    "exitoso": true,
+    "detalles": {
+      "archivo_fuente": "C:\\Users\\ximen\\OneDrive\\Proyectos_DS\\SGING\\data\\raw\\Plan de mejoramiento\\Anexo Estad\u00edstico Dcto. Autoevaluacion.xlsx",
+      "sheets_procesados": 167,
+      "problemas_detectados": 52,
+      "reporte_json": "artifacts\\cna_extraction_reporte_20260918_210134.json"
+    }
+  },
+  {
+    "timestamp": "2026-09-18T21:02:32.240233",
+    "evento": "build_consolidado_cna",
+    "usuario": "sistema",
+    "exitoso": true,
+    "detalles": {
+      "registros_existentes": 6879,
+      "registros_nuevos_candidatos": 7779,
+      "registros_nuevos_insertados": 0,
+      "registros_totales": 6879,
+      "valores_cualitativos_no_convertidos": 1146,
+      "totales_calculados_por_suma": 595,
+      "archivo_salida": "C:\\Users\\ximen\\OneDrive\\Proyectos_DS\\SGING\\data\\output\\Resultados_Consolidados_CNA.xlsx"
+    }
+  },
+  {
+    "timestamp": "2026-09-18T21:08:34.680643",
+    "evento": "build_consolidado_cna",
+    "usuario": "sistema",
+    "exitoso": true,
+    "detalles": {
+      "registros_existentes": 6879,
+      "registros_nuevos_candidatos": 7779,
+      "registros_nuevos_insertados": 0,
+      "registros_totales": 6879,
+      "valores_cualitativos_no_convertidos": 1146,
+      "totales_calculados_por_suma": 595,
+      "archivo_salida": "C:\\Users\\ximen\\OneDrive\\Proyectos_DS\\SGING\\data\\output\\Resultados_Consolidados_CNA.xlsx",
+      "hojas_sin_catalogo": [
+        "Tabla 81"
+      ],
+      "catalogo_sin_hoja": []
+    }
+  },
+  {
+    "timestamp": "2026-09-18T21:09:15.184944",
+    "evento": "build_consolidado_cna",
+    "usuario": "sistema",
+    "exitoso": true,
+    "detalles": {
+      "registros_existentes": 6879,
+      "registros_nuevos_candidatos": 7779,
+      "registros_nuevos_insertados": 0,
+      "registros_totales": 6879,
+      "valores_cualitativos_no_convertidos": 1146,
+      "totales_calculados_por_suma": 595,
+      "archivo_salida": "C:\\Users\\ximen\\OneDrive\\Proyectos_DS\\SGING\\data\\output\\Resultados_Consolidados_CNA.xlsx",
+      "hojas_sin_catalogo": [
+        "Tabla 81"
+      ],
+      "catalogo_sin_hoja": []
+    }
+  },
+  {
+    "timestamp": "2026-09-18T22:58:50.878679",
+    "evento": "rebuild_consolidado_cna",
+    "usuario": "sistema",
+    "exitoso": true,
+    "detalles": {
+      "registros_existentes": 0,
+      "registros_nuevos_candidatos": 7779,
+      "registros_nuevos_insertados": 6892,
+      "registros_totales": 6892,
+      "valores_cualitativos_no_convertidos": 1146,
+      "totales_calculados_por_suma": 595,
+      "archivo_salida": "C:\\Users\\ximen\\OneDrive\\Proyectos_DS\\SGING\\data\\output\\Resultados_Consolidados_CNA.xlsx",
+      "hojas_sin_catalogo": [
+        "Tabla 81"
+      ],
+      "catalogo_sin_hoja": []
+    }
+  },
+  {
+    "timestamp": "2026-09-20T20:20:48.099312",
+    "evento": "build_consolidado_cna",
+    "usuario": "sistema",
+    "exitoso": true,
+    "detalles": {
+      "registros_existentes": 6892,
+      "registros_nuevos_candidatos": 7779,
+      "registros_nuevos_insertados": 74,
+      "registros_totales": 6966,
+      "valores_cualitativos_no_convertidos": 1148,
+      "totales_calculados_por_suma": 595,
+      "filas_sin_etiqueta_categoria": 52,
+      "archivo_salida": "C:\\Users\\ximen\\OneDrive\\Proyectos_DS\\SGING\\data\\output\\Resultados_Consolidados_CNA.xlsx",
+      "hojas_sin_catalogo": [
+        "Tabla 81"
+      ],
+      "catalogo_sin_hoja": []
+    }
+  },
+  {
+    "timestamp": "2026-09-20T20:21:49.528665",
+    "evento": "consolidacion_iniciada",
+    "usuario": "etl_script",
+    "exitoso": true,
+    "detalles": {
+      "a\u00f1o_cierre": 2026,
+      "timestamp_inicio": "2026-09-20T20:21:49.528665",
+      "registros_api": 13096
+    }
+  },
+  {
+    "timestamp": "2026-09-20T20:21:57.352573",
+    "evento": "cambio_datos_backup",
+    "usuario": "etl_script",
+    "exitoso": true,
+    "detalles": {
+      "tabla": "Resultados Consolidados",
+      "registros_afectados": 0,
+      "descripcion": "Versi\u00f3n de seguridad previa a consolidaci\u00f3n"
+    }
+  },
+  {
+    "timestamp": "2026-09-20T20:22:16.753530",
+    "evento": "cambio_datos_informaci\u00f3n",
+    "usuario": "etl_agent5",
+    "exitoso": true,
+    "detalles": {
+      "tabla": "Consolidado Historico",
+      "registros_afectados": "6",
+      "descripcion": "Ejecuci\u00f3n > 1.3 detectada (no se recorta, escala propia del indicador)"
+    }
+  },
+  {
+    "timestamp": "2026-09-20T20:22:16.817981",
+    "evento": "cambio_datos_validaci\u00f3n_cr\u00edtica",
+    "usuario": "etl_agent5",
+    "exitoso": true,
+    "detalles": {
+      "tabla": "Consolidado Historico",
+      "registros_afectados": "30",
+      "descripcion": "Detectados 30 registros con meta=0 (requiere revisi\u00f3n)"
+    }
+  },
+  {
+    "timestamp": "2026-09-20T20:22:16.898038",
+    "evento": "cambio_datos_informaci\u00f3n",
+    "usuario": "etl_agent5",
+    "exitoso": true,
+    "detalles": {
+      "tabla": "Consolidado Semestral",
+      "registros_afectados": "4",
+      "descripcion": "Ejecuci\u00f3n > 1.3 detectada (no se recorta, escala propia del indicador)"
+    }
+  },
+  {
+    "timestamp": "2026-09-20T20:22:16.962421",
+    "evento": "cambio_datos_validaci\u00f3n_cr\u00edtica",
+    "usuario": "etl_agent5",
+    "exitoso": true,
+    "detalles": {
+      "tabla": "Consolidado Semestral",
+      "registros_afectados": "1",
+      "descripcion": "Detectados 1 registros con meta=0 (requiere revisi\u00f3n)"
+    }
+  },
+  {
+    "timestamp": "2026-09-20T20:22:17.056910",
+    "evento": "cambio_datos_informaci\u00f3n",
+    "usuario": "etl_agent5",
+    "exitoso": true,
+    "detalles": {
+      "tabla": "Consolidado Cierres",
+      "registros_afectados": "749",
+      "descripcion": "Ejecuci\u00f3n > 1.3 detectada (no se recorta, escala propia del indicador)"
+    }
+  },
+  {
+    "timestamp": "2026-09-20T20:22:17.154939",
+    "evento": "cambio_datos_validaci\u00f3n_cr\u00edtica",
+    "usuario": "etl_agent5",
+    "exitoso": true,
+    "detalles": {
+      "tabla": "Consolidado Cierres",
+      "registros_afectados": "30",
+      "descripcion": "Detectados 30 registros con meta=0 (requiere revisi\u00f3n)"
+    }
+  },
+  {
+    "timestamp": "2026-09-20T20:32:54.706463",
+    "evento": "consolidacion_completada",
+    "usuario": "etl_script",
+    "exitoso": true,
+    "detalles": {
+      "registros_historico": 1431,
+      "registros_semestral": 701,
+      "registros_cierres": 1448,
+      "total_nuevos": 3580
+    }
   }
 ]
