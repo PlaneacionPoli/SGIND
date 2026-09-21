@@ -468,6 +468,10 @@ _PLAN_RENAME = {
     "INDICADOR DE RESULTADO O IMPACTO": "Indicador",
     "ID Kawak": "Id_Kawak",
     "Indicador o Metrica": "Tipo",
+    # La hoja maestra ("Indicadores Plan de Mejor") trae el encabezado con tilde y
+    # "Indicadores Real" sin ella: sin este alias las filas que solo existen en la
+    # maestra quedaban con Tipo "nan" y se mostraban como "Sin clasificar".
+    "Indicador o Métrica": "Tipo",
     "Observación Desempeño": "Observacion",
     "Estado": "Estado_raw",
     "Estado de aprobación": "Estado_Aprobacion",
@@ -679,6 +683,10 @@ def _load_plan_sheet(excel, sheet_name: str) -> pd.DataFrame:
     for col in ("Factor", "Indicador"):
         if col in df.columns:
             df[col] = df[col].astype(str).str.strip()
+    if "Tipo" in df.columns:
+        # Un solo valor para las métricas ("Métrica" en la maestra, "Metrica" en Real):
+        # el resto del módulo filtra por Tipo == "Metrica".
+        df["Tipo"] = df["Tipo"].replace({"Métrica": "Metrica"})
     return df
 
 

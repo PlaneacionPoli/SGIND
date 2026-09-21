@@ -106,15 +106,10 @@ def hist_es(hist: dict[str, Any]) -> dict[str, Any]:
 
 
 def build_indicadores(excel: ExcelLocal) -> dict[str, Any]:
-    # El Excel actual trae "Indicador o Métrica" (con tilde) en la hoja maestra, pero el
-    # loader solo renombra la variante sin tilde y deja el Tipo en "nan" para las filas
-    # que no cruzan con la hoja "Indicadores Real". Se acepta también la variante con tilde.
-    pm._PLAN_RENAME.setdefault("Indicador o Métrica", "Tipo")
-
     df = pm.load_plan_indicadores(excel)
     if df.empty:
         raise SystemExit("No se pudo leer 'Indicadores Plan de Mejoramiento.xlsx' (o está vacío).")
-    df = df[~df["Tipo"].isin(["Metrica", "Métrica"])].reset_index(drop=True)
+    df = df[df["Tipo"] != "Metrica"].reset_index(drop=True)
     df = pm.sort_plan_indicadores(df)
 
     metas = pm.build_plan_indicadores_tabla_metas(df)
