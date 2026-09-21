@@ -15,7 +15,7 @@ from app.models.user import User
 
 security = HTTPBearer(auto_error=False)
 
-ADMIN_ROLES: set[RoleName] = {"calidad", "desempeno"}
+ADMIN_ROLES: set[RoleName] = {"administrador", "calidad", "desempeno"}
 
 
 def create_access_token(
@@ -93,5 +93,8 @@ def require_roles(*roles: RoleName):
     return checker
 
 
-require_admin = require_roles("calidad", "desempeno")
-require_reader = require_roles("procesos", "calidad", "desempeno")
+require_admin = require_roles("administrador", "calidad", "desempeno")
+# Pantallas operativas (Seguimiento Operativo, Gestion OM): el rol "procesos"
+# solo ve Resumen, CMI Estrategico, CMI por Procesos, Informe y Plan de Mejoramiento.
+require_operational = require_roles("administrador", "calidad", "desempeno")
+require_reader = require_roles("procesos", "administrador", "calidad", "desempeno")

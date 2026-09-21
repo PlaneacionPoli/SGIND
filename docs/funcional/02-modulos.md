@@ -29,7 +29,15 @@ sí solo:
 ## Quién puede editar qué
 
 Solo el módulo de **Gestión de Oportunidades de Mejora** permite crear o
-modificar datos, y solo pueden hacerlo los usuarios con rol **Calidad** o
-**Desempeño**. Todos los demás módulos (y también la consulta dentro de
-Gestión OM) están disponibles para cualquier usuario que haya iniciado
-sesión, sin distinción de rol.
+modificar datos, y solo pueden hacerlo los usuarios con rol
+**Administrador**, **Calidad** o **Desempeño**.
+
+## Quién ve qué
+
+- **Procesos** (el rol por defecto): ve cinco pantallas — Resumen General,
+  CMI Estratégico, CMI por Procesos, Informe por Procesos y Plan de
+  Mejoramiento. **No** ve Seguimiento Operativo ni Gestión OM: no aparecen
+  en su menú y, si intenta entrar por la dirección, el sistema lo devuelve
+  al menú.
+- **Administrador, Calidad y Desempeño**: ven las siete pantallas y pueden
+  editar Oportunidades de Mejora.

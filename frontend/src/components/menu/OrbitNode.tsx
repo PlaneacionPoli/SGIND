@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import type { NavItemMeta } from "@/config/navigation";
 import { cn } from "@/lib/utils";
@@ -7,6 +8,7 @@ import { cn } from "@/lib/utils";
 interface OrbitNodeProps {
   href: string;
   label: string;
+  iconSrc: string;
   meta: NavItemMeta;
   index: number;
   highlighted: boolean;
@@ -22,6 +24,7 @@ interface OrbitNodeProps {
 export function OrbitNode({
   href,
   label,
+  iconSrc,
   meta,
   index,
   highlighted,
@@ -29,13 +32,14 @@ export function OrbitNode({
   left,
   top,
 }: OrbitNodeProps) {
-  const { Icon, pillColor } = meta;
+  const { pillColor } = meta;
 
+  // El PNG ya es el botón circular completo (con su propio aro y brillo);
+  // el resplandor de color y la animación viven en este contenedor.
   const iconCircle = (
     <span
       style={{
-        background: `radial-gradient(circle at 35% 30%, ${pillColor}f2 0%, ${pillColor} 65%)`,
-        boxShadow: `0 0 26px 6px ${pillColor}80, 0 0 4px 1px ${pillColor}`,
+        boxShadow: `0 0 26px 6px ${pillColor}80`,
         animationDelay: `${index * 350}ms`,
       }}
       className={cn(
@@ -46,9 +50,12 @@ export function OrbitNode({
         highlighted && "ring-poli-gold/70 motion-safe:animate-glow-pulse"
       )}
     >
-      <Icon
-        size={layout === "orbit" ? 30 : 30}
-        className={cn("text-white", layout === "orbit" ? "md:h-9 md:w-9 lg:h-11 lg:w-11" : "sm:h-8 sm:w-8")}
+      <Image
+        src={iconSrc}
+        alt=""
+        width={192}
+        height={192}
+        className="h-full w-full rounded-full object-cover"
         aria-hidden="true"
       />
       {highlighted && (

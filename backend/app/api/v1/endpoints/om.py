@@ -7,7 +7,7 @@ from app.api.deps import get_excel_service
 from app.core.concurrency import run_sync
 from app.core.config import Settings, get_settings
 from app.core.database import get_db
-from app.core.security import require_admin, require_reader
+from app.core.security import require_admin, require_operational
 from app.domain.om_builders import load_plan_accion_para_om
 from app.models.user import User
 from app.schemas.common import (
@@ -40,7 +40,7 @@ async def om_matriz(
     proceso: str | None = Query(None),
     subproceso: str | None = Query(None),
     mostrar_alerta: bool = Query(False),
-    _user: User = Depends(require_reader),
+    _user: User = Depends(require_operational),
     db: AsyncSession = Depends(get_db),
     service: OMMatrizService = Depends(_matriz_service),
 ) -> OMMatrizResponse:
@@ -58,7 +58,7 @@ async def om_matriz(
 @router.get("/plan-accion", response_model=list[dict[str, Any]])
 async def om_plan_accion(
     numero_om: str = Query(...),
-    _user: User = Depends(require_reader),
+    _user: User = Depends(require_operational),
     excel: ExcelReaderService = Depends(_excel),
 ) -> list[dict[str, Any]]:
     """Actividades del plan de acción asociadas a un numero_om/identificador.
@@ -72,7 +72,7 @@ async def om_plan_accion(
 async def list_om(
     anio: int | None = Query(None),
     periodo: str | None = Query(None),
-    _user: User = Depends(require_reader),
+    _user: User = Depends(require_operational),
     db: AsyncSession = Depends(get_db),
 ) -> list[RegistroOMResponse]:
     registros = await _om_service.list_registros(db, anio=anio, periodo=periodo)

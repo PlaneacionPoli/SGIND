@@ -38,10 +38,7 @@ export default function PlanMejoramientoPage() {
     <div className="space-y-6">
       <div className="rounded-xl bg-gradient-to-r from-slate-900 to-slate-800 p-6 text-white shadow-md">
         <p className="text-xs font-semibold uppercase tracking-widest text-blue-200">Modelo CNA</p>
-        <h2 className="mt-1 text-2xl font-bold">Evaluación de Indicadores y Métricas</h2>
-        <p className="mt-1 text-sm text-slate-300">
-          Politécnico Grancolombiano · Gerencia de Planeación · Medición y Mejora
-        </p>
+        <h2 className="mt-1 text-2xl font-bold text-white">Evaluación de Indicadores y Métricas</h2>
       </div>
 
       <div className="flex gap-2">

@@ -49,6 +49,13 @@ def auth_as_procesos():
 
 
 @pytest.fixture
+def auth_as_administrador():
+    app.dependency_overrides[get_current_user] = lambda: _make_user("administrador")
+    yield
+    app.dependency_overrides.pop(get_current_user, None)
+
+
+@pytest.fixture
 def auth_as_calidad():
     app.dependency_overrides[get_current_user] = lambda: _make_user("calidad")
     yield

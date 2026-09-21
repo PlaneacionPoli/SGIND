@@ -1,0 +1,5 @@
+Pipeline run: 20260918_192542
+Settings: config\settings.toml
+Base: C:\Users\ximen\OneDrive\Proyectos_DS\SGING
+
+[NO-EXEC] Ejecutando solo validaciones + QA.

@@ -137,10 +137,11 @@ def test_rbac_require_admin_excluye_procesos():
     assert "procesos" not in ADMIN_ROLES, "El rol 'procesos' no debe tener permisos de admin"
     assert "calidad" in ADMIN_ROLES
     assert "desempeno" in ADMIN_ROLES
+    assert "administrador" in ADMIN_ROLES
 
 
 def test_rbac_matrix_roles_definidos():
-    """Los 3 roles del sistema existen en RoleName."""
+    """Los 4 roles del sistema existen en RoleName."""
     import typing
 
     from app.core.config import RoleName
@@ -149,7 +150,8 @@ def test_rbac_matrix_roles_definidos():
     assert "procesos" in args
     assert "calidad" in args
     assert "desempeno" in args
-    assert len(args) == 3, f"Se esperaban 3 roles, hay {len(args)}: {args}"
+    assert "administrador" in args
+    assert len(args) == 4, f"Se esperaban 4 roles, hay {len(args)}: {args}"
 
 
 # ─── Seguridad: dev login solo en no-producción ──────────────────────────────

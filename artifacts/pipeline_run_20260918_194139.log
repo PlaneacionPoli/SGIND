@@ -1,0 +1,361 @@
+Pipeline run: 20260918_194139
+Settings: config\settings.toml
+Base: C:\Users\ximen\OneDrive\Proyectos_DS\SGING
+
+---
+[STEP] consolidar_api
+CMD: C:\Users\ximen\AppData\Local\Programs\Python\Python314\python.exe C:\Users\ximen\OneDrive\Proyectos_DS\SGING\scripts\consolidar_api.py
+CWD: C:\Users\ximen\OneDrive\Proyectos_DS\SGING
+[EXIT] 0  elapsed_s=22.36
+
+[STDOUT]
+
+============================================================
+PARTE 1: Cat�logo Kawak -> Indicadores Kawak.xlsx
+============================================================
+  2022.xlsx: 152 indicadores
+  2023.xlsx: 289 indicadores
+  2024.xlsx: 315 indicadores
+  2025.xlsx: 785 indicadores
+  2026.xlsx: 4,039 indicadores
+  -----------------------------------------------------
+  Total filas     : 5,580
+  IDs �nicos      : 520
+  A�os cubiertos  : [2022, 2023, 2024, 2025, 2026]
+  [OK] data\raw\Fuentes Consolidadas\Indicadores Kawak.xlsx
+
+============================================================
+PARTE 2: Consolidado API -> Consolidado_API_Kawak.xlsx
+============================================================
+  Procesando 2022.xlsx ...
+  [2022] NaN reales: 2942 | String 'N/A': 1273
+  2022.xlsx: 4,511 filas -> 1,569 (eliminados 2,942 sin fecha)
+  Procesando 2023.xlsx ...
+  [2023] NaN reales: 2747 | String 'N/A': 8702
+  2023.xlsx: 11,997 filas -> 9,252 (eliminados 2,745 sin fecha)
+  Procesando 2024.xlsx ...
+  [2024] NaN reales: 2810 | String 'N/A': 424
+  2024.xlsx: 3,873 filas -> 1,068 (eliminados 2,805 sin fecha)
+  Procesando 2025.xlsx ...
+  [2025] NaN reales: 2792 | String 'N/A': 47
+  2025.xlsx: 3,580 filas -> 800 (eliminados 2,780 sin fecha)
+  Procesando 2026.xlsx ...
+  [2026] NaN reales: 3653 | String 'N/A': 37
+  2026.xlsx: 4,013 filas -> 391 (eliminados 3,622 sin fecha)
+  -----------------------------------------------------
+  Total registros : 13,080
+  IDs �nicos      : 346
+  Rango fechas    : 2022-01-31 -> 2026-09-30
+  [OK] data\raw\Fuentes Consolidadas\Consolidado_API_Kawak.xlsx
+  [OK] data\raw\Fuentes Consolidadas\Consolidado_API_Kawak.csv (cach� CSV)
+
+[COMPLETADO]
+
+
+---
+[STEP] actualizar_consolidado
+CMD: C:\Users\ximen\AppData\Local\Programs\Python\Python314\python.exe C:\Users\ximen\OneDrive\Proyectos_DS\SGING\scripts\actualizar_consolidado.py
+CWD: C:\Users\ximen\OneDrive\Proyectos_DS\SGING
+[EXIT] 0  elapsed_s=716.66
+
+[STDOUT]
+
+============================================================
+PARTE 1: Cat�logo Kawak -> Indicadores Kawak.xlsx
+============================================================
+  2022.xlsx: 152 indicadores
+  2023.xlsx: 289 indicadores
+  2024.xlsx: 315 indicadores
+  2025.xlsx: 785 indicadores
+  2026.xlsx: 4,039 indicadores
+  -----------------------------------------------------
+  Total filas     : 5,580
+  IDs �nicos      : 520
+  A�os cubiertos  : [2022, 2023, 2024, 2025, 2026]
+  [OK] data\raw\Fuentes Consolidadas\Indicadores Kawak.xlsx
+
+============================================================
+PARTE 2: Consolidado API -> Consolidado_API_Kawak.xlsx
+============================================================
+  Procesando 2022.xlsx ...
+  [2022] NaN reales: 2942 | String 'N/A': 1273
+  2022.xlsx: 4,511 filas -> 1,569 (eliminados 2,942 sin fecha)
+  Procesando 2023.xlsx ...
+  [2023] NaN reales: 2747 | String 'N/A': 8702
+  2023.xlsx: 11,997 filas -> 9,252 (eliminados 2,745 sin fecha)
+  Procesando 2024.xlsx ...
+  [2024] NaN reales: 2810 | String 'N/A': 424
+  2024.xlsx: 3,873 filas -> 1,068 (eliminados 2,805 sin fecha)
+  Procesando 2025.xlsx ...
+  [2025] NaN reales: 2792 | String 'N/A': 47
+  2025.xlsx: 3,580 filas -> 800 (eliminados 2,780 sin fecha)
+  Procesando 2026.xlsx ...
+  [2026] NaN reales: 3653 | String 'N/A': 37
+  2026.xlsx: 4,013 filas -> 391 (eliminados 3,622 sin fecha)
+  -----------------------------------------------------
+  Total registros : 13,080
+  IDs �nicos      : 346
+  Rango fechas    : 2022-01-31 -> 2026-09-30
+  [OK] data\raw\Fuentes Consolidadas\Consolidado_API_Kawak.xlsx
+  [OK] data\raw\Fuentes Consolidadas\Consolidado_API_Kawak.csv (cach� CSV)
+
+
+[STDERR]
+19:42:04  INFO      =================================================================
+19:42:04  INFO        ACTUALIZAR CONSOLIDADO  �  A�o cierre: 2026
+19:42:04  INFO      =================================================================
+19:42:04  INFO      \U0001f680 Pipeline SGIND_ETL iniciado
+19:42:04  INFO      0.5 Regenerando consolidados intermedios (Kawak/API)�
+19:42:25  INFO      1. Cargando fuente consolidada API/Kawak�
+19:42:25  INFO        \U0001f4cf Paso 'cargar_fuente' iniciado
+19:42:25  INFO         Leyendo desde cach� CSV: Consolidado_API_Kawak.csv
+19:42:25  INFO         13080 registros fuente
+19:42:25  INFO        \u2705 Paso 'cargar_fuente' completado (0.38s, 13080\u219213080 filas)
+19:42:25  INFO      1.5 Validando contrato de datos (LAYER 1)�
+19:42:25  WARNING   \u26a0\ufe0f Validaci�n con warnings (3):
+19:42:25  WARNING      197 combinaciones ID-fecha duplicadas (se procesa primera)
+19:42:25  WARNING      17 resultados negativos en 'resultado' (m�nimo: -732.08)
+19:42:25  WARNING      2043 resultados > 1.3 (130%) en 'resultado' (m�ximo: 47183249653.789)
+19:42:25  INFO      \u2705 Gate 1 OK: datos listos para procesar
+19:42:25  INFO      2. Cargando cat�logo�
+19:42:26  INFO        Cat�logo unificado: Tipo1=234 Tipo2=165 | TipoCalculo=553 | Variables/Campo=0
+19:42:26  INFO      3. Cargando metadatos y cat�logos auxiliares�
+19:42:28  INFO        kawak_validos: +373 entradas de sub-indicadores agregadas.
+19:42:28  INFO        kawak_validos: +75 entradas de proyectos cronograma agregadas.
+19:42:29  INFO        kawak_validos: +648 entradas de proyectos manuales (sin generador) agregadas.
+19:42:31  WARNING     Error leyendo Kawak/2026.xlsx/.xls: Index(['Id'], dtype='str')
+19:42:35  INFO         ids_inactivos: 381 entradas (Kawak: 185, Ind_Act=0: 289)
+19:42:36  INFO         ids_bienal (Frecuencia=Bienal): 3 entradas
+19:42:37  INFO         kawak_por_a�o: 1388 entradas (Id, A�o)
+19:42:37  INFO         Leyendo desde cach� CSV: Consolidado_API_Kawak.csv
+19:42:39  INFO        Lookup Consolidado_API_Kawak: 3,367 registros (0 series-ext, 70 fallback-suma)
+19:42:39  INFO         api_kawak_lookup: 3367 entradas
+19:42:39  INFO      4. Cargando config_patrones�
+19:42:39  INFO         0 patrones configurados
+19:42:39  INFO      4.5 Inicializando versionado y auditor�a�
+19:42:39  WARNING   \u26a0\ufe0f  Email notifications deshabilitado: falta configuraci�n SMTP. Configure SMTP_SERVER, SENDER_EMAIL, RECIPIENT_EMAILS y SENDER_PASSWORD.
+19:42:39  INFO         \U0001f4ac Email notifications deshabilitado
+19:42:39  INFO      [AUDIT] consolidacion_iniciada | usuario=etl_script | ok=True
+19:42:39  INFO      5. Abriendo workbook Resultados Consolidados.xlsx�
+19:42:45  INFO      5.5 Creando versi�n de seguridad�
+19:42:45  INFO        \u2705 Versi�n guardada: Resultados Consolidados_v20260918_194245_pre_consolidacion.xlsx
+19:42:45  INFO        Versi�n antigua eliminada: Resultados Consolidados_v20260824_010009_pre_consolidacion.xlsx
+19:42:45  INFO      [AUDIT] cambio_datos_backup | usuario=etl_script | ok=True
+19:42:45  INFO      6. Leyendo hojas existentes�
+19:42:50  INFO         Formato_Valores (cat�logo): 553 indicadores
+19:42:50  INFO         697 indicadores con signo
+19:42:50  INFO      7. Purgando filas inv�lidas�
+19:42:51  INFO         Fecha Desde (ficha t�cnica): 399 indicadores
+19:42:53  INFO        [Historico] Sin filas anteriores a Fecha Desde para purgar.
+19:42:53  INFO        [Semestral] Sin filas anteriores a Fecha Desde para purgar.
+19:42:54  INFO        [Cierres] Sin filas anteriores a Fecha Desde para purgar.
+19:42:56  INFO        limpiar_cierres: 23 filas eliminadas.
+19:42:56  INFO      8. Construyendo escalas hist�ricas�
+19:42:56  INFO      9. Preparando fuentes para builders�
+19:42:56  INFO      9.5 Forzando regeneraci�n de 136 IDs (sub-indicadores + proyectos)
+19:42:56  INFO      10. Construyendo nuevos registros�
+19:42:57  INFO         Hist�rico: 60 nuevos, 10348 omitidos, 31 NA
+19:43:00  INFO         Semestral: 16 nuevos, 6329 omitidos, 1 NA
+19:43:13  INFO         Cierres:   1029 nuevos, 10318 omitidos, 16 NA
+19:43:13  INFO      \U0001f527 Aplicando correcciones AGENT 5 (hallazgos cr�ticos)�
+19:43:13  INFO      \u2554\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2557
+19:43:13  INFO      \u2551  APLICANDO CORRECCIONES DE AGENT 5                             \u2551
+19:43:13  INFO      \u2551  Hallazgos Cr�ticos: Ejecuci�n y Meta                          \u2551
+19:43:13  INFO      \u255a\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u255d
+19:43:13  INFO      
+\u2713 CORRECCI�N 1: Se�alar Ejecucion > 1.3 (sin capping)
+19:43:13  INFO      \u2139\ufe0f  5 valores de Ejecucion > 1.3 (no se capan: son ejecuciones reales en su propia escala)
+19:43:13  INFO      
+\u2713 CORRECCI�N 2: Validar Meta = 0/NULL
+19:43:13  WARNING   \U0001f534 CR�TICO: 30 valores de Meta = 0 o NULL. Requiere revisi�n...
+19:43:13  WARNING      IDs afectados: [432, 485, 488, 529, 590]
+19:43:13  WARNING      RECOMENDACI�N: Revisar meta de estos indicadores
+19:43:13  INFO      
+======================================================================
+19:43:13  INFO      RESUMEN DE CORRECCIONES
+19:43:13  INFO      ======================================================================
+19:43:13  INFO      \u2139\ufe0f  Ejecucion > 1.3 (sin tocar): 5
+19:43:13  INFO      \u26a0\ufe0f  Meta = 0 detectados: 30
+19:43:13  INFO      \U0001f4ca TOTAL CORRECCIONES: 30
+19:43:13  INFO      ======================================================================
+19:43:13  INFO      [AUDIT] cambio_datos_informaci�n | usuario=etl_agent5 | ok=True
+19:43:13  INFO      [AUDIT] cambio_datos_validaci�n_cr�tica | usuario=etl_agent5 | ok=True
+19:43:13  ERROR        \U0001f534 Historico: 30 registros con META=0 detectados (revisar manualmente)
+19:43:13  INFO      \u2554\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2557
+19:43:13  INFO      \u2551  APLICANDO CORRECCIONES DE AGENT 5                             \u2551
+19:43:13  INFO      \u2551  Hallazgos Cr�ticos: Ejecuci�n y Meta                          \u2551
+19:43:13  INFO      \u255a\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u255d
+19:43:13  INFO      
+\u2713 CORRECCI�N 1: Se�alar Ejecucion > 1.3 (sin capping)
+19:43:13  INFO      \u2139\ufe0f  3 valores de Ejecucion > 1.3 (no se capan: son ejecuciones reales en su propia escala)
+19:43:13  INFO      
+\u2713 CORRECCI�N 2: Validar Meta = 0/NULL
+19:43:13  WARNING   \U0001f534 CR�TICO: 1 valores de Meta = 0 o NULL. Requiere revisi�n...
+19:43:13  WARNING      IDs afectados: [590]
+19:43:13  WARNING      RECOMENDACI�N: Revisar meta de estos indicadores
+19:43:13  INFO      
+======================================================================
+19:43:13  INFO      RESUMEN DE CORRECCIONES
+19:43:13  INFO      ======================================================================
+19:43:13  INFO      \u2139\ufe0f  Ejecucion > 1.3 (sin tocar): 3
+19:43:13  INFO      \u26a0\ufe0f  Meta = 0 detectados: 1
+19:43:13  INFO      \U0001f4ca TOTAL CORRECCIONES: 1
+19:43:13  INFO      ======================================================================
+19:43:13  INFO      [AUDIT] cambio_datos_informaci�n | usuario=etl_agent5 | ok=True
+19:43:13  INFO      [AUDIT] cambio_datos_validaci�n_cr�tica | usuario=etl_agent5 | ok=True
+19:43:13  ERROR        \U0001f534 Semestral: 1 registros con META=0 detectados (revisar manualmente)
+19:43:13  INFO      \u2554\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2557
+19:43:13  INFO      \u2551  APLICANDO CORRECCIONES DE AGENT 5                             \u2551
+19:43:13  INFO      \u2551  Hallazgos Cr�ticos: Ejecuci�n y Meta                          \u2551
+19:43:13  INFO      \u255a\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u255d
+19:43:13  INFO      
+\u2713 CORRECCI�N 1: Se�alar Ejecucion > 1.3 (sin capping)
+19:43:13  INFO      \u2139\ufe0f  743 valores de Ejecucion > 1.3 (no se capan: son ejecuciones reales en su propia escala)
+19:43:13  INFO      
+\u2713 CORRECCI�N 2: Validar Meta = 0/NULL
+19:43:13  WARNING   \U0001f534 CR�TICO: 29 valores de Meta = 0 o NULL. Requiere revisi�n...
+19:43:13  WARNING      IDs afectados: [200, 203, 389, 402, 444]
+19:43:13  WARNING      RECOMENDACI�N: Revisar meta de estos indicadores
+19:43:13  INFO      
+======================================================================
+19:43:13  INFO      RESUMEN DE CORRECCIONES
+19:43:13  INFO      ======================================================================
+19:43:13  INFO      \u2139\ufe0f  Ejecucion > 1.3 (sin tocar): 743
+19:43:13  INFO      \u26a0\ufe0f  Meta = 0 detectados: 29
+19:43:13  INFO      \U0001f4ca TOTAL CORRECCIONES: 29
+19:43:13  INFO      ======================================================================
+19:43:13  INFO      [AUDIT] cambio_datos_informaci�n | usuario=etl_agent5 | ok=True
+19:43:13  INFO      [AUDIT] cambio_datos_validaci�n_cr�tica | usuario=etl_agent5 | ok=True
+19:43:13  ERROR        \U0001f534 Cierres: 29 registros con META=0 detectados (revisar manualmente)
+19:43:13  INFO      \u2705 Correcciones AGENT 5 aplicadas
+19:43:13  INFO      10.4 Expandiendo series como sub-indicadores�
+19:43:14  INFO         Sub-indicadores: +1125 hist�rico, +609 semestral, +367 cierres
+19:43:14  INFO      10.45 Extrayendo proyectos cronograma (441/509/603)�
+19:43:14  INFO         Proyectos cronograma: +210 hist�rico, +39 semestral (jun), +26 cierres (dic/�ltimo)
+19:43:14  INFO      10.46 Construyendo Total Poblaci�n (14, 14.1-14.4)�
+19:43:15  INFO         Total Poblaci�n: +35 hist�rico, +35 semestral, +20 cierres
+19:43:15  INFO      10.6 Validaci�n intermedia post-construcci�n�
+19:43:15  INFO      \u26a0\ufe0f Validaci�n post_build_Historico: WARNING
+19:43:15  INFO         Checks pasados: 2
+19:43:15  WARNING      Warnings (3):
+19:43:15  WARNING        - 66 llaves duplicadas
+19:43:15  WARNING        - Valores > 1.3 en 'Meta'
+19:43:15  WARNING        - Valores > 1.3 en 'Ejecucion'
+19:43:15  INFO         M�tricas: {'total_registros': 1430, 'llaves_unicas': 1364, 'Meta_min': 0.0, 'Meta_max': 7633001463.0, 'Ejecucion_min': 0.0, 'Ejecucion_max': 7383847983.0}
+19:43:15  INFO      \u26a0\ufe0f Validaci�n post_build_Semestral: WARNING
+19:43:15  INFO         Checks pasados: 2
+19:43:15  WARNING      Warnings (3):
+19:43:15  WARNING        - 19 llaves duplicadas
+19:43:15  WARNING        - Valores > 1.3 en 'Meta'
+19:43:15  WARNING        - Valores > 1.3 en 'Ejecucion'
+19:43:15  INFO         M�tricas: {'total_registros': 699, 'llaves_unicas': 680, 'Meta_min': 0.0, 'Meta_max': 7633001463.0, 'Ejecucion_min': 0.0, 'Ejecucion_max': 7383847983.0}
+19:43:15  INFO      \u26a0\ufe0f Validaci�n post_build_Cierres: WARNING
+19:43:15  INFO         Checks pasados: 2
+19:43:15  WARNING      Warnings (3):
+19:43:15  WARNING        - 15 llaves duplicadas
+19:43:15  WARNING        - Valores > 1.3 en 'Meta'
+19:43:15  WARNING        - Valores negativos en 'Ejecucion'
+19:43:15  INFO         M�tricas: {'total_registros': 1442, 'llaves_unicas': 1427, 'Meta_min': 0.0, 'Meta_max': 277178213544.0, 'Ejecucion_min': -317.995, 'Ejecucion_max': 306600939456.0}
+19:43:15  INFO      10.7 Validaci�n pre-escritura�
+19:43:15  INFO      \u26a0\ufe0f Validaci�n pre_write_Historico: WARNING
+19:43:15  INFO         Checks pasados: 4
+19:43:15  WARNING      Warnings (1):
+19:43:15  WARNING        - 66 filas duplicadas exactas
+19:43:15  INFO         M�tricas: {'total_registros': 1430}
+19:43:15  INFO      \u26a0\ufe0f Validaci�n pre_write_Semestral: WARNING
+19:43:15  INFO         Checks pasados: 4
+19:43:15  WARNING      Warnings (1):
+19:43:15  WARNING        - 19 filas duplicadas exactas
+19:43:15  INFO         M�tricas: {'total_registros': 699}
+19:43:15  INFO      \u26a0\ufe0f Validaci�n pre_write_Cierres: WARNING
+19:43:15  INFO         Checks pasados: 4
+19:43:15  WARNING      Warnings (1):
+19:43:15  WARNING        - 15 filas duplicadas exactas
+19:43:15  INFO         M�tricas: {'total_registros': 1442}
+19:43:15  INFO      11. Escribiendo nuevas filas�
+19:43:16  INFO      12. Reparando valores y recalculando�
+19:43:16  INFO        [Historico] Meta reparada: 2 | Ejecucion reparada: 0
+19:43:18  INFO        [Historico] Meta corregida (capping AGENT5 obsoleto): 6
+19:43:21  INFO        [Historico] Sin Ejecucion=1.3 residual de AGENT5.
+19:43:21  INFO        [Historico] Signos ya sincronizados con el cat�logo.
+19:43:22  INFO        [Historico] Multiserie corregida: Meta=6 Ejec=11
+19:43:22  INFO        [Semestral] Meta reparada: 1 | Ejecucion reparada: 0
+19:43:24  INFO        [Semestral] Meta corregida (capping AGENT5 obsoleto): 1
+19:43:26  INFO        [Semestral] Sin Ejecucion=1.3 residual de AGENT5.
+19:43:26  INFO        [Semestral] Signos ya sincronizados con el cat�logo.
+19:43:27  INFO        [Semestral] Multiserie corregida: Meta=58 Ejec=195
+19:43:27  INFO        [Cierres] Meta reparada: 12 | Ejecucion reparada: 3
+19:43:29  INFO        [Cierres] Meta corregida (capping AGENT5 obsoleto): 1
+19:43:31  INFO        [Cierres] Sin Ejecucion=1.3 residual de AGENT5.
+19:43:31  INFO        [Cierres] Signos ya sincronizados con el cat�logo.
+19:43:32  INFO        [Cierres] Multiserie corregida: Meta=111 Ejec=363
+19:43:36  INFO        [Semestral] Promedio/Acumulado recalculados: 197 filas
+19:43:40  INFO        [Cierres] Promedio/Acumulado recalculados: 386 filas
+19:43:42  INFO        [Historico] Desglose Variables corregido: Meta=3 Ejec=2
+19:43:43  INFO        [Semestral] Desglose Variables: sin correcciones.
+19:43:44  INFO        [Cierres] Desglose Variables corregido: Meta=80 Ejec=91
+19:43:53  INFO        [Historico] 43 filas eliminadas por ser anteriores a Fecha Desde (ficha t�cnica) sin dato real.
+19:43:54  INFO        [Semestral] 4 filas eliminadas por ser anteriores a Fecha Desde (ficha t�cnica) sin dato real.
+19:43:54  INFO        [Cierres] 4 filas eliminadas por ser anteriores a Fecha Desde (ficha t�cnica) sin dato real.
+19:43:54  INFO      13. Deduplicando y reescribiendo f�rmulas�
+19:47:57  INFO        [Historico] 1379 duplicados eliminados.
+19:49:02  INFO          [Consolidado Historico] F�rmulas reescritas en 4,593 filas.
+19:49:03  WARNING   [Consolidado Historico] Filas con Meta y Ejecuci�n pero Cumplimiento vac�o: [568]
+19:50:17  INFO        [Semestral] 690 duplicados eliminados.
+19:50:54  INFO          [Consolidado Semestral] F�rmulas reescritas en 2,779 filas.
+19:50:55  WARNING   [Consolidado Semestral] Filas con Meta y Ejecuci�n pero Cumplimiento vac�o: [232]
+19:53:14  INFO        [Cierres] 1408 duplicados eliminados.
+19:53:35  INFO          [Consolidado Cierres] F�rmulas reescritas en 1,734 filas.
+19:53:36  WARNING   [Consolidado Cierres] Filas con Meta y Ejecuci�n pero Cumplimiento vac�o: [179, 180, 181, 182, 183, 423, 424, 462, 463, 464, 465, 466, 467, 468, 469, 470, 606, 607, 609, 610, 612, 613, 614, 615, 616, 635, 636, 637, 638, 639, 640, 641, 687, 688, 689]
+19:53:36  INFO      14. Actualizando Cat�logo Indicadores�
+19:53:36  INFO        Cat�logo unificado: Tipo1=234 Tipo2=165 | TipoCalculo=553 | Variables/Campo=0
+19:53:37  INFO        Cat�logo unificado: Tipo1=0 Tipo2=0 | TipoCalculo=564 | Variables/Campo=210
+19:53:38  INFO         720 indicadores en cat�logo
+19:53:38  INFO      15. Guardando Resultados Consolidados.xlsx�
+19:53:52  INFO          [Consolidado Historico] Cumplimiento recalculado: 4280 con valor, 310 vac�os.
+19:53:52  INFO          [Consolidado Semestral] Cumplimiento recalculado: 2603 con valor, 176 vac�os.
+19:53:52  INFO          [Consolidado Cierres] Cumplimiento recalculado: 1619 con valor, 115 vac�os.
+19:53:52  INFO          [Cierre PDI] Cumplimiento recalculado: 84 con valor, 6 vac�os.
+19:53:57  INFO         Guardado correctamente.
+19:53:57  INFO         Copia solo valores guardada en: C:\Users\ximen\OneDrive\Proyectos_DS\SGING\data\output\Resultados Consolidados VALORES.xlsx
+19:53:57  INFO      [AUDIT] consolidacion_completada | usuario=etl_script | ok=True
+19:53:57  INFO      =================================================================
+19:53:57  INFO        COMPLETADO � 3571 registros nuevos totales
+19:53:57  INFO      =================================================================
+19:53:57  INFO      AUDITOR�A: 1747 eventos registrados | 1347 exitosos | 400 errores
+19:53:57  INFO      Archivo de auditor�a: C:\Users\ximen\OneDrive\Proyectos_DS\SGING\data\audit\consolidaciones.json
+19:53:57  INFO      \u2705 Pipeline SGIND_ETL completado
+19:53:57  INFO         Duraci�n total: 712.779s
+19:53:57  INFO         Pasos ejecutados: 1
+19:53:57  INFO         Filas procesadas: 13080 \u2192 13080
+19:53:57  INFO      \U0001f4ca M�tricas guardadas en C:\Users\ximen\OneDrive\Proyectos_DS\SGING\data\artifacts\pipeline_metrics_20260918_195357.json
+19:53:57  INFO      \U0001f4ca M�tricas de rendimiento guardadas
+
+
+---
+[STEP] generar_reporte
+CMD: C:\Users\ximen\AppData\Local\Programs\Python\Python314\python.exe C:\Users\ximen\OneDrive\Proyectos_DS\SGING\scripts\generar_reporte.py
+CWD: C:\Users\ximen\OneDrive\Proyectos_DS\SGING
+[EXIT] 0  elapsed_s=10.97
+
+[STDERR]
+19:54:00  INFO        Leyendo Resultados Consolidados.xlsx�
+19:54:03  INFO          Consolidado Historico                4593 filas
+19:54:05  INFO          Consolidado Semestral                2779 filas
+19:54:05  INFO          Consolidado Cierres                  1734 filas
+19:54:06  INFO          Catalogo Indicadores                 720 filas
+19:54:06  INFO        Leyendo Seguimiento_Reporte.xlsx�
+19:54:06  INFO          Resumen                              5 filas
+19:54:07  INFO          Seguimiento                          874 filas
+19:54:07  INFO          Semestral                            415 filas
+19:54:07  INFO          Trimestral                           216 filas
+19:54:07  INFO          Mensual                              100 filas
+19:54:07  INFO          Anual                                115 filas
+19:54:07  INFO          Bimestral                            28 filas
+19:54:08  INFO          Tracking Mensual                     1202 filas
+19:54:09  INFO          Consolidado Cierres                  1049 filas
+19:54:09  INFO          Matriz Calor                         340 filas
+19:54:09  INFO      Reporte JSON: artifacts\reporte_20260918.json
+19:54:09  INFO      Reporte CSV:  artifacts\reporte_20260918.csv
+19:54:09  INFO      Generaci�n completada.
+

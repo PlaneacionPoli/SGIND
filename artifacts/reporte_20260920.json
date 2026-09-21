@@ -1,0 +1,112 @@
+{
+  "generado": "2026-09-20T20:32:57",
+  "archivos": {
+    "resultados_consolidados": {
+      "path": "data\\output\\Resultados Consolidados.xlsx",
+      "hojas": {
+        "Consolidado Historico": {
+          "rows": 4602,
+          "columns": 19,
+          "ids_unicos": 644,
+          "fecha_min": "2022-01-31",
+          "fecha_max": "2026-12-31",
+          "nulos": {
+            "Meta": 153,
+            "Ejecucion": 114,
+            "Cumplimiento": 4602
+          }
+        },
+        "Consolidado Semestral": {
+          "rows": 2786,
+          "columns": 19,
+          "ids_unicos": 672,
+          "fecha_min": "2022-06-30",
+          "fecha_max": "2026-12-31",
+          "nulos": {
+            "Meta": 94,
+            "Ejecucion": 43,
+            "Cumplimiento": 2786
+          }
+        },
+        "Consolidado Cierres": {
+          "rows": 1738,
+          "columns": 19,
+          "ids_unicos": 651,
+          "fecha_min": "2022-09-30",
+          "fecha_max": "2026-12-31",
+          "nulos": {
+            "Meta": 89,
+            "Ejecucion": 27,
+            "Cumplimiento": 1738
+          }
+        },
+        "Catalogo Indicadores": {
+          "rows": 721,
+          "columns": 36,
+          "ids_unicos": 721
+        }
+      }
+    },
+    "seguimiento_reporte": {
+      "path": "data\\output\\Seguimiento_Reporte.xlsx",
+      "hojas": {
+        "Resumen": {
+          "rows": 5,
+          "columns": 5
+        },
+        "Seguimiento": {
+          "rows": 874,
+          "columns": 22,
+          "ids_unicos": 343
+        },
+        "Semestral": {
+          "rows": 415,
+          "columns": 24,
+          "ids_unicos": 196
+        },
+        "Trimestral": {
+          "rows": 216,
+          "columns": 24,
+          "ids_unicos": 59
+        },
+        "Mensual": {
+          "rows": 100,
+          "columns": 24,
+          "ids_unicos": 19
+        },
+        "Anual": {
+          "rows": 115,
+          "columns": 24,
+          "ids_unicos": 63
+        },
+        "Bimestral": {
+          "rows": 28,
+          "columns": 24,
+          "ids_unicos": 6
+        },
+        "Tracking Mensual": {
+          "rows": 1202,
+          "columns": 40,
+          "ids_unicos": 351
+        },
+        "Consolidado Cierres": {
+          "rows": 1049,
+          "columns": 14,
+          "ids_unicos": 340,
+          "fecha_min": "2022-09-30",
+          "fecha_max": "2026-12-31",
+          "nulos": {
+            "Meta": 56,
+            "Ejecucion": 16,
+            "Cumplimiento": 1049
+          }
+        },
+        "Matriz Calor": {
+          "rows": 340,
+          "columns": 4,
+          "ids_unicos": 340
+        }
+      }
+    }
+  }
+}

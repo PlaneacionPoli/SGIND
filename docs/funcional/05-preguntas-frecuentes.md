@@ -24,9 +24,12 @@ técnico, deliberadamente sin enlace en el menú — no está pensada para
 usuarios de negocio.
 
 **¿Cualquier usuario puede ver todos los módulos?**
-Sí, cualquier persona que haya iniciado sesión puede consultar todos los
-módulos visibles en el menú, sin importar su rol. La única restricción por
-rol es poder **editar** en Gestión de Oportunidades de Mejora.
+No. Quien tiene rol **Procesos** (el rol por defecto) ve solo Resumen
+General, CMI Estratégico, CMI por Procesos, Informe por Procesos y Plan de
+Mejoramiento. Seguimiento Operativo y Gestión OM son para los roles
+Administrador, Calidad y Desempeño, que además son los únicos que pueden
+**editar** en Gestión de Oportunidades de Mejora. El rol Administrador se
+asigna a una lista de correos definida por quien administra el sistema.
 
 **¿Qué tan confiables son las cifras de "pruebas pasadas" o "cobertura de
 tests" que aparecen en documentos anteriores del proyecto?**

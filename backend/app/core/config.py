@@ -3,7 +3,7 @@ from typing import Literal
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-RoleName = Literal["procesos", "calidad", "desempeno"]
+RoleName = Literal["procesos", "calidad", "desempeno", "administrador"]
 
 
 class Settings(BaseSettings):
@@ -38,6 +38,10 @@ class Settings(BaseSettings):
     azure_client_secret: str = ""
     azure_redirect_uri: str = "http://localhost:8000/api/v1/auth/callback"
     allowed_emails: str = ""
+    # Correos (separados por coma) que reciben el rol "administrador" al iniciar
+    # sesion. Es la unica fuente de ese rol: quien sale de la lista vuelve a
+    # "procesos". No se versiona (datos personales): se define en el entorno.
+    admin_emails: str = ""
 
     email_login_domain: str = "poligran.edu.co"
 
@@ -57,6 +61,10 @@ class Settings(BaseSettings):
     @property
     def allowed_emails_set(self) -> set[str]:
         return {e.strip().lower() for e in self.allowed_emails.split(",") if e.strip()}
+
+    @property
+    def admin_emails_set(self) -> set[str]:
+        return {e.strip().lower() for e in self.admin_emails.split(",") if e.strip()}
 
     @property
     def azure_authority(self) -> str:

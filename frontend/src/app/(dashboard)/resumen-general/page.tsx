@@ -69,7 +69,7 @@ export default function ResumenGeneralPage() {
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-xs font-semibold uppercase tracking-widest text-blue-200">Sistema de Indicadores</p>
-            <h2 className="mt-1 text-2xl font-bold">Plan de Desarrollo Institucional 2022–2026</h2>
+            <h2 className="mt-1 text-2xl font-bold text-white">Plan de Desarrollo Institucional 2022–2026</h2>
             <p className="mt-1 text-sm text-slate-300">
               Seguimiento estratégico de indicadores PDI · Cuadro de Mando Integral
             </p>

@@ -24,7 +24,7 @@ const PLACEHOLDERS_TIPO_ACCION: Record<string, string> = {
 export default function GestionOMPage() {
   const { isAuthenticated } = useAuthReady();
   const role = useAuthStore((s) => s.role);
-  const canEdit = role === "calidad" || role === "desempeno";
+  const canEdit = role === "administrador" || role === "calidad" || role === "desempeno";
   const queryClient = useQueryClient();
 
   const [anio, setAnio] = useState(2025);

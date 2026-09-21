@@ -3,7 +3,7 @@ from fastapi.responses import Response
 
 from app.api.deps import get_excel_service
 from app.core.concurrency import run_sync
-from app.core.security import require_reader
+from app.core.security import require_operational
 from app.models.user import User
 from app.schemas.common import SeguimientoDashboardResponse, SeguimientoFiltrosResponse
 from app.services.excel_reader import ExcelReaderService
@@ -18,7 +18,7 @@ def _service(excel: ExcelReaderService = Depends(get_excel_service)) -> Seguimie
 
 @router.get("/filtros", response_model=SeguimientoFiltrosResponse)
 async def seguimiento_filtros(
-    _user: User = Depends(require_reader),
+    _user: User = Depends(require_operational),
     service: SeguimientoService = Depends(_service),
 ) -> SeguimientoFiltrosResponse:
     """Devuelve años, meses, procesos y estados disponibles."""
@@ -33,7 +33,7 @@ async def seguimiento_dashboard(
     estado: str | None = Query(None),
     limit: int = Query(500, ge=1, le=5000),
     offset: int = Query(0, ge=0),
-    _user: User = Depends(require_reader),
+    _user: User = Depends(require_operational),
     service: SeguimientoService = Depends(_service),
 ) -> SeguimientoDashboardResponse:
     return SeguimientoDashboardResponse(
@@ -55,7 +55,7 @@ async def seguimiento_export(
     mes: int | None = Query(None, ge=1, le=12),
     proceso: str | None = Query(None),
     estado: str | None = Query(None),
-    _user: User = Depends(require_reader),
+    _user: User = Depends(require_operational),
     service: SeguimientoService = Depends(_service),
 ) -> Response:
     content = await run_sync(

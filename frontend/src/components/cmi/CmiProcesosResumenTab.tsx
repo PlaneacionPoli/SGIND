@@ -72,7 +72,7 @@ export function CmiProcesosResumenTab({ vista, baseAnio }: CmiProcesosResumenTab
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
             <p className="text-[10px] font-bold uppercase tracking-widest text-white/60">CMI por Procesos</p>
-            <h3 className="text-xl font-bold sm:text-2xl">
+            <h3 className="text-xl font-bold text-white sm:text-2xl">
               {banner.pct_saludable != null
                 ? `${fmtNum(banner.pct_saludable)}% de los indicadores opera en niveles saludables`
                 : `${banner.anio} · ${banner.mes}`}

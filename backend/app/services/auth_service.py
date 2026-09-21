@@ -95,26 +95,44 @@ class AuthService:
             select(User).options(selectinload(User.role)).where(User.email == email)
         )
         user = result.scalar_one_or_none()
+        es_admin = email.lower() in self.settings.admin_emails_set
         if user:
             if name and user.name != name:
                 user.name = name
             if azure_oid and user.azure_oid != azure_oid:
                 user.azure_oid = azure_oid
+            # "administrador" lo gobierna solo ADMIN_EMAILS: se asigna al entrar
+            # en la lista y se revierte a "procesos" al salir. Otros roles
+            # (calidad, desempeno, procesos) no se tocan.
+            current = user.role.name if user.role else None
+            target = (
+                "administrador"
+                if es_admin
+                else ("procesos" if current == "administrador" else None)
+            )
+            if target and target != current:
+                role = await self._get_role(db, target)
+                user.role_id = role.id
+                await db.flush()
+                await db.refresh(user, attribute_names=["role"])
             return user
 
-        role_result = await db.execute(select(Role).where(Role.name == default_role))
-        role = role_result.scalar_one_or_none()
-        if role is None:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Rol '{default_role}' no existe en la base de datos",
-            )
-
+        role = await self._get_role(db, "administrador" if es_admin else default_role)
         user = User(email=email, name=name, role_id=role.id, azure_oid=azure_oid)
         db.add(user)
         await db.flush()
         await db.refresh(user, attribute_names=["role"])
         return user
+
+    async def _get_role(self, db: AsyncSession, role_name: RoleName) -> Role:
+        role_result = await db.execute(select(Role).where(Role.name == role_name))
+        role = role_result.scalar_one_or_none()
+        if role is None:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Rol '{role_name}' no existe en la base de datos",
+            )
+        return role
 
     async def email_login(self, db: AsyncSession, *, email: str) -> tuple[str, User]:
         """Login sin OIDC: cualquier correo del dominio institucional entra con rol de lectura."""

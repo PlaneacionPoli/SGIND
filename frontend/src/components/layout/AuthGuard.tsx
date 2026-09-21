@@ -1,22 +1,29 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useAuthReady } from "@/stores/auth-store";
+import { usePathname, useRouter } from "next/navigation";
+import { canAccessPath } from "@/config/navigation";
+import { useAuthReady, useAuthStore } from "@/stores/auth-store";
 
 /**
- * Wrapper de protección de rutas. Redirige a /login si no hay sesión activa.
+ * Wrapper de protección de rutas. Redirige a /login si no hay sesión activa y
+ * a /menu si el rol no puede ver la pantalla (p. ej. "procesos" en /gestion-om).
  * Renderiza null (pantalla en blanco) mientras Zustand rehidrata desde localStorage.
  */
 export function AuthGuard({ children }: { children: React.ReactNode }) {
   const { ready, isAuthenticated } = useAuthReady();
   const router = useRouter();
+  const pathname = usePathname();
+  const role = useAuthStore((s) => s.role);
+  const allowed = canAccessPath(role, pathname);
 
   useEffect(() => {
     if (ready && !isAuthenticated) {
       router.replace("/login");
+    } else if (ready && isAuthenticated && !allowed) {
+      router.replace("/menu");
     }
-  }, [ready, isAuthenticated, router]);
+  }, [ready, isAuthenticated, allowed, router]);
 
   // Mientras rehidrata, mostrar spinner mínimo
   if (!ready) {
@@ -28,7 +35,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
   }
 
   // Si no autenticado, no renderizar nada (la redirección ya fue disparada)
-  if (!isAuthenticated) {
+  if (!isAuthenticated || !allowed) {
     return null;
   }
 

@@ -2,21 +2,25 @@
 
 ## RBAC
 
-Bien implementado en lo que existe: todos los endpoints de negocio usan
-`require_reader` o `require_admin` de forma consistente
-(`backend/app/core/security.py:83-97`), incluyendo `DELETE /om/{id}` con
-`require_admin` como corresponde. `RBAC_MATRIX.md` documenta dos endpoints
-(`etl/run`, `export/*` genérico) que no existen en el código — desfase de
-documentación, no vulnerabilidad.
+Todos los endpoints de negocio usan `require_reader`, `require_operational` o
+`require_admin` de forma consistente (`backend/app/core/security.py`).
+Desde la asignación de roles (2026-09-21) hay cuatro roles (`procesos`,
+`administrador`, `calidad`, `desempeno`):
 
-En el frontend, el único gating real por rol está en Gestión OM
-(`canEdit = role === "calidad" || role === "desempeno"`,
-`gestion-om/page.tsx:27`). El resto del campo `role` en
-`config/navigation.ts` solo resalta visualmente tarjetas — **cualquier
-usuario autenticado, sin importar el rol, puede navegar a cualquier módulo
-por URL**; la protección real de datos ocurre en el backend, no en el
-frontend (correcto como diseño, pero hay que ser explícito de que la UI no
-oculta nada por rol salvo ese botón de edición de OM).
+- `procesos` solo lee Resumen, CMI Estratégico, CMI por Procesos, Informe y
+  Plan de Mejoramiento. Los endpoints de Seguimiento Operativo y Gestión OM
+  (`require_operational`) responden **403** a ese rol — la restricción es real
+  en la API, no solo visual (tests en `backend/tests/test_roles_administrador.py`).
+- `administrador` se asigna solo por la variable de entorno `ADMIN_EMAILS`
+  (correos no versionados) y se revierte a `procesos` si el correo sale de la
+  lista. Ver `docs/architecture/RBAC_MATRIX.md`.
+
+En el frontend, `config/navigation.ts` (`navItemsForRole`, `canAccessPath`)
+filtra el menú de inicio y el sidebar por rol, y `AuthGuard` redirige a
+`/menu` si un usuario `procesos` entra por URL a una pantalla no permitida.
+Es una capa de experiencia: la protección de datos sigue siendo el 403 del
+backend. `gestion-om/page.tsx` habilita la edición a `administrador`,
+`calidad` y `desempeno`.
 
 ## `/auth/dev-token` fuera de `production` — corregido en Oleada 0 (2026-09-20)
 

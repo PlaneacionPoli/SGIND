@@ -96,7 +96,9 @@ async def dev_token(
     from app.core.config import RoleName
     from app.core.security import create_access_token
 
-    role_name: RoleName = role if role in ("procesos", "calidad", "desempeno") else "calidad"
+    role_name: RoleName = (
+        role if role in ("procesos", "calidad", "desempeno", "administrador") else "calidad"
+    )
     name = f"Dev {role_name.capitalize()}"
     token = create_access_token(
         email,

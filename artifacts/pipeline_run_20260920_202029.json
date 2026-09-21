@@ -1,0 +1,230 @@
+{
+  "run_id": "20260920_202029",
+  "settings": "config\\settings.toml",
+  "base_dir": "C:\\Users\\ximen\\OneDrive\\Proyectos_DS\\SGING",
+  "elapsed_total_s": 757.844,
+  "ok": false,
+  "steps": [
+    {
+      "name": "actualizar_directorio_maestro",
+      "ok": true,
+      "returncode": 0,
+      "elapsed_s": 5.255,
+      "command": [
+        "C:\\Users\\ximen\\OneDrive\\Proyectos_DS\\SGING\\backend\\.venv312\\Scripts\\python.exe",
+        "C:\\Users\\ximen\\OneDrive\\Proyectos_DS\\SGING\\scripts\\actualizar_directorio_maestro.py"
+      ]
+    },
+    {
+      "name": "cna_extraction",
+      "ok": true,
+      "returncode": 0,
+      "elapsed_s": 13.587,
+      "command": [
+        "C:\\Users\\ximen\\OneDrive\\Proyectos_DS\\SGING\\backend\\.venv312\\Scripts\\python.exe",
+        "-m",
+        "scripts.cna_extraction.build_cli",
+        "--write"
+      ]
+    },
+    {
+      "name": "consolidar_api",
+      "ok": true,
+      "returncode": 0,
+      "elapsed_s": 24.801,
+      "command": [
+        "C:\\Users\\ximen\\OneDrive\\Proyectos_DS\\SGING\\backend\\.venv312\\Scripts\\python.exe",
+        "C:\\Users\\ximen\\OneDrive\\Proyectos_DS\\SGING\\scripts\\consolidar_api.py"
+      ]
+    },
+    {
+      "name": "actualizar_consolidado",
+      "ok": true,
+      "returncode": 0,
+      "elapsed_s": 702.638,
+      "command": [
+        "C:\\Users\\ximen\\OneDrive\\Proyectos_DS\\SGING\\backend\\.venv312\\Scripts\\python.exe",
+        "C:\\Users\\ximen\\OneDrive\\Proyectos_DS\\SGING\\scripts\\actualizar_consolidado.py"
+      ]
+    },
+    {
+      "name": "generar_reporte",
+      "ok": true,
+      "returncode": 0,
+      "elapsed_s": 11.553,
+      "command": [
+        "C:\\Users\\ximen\\OneDrive\\Proyectos_DS\\SGING\\backend\\.venv312\\Scripts\\python.exe",
+        "C:\\Users\\ximen\\OneDrive\\Proyectos_DS\\SGING\\scripts\\generar_reporte.py"
+      ]
+    }
+  ],
+  "checks": {
+    "missing_outputs": [],
+    "sheets": {
+      "resultados_consolidados": {
+        "path": "data\\output\\Resultados Consolidados.xlsx",
+        "ok": true,
+        "sheet_count": 8,
+        "missing_sheets": []
+      },
+      "seguimiento_reporte": {
+        "path": "data\\output\\Seguimiento_Reporte.xlsx",
+        "ok": true,
+        "sheet_count": 10,
+        "missing_sheets": []
+      },
+      "fuentes_consolidadas_kawak_catalogo": {
+        "path": "data\\raw\\Fuentes Consolidadas\\Indicadores Kawak.xlsx",
+        "ok": true,
+        "sheet_count": null,
+        "missing_sheets": []
+      },
+      "fuentes_consolidadas_api_consolidado": {
+        "path": "data\\raw\\Fuentes Consolidadas\\Consolidado_API_Kawak.xlsx",
+        "ok": true,
+        "sheet_count": null,
+        "missing_sheets": []
+      }
+    },
+    "data_contracts": {
+      "enabled": true,
+      "strict": true,
+      "sources": {
+        "resultados_consolidados": {
+          "ok": false,
+          "error_count": 1,
+          "warning_count": 0,
+          "issue_count": 1,
+          "dataset_shape": [
+            8109,
+            36
+          ],
+          "issues": [
+            {
+              "level": "error",
+              "sheet": "Catalogo Indicadores",
+              "column": "Sentido",
+              "row_count": 3,
+              "description": "Column 'Sentido' has 3 null values but is required"
+            }
+          ]
+        },
+        "plan_accion": {
+          "ok": false,
+          "error_count": 0,
+          "warning_count": 4,
+          "issue_count": 4,
+          "dataset_shape": [
+            842,
+            31
+          ],
+          "issues": [
+            {
+              "level": "warning",
+              "sheet": "Worksheet",
+              "column": "Clasificación",
+              "row_count": 194,
+              "description": "Column 'Clasificación' has values outside allowed set: ['Corrección', 'Acción Correctiva', 'Acción Preventiva', 'Mejora']"
+            },
+            {
+              "level": "warning",
+              "sheet": "Worksheet",
+              "column": "Estado (Plan de Acción)",
+              "row_count": 421,
+              "description": "Column 'Estado (Plan de Acción)' has values outside allowed set: ['Abierto', 'Cerrado', 'En proceso', 'Pendiente']"
+            },
+            {
+              "level": "warning",
+              "sheet": "Worksheet",
+              "column": "Clasificación",
+              "row_count": 194,
+              "description": "Column 'Clasificación' has values outside allowed set: ['Corrección', 'Acción Correctiva', 'Acción Preventiva', 'Mejora']"
+            },
+            {
+              "level": "warning",
+              "sheet": "Worksheet",
+              "column": "Estado (Plan de Acción)",
+              "row_count": 421,
+              "description": "Column 'Estado (Plan de Acción)' has values outside allowed set: ['Abierto', 'Cerrado', 'En proceso', 'Pendiente']"
+            }
+          ]
+        },
+        "kawak_catalogo": {
+          "ok": false,
+          "error_count": 0,
+          "warning_count": 1,
+          "issue_count": 1,
+          "dataset_shape": [
+            2327,
+            9
+          ],
+          "issues": [
+            {
+              "level": "warning",
+              "sheet": "Sheet1",
+              "column": "Tipo",
+              "row_count": 2,
+              "description": "Column 'Tipo' has values outside allowed set: ['Eficacia', 'Eficiencia', 'Efectividad', 'Metrica', 'Financiero', 'Serie Unica', 'Multiserie']"
+            }
+          ]
+        },
+        "indicadores_cmi": {
+          "ok": true,
+          "error_count": 0,
+          "warning_count": 0,
+          "issue_count": 0,
+          "dataset_shape": [
+            701,
+            36
+          ]
+        }
+      }
+    }
+  },
+  "qa": {
+    "enabled": true,
+    "primary_checks": {
+      "resultados_consolidados": [
+        {
+          "sheet": "Consolidado Historico",
+          "rows": 4602,
+          "cols_count": 19,
+          "missing_required_columns_ci": []
+        }
+      ],
+      "seguimiento_reporte": [
+        {
+          "sheet": "Tracking Mensual",
+          "rows": 1202,
+          "cols_count": 40,
+          "missing_required_columns_ci": []
+        }
+      ]
+    },
+    "previous_run": {
+      "run_id": "20260920_201942",
+      "report": "artifacts\\pipeline_run_20260920_201942.json"
+    },
+    "deltas_vs_previous": {
+      "resultados_consolidados": {
+        "Consolidado Historico": {
+          "rows_delta": 9,
+          "rows_prev": 4593
+        }
+      },
+      "seguimiento_reporte": {
+        "Tracking Mensual": {
+          "rows_delta": 0,
+          "rows_prev": 1202
+        }
+      }
+    }
+  },
+  "avisos": [
+    "[AVISO] 1 hoja(s) del workbook SIN registro en el cat�logo '�ndice Tablas' (no se extrajeron sus datos): Tabla 81"
+  ],
+  "artifacts": {
+    "log": "artifacts\\pipeline_run_20260920_202029.log",
+    "report": "artifacts\\pipeline_run_20260920_202029.json"
+  }
+}

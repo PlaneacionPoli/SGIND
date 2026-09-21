@@ -29,5 +29,7 @@ services:
         value: "21600"
       - key: ALLOWED_EMAILS
         sync: false
+      - key: ADMIN_EMAILS
+        sync: false
       - key: EMAIL_LOGIN_DOMAIN
         value: poligran.edu.co

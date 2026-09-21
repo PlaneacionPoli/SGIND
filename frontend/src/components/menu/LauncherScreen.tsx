@@ -1,12 +1,10 @@
 "use client";
 
 import Image from "next/image";
-import { NAV_ITEM_META, NAV_ITEMS } from "@/config/navigation";
+import { NAV_ITEM_META, navItemsForRole, splitIntoRows } from "@/config/navigation";
 import { useAuthStore } from "@/stores/auth-store";
 import { OrbitWaveRow } from "@/components/menu/OrbitWaveRow";
 import { useGreeting } from "@/components/menu/useGreeting";
-
-const ROW_SIZE = 4;
 
 /** Puntos de brillo fijos (sin Math.random en render, para evitar mismatch de hidratación). */
 const PARTICLES = [
@@ -27,24 +25,17 @@ const PARTICLES = [
   { left: 90, top: 45, delay: 200 },
 ] as const;
 
-function chunk<T>(items: T[], size: number): T[][] {
-  const rows: T[][] = [];
-  for (let i = 0; i < items.length; i += size) {
-    rows.push(items.slice(i, i + size));
-  }
-  return rows;
-}
-
 export function LauncherScreen() {
   const { email, role } = useAuthStore();
   const greeting = useGreeting();
   const firstName = email?.split("@")[0];
 
-  // Orden fijo: siempre Resumen General, CMI Estratégico, CMI por Procesos,
-  // Informe por Procesos, Plan de Mejoramiento, Seguimiento Operativo, Gestión OM —
-  // el rol solo resalta (glow/badge), nunca reordena ni saca íconos del recorrido.
-  const items = NAV_ITEMS.filter((item) => Boolean(NAV_ITEM_META[item.href]));
-  const rows = chunk(items, ROW_SIZE);
+  // Orden fijo: Resumen General, CMI Estratégico, CMI por Procesos, Informe por
+  // Procesos, Plan de Mejoramiento, Seguimiento Operativo, Gestión OM. El rol
+  // "procesos" solo ve las cinco primeras (los administradores y calidad/desempeno
+  // ven las siete); las filas se reparten parejas (7 → 4+3, 5 → 3+2).
+  const items = navItemsForRole(role).filter((item) => Boolean(NAV_ITEM_META[item.href]));
+  const rows = splitIntoRows(items);
 
   return (
     <div className="relative flex h-screen flex-col overflow-hidden bg-[radial-gradient(ellipse_at_top,#16345f_0%,#0a1a33_45%,#050d1a_100%)]">

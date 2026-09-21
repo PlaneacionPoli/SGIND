@@ -1,9 +1,12 @@
 # Inventario real de la API (`backend/app/api/v1/endpoints/`)
 
-Guards reales (`backend/app/core/security.py:83-97`):
-`require_reader = require_roles("procesos","calidad","desempeno")` (cualquier
-usuario autenticado), `require_admin = require_roles("calidad","desempeno")`.
-No existe un tercer nivel — el rol `procesos` nunca puede escribir en `/om`.
+Guards reales (`backend/app/core/security.py`):
+`require_reader = require_roles("procesos","administrador","calidad","desempeno")`
+(cualquier usuario autenticado), y `require_operational` / `require_admin`, ambos
+`require_roles("administrador","calidad","desempeno")`. `require_operational` protege las
+pantallas Seguimiento Operativo y Gestión OM (lectura): el rol `procesos` recibe 403 ahí y
+nunca puede escribir en `/om`. Detalle de roles en
+[`RBAC_MATRIX.md`](../architecture/RBAC_MATRIX.md).
 
 | Método | Ruta | Propósito | `response_model` | Auth |
 |---|---|---|---|---|
@@ -37,16 +40,16 @@ No existe un tercer nivel — el rol `procesos` nunca puede escribir en `/om`.
 | GET | `/api/v1/cmi/procesos/export` | Exporta a xlsx/csv | No (binario) | `require_reader` |
 | GET | `/api/v1/cmi/procesos` | Listado CMI Procesos | Sí | `require_reader` |
 | GET | `/api/v1/cmi/alertas` | Indicadores en alerta/peligro | Sí | `require_reader` |
-| GET | `/api/v1/om/matriz` | Matriz OM (cruza Excel + BD) | Sí | `require_reader` |
-| GET | `/api/v1/om/plan-accion` | Actividades del plan de acción | **No** (`list[dict]`) | `require_reader` |
-| GET | `/api/v1/om` | Lista registros OM | Sí | `require_reader` |
+| GET | `/api/v1/om/matriz` | Matriz OM (cruza Excel + BD) | Sí | `require_operational` |
+| GET | `/api/v1/om/plan-accion` | Actividades del plan de acción | **No** (`list[dict]`) | `require_operational` |
+| GET | `/api/v1/om` | Lista registros OM | Sí | `require_operational` |
 | POST | `/api/v1/om` | Crea registro OM (upsert) | Sí | `require_admin` |
 | PUT | `/api/v1/om/{id}` | Actualiza registro OM | Sí | `require_admin` |
 | PATCH | `/api/v1/om/{id}/cerrar` | Cierra OM | Sí | `require_admin` |
 | DELETE | `/api/v1/om/{id}` | Borra registro OM | 204 | `require_admin` |
-| GET | `/api/v1/seguimiento/filtros` | Filtros de seguimiento | Sí | `require_reader` |
-| GET | `/api/v1/seguimiento/dashboard` | Dashboard de seguimiento | Sí | `require_reader` |
-| GET | `/api/v1/seguimiento/export` | Exporta a xlsx | No (binario) | `require_reader` |
+| GET | `/api/v1/seguimiento/filtros` | Filtros de seguimiento | Sí | `require_operational` |
+| GET | `/api/v1/seguimiento/dashboard` | Dashboard de seguimiento | Sí | `require_operational` |
+| GET | `/api/v1/seguimiento/export` | Exporta a xlsx | No (binario) | `require_operational` |
 | GET | `/api/v1/plan-mejoramiento/filtros` | Filtros Plan de Mejoramiento | Sí | `require_reader` |
 | GET | `/api/v1/plan-mejoramiento/dashboard` | Dashboard Plan de Mejoramiento | Sí | `require_reader` |
 | GET | `/api/v1/plan-mejoramiento/indicadores` | Pestaña Indicadores | Sí | `require_reader` |

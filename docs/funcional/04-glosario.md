@@ -41,6 +41,7 @@
 - **Excel consolidado**: el archivo (`Resultados Consolidados.xlsx`) que
   contiene todos los indicadores procesados; es la fuente real de los
   datos que ves en el dashboard.
-- **Rol**: nivel de acceso de un usuario. En SGING hay tres: Procesos,
-  Calidad, Desempeño. Solo Calidad y Desempeño pueden editar Oportunidades
-  de Mejora; los tres pueden consultar todo lo demás.
+- **Rol**: nivel de acceso de un usuario. En SGING hay cuatro: Procesos,
+  Administrador, Calidad y Desempeño. Procesos ve cinco de las siete
+  pantallas y no edita; los otros tres ven todo y pueden editar
+  Oportunidades de Mejora.

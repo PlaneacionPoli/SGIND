@@ -7,6 +7,7 @@ import { OrbitNode } from "@/components/menu/OrbitNode";
 interface OrbitWaveRowItem {
   href: string;
   label: string;
+  iconSrc: string;
 }
 
 interface OrbitWaveRowProps {
@@ -180,6 +181,7 @@ export function OrbitWaveRow({ items, rowIndex, currentRole }: OrbitWaveRowProps
               key={item.href}
               href={item.href}
               label={item.label}
+              iconSrc={item.iconSrc}
               meta={meta}
               index={index}
               highlighted={isHighlighted(meta.roles, currentRole)}
@@ -199,6 +201,7 @@ export function OrbitWaveRow({ items, rowIndex, currentRole }: OrbitWaveRowProps
               key={item.href}
               href={item.href}
               label={item.label}
+              iconSrc={item.iconSrc}
               meta={meta}
               index={index}
               highlighted={isHighlighted(meta.roles, currentRole)}

@@ -1,0 +1,422 @@
+{
+  "generado": "2026-09-18T21:01:34.611718",
+  "archivo_fuente": "C:\\Users\\ximen\\OneDrive\\Proyectos_DS\\SGING\\data\\raw\\Plan de mejoramiento\\Anexo Estadístico Dcto. Autoevaluacion.xlsx",
+  "total_sheets_workbook": 170,
+  "total_catalog_records": 167,
+  "total_sheets_datos": 168,
+  "sheets_matched": 167,
+  "sheets_procesados": 167,
+  "unreferenced_sheets": [
+    "Tabla 81"
+  ],
+  "sheets_by_kind": {
+    "horizontal_periods_2level_rows": 26,
+    "snapshot_no_period": 36,
+    "horizontal_periods_flat": 76,
+    "vertical_periods": 23,
+    "horizontal_periods_2level_header": 5,
+    "event_log_atypical": 1
+  },
+  "periods_found_histogram": {
+    "2016": 6,
+    "2017": 6,
+    "2018": 23,
+    "2019": 292,
+    "2019-2": 381,
+    "2020": 335,
+    "2020-1": 358,
+    "2020-2": 397,
+    "2021": 322,
+    "2021-1": 383,
+    "2021-2": 385,
+    "2022": 407,
+    "2022-1": 365,
+    "2022-2": 381,
+    "2023": 406,
+    "2023-1": 377,
+    "2023-2": 425,
+    "2024": 364,
+    "2024-1": 456,
+    "2024-2": 533,
+    "2025": 246,
+    "2025-1": 594,
+    "2025-2": 483,
+    "2026": 36,
+    "2026-1": 634,
+    "2026-2": 10
+  },
+  "subindicador_depth_histogram": {
+    "0": 2,
+    "1": 103,
+    "2": 49,
+    "3": 1,
+    "4": 1,
+    "11": 2
+  },
+  "problems": [
+    {
+      "numero": 1,
+      "sheet_name": "Gráfico 1",
+      "catalog_nombre": "Profesores por dedicación 2019-2 a 2025-1",
+      "kind": "sin_total_explicito",
+      "reason": "Tiene subdivisiones pero no trae fila/columna Total explícita; la Fase 2 debe calcular el valor del indicador principal como suma de las subdivisiones por periodo."
+    },
+    {
+      "numero": 2,
+      "sheet_name": "Gráfico 2",
+      "catalog_nombre": "Profesores por nivel de formación",
+      "kind": "sin_total_explicito",
+      "reason": "Tiene subdivisiones pero no trae fila/columna Total explícita; la Fase 2 debe calcular el valor del indicador principal como suma de las subdivisiones por periodo."
+    },
+    {
+      "numero": 23,
+      "sheet_name": "Tabla 23",
+      "catalog_nombre": "Resultados de las acciones de formación integral",
+      "kind": "sin_total_explicito",
+      "reason": "Tiene subdivisiones pero no trae fila/columna Total explícita; la Fase 2 debe calcular el valor del indicador principal como suma de las subdivisiones por periodo."
+    },
+    {
+      "numero": 32,
+      "sheet_name": "Tabla 32",
+      "catalog_nombre": "Personal administrativo beneficiado con políticas de estímulos 2019-2 a 2025-1",
+      "kind": "sin_total_explicito",
+      "reason": "Tiene subdivisiones pero no trae fila/columna Total explícita; la Fase 2 debe calcular el valor del indicador principal como suma de las subdivisiones por periodo."
+    },
+    {
+      "numero": 20,
+      "sheet_name": "Ilustración 20",
+      "catalog_nombre": "Estudio comparado: Resultados Evaluación Integral de Desempeño profesoral",
+      "kind": "sin_total_explicito",
+      "reason": "Tiene subdivisiones pero no trae fila/columna Total explícita; la Fase 2 debe calcular el valor del indicador principal como suma de las subdivisiones por periodo."
+    },
+    {
+      "numero": 42,
+      "sheet_name": "Tabla 42",
+      "catalog_nombre": "Recursos bibliográficos 2019-2 a 2025-1",
+      "kind": "sin_total_explicito",
+      "reason": "Tiene subdivisiones pero no trae fila/columna Total explícita; la Fase 2 debe calcular el valor del indicador principal como suma de las subdivisiones por periodo."
+    },
+    {
+      "numero": 43,
+      "sheet_name": "Tabla 43",
+      "catalog_nombre": "Uso de los Recursos Bibliográficos 2019-2 a 2025-1",
+      "kind": "sin_total_explicito",
+      "reason": "Tiene subdivisiones pero no trae fila/columna Total explícita; la Fase 2 debe calcular el valor del indicador principal como suma de las subdivisiones por periodo."
+    },
+    {
+      "numero": 44,
+      "sheet_name": "Tabla 44",
+      "catalog_nombre": "Divulgación periódica revistas",
+      "kind": "sin_total_explicito",
+      "reason": "Tiene subdivisiones pero no trae fila/columna Total explícita; la Fase 2 debe calcular el valor del indicador principal como suma de las subdivisiones por periodo."
+    },
+    {
+      "numero": 46,
+      "sheet_name": "Tabla 46",
+      "catalog_nombre": "Histórico de la salida a los estudiantes de los diferentes ambientes",
+      "kind": "sin_total_explicito",
+      "reason": "Tiene subdivisiones pero no trae fila/columna Total explícita; la Fase 2 debe calcular el valor del indicador principal como suma de las subdivisiones por periodo."
+    },
+    {
+      "numero": 4,
+      "sheet_name": "Gráfico 4",
+      "catalog_nombre": "Medición uso recorridos",
+      "kind": "sin_total_explicito",
+      "reason": "Tiene subdivisiones pero no trae fila/columna Total explícita; la Fase 2 debe calcular el valor del indicador principal como suma de las subdivisiones por periodo."
+    },
+    {
+      "numero": 57,
+      "sheet_name": "Tabla 57",
+      "catalog_nombre": "Infraestructura física 2019-2 a 2025-1",
+      "kind": "sin_total_explicito",
+      "reason": "Tiene subdivisiones pero no trae fila/columna Total explícita; la Fase 2 debe calcular el valor del indicador principal como suma de las subdivisiones por periodo."
+    },
+    {
+      "numero": 58,
+      "sheet_name": "Tabla 58",
+      "catalog_nombre": "Infraestructura Tecnológica 2019-2 a 2025-1",
+      "kind": "sin_total_explicito",
+      "reason": "Tiene subdivisiones pero no trae fila/columna Total explícita; la Fase 2 debe calcular el valor del indicador principal como suma de las subdivisiones por periodo."
+    },
+    {
+      "numero": 62,
+      "sheet_name": "Tabla 62",
+      "catalog_nombre": "Fuentes de financiamiento internas y externas de la Institución",
+      "kind": "sin_total_explicito",
+      "reason": "Tiene subdivisiones pero no trae fila/columna Total explícita; la Fase 2 debe calcular el valor del indicador principal como suma de las subdivisiones por periodo."
+    },
+    {
+      "numero": 63,
+      "sheet_name": "Tabla 63",
+      "catalog_nombre": "Comportamiento de excedentes operacional y neto",
+      "kind": "sin_total_explicito",
+      "reason": "Tiene subdivisiones pero no trae fila/columna Total explícita; la Fase 2 debe calcular el valor del indicador principal como suma de las subdivisiones por periodo."
+    },
+    {
+      "numero": 67,
+      "sheet_name": "Tabla 67",
+      "catalog_nombre": "inversiones realizadas en torno al plan de mejoramiento",
+      "kind": "sin_total_explicito",
+      "reason": "Tiene subdivisiones pero no trae fila/columna Total explícita; la Fase 2 debe calcular el valor del indicador principal como suma de las subdivisiones por periodo."
+    },
+    {
+      "numero": 73,
+      "sheet_name": "Tabla 73",
+      "catalog_nombre": "Inversión en Docencia",
+      "kind": "sin_total_explicito",
+      "reason": "Tiene subdivisiones pero no trae fila/columna Total explícita; la Fase 2 debe calcular el valor del indicador principal como suma de las subdivisiones por periodo."
+    },
+    {
+      "numero": 74,
+      "sheet_name": "Tabla 74",
+      "catalog_nombre": "Inversión en Infraestructura",
+      "kind": "sin_total_explicito",
+      "reason": "Tiene subdivisiones pero no trae fila/columna Total explícita; la Fase 2 debe calcular el valor del indicador principal como suma de las subdivisiones por periodo."
+    },
+    {
+      "numero": 75,
+      "sheet_name": "Tabla 75",
+      "catalog_nombre": "Inversión en Infraestructura tecnológica",
+      "kind": "sin_total_explicito",
+      "reason": "Tiene subdivisiones pero no trae fila/columna Total explícita; la Fase 2 debe calcular el valor del indicador principal como suma de las subdivisiones por periodo."
+    },
+    {
+      "numero": 76,
+      "sheet_name": "Tabla 76",
+      "catalog_nombre": "Inversión en contenidos virtuales",
+      "kind": "sin_total_explicito",
+      "reason": "Tiene subdivisiones pero no trae fila/columna Total explícita; la Fase 2 debe calcular el valor del indicador principal como suma de las subdivisiones por periodo."
+    },
+    {
+      "numero": 77,
+      "sheet_name": "Tabla 77",
+      "catalog_nombre": "Inversión en Medios Audiovisuales y Biblioteca",
+      "kind": "sin_total_explicito",
+      "reason": "Tiene subdivisiones pero no trae fila/columna Total explícita; la Fase 2 debe calcular el valor del indicador principal como suma de las subdivisiones por periodo."
+    },
+    {
+      "numero": 101,
+      "sheet_name": "Tabla 101",
+      "catalog_nombre": "Participación de profesores en el plan de cualificación institucional",
+      "kind": "sin_total_explicito",
+      "reason": "Tiene subdivisiones pero no trae fila/columna Total explícita; la Fase 2 debe calcular el valor del indicador principal como suma de las subdivisiones por periodo."
+    },
+    {
+      "numero": 110,
+      "sheet_name": "Tabla 110",
+      "catalog_nombre": "Resultado de los grupos institucionales en la Convocatoria de Medición de Grupos e Investigadores 957",
+      "kind": "sin_total_explicito",
+      "reason": "Tiene subdivisiones pero no trae fila/columna Total explícita; la Fase 2 debe calcular el valor del indicador principal como suma de las subdivisiones por periodo."
+    },
+    {
+      "numero": 137,
+      "sheet_name": "Tabla 137",
+      "catalog_nombre": "Actividad y población impactada entre 2020-2025-1",
+      "kind": "event_log_atypical",
+      "reason": "Detectada estructura de bitácora de eventos (no periódica); requiere revisión manual."
+    },
+    {
+      "numero": 121,
+      "sheet_name": "Tabla 121",
+      "catalog_nombre": "Histórico de producción del Laboratorio de Experiencias de Aprendizaje Inmersivo (LEAI y MI-Book) 2019-2025-1",
+      "kind": "sin_total_explicito",
+      "reason": "Tiene subdivisiones pero no trae fila/columna Total explícita; la Fase 2 debe calcular el valor del indicador principal como suma de las subdivisiones por periodo."
+    },
+    {
+      "numero": 122,
+      "sheet_name": "Tabla 122",
+      "catalog_nombre": "Histórico de uso de los ambientes inmersivos por parte de los estudiantes 2019-2025-1",
+      "kind": "sin_total_explicito",
+      "reason": "Tiene subdivisiones pero no trae fila/columna Total explícita; la Fase 2 debe calcular el valor del indicador principal como suma de las subdivisiones por periodo."
+    },
+    {
+      "numero": 126,
+      "sheet_name": "Tabla 126",
+      "catalog_nombre": "Capacitación y actualización profesional entre 2019-2 a 2025-1",
+      "kind": "sin_total_explicito",
+      "reason": "Tiene subdivisiones pero no trae fila/columna Total explícita; la Fase 2 debe calcular el valor del indicador principal como suma de las subdivisiones por periodo."
+    },
+    {
+      "numero": 13,
+      "sheet_name": "Gráfico 13",
+      "catalog_nombre": "Estudiantes modalidad virtual que han realizado practicas pedagógicas entre 2019-2025-1",
+      "kind": "sin_total_explicito",
+      "reason": "Tiene subdivisiones pero no trae fila/columna Total explícita; la Fase 2 debe calcular el valor del indicador principal como suma de las subdivisiones por periodo."
+    },
+    {
+      "numero": 131,
+      "sheet_name": "Tabla 131",
+      "catalog_nombre": "Estudiantes modalidad presencial y virtual que han realizado prácticas educativas del programa de Psicología entre 2019-2025-1",
+      "kind": "sin_total_explicito",
+      "reason": "Tiene subdivisiones pero no trae fila/columna Total explícita; la Fase 2 debe calcular el valor del indicador principal como suma de las subdivisiones por periodo."
+    },
+    {
+      "numero": 132,
+      "sheet_name": "Tabla 132",
+      "catalog_nombre": "Estudiantes modalidad presencial y virtual que han realizado prácticas en el consultorio tributario y empresarial entre 2019-2025-1",
+      "kind": "sin_total_explicito",
+      "reason": "Tiene subdivisiones pero no trae fila/columna Total explícita; la Fase 2 debe calcular el valor del indicador principal como suma de las subdivisiones por periodo."
+    },
+    {
+      "numero": 133,
+      "sheet_name": "Tabla 133",
+      "catalog_nombre": "Estudiantes en modalidad presencial que han realizado prácticas entre 2019-2025-1",
+      "kind": "sin_total_explicito",
+      "reason": "Tiene subdivisiones pero no trae fila/columna Total explícita; la Fase 2 debe calcular el valor del indicador principal como suma de las subdivisiones por periodo."
+    },
+    {
+      "numero": 134,
+      "sheet_name": "Tabla 134",
+      "catalog_nombre": "Estudiantes de modalidad presencial que han realizado prácticas en la Agencia Trompo entre 2019-2025-1",
+      "kind": "sin_total_explicito",
+      "reason": "Tiene subdivisiones pero no trae fila/columna Total explícita; la Fase 2 debe calcular el valor del indicador principal como suma de las subdivisiones por periodo."
+    },
+    {
+      "numero": 15,
+      "sheet_name": "Gráfico 15",
+      "catalog_nombre": "Usuarios que han tomado el servicio de transporte desde 2019 a 2025-1",
+      "kind": "sin_total_explicito",
+      "reason": "Tiene subdivisiones pero no trae fila/columna Total explícita; la Fase 2 debe calcular el valor del indicador principal como suma de las subdivisiones por periodo."
+    },
+    {
+      "numero": 145,
+      "sheet_name": "Tabla 145",
+      "catalog_nombre": "Número de clases espejo y estudiantes que participaron en estos espacios",
+      "kind": "sin_total_explicito",
+      "reason": "Tiene subdivisiones pero no trae fila/columna Total explícita; la Fase 2 debe calcular el valor del indicador principal como suma de las subdivisiones por periodo."
+    },
+    {
+      "numero": 153,
+      "sheet_name": "Tabla 153",
+      "catalog_nombre": "Contenido del Poli para otros",
+      "kind": "sin_total_explicito",
+      "reason": "Tiene subdivisiones pero no trae fila/columna Total explícita; la Fase 2 debe calcular el valor del indicador principal como suma de las subdivisiones por periodo."
+    },
+    {
+      "numero": 156,
+      "sheet_name": "Tabla 156",
+      "catalog_nombre": "Cifras de movilidad saliente y entrante de estudiantes y profesores",
+      "kind": "sin_total_explicito",
+      "reason": "Tiene subdivisiones pero no trae fila/columna Total explícita; la Fase 2 debe calcular el valor del indicador principal como suma de las subdivisiones por periodo."
+    },
+    {
+      "numero": 164,
+      "sheet_name": "Tabla 164",
+      "catalog_nombre": "Atención Centro de Psicológica",
+      "kind": "sin_total_explicito",
+      "reason": "Tiene subdivisiones pero no trae fila/columna Total explícita; la Fase 2 debe calcular el valor del indicador principal como suma de las subdivisiones por periodo."
+    },
+    {
+      "numero": 171,
+      "sheet_name": "Tabla 171",
+      "catalog_nombre": "Participación en actividades de promoción y cuidado de la salud",
+      "kind": "sin_total_explicito",
+      "reason": "Tiene subdivisiones pero no trae fila/columna Total explícita; la Fase 2 debe calcular el valor del indicador principal como suma de las subdivisiones por periodo."
+    },
+    {
+      "numero": 175,
+      "sheet_name": "Tabla 175",
+      "catalog_nombre": "Porcentajes de satisfacción de las actividades de bienestar _ Administrativos y Profesores",
+      "kind": "sin_total_explicito",
+      "reason": "Tiene subdivisiones pero no trae fila/columna Total explícita; la Fase 2 debe calcular el valor del indicador principal como suma de las subdivisiones por periodo."
+    },
+    {
+      "numero": 184,
+      "sheet_name": "Tabla 184",
+      "catalog_nombre": "Relación Profesor/ Estudiante con contrato indefinido y anual",
+      "kind": "sin_total_explicito",
+      "reason": "Tiene subdivisiones pero no trae fila/columna Total explícita; la Fase 2 debe calcular el valor del indicador principal como suma de las subdivisiones por periodo."
+    },
+    {
+      "numero": 185,
+      "sheet_name": "Tabla 185",
+      "catalog_nombre": "Relación Profesor/Estudiante  total duraciones",
+      "kind": "sin_total_explicito",
+      "reason": "Tiene subdivisiones pero no trae fila/columna Total explícita; la Fase 2 debe calcular el valor del indicador principal como suma de las subdivisiones por periodo."
+    },
+    {
+      "numero": 193,
+      "sheet_name": "Tabla 193",
+      "catalog_nombre": "Resultados de la Evaluación 360° a profesores en el quinquenio",
+      "kind": "sin_total_explicito",
+      "reason": "Tiene subdivisiones pero no trae fila/columna Total explícita; la Fase 2 debe calcular el valor del indicador principal como suma de las subdivisiones por periodo."
+    },
+    {
+      "numero": 21,
+      "sheet_name": "Gráfico 21",
+      "catalog_nombre": "Evolución Bilingüismo Profesores en el Quinquenio",
+      "kind": "sin_total_explicito",
+      "reason": "Tiene subdivisiones pero no trae fila/columna Total explícita; la Fase 2 debe calcular el valor del indicador principal como suma de las subdivisiones por periodo."
+    },
+    {
+      "numero": 201,
+      "sheet_name": "Tabla 201",
+      "catalog_nombre": "Consolidado del último quinquenio frente a la participación de la Institución en distintos escenarios que le ha otorgado algún reconocimiento por su gestión, participación y/o resultado",
+      "kind": "sin_total_explicito",
+      "reason": "Tiene subdivisiones pero no trae fila/columna Total explícita; la Fase 2 debe calcular el valor del indicador principal como suma de las subdivisiones por periodo."
+    },
+    {
+      "numero": 209,
+      "sheet_name": "Tabla 209",
+      "catalog_nombre": "Capacitación Fortalecimiento de Cultura Inclusiva",
+      "kind": "sin_total_explicito",
+      "reason": "Tiene subdivisiones pero no trae fila/columna Total explícita; la Fase 2 debe calcular el valor del indicador principal como suma de las subdivisiones por periodo."
+    },
+    {
+      "numero": 218,
+      "sheet_name": "Tabla 218",
+      "catalog_nombre": "Deserción anual SPADIES 2019 a 2023",
+      "kind": "sin_total_explicito",
+      "reason": "Tiene subdivisiones pero no trae fila/columna Total explícita; la Fase 2 debe calcular el valor del indicador principal como suma de las subdivisiones por periodo."
+    },
+    {
+      "numero": 219,
+      "sheet_name": "Tabla 219",
+      "catalog_nombre": "Tasa de deserción Poli",
+      "kind": "sin_total_explicito",
+      "reason": "Tiene subdivisiones pero no trae fila/columna Total explícita; la Fase 2 debe calcular el valor del indicador principal como suma de las subdivisiones por periodo."
+    },
+    {
+      "numero": 224,
+      "sheet_name": "Tabla 224",
+      "catalog_nombre": "Graduados que han diligenciado los instrumentos de seguimiento",
+      "kind": "sin_total_explicito",
+      "reason": "Tiene subdivisiones pero no trae fila/columna Total explícita; la Fase 2 debe calcular el valor del indicador principal como suma de las subdivisiones por periodo."
+    },
+    {
+      "numero": 225,
+      "sheet_name": "Tabla 225",
+      "catalog_nombre": "Vinculación laboral - recién graduados",
+      "kind": "sin_total_explicito",
+      "reason": "Tiene subdivisiones pero no trae fila/columna Total explícita; la Fase 2 debe calcular el valor del indicador principal como suma de las subdivisiones por periodo."
+    },
+    {
+      "numero": 228,
+      "sheet_name": "Tabla 228",
+      "catalog_nombre": "Qué tan relacionado se encuentra su trabajo con el programa de formación ?",
+      "kind": "sin_total_explicito",
+      "reason": "Tiene subdivisiones pero no trae fila/columna Total explícita; la Fase 2 debe calcular el valor del indicador principal como suma de las subdivisiones por periodo."
+    },
+    {
+      "numero": 231,
+      "sheet_name": "Tabla 231",
+      "catalog_nombre": "Nivel de Satisfacción con la Institución",
+      "kind": "sin_total_explicito",
+      "reason": "Tiene subdivisiones pero no trae fila/columna Total explícita; la Fase 2 debe calcular el valor del indicador principal como suma de las subdivisiones por periodo."
+    },
+    {
+      "numero": 232,
+      "sheet_name": "Tabla 232",
+      "catalog_nombre": "Graduados que continúan sus estudios de posgrado Poli 2019-2 a 2025-1",
+      "kind": "sin_total_explicito",
+      "reason": "Tiene subdivisiones pero no trae fila/columna Total explícita; la Fase 2 debe calcular el valor del indicador principal como suma de las subdivisiones por periodo."
+    },
+    {
+      "numero": null,
+      "sheet_name": "Tabla 81",
+      "catalog_nombre": null,
+      "kind": "sin_catalogo",
+      "reason": "Hoja del workbook sin registro correspondiente en Índice Tablas."
+    }
+  ]
+}
