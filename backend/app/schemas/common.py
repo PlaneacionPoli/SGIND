@@ -271,6 +271,8 @@ class PlanIndicadorDetalleResponse(BaseModel):
     observacion: str | None = None
     cumplimiento_texto: str | None = None
     metas_futuras_texto: str | None = None
+    cumplimiento: list[dict[str, str]] = Field(default_factory=list)
+    metas_futuras: list[dict[str, str]] = Field(default_factory=list)
 
 
 class PlanMetricasDashboardResponse(BaseModel):

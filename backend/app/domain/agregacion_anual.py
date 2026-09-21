@@ -49,5 +49,7 @@ IDS_TOTAL_NO_APLICA: frozenset[str] = frozenset(
         "T55",  # Infraestructura física del Poli
         "T57",  # Infraestructura física
         "T58",  # Infraestructura tecnológica
+        "G6",  # Liquidez y capital de trabajo (pesos vs índice)
+        "G8",  # Ingresos por extensión vs costos y gestión
     }
 )

@@ -787,6 +787,8 @@ export interface PlanIndicadorDetalleResponse {
   observacion: string | null;
   cumplimiento_texto: string | null;
   metas_futuras_texto: string | null;
+  cumplimiento: Array<{ anio: string; meta: string; ejecucion: string; cump: string }>;
+  metas_futuras: Array<{ anio: string; meta: string }>;
 }
 
 export interface PlanMetricasDashboardResponse {

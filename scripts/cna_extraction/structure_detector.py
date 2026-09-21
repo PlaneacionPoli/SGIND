@@ -285,18 +285,32 @@ def _extract_rows(
                 it["path"] = [grupo, grupo] if (es_subtotal or len(del_bloque) == 1) else [grupo, *it["path"]]
                 it["kind"] = "detalle"
 
+    grupos_de_columna = {
+        str(pc.group_label).strip()
+        for pc in period_columns
+        if pc.group_label is not None and is_period_label(pc.group_label) is None
+    }
     for it in items:
         for pc in period_columns:
             value = normalize_missing(it["row"][pc.col_index]) if pc.col_index < len(it["row"]) else None
+            # Encabezado de 2 niveles con la categoría ARRIBA de los periodos
+            # (Ilustración 20: medio de comunicación sobre 2022|2023|2024): la
+            # categoría es un nivel más, Medio - Opción. Sin él, todos los medios
+            # compartían la misma Llave y solo sobrevivía uno.
+            grupo_columna = pc.group_label
+            con_grupo = (
+                len(grupos_de_columna) >= 2 and grupo_columna is not None and is_period_label(grupo_columna) is None
+            )
             fila = {
-                "category_path": it["path"],
+                "category_path": [str(grupo_columna).strip(), *it["path"]] if con_grupo else it["path"],
                 "period": pc.period,
                 "value": value,
                 "row_kind": it["kind"],
                 "category_ambiguous": it["ambiguous"],
             }
-            if multibloque:
-                # Los grupos (Activos/Pasivos/Patrimonio) no se suman entre sí.
+            if multibloque or con_grupo:
+                # Los grupos (Activos/Pasivos/Patrimonio, cada medio con sus % de
+                # respuesta) no se suman entre sí.
                 fila["sin_total_global"] = True
             if pc.variable:
                 # Subvariable (Títulos/Volúmenes): el TOTAL es un grupo más
@@ -359,15 +373,18 @@ def _extract_vertical_rows(
         for col, label in col_labels.items():
             value = normalize_missing(row[col]) if col < len(row) else None
             row_kind = "total_explicito" if is_total_label(label) else "detalle"
-            rows.append(
-                {
-                    "category_path": [label] if label else [],
-                    "period": period,
-                    "value": value,
-                    "row_kind": row_kind,
-                    "category_ambiguous": False,
-                }
-            )
+            fila = {
+                "category_path": [label] if label else [],
+                "period": period,
+                "value": value,
+                "row_kind": row_kind,
+                "category_ambiguous": False,
+            }
+            if period_col > 0:
+                # Años en la 2ª columna (Gráficos 6 y 8): las columnas son variables
+                # distintas (capital de trabajo vs índice de liquidez) y no se suman.
+                fila["sin_total_global"] = True
+            rows.append(fila)
     return rows
 
 

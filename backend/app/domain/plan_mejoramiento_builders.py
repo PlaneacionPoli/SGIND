@@ -695,8 +695,10 @@ def _load_plan_indicadores_uncached(excel) -> pd.DataFrame:
         real_cols = ["Factor", "Indicador"] + [
             c for c in (*_PLAN_REAL_VALUE_COLS, *_PLAN_DESCRIPTIVO_COLS) if c in df_real.columns
         ]
+        # La hoja "Indicadores Plan de Mejor" es el maestro: un indicador que ya no
+        # está allí no se lista aunque siga en "Indicadores Real".
         df = df.merge(
-            df_real[real_cols], on=["Factor", "Indicador"], how="outer", suffixes=("", "_real")
+            df_real[real_cols], on=["Factor", "Indicador"], how="left", suffixes=("", "_real")
         )
         if "Meta_2025_real" in df.columns:
             df["Meta_2025"] = (
@@ -963,6 +965,32 @@ def build_indicador_metas_futuras_texto(row: pd.Series) -> str:
     return " · ".join(partes)
 
 
+def build_indicador_cump_tabla(row: pd.Series) -> list[dict[str, str]]:
+    """Filas (año, meta, ejecución, % cump) del modal de detalle, ya formateadas."""
+    signo, decimales, dec_cump = row.get("Signo"), row.get("Decimales"), row.get("Decimales_Cump")
+    filas = []
+    for y in ("2025", "2026"):
+        cump = row.get(f"Cump_calc_{y}")
+        filas.append(
+            {
+                "anio": y,
+                "meta": fmt_valor_plan(row.get(f"Meta_num_{y}"), signo, decimales),
+                "ejecucion": fmt_valor_plan(row.get(f"Ejecucion_num_{y}"), signo, decimales),
+                "cump": fmt_valor_plan(cump * 100 if pd.notna(cump) else None, "%", dec_cump),
+            }
+        )
+    return filas
+
+
+def build_indicador_metas_futuras_tabla(row: pd.Series) -> list[dict[str, str]]:
+    """Filas (año, meta) 2026-2030 del modal de detalle, ya formateadas."""
+    signo, decimales = row.get("Signo"), row.get("Decimales")
+    return [
+        {"anio": y, "meta": fmt_valor_plan(row.get(f"Meta_num_{y}"), signo, decimales)}
+        for y in _METAS_ALL_YEARS
+    ]
+
+
 def build_indicador_detalle(row: pd.Series) -> dict[str, Any]:
     """Datos del modal de detalle de un indicador del Plan — paridad con
     pages/plan_mejoramiento.py::_open_indicador_modal."""
@@ -981,6 +1009,8 @@ def build_indicador_detalle(row: pd.Series) -> dict[str, Any]:
         "observacion": _or_default(row.get("Observacion"), "Sin observaciones"),
         "cumplimiento_texto": build_indicador_cump_texto(row),
         "metas_futuras_texto": build_indicador_metas_futuras_texto(row),
+        "cumplimiento": build_indicador_cump_tabla(row),
+        "metas_futuras": build_indicador_metas_futuras_tabla(row),
     }
 
 

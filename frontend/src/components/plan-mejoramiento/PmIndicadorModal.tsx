@@ -100,12 +100,54 @@ export function PmIndicadorModal({ seleccion, onClose }: PmIndicadorModalProps) 
                 <p className="text-slate-600">{d.observacion}</p>
               </div>
               <div>
-                <p className="font-semibold text-slate-700">Meta / Ejecución / % Cumplimiento — 2025 y 2026</p>
-                <p className="text-slate-600">{d.cumplimiento_texto}</p>
+                <p className="mb-2 font-semibold text-slate-700">Meta y ejecución — 2025 y 2026</p>
+                <div className="overflow-hidden rounded-lg border border-slate-200">
+                  <table className="w-full text-sm">
+                    <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+                      <tr>
+                        <th className="px-3 py-2 text-left">Año</th>
+                        <th className="px-3 py-2 text-right">Meta</th>
+                        <th className="px-3 py-2 text-right">Ejecución</th>
+                        <th className="px-3 py-2 text-right">% Cumplimiento</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 tabular-nums text-slate-700">
+                      {d.cumplimiento.map((f) => (
+                        <tr key={f.anio}>
+                          <td className="px-3 py-2 font-semibold text-slate-800">{f.anio}</td>
+                          <td className="px-3 py-2 text-right">{f.meta}</td>
+                          <td className="px-3 py-2 text-right">{f.ejecucion}</td>
+                          <td className="px-3 py-2 text-right font-semibold text-slate-800">{f.cump}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
               <div>
-                <p className="font-semibold text-slate-700">Metas 2026 – 2030</p>
-                <p className="text-slate-600">{d.metas_futuras_texto}</p>
+                <p className="mb-2 font-semibold text-slate-700">Metas 2026 – 2030</p>
+                <div className="overflow-hidden rounded-lg border border-slate-200">
+                  <table className="w-full text-sm">
+                    <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+                      <tr>
+                        {d.metas_futuras.map((m) => (
+                          <th key={m.anio} className="px-3 py-2 text-right">
+                            {m.anio}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody className="tabular-nums text-slate-700">
+                      <tr>
+                        {d.metas_futuras.map((m) => (
+                          <td key={m.anio} className="px-3 py-2 text-right">
+                            {m.meta}
+                          </td>
+                        ))}
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </>
           )}
