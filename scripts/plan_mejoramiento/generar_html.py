@@ -3,9 +3,10 @@
 Lee los Excel fuente con los mismos constructores del backend
 (`backend/app/domain/plan_mejoramiento_builders.py`, así las cifras coinciden
 con las de la aplicación), precalcula tablas y fichas de detalle, y las embebe
-en `plan_mejoramiento_template.html`. El resultado se abre con doble clic, sin
-servidor: los filtros, las pestañas, los modales y las gráficas corren en el
-navegador.
+en `plan_mejoramiento_template.html`. Se generan dos archivos: uno que se abre con
+doble clic y otro (`*_artefacto.html`) con el formato de artefacto de Claude (tema
+claro/oscuro, guardado del Excel vía la capacidad `downloads`). Filtros, pestañas,
+modales y gráficas corren en el navegador, sin servidor.
 
 Fuentes (rutas relativas a --data-root, las mismas que usa el backend):
   raw/Plan de mejoramiento/Indicadores Plan de Mejoramiento.xlsx   (pestaña Indicadores)
@@ -282,10 +283,21 @@ def main() -> None:
         "met": metricas,
     }
     datos = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
-    html = TEMPLATE.read_text(encoding="utf-8").replace("/*__DATA__*/null", datos)
+    fragmento = TEMPLATE.read_text(encoding="utf-8").replace("/*__DATA__*/null", datos)
+    # Artefacto de Claude: el visor envuelve el fragmento en su propio <!doctype>/<head>/<body>.
+    artefacto = args.out.with_name(args.out.stem + "_artefacto.html")
+    # Archivo local: el mismo fragmento con un esqueleto mínimo para abrirlo directamente en el navegador.
+    autonomo = (
+        '<!doctype html>\n<html lang="es">\n<head>\n<meta charset="utf-8">\n'
+        '<meta name="viewport" content="width=device-width, initial-scale=1">\n</head>\n<body>\n'
+        + fragmento
+        + "</body>\n</html>\n"
+    )
     args.out.parent.mkdir(parents=True, exist_ok=True)
-    args.out.write_text(html, encoding="utf-8")
-    print(f"Listo: {args.out} ({args.out.stat().st_size / 1e6:.1f} MB)")
+    args.out.write_text(autonomo, encoding="utf-8")
+    artefacto.write_text(fragmento, encoding="utf-8")
+    print(f"Listo: {args.out} ({args.out.stat().st_size / 1e6:.1f} MB) — abrir en el navegador")
+    print(f"       {artefacto} — para publicar como artefacto de Claude")
 
 
 if __name__ == "__main__":
