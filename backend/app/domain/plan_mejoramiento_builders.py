@@ -24,7 +24,7 @@ from app.domain.agregacion_anual import (
     IDS_SUMA_SEMESTRAL,
     IDS_TOTAL_NO_APLICA,
 )
-from app.domain.loader_utils import find_col, id_a_str
+from app.domain.loader_utils import ascii_lower, find_col, id_a_str
 
 CORTE_SEMESTRAL = {"Junio": 6, "Diciembre": 12}
 
@@ -629,6 +629,12 @@ def fmt_meta_plan(row, year, signo, decimales) -> str:
     return fmt_valor_plan(valor, signo, decimales)
 
 
+def _indicador_key(nombre) -> str:
+    """Llave de cruce con el catálogo: sin tildes, sin mayúsculas, espacios colapsados
+    y sin el "%" inicial."""
+    return " ".join(ascii_lower(nombre).lstrip("% ").split())
+
+
 def load_catalogo_plan_indicadores(excel) -> pd.DataFrame:
     """Catálogo Signo/Decimales/Decimales_Cump por indicador del Plan.
 
@@ -837,7 +843,13 @@ def _load_plan_indicadores_uncached(excel) -> pd.DataFrame:
 
     catalogo = load_catalogo_plan_indicadores(excel)
     if not catalogo.empty and "Factor" in df.columns and "Indicador" in df.columns:
-        df = df.merge(catalogo, on=["Factor", "Indicador"], how="left")
+        # El catálogo se edita a mano y el nombre del indicador suele diferir del Excel en
+        # tildes o en el "%" inicial ("Disponibilidad de servicios tecnologicos" vs
+        # "...tecnológicos"): con igualdad exacta caía en DEC y un 0,97 no se mostraba como 97%.
+        df["_ind_key"] = df["Indicador"].map(_indicador_key)
+        catalogo = catalogo.assign(_ind_key=catalogo["Indicador"].map(_indicador_key))
+        catalogo = catalogo.drop(columns="Indicador").drop_duplicates(subset=["Factor", "_ind_key"])
+        df = df.merge(catalogo, on=["Factor", "_ind_key"], how="left").drop(columns="_ind_key")
     else:
         df["Signo"], df["Decimales"], df["Decimales_Cump"] = pd.NA, pd.NA, pd.NA
     df["Signo"] = df["Signo"].fillna(_SIGNO_DEFAULT)
