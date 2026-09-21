@@ -816,8 +816,8 @@ _TIPO_ORDEN = {"Indicador": 0, "Pendiente": 1}
 
 
 def sort_plan_indicadores(df: pd.DataFrame) -> pd.DataFrame:
-    """Orden de la tabla: Tipo (Indicador, luego Pendiente, luego el resto),
-    después Factor, Característica y nombre del indicador."""
+    """Orden de la tabla: Factor, Característica y, dentro de cada característica,
+    Tipo (Indicador, luego Pendiente, luego el resto) y nombre del indicador."""
     if df.empty:
         return df
     out = df.assign(
@@ -825,9 +825,8 @@ def sort_plan_indicadores(df: pd.DataFrame) -> pd.DataFrame:
         if "Tipo" in df.columns
         else 0
     )
-    sort_cols = ["_tipo_orden"] + [
-        c for c in ("Factor_num", "Caracteristica_num", "Indicador") if c in df.columns
-    ]
+    sort_cols = [c for c in ("Factor_num", "Caracteristica_num") if c in df.columns]
+    sort_cols += ["_tipo_orden"] + (["Indicador"] if "Indicador" in df.columns else [])
     return out.sort_values(sort_cols).drop(columns="_tipo_orden").reset_index(drop=True)
 
 
