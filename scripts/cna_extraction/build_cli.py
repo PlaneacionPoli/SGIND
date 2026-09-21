@@ -11,6 +11,8 @@ límite de "Fase 1 no escribe nada" siga siendo válido sin tocar ese módulo.
 Uso:
     python -m scripts.cna_extraction.build_cli --write     # incremental, agrega solo lo nuevo
     python -m scripts.cna_extraction.build_cli --rebuild   # reconstruye el consolidado desde cero
+    python -m scripts.cna_extraction.build_cli --backfill-fuente  # solo completa la columna Fuente
+    python -m scripts.cna_extraction.build_cli --refresh-ids T3   # reprocesa solo esas tablas/gráficos
 """
 
 from __future__ import annotations
@@ -23,10 +25,10 @@ import openpyxl
 
 from core.config import DATA_RAW
 from scripts.cna_extraction.catalog import build_factor_caracteristica_rows, load_catalog
-from scripts.cna_extraction.normalize import build_metricas_rows
+from scripts.cna_extraction.normalize import build_metricas_rows, make_id
 from scripts.cna_extraction.sheet_resolver import resolve_sheets
 from scripts.cna_extraction.structure_detector import detect_structure
-from scripts.cna_extraction.writer import OUTPUT_FILE, write_full, write_incremental
+from scripts.cna_extraction.writer import OUTPUT_FILE, backfill_fuente, replace_ids, write_full, write_incremental
 from scripts.etl.audit import AuditTrail
 
 DEFAULT_SOURCE = DATA_RAW / "Plan de mejoramiento" / "Anexo Estadístico Dcto. Autoevaluacion.xlsx"
@@ -57,6 +59,8 @@ def build_records(
             "valores_cualitativos_no_convertidos": 0,
             "totales_calculados_por_suma": 0,
             "filas_sin_etiqueta_categoria": 0,
+            "totales_sin_etiqueta_reclasificados": 0,
+            "filas_sin_etiqueta_omitidas": 0,
         }
         all_records: list[dict[str, Any]] = []
         catalogo_sin_hoja: list[str] = []
@@ -94,6 +98,19 @@ def main() -> None:
         help="Reescribe el consolidado desde cero a partir del Anexo (descarta filas existentes). "
         "Usar tras un fix de extracción, no como corrida periódica.",
     )
+    mode.add_argument(
+        "--backfill-fuente",
+        action="store_true",
+        help="Completa la columna Fuente del consolidado existente desde 'Índice Tablas' (por Id), "
+        "sin agregar ni quitar filas.",
+    )
+    mode.add_argument(
+        "--refresh-ids",
+        nargs="+",
+        metavar="ID",
+        help="Reprocesa solo los Ids indicados (T3, G2, I5…) desde el Anexo y reemplaza sus filas en el "
+        "consolidado, sin tocar el resto. Usar cuando cambió el layout de esas tablas.",
+    )
     parser.add_argument("--source", type=Path, default=DEFAULT_SOURCE, help="Ruta al Anexo Estadístico.")
     parser.add_argument("--output", type=Path, default=OUTPUT_FILE, help="Archivo de salida (data/output/).")
     args = parser.parse_args()
@@ -101,9 +118,31 @@ def main() -> None:
     if not args.source.exists():
         raise SystemExit(f"No se encontró el archivo fuente: {args.source}")
 
+    if args.backfill_fuente:
+        fuente_by_id = {
+            make_id(rec): rec.fuente.strip()
+            for rec in load_catalog(args.source)
+            if rec.numero is not None and rec.fuente.strip()
+        }
+        result = backfill_fuente(fuente_by_id, args.output)
+        print(f"Archivo de salida: {args.output}")
+        print(f"Filas: {result['filas']} | con Fuente: {result['filas_con_fuente']} | Ids sin Fuente en el catálogo: {result['ids_sin_fuente']}")
+        return
+
     records, stats, factor_caracteristica_rows, hojas_sin_catalogo, catalogo_sin_hoja = build_records(
         args.source
     )
+    if args.refresh_ids:
+        ids = {i.strip().upper() for i in args.refresh_ids}
+        records = [r for r in records if str(r["Id"]).upper() in ids]
+        if not records:
+            raise SystemExit(f"El Anexo no produjo filas para {sorted(ids)}; no se modificó el consolidado.")
+        result = replace_ids(records, ids, args.output)
+        print(f"Archivo de salida: {args.output}")
+        print(f"Ids reprocesados: {', '.join(sorted(ids))}")
+        print(f"Filas reemplazadas: {result['filas_reemplazadas']} -> nuevas: {result['filas_nuevas']}")
+        print(f"Registros totales tras la corrida: {result['registros_totales']}")
+        return
     writer_fn = write_full if args.rebuild else write_incremental
     result = writer_fn(records, args.output, factor_caracteristica_rows=factor_caracteristica_rows)
 
@@ -129,6 +168,8 @@ def main() -> None:
     print(f"Valores cualitativos no convertidos: {stats['valores_cualitativos_no_convertidos']}")
     print(f"Totales calculados por suma de subdivisiones: {stats['totales_calculados_por_suma']}")
     print(f"Filas sin etiqueta de categoría (desambiguadas, revisar manualmente): {stats['filas_sin_etiqueta_categoria']}")
+    print(f"Filas sin etiqueta que eran el Total (reclasificadas/omitidas): {stats['totales_sin_etiqueta_reclasificados']}")
+    print(f"Filas sin etiqueta que no eran el Total (omitidas): {stats['filas_sin_etiqueta_omitidas']}")
 
     # El número de tablas/indicadores del Anexo Estadístico cambia con el
     # tiempo — esto NO se puede asumir estático de un año a otro. Estos dos

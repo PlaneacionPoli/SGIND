@@ -23,13 +23,11 @@ from app.domain.plan_mejoramiento_builders import (
     build_metrica_detalle,
     build_metricas_historico,
     build_metricas_kpis,
-    build_metricas_por_factor,
     build_metricas_tabla_agrupada,
     build_plan_indicadores_kpis,
     build_plan_indicadores_tabla_historico,
     build_plan_indicadores_tabla_metas,
     build_tabla_cna,
-    get_metricas_agrupado_total,
     load_acciones_mejora,
     load_plan_indicadores,
 )
@@ -247,8 +245,11 @@ class PlanMejoramientoService:
                     "total": 0,
                     "factores_cubiertos": 0,
                     "n_creciente": 0,
+                    "n_estable": 0,
                     "n_decreciente": 0,
+                    "n_sin_tendencia": 0,
                     "pct_creciente": 0,
+                    "pct_estable": 0,
                     "pct_decreciente": 0,
                 },
                 "filtros": {
@@ -256,18 +257,15 @@ class PlanMejoramientoService:
                     "caracteristicas": [],
                     "tendencias": TENDENCIA_METRICAS_FILTRO_OPTIONS,
                 },
-                "grafico_por_factor": [],
                 "tabla": [],
                 "total": 0,
             }
 
-        agrupado_total = get_metricas_agrupado_total(self._excel)
-        kpis = build_metricas_kpis(agrupado_total)
-        grafico_por_factor = build_metricas_por_factor(agrupado_total)
         rows = apply_metricas_filters(
             df, factor=factor, caracteristica=caracteristica, tendencia=tendencia, nombre=nombre
         )
         tabla = build_metricas_tabla_agrupada(rows)
+        kpis = build_metricas_kpis(tabla)  # sobre lo filtrado, igual que la tabla
         factores = sorted(df["Factor"].dropna().unique().tolist()) if "Factor" in df.columns else []
         caracteristicas = build_caracteristicas_cascade(df, factor)
 
@@ -278,7 +276,6 @@ class PlanMejoramientoService:
                 "caracteristicas": caracteristicas,
                 "tendencias": TENDENCIA_METRICAS_FILTRO_OPTIONS,
             },
-            "grafico_por_factor": grafico_por_factor,
             "tabla": tabla,
             "total": len(tabla),
         }
@@ -295,4 +292,6 @@ class PlanMejoramientoService:
         match = df[mask]
         if match.empty:
             return None
-        return build_metrica_detalle(match.iloc[0])
+        # Sin subindicador y con varias categorías: ficha del consolidado
+        # (antes mostraba la primera categoría como si fuera el total).
+        return build_metrica_detalle(match, consolidado=subindicador is None and len(match) > 1)

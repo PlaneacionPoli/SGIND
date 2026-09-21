@@ -36,6 +36,7 @@ derivadas directamente de la hoja "Metricas" existente):
 from __future__ import annotations
 
 from datetime import date
+from math import isclose
 from typing import Any
 
 from scripts.cna_extraction.models import CatalogRecord, SheetStructure
@@ -135,6 +136,60 @@ def infer_decimales(ejecucion: float | None, unidad: str | None) -> tuple[int, i
     return 0, 0
 
 
+def _reclasifica_totales_sin_etiqueta(
+    detector_rows: list[dict[str, Any]], stats: dict[str, int]
+) -> list[dict[str, Any]]:
+    """Una fila de datos sin etiqueta propia (`category_ambiguous`) puede ser el
+    TOTAL de la hoja con la celda de etiqueta vacía (Gráfico 1/2, Tabla 133).
+    Dejarla como categoría "(sin etiqueta #1)" duplicaba el dato: aparecía como
+    una categoría más y además se sintetizaba un total que la volvía a sumar.
+
+    Se valida contra los datos: si en todos los periodos comparables su valor
+    es igual a la suma de las filas de detalle etiquetadas, es el total y se
+    reclasifica como `total_explicito` (Subindicador vacío); si la hoja ya trae
+    un Total explícito para ese periodo se omite por redundante. Si NO coincide
+    con la suma (Gráfico 19, Tabla 133) tampoco es una categoría utilizable:
+    no tiene nombre y repite datos, así que se OMITE (decisión de negocio
+    2026-09-21) y solo cuenta el Total. Antes se conservaba como
+    "(sin etiqueta #n)" y sumaba de más en el consolidado."""
+    suma_detalle: dict[str, float] = {}
+    periodos_con_total: set[str] = set()
+    for row in detector_rows:
+        ejecucion, _, cualitativo = infer_ejecucion(row["value"])
+        if ejecucion is None or cualitativo or not row["period"]:
+            continue
+        if row["row_kind"] == "total_explicito":
+            periodos_con_total.add(row["period"])
+        elif not row.get("category_ambiguous"):
+            suma_detalle[row["period"]] = suma_detalle.get(row["period"], 0.0) + ejecucion
+
+    puntos: dict[tuple[str, ...], list[tuple[str, float]]] = {}
+    for row in detector_rows:
+        if not row.get("category_ambiguous") or not row["period"]:
+            continue
+        ejecucion, _, cualitativo = infer_ejecucion(row["value"])
+        if ejecucion is not None and not cualitativo:
+            puntos.setdefault(tuple(map(str, row["category_path"])), []).append((row["period"], ejecucion))
+
+    es_total = {
+        clave
+        for clave, pts in puntos.items()
+        if all(p in suma_detalle and isclose(v, suma_detalle[p], rel_tol=1e-9, abs_tol=1e-9) for p, v in pts)
+    }
+    resultado: list[dict[str, Any]] = []
+    for row in detector_rows:
+        if row.get("category_ambiguous"):
+            if tuple(map(str, row["category_path"])) not in es_total:
+                stats["filas_sin_etiqueta_omitidas"] = stats.get("filas_sin_etiqueta_omitidas", 0) + 1
+                continue
+            stats["totales_sin_etiqueta_reclasificados"] = stats.get("totales_sin_etiqueta_reclasificados", 0) + 1
+            if row["period"] in periodos_con_total:
+                continue  # la hoja ya trae el Total explícito de ese periodo
+            row = {**row, "row_kind": "total_explicito", "category_ambiguous": False}
+        resultado.append(row)
+    return resultado
+
+
 def _build_from_generic_rows(
     detector_rows: list[dict[str, Any]],
     catalog_record: CatalogRecord,
@@ -142,6 +197,7 @@ def _build_from_generic_rows(
 ) -> list[dict[str, Any]]:
     id_ = make_id(catalog_record)
     indicador = catalog_record.nombre
+    detector_rows = _reclasifica_totales_sin_etiqueta(detector_rows, stats)
 
     detalle_by_period: dict[str, list[tuple[list[Any], float]]] = {}
     total_periods_present: set[str] = set()
@@ -186,6 +242,7 @@ def _build_from_generic_rows(
                 "DecimalesEje": decimales_eje,
                 "Proyecto": None,
                 "Llave": make_llave(id_, subindicador, periodo),
+                "Fuente": catalog_record.fuente.strip() or None,
             }
         )
 
@@ -196,8 +253,11 @@ def _build_from_generic_rows(
 
     # Regla de negocio: si hay subdivisiones sin Total explícito para un
     # periodo dado, el indicador principal se calcula como suma de detalle.
+    # Con una sola categoría el "total" sería una copia exacta de esa fila (el
+    # dashboard lo sumaba dos veces), así que no se sintetiza.
+    categorias = {tuple(map(str, path)) for entries in detalle_by_period.values() for path, _ in entries}
     for periodo, entries in detalle_by_period.items():
-        if periodo in total_periods_present:
+        if periodo in total_periods_present or len(categorias) < 2:
             continue
         total_value = sum(v for _, v in entries)
         fecha, anio, mes, periodo_norm = period_to_fecha_anio_mes(periodo)
@@ -223,6 +283,7 @@ def _build_from_generic_rows(
                 "DecimalesEje": decimales_eje,
                 "Proyecto": None,
                 "Llave": make_llave(id_, None, periodo_norm),
+                "Fuente": catalog_record.fuente.strip() or None,
             }
         )
         stats["totales_calculados_por_suma"] += 1

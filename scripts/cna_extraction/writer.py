@@ -51,6 +51,7 @@ METRICAS_COLUMNS = [
     "DecimalesEje",
     "Proyecto",
     "Llave",
+    "Fuente",  # columna "Fuente" de la hoja "Índice Tablas" del Anexo (por tabla/gráfico)
 ]
 
 
@@ -138,4 +139,59 @@ def write_incremental(
         "registros_nuevos_candidatos": len(records),
         "registros_nuevos_insertados": len(new_df),
         "registros_totales": len(combined),
+    }
+
+
+def backfill_fuente(fuente_by_id: dict[str, str], output_file: Path = OUTPUT_FILE) -> dict[str, int]:
+    """Completa la columna `Fuente` de un consolidado ya generado a partir del
+    catálogo ("Índice Tablas"), emparejando por `Id` (T1/G2/I3…). No agrega ni
+    elimina filas ni toca otras columnas u otras hojas — evita un --rebuild
+    completo solo para incorporar la fuente. Crea backup versionado antes de
+    escribir."""
+    output_file = Path(output_file)
+    hojas = pd.read_excel(output_file, sheet_name=None)
+    metricas = hojas[SHEET_METRICAS]
+
+    metricas["Fuente"] = metricas["Id"].astype(str).map(fuente_by_id)
+
+    VersionManager(base_file=output_file).crear_version(tag="pre_cna_backfill_fuente")
+    with pd.ExcelWriter(output_file, engine="openpyxl") as writer:
+        for nombre, df in hojas.items():
+            df.to_excel(writer, sheet_name=nombre, index=False)
+
+    return {
+        "filas": len(metricas),
+        "filas_con_fuente": int(metricas["Fuente"].notna().sum()),
+        "ids_sin_fuente": int(metricas.loc[metricas["Fuente"].isna(), "Id"].nunique()),
+    }
+
+
+def replace_ids(
+    records: list[dict[str, Any]],
+    ids: set[str],
+    output_file: Path = OUTPUT_FILE,
+) -> dict[str, int]:
+    """Reemplaza en `output_file` todas las filas de los `ids` indicados (p.ej.
+    {"T3"}) por `records` (ya filtrados a esos Ids), dejando intactas las demás
+    filas y hojas. Sirve para reprocesar una tabla cuyo layout cambió en el
+    Anexo sin un --rebuild completo (que descartaría todo lo demás) y sin
+    --write (que conservaría las filas viejas de esa tabla). Crea backup
+    versionado antes de escribir."""
+    output_file = Path(output_file)
+    hojas = pd.read_excel(output_file, sheet_name=None)
+    existentes = hojas[SHEET_METRICAS]
+
+    conservar = existentes[~existentes["Id"].astype(str).isin(ids)]
+    nuevas = pd.DataFrame(records, columns=METRICAS_COLUMNS).drop_duplicates(subset=["Llave"])
+    hojas[SHEET_METRICAS] = pd.concat([conservar, nuevas], ignore_index=True)
+
+    VersionManager(base_file=output_file).crear_version(tag="pre_cna_refresh_ids")
+    with pd.ExcelWriter(output_file, engine="openpyxl") as writer:
+        for nombre, df in hojas.items():
+            df.to_excel(writer, sheet_name=nombre, index=False)
+
+    return {
+        "filas_reemplazadas": len(existentes) - len(conservar),
+        "filas_nuevas": len(nuevas),
+        "registros_totales": len(hojas[SHEET_METRICAS]),
     }

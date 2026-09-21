@@ -276,7 +276,6 @@ class PlanIndicadorDetalleResponse(BaseModel):
 class PlanMetricasDashboardResponse(BaseModel):
     kpis: dict[str, Any] = Field(default_factory=dict)
     filtros: dict[str, Any] = Field(default_factory=dict)
-    grafico_por_factor: list[dict[str, Any]] = Field(default_factory=list)
     tabla: list[dict[str, Any]] = Field(default_factory=list)
     total: int = 0
 
@@ -285,12 +284,24 @@ class PlanMetricaDetalleResponse(BaseModel):
     indicador: str | None = None
     subindicador: str | None = None
     factor: str | None = None
-    proceso: str | None = None
+    fuente: str | None = None
     sentido: str | None = None
     periodicidad: str | None = None
+    consolidado: bool = False
+    agregacion: str | None = None
+    signo: str | None = None
+    decimales: int | None = None
+    anio_inicio: int | None = None
+    anio_fin: int | None = None
+    periodo_texto: str | None = None
+    ultimo_anio: int | None = None
+    ultimo_valor: float | None = None
+    valor_fmt: str = "—"
+    tendencia: str = "—"
     variacion_ultima_pct: float | None = None
     variacion_promedio_pct: float | None = None
     serie: list[dict[str, Any]] = Field(default_factory=list)
+    desglose: list[dict[str, Any]] = Field(default_factory=list)
 
 
 class InformeFiltrosResponse(BaseModel):

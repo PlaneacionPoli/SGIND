@@ -1,7 +1,7 @@
 "use client";
 
 import { Fragment, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { KPICard } from "@/components/ui/KPICard";
 import { Pagination } from "@/components/ui/Pagination";
 import { useDebounce } from "@/hooks/use-debounce";
@@ -9,10 +9,10 @@ import { usePagination } from "@/hooks/use-pagination";
 import { fetchPlanMetricasDashboard } from "@/lib/api";
 import { useAuthReady } from "@/stores/auth-store";
 import { PmFactorBadge } from "./PmFactorBadge";
-import { PmFactorRings } from "./PmFactorRings";
 import { PmMetricaModal } from "./PmMetricaModal";
 import { PmSparkline } from "./PmSparkline";
 import { getFactorColor } from "./pmFactorTheme";
+import { fmtVariacion, variacionClass } from "./pmVariacion";
 
 const TENDENCIA_BADGE: Record<string, string> = {
   Creciente: "bg-emerald-50 text-emerald-700",
@@ -69,6 +69,7 @@ export function PmMetricasTab({
         ...(nombreDebounced.trim() ? { nombre: nombreDebounced.trim() } : {}),
       }),
     enabled: isAuthenticated,
+    placeholderData: keepPreviousData, // evita desmontar los filtros (y perder el foco) al recargar
   });
 
   const data = query.data;
@@ -83,47 +84,10 @@ export function PmMetricasTab({
         <div className="h-40 animate-pulse rounded-lg bg-slate-200" />
       ) : (
         <>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <KPICard label="Métricas con histórico" value={data?.kpis.total ?? 0} unit="series 2019–2026" />
-            <KPICard
-              label="Factores cubiertos"
-              value={data?.kpis.factores_cubiertos ?? 0}
-              unit="de 12 del modelo CNA"
-            />
-            <KPICard
-              label="En tendencia creciente"
-              value={data?.kpis.n_creciente ?? 0}
-              unit={`${data?.kpis.pct_creciente ?? 0}% del total`}
-            />
-            <KPICard
-              label="En tendencia decreciente"
-              value={data?.kpis.n_decreciente ?? 0}
-              unit={`${data?.kpis.pct_decreciente ?? 0}% del total`}
-            />
-          </div>
-
-          <div>
-            <h3 className="mb-1 text-sm font-bold text-slate-800">Resultados por factor</h3>
-            <p className="mb-2 text-xs text-slate-500">
-              Número de métricas con serie histórica registrada, por factor del modelo CNA. Clic en una
-              barra para filtrar.
-            </p>
-            <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-              <PmFactorRings
-                data={(data?.grafico_por_factor ?? []).map((f) => ({
-                  factor: f.factor,
-                  factorNum: f.factor_num,
-                  value: f.cantidad,
-                }))}
-                onFactorClick={onFactorChange}
-              />
-            </div>
-          </div>
-
           <div>
             <h3 className="mb-1 text-sm font-bold text-slate-800">Resultados, tendencia y variaciones</h3>
             <p className="mb-2 text-xs text-slate-500">
-              Selecciona un factor para filtrar. Haz clic en una métrica para ver su gráfica completa.
+              Los filtros aplican a las fichas y a la tabla. Haz clic en una métrica para ver su gráfica completa.
             </p>
             <div className="rounded-xl border border-slate-200 bg-white p-4">
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -182,6 +146,25 @@ export function PmMetricasTab({
             </div>
           </div>
 
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <KPICard label="Métricas con histórico" value={data?.kpis.total ?? 0} unit="series 2019–2026" />
+            <KPICard
+              label="En tendencia creciente"
+              value={data?.kpis.n_creciente ?? 0}
+              unit={`${data?.kpis.pct_creciente ?? 0}% del total`}
+            />
+            <KPICard
+              label="En tendencia estable"
+              value={data?.kpis.n_estable ?? 0}
+              unit={`${data?.kpis.pct_estable ?? 0}% del total`}
+            />
+            <KPICard
+              label="En tendencia decreciente"
+              value={data?.kpis.n_decreciente ?? 0}
+              unit={`${data?.kpis.pct_decreciente ?? 0}% del total`}
+            />
+          </div>
+
           {!tabla.length ? (
             <p className="text-sm text-slate-500">No hay métricas que coincidan con el filtro.</p>
           ) : (
@@ -192,7 +175,7 @@ export function PmMetricasTab({
                     <tr>
                       <th className="px-4 py-3">Factor</th>
                       <th className="px-4 py-3">Métrica</th>
-                      <th className="px-4 py-3">Proceso</th>
+                      <th className="px-4 py-3">Fuente</th>
                       <th className="px-4 py-3 text-right">Último año</th>
                       <th className="px-4 py-3 text-right">Resultado</th>
                       <th className="px-4 py-3 text-right">Variación</th>
@@ -242,17 +225,17 @@ export function PmMetricasTab({
                                 ) : null}
                               </span>
                             </td>
-                            <td className="px-4 py-2.5 text-slate-600">{row.proceso ?? "—"}</td>
+                            <td className="px-4 py-2.5 text-slate-600">{row.fuente ?? "—"}</td>
                             <td className="px-4 py-2.5 text-right tabular-nums text-slate-700">
                               {row.ultimo_anio ?? "—"}
                             </td>
                             <td className="px-4 py-2.5 text-right tabular-nums font-semibold text-slate-800">
                               {row.valor_fmt}
                             </td>
-                            <td className="px-4 py-2.5 text-right tabular-nums text-slate-700">
-                              {row.variacion_ultima_pct != null
-                                ? `${row.variacion_ultima_pct > 0 ? "+" : ""}${row.variacion_ultima_pct.toFixed(1)}%`
-                                : "—"}
+                            <td
+                              className={`px-4 py-2.5 text-right font-medium tabular-nums ${variacionClass(row.variacion_ultima_pct)}`}
+                            >
+                              {fmtVariacion(row.variacion_ultima_pct)}
                             </td>
                             <td className="px-4 py-2.5">
                               <span
@@ -288,15 +271,15 @@ export function PmMetricasTab({
                                   <td className="whitespace-normal break-words px-4 py-2 pl-9 text-slate-600">
                                     {d.subindicador ?? "—"}
                                   </td>
-                                  <td className="px-4 py-2 text-slate-500">{d.proceso ?? "—"}</td>
+                                  <td className="px-4 py-2 text-slate-500">{d.fuente ?? "—"}</td>
                                   <td className="px-4 py-2 text-right tabular-nums text-slate-600">
                                     {d.ultimo_anio ?? "—"}
                                   </td>
                                   <td className="px-4 py-2 text-right tabular-nums text-slate-700">{d.valor_fmt}</td>
-                                  <td className="px-4 py-2 text-right tabular-nums text-slate-600">
-                                    {d.variacion_ultima_pct != null
-                                      ? `${d.variacion_ultima_pct > 0 ? "+" : ""}${d.variacion_ultima_pct.toFixed(1)}%`
-                                      : "—"}
+                                  <td
+                                    className={`px-4 py-2 text-right font-medium tabular-nums ${variacionClass(d.variacion_ultima_pct)}`}
+                                  >
+                                    {fmtVariacion(d.variacion_ultima_pct)}
                                   </td>
                                   <td className="px-4 py-2">
                                     <span

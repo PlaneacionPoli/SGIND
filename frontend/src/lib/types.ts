@@ -794,19 +794,21 @@ export interface PlanMetricasDashboardResponse {
     total: number;
     factores_cubiertos: number;
     n_creciente: number;
+    n_estable: number;
     n_decreciente: number;
+    n_sin_tendencia: number;
     pct_creciente: number;
+    pct_estable: number;
     pct_decreciente: number;
   };
   filtros: { factores: string[]; caracteristicas: string[]; tendencias: string[] };
-  grafico_por_factor: Array<{ factor: string; factor_num: number | null; cantidad: number }>;
   tabla: PlanMetricaFila[];
   total: number;
 }
 
 export interface PlanMetricaDesglose {
   subindicador: string | null;
-  proceso: string | null;
+  fuente: string | null;
   ultimo_anio: number | null;
   ultimo_valor: number | null;
   valor_fmt: string;
@@ -819,7 +821,7 @@ export interface PlanMetricaFila {
   factor: string;
   factor_num: number | null;
   indicador: string;
-  proceso: string | null;
+  fuente: string | null;
   ultimo_anio: number | null;
   ultimo_valor: number | null;
   valor_fmt: string;
@@ -834,12 +836,45 @@ export interface PlanMetricaDetalleResponse {
   indicador: string | null;
   subindicador: string | null;
   factor: string | null;
-  proceso: string | null;
+  fuente: string | null;
   sentido: string | null;
   periodicidad: string | null;
+  consolidado: boolean;
+  /** "Total" o "Promedio" cuando es un consolidado con desglose homogéneo. */
+  agregacion: "Total" | "Promedio" | null;
+  /** Año de inicio y fin de la serie; periodo_texto es el que traía el nombre si no hay serie anual. */
+  /** Unidad (ENT, DEC, %, %FRAC) y decimales para formatear la serie. */
+  signo: string | null;
+  decimales: number | null;
+  anio_inicio: number | null;
+  anio_fin: number | null;
+  periodo_texto: string | null;
+  ultimo_anio: number | null;
+  ultimo_valor: number | null;
+  valor_fmt: string;
+  tendencia: "Creciente" | "Decreciente" | "Estable" | "—";
   variacion_ultima_pct: number | null;
   variacion_promedio_pct: number | null;
-  serie: Array<{ anio: number; ejecucion: number | null; meta: number | null }>;
+  serie: PlanMetricaPunto[];
+  /** Solo en consolidados: categorías en el orden del archivo. */
+  desglose: PlanMetricaDetalleDesglose[];
+}
+
+export interface PlanMetricaPunto {
+  anio: number;
+  ejecucion: number | null;
+  meta: number | null;
+  /** Variación % respecto al dato anterior (0 → 0 es 0%). */
+  variacion_pct: number | null;
+}
+
+export interface PlanMetricaDetalleDesglose {
+  subindicador: string | null;
+  valor_fmt: string;
+  ultimo_anio: number | null;
+  variacion_ultima_pct: number | null;
+  tendencia: "Creciente" | "Decreciente" | "Estable" | "—";
+  serie: PlanMetricaPunto[];
 }
 
 export interface OMMatrizResponse {
