@@ -33,6 +33,17 @@ function TipoTag({ tipo }: { tipo: string | null }) {
   );
 }
 
+function CaracteristicaTag({ num, nombre }: { num: number | null; nombre: string | null }) {
+  return (
+    <span
+      title={nombre ?? undefined}
+      className="inline-block rounded-md bg-slate-100 px-1.5 py-0.5 text-[11px] font-bold text-slate-600"
+    >
+      {num != null ? `C${num}` : "—"}
+    </span>
+  );
+}
+
 interface PmIndicadoresTabProps {
   /** Factor y Característica son filtros globales del módulo — el estado
    * vive en PlanMejoramientoPage y se comparte con PmMetricasTab. */
@@ -226,6 +237,7 @@ export function PmIndicadoresTab({
                       {subvista === "metas" ? (
                         <>
                           <th className="px-4 py-3">Factor</th>
+                          <th className="px-4 py-3">Caract.</th>
                           <th className="px-4 py-3">Indicador</th>
                           <th className="px-4 py-3">Tipo</th>
                           {METAS_YEARS.map((y) => (
@@ -237,6 +249,7 @@ export function PmIndicadoresTab({
                       ) : (
                         <>
                           <th className="px-4 py-3">Factor</th>
+                          <th className="px-4 py-3">Caract.</th>
                           <th className="px-4 py-3">Indicador</th>
                           <th className="px-4 py-3">Meta vs Ejec. 2025</th>
                           <th className="px-4 py-3 text-right">% Cump 2025</th>
@@ -262,6 +275,9 @@ export function PmIndicadoresTab({
                             <td className="px-4 py-2.5">
                               <PmFactorBadge factorNum={row.factor_num} />
                             </td>
+                            <td className="px-4 py-2.5">
+                              <CaracteristicaTag num={row.caracteristica_num} nombre={row.caracteristica} />
+                            </td>
                             <td className="whitespace-normal break-words px-4 py-2.5 font-medium text-slate-800">
                               {row.indicador}
                             </td>
@@ -278,6 +294,9 @@ export function PmIndicadoresTab({
                           <>
                             <td className="px-4 py-2.5">
                               <PmFactorBadge factorNum={row.factor_num} />
+                            </td>
+                            <td className="px-4 py-2.5">
+                              <CaracteristicaTag num={row.caracteristica_num} nombre={row.caracteristica} />
                             </td>
                             <td className="whitespace-normal break-words px-4 py-2.5 font-medium text-slate-800">
                               {row.indicador}
