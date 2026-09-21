@@ -19,6 +19,7 @@ from typing import Any
 import pandas as pd
 
 from app.domain.agregacion_anual import (
+    IDS_GRUPOS_SIN_TOTAL,
     IDS_SIN_TOTAL_GLOBAL,
     IDS_SUMA_SEMESTRAL,
     IDS_TOTAL_NO_APLICA,
@@ -458,6 +459,7 @@ _DECIMALES_DEFAULT = 2
 _DECIMALES_CUMP_DEFAULT = 1
 
 _FACTOR_NUM_RE = re.compile(r"Factor\s+(\d+)", flags=re.IGNORECASE)
+_CARACTERISTICA_NUM_RE = re.compile(r"Caracter[ií]stica\s+(\d+)", flags=re.IGNORECASE)
 
 _PLAN_RENAME = {
     "FACTOR": "Factor",
@@ -490,6 +492,11 @@ _METAS_ALL_YEARS = ("2026", "2027", "2028", "2029", "2030")
 
 def _factor_num(factor_label) -> int | None:
     match = _FACTOR_NUM_RE.search(str(factor_label or ""))
+    return int(match.group(1)) if match else None
+
+
+def _caracteristica_num(caracteristica_label) -> int | None:
+    match = _CARACTERISTICA_NUM_RE.search(str(caracteristica_label or ""))
     return int(match.group(1)) if match else None
 
 
@@ -732,6 +739,9 @@ def _load_plan_indicadores_uncached(excel) -> pd.DataFrame:
         df["Factor_nombre"] = df["Factor"].map(_factor_nombre)
     else:
         df["Factor_num"], df["Factor_nombre"] = None, None
+    df["Caracteristica_num"] = (
+        df["Caracteristica"].map(_caracteristica_num) if "Caracteristica" in df.columns else None
+    )
 
     for year in ("2025", "2026"):
         for prefix in ("Meta", "Ejecucion", "Cump"):
@@ -807,7 +817,7 @@ _TIPO_ORDEN = {"Indicador": 0, "Pendiente": 1}
 
 def sort_plan_indicadores(df: pd.DataFrame) -> pd.DataFrame:
     """Orden de la tabla: Tipo (Indicador, luego Pendiente, luego el resto),
-    después Factor y nombre del indicador."""
+    después Factor, Característica y nombre del indicador."""
     if df.empty:
         return df
     out = df.assign(
@@ -815,7 +825,9 @@ def sort_plan_indicadores(df: pd.DataFrame) -> pd.DataFrame:
         if "Tipo" in df.columns
         else 0
     )
-    sort_cols = ["_tipo_orden"] + [c for c in ("Factor_num", "Indicador") if c in df.columns]
+    sort_cols = ["_tipo_orden"] + [
+        c for c in ("Factor_num", "Caracteristica_num", "Indicador") if c in df.columns
+    ]
     return out.sort_values(sort_cols).drop(columns="_tipo_orden").reset_index(drop=True)
 
 
@@ -881,11 +893,13 @@ def build_plan_indicadores_tabla_metas(df: pd.DataFrame) -> list[dict[str, Any]]
                 "valor": None if pd.isna(val) else float(val),
                 "valor_fmt": fmt_valor_plan(val, row.get("Signo"), row.get("Decimales")),
             }
-        fnum = row.get("Factor_num")
+        fnum, cnum = row.get("Factor_num"), row.get("Caracteristica_num")
         records.append(
             {
                 "factor": row.get("Factor"),
                 "factor_num": None if pd.isna(fnum) else int(fnum),
+                "caracteristica": row.get("Caracteristica"),
+                "caracteristica_num": None if pd.isna(cnum) else int(cnum),
                 "indicador": row.get("Indicador"),
                 "tipo": row.get("Tipo"),
                 "signo": row.get("Signo"),
@@ -921,11 +935,13 @@ def build_plan_indicadores_tabla_historico(df: pd.DataFrame) -> list[dict[str, A
             row.get("Decimales"),
             row.get("Decimales_Cump"),
         )
-        fnum = row.get("Factor_num")
+        fnum, cnum = row.get("Factor_num"), row.get("Caracteristica_num")
         records.append(
             {
                 "factor": row.get("Factor"),
                 "factor_num": None if pd.isna(fnum) else int(fnum),
+                "caracteristica": row.get("Caracteristica"),
+                "caracteristica_num": None if pd.isna(cnum) else int(cnum),
                 "indicador": row.get("Indicador"),
                 "meta_2025": _valor(row, "Meta_num_2025", signo, decimales),
                 "ejecucion_2025": _valor(row, "Ejecucion_num_2025", signo, decimales),
@@ -1710,6 +1726,10 @@ def _id_no_aplica(df: pd.DataFrame) -> bool:
     return "Id" in df.columns and bool(df["Id"].astype(str).isin(IDS_TOTAL_NO_APLICA).any())
 
 
+def _id_grupos_sin_total(df: pd.DataFrame) -> bool:
+    return "Id" in df.columns and bool(df["Id"].astype(str).isin(IDS_GRUPOS_SIN_TOTAL).any())
+
+
 def _id_sin_total_global(df: pd.DataFrame) -> bool:
     return "Id" in df.columns and bool(df["Id"].astype(str).isin(IDS_SIN_TOTAL_GLOBAL).any())
 
@@ -1874,7 +1894,17 @@ def build_metricas_tabla_agrupada(df: pd.DataFrame) -> list[dict[str, Any]]:
             )
             serie = [p["ejecucion"] for p in serie_agregada if p["ejecucion"] is not None]
             grupos_intermedios = _detecta_grupos_intermedios(grupo, desglose)
-            if grupos_intermedios and _id_sin_total_global(grupo):
+            if grupos_intermedios and _id_grupos_sin_total(grupo):
+                # Cada grupo suma 100 por sí mismo: la fila principal no los suma.
+                agregado = {
+                    "ultimo_anio": None,
+                    "ultimo_valor": None,
+                    "valor_fmt": "No aplica",
+                    "variacion_ultima_pct": None,
+                    "tendencia": "—",
+                }
+                serie = []
+            elif grupos_intermedios and _id_sin_total_global(grupo):
                 # Activos = Pasivos + Patrimonio: la fila principal muestra cada grupo.
                 agregado = _agregado_variables([{**g, "subindicador": g["nombre"]} for g in grupos_intermedios])
                 serie = agregado.pop("serie")
@@ -2003,7 +2033,7 @@ def build_metrica_detalle(
     if not consolidado:
         return {
             **base,
-            "subindicador": first.get("Subindicador"),
+            "subindicador": _clean(first.get("Subindicador")),
             "consolidado": False,
             "agregacion": None,
             "signo": _clean(first.get("signo")),
@@ -2046,6 +2076,8 @@ def build_metrica_detalle(
     if len(unidades) <= 1 and not _id_no_aplica(match):
         serie = _agrega_series(match, signo)
         est = _estadisticas_serie(serie)
+        if _id_grupos_sin_total(match):
+            serie, est = [], {}  # se muestran los grupos, no un total entre ellos
         partes = _partes_grupo([d["subindicador"] for d in desglose])
         if partes is not None:
             grupos = []

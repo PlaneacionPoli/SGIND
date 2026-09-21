@@ -53,3 +53,8 @@ IDS_TOTAL_NO_APLICA: frozenset[str] = frozenset(
         "G8",  # Ingresos por extensión vs costos y gestión
     }
 )
+
+# Grupos cuyos porcentajes suman 100 dentro de cada grupo (Ilustración 20: cada medio
+# de comunicación con sus opciones de respuesta): se muestran los grupos, pero la
+# fila principal no suma un grupo con otro y dice "No aplica".
+IDS_GRUPOS_SIN_TOTAL: frozenset[str] = frozenset({"I20"})

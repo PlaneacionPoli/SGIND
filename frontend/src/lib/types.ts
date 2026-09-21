@@ -752,6 +752,8 @@ export interface PlanIndicadoresDashboardResponse {
     | {
         factor: string;
         factor_num: number | null;
+        caracteristica: string | null;
+        caracteristica_num: number | null;
         indicador: string;
         tipo: string | null;
         signo: string | null;
@@ -760,6 +762,8 @@ export interface PlanIndicadoresDashboardResponse {
     | {
         factor: string;
         factor_num: number | null;
+        caracteristica: string | null;
+        caracteristica_num: number | null;
         indicador: string;
         meta_2025: PlanValorFmt;
         ejecucion_2025: PlanValorFmt;
