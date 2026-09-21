@@ -17,7 +17,12 @@ export function PmBulletProgress({
   color = "#1A3A5C",
 }: PmBulletProgressProps) {
   if (meta == null && ejecucion == null) {
-    return <span className="text-xs text-slate-400">—</span>;
+    // Meta no numérica ("Línea base"…): se muestra el texto en vez de perderla.
+    return metaFmt !== "—" ? (
+      <span className="text-[11px] text-slate-500">Meta: {metaFmt}</span>
+    ) : (
+      <span className="text-xs text-slate-400">—</span>
+    );
   }
 
   const scale = Math.max(meta ?? 0, ejecucion ?? 0, 1) * 1.15;

@@ -599,6 +599,32 @@ def fmt_valor_plan(value, signo, decimales) -> str:
     return _num_es(value, decimales)
 
 
+_LINEA_BASE_RE = re.compile(r"^l[ií]nea\s+base$", flags=re.IGNORECASE)
+_META_SIN_TEXTO = {"", "n/a", "na", "pendiente", "nan", "none"}
+
+
+def _meta_texto(value) -> str | None:
+    """Meta que llega como texto ("Línea base", "Definir % de crecimiento"…) y
+    no como número: se muestra tal cual en vez de perderla como "—". Los
+    marcadores vacíos ("pendiente", "n/a") siguen siendo sin dato."""
+    if not isinstance(value, str):
+        return None
+    texto = " · ".join(part.strip() for part in value.splitlines() if part.strip())
+    if texto.lower() in _META_SIN_TEXTO or _parse_meta_ejecucion(texto) is not None:
+        return None
+    return "Línea base" if _LINEA_BASE_RE.match(texto) else texto
+
+
+def fmt_meta_plan(row, year, signo, decimales) -> str:
+    """Meta del año: número formateado, o el texto de la celda si no es numérica."""
+    valor = row.get(f"Meta_num_{year}")
+    if valor is None or pd.isna(valor):
+        texto = row.get(f"Meta_txt_{year}")
+        if isinstance(texto, str) and texto:
+            return texto
+    return fmt_valor_plan(valor, signo, decimales)
+
+
 def load_catalogo_plan_indicadores(excel) -> pd.DataFrame:
     """Catálogo Signo/Decimales/Decimales_Cump por indicador del Plan.
 
@@ -766,6 +792,13 @@ def _load_plan_indicadores_uncached(excel) -> pd.DataFrame:
         if year in df.columns:
             df[f"Meta_num_{year}"] = df[year].apply(_parse_meta_ejecucion)
 
+    for year in _METAS_ALL_YEARS + ("2025",):
+        fuentes = [c for c in (f"Meta_{year}", year) if c in df.columns]
+        df[f"Meta_txt_{year}"] = [
+            next((t for t in (_meta_texto(row[c]) for c in fuentes) if t), None)
+            for _, row in df[fuentes].iterrows()
+        ]
+
     if "Estado_raw" in df.columns and "Estado_Aprobacion" in df.columns:
         df["Estado_final"] = df.apply(classify_plan_indicador_estado, axis=1)
     elif "Estado_raw" in df.columns:
@@ -890,7 +923,7 @@ def build_plan_indicadores_tabla_metas(df: pd.DataFrame) -> list[dict[str, Any]]
             val = row.get(f"Meta_num_{y}")
             metas[y] = {
                 "valor": None if pd.isna(val) else float(val),
-                "valor_fmt": fmt_valor_plan(val, row.get("Signo"), row.get("Decimales")),
+                "valor_fmt": fmt_meta_plan(row, y, row.get("Signo"), row.get("Decimales")),
             }
         fnum, cnum = row.get("Factor_num"), row.get("Caracteristica_num")
         records.append(
@@ -915,9 +948,14 @@ def build_plan_indicadores_tabla_historico(df: pd.DataFrame) -> list[dict[str, A
 
     def _valor(row, col, signo, decimales) -> dict[str, Any]:
         v = row.get(col)
+        es_meta = col.startswith("Meta_num_")
         return {
             "valor": None if pd.isna(v) else float(v),
-            "valor_fmt": fmt_valor_plan(v, signo, decimales),
+            "valor_fmt": (
+                fmt_meta_plan(row, col.rsplit("_", 1)[1], signo, decimales)
+                if es_meta
+                else fmt_valor_plan(v, signo, decimales)
+            ),
         }
 
     def _cump(v, decimales_cump) -> dict[str, Any]:
@@ -959,11 +997,11 @@ def build_indicador_cump_texto(row: pd.Series) -> str:
     signo, decimales, dec_cump = row.get("Signo"), row.get("Decimales"), row.get("Decimales_Cump")
     cump_2025, cump_2026 = row.get("Cump_calc_2025"), row.get("Cump_calc_2026")
     return (
-        f"2025 — Meta: {fmt_valor_plan(row.get('Meta_num_2025'), signo, decimales)} · "
+        f"2025 — Meta: {fmt_meta_plan(row, '2025', signo, decimales)} · "
         f"Ejecución: {fmt_valor_plan(row.get('Ejecucion_num_2025'), signo, decimales)} · "
         f"% Cump: {fmt_valor_plan(cump_2025 * 100 if pd.notna(cump_2025) else None, '%', dec_cump)}"
         "   |   "
-        f"2026 — Meta: {fmt_valor_plan(row.get('Meta_num_2026'), signo, decimales)} · "
+        f"2026 — Meta: {fmt_meta_plan(row, '2026', signo, decimales)} · "
         f"Ejecución: {fmt_valor_plan(row.get('Ejecucion_num_2026'), signo, decimales)} · "
         f"% Cump: {fmt_valor_plan(cump_2026 * 100 if pd.notna(cump_2026) else None, '%', dec_cump)}"
     )
@@ -974,7 +1012,7 @@ def build_indicador_metas_futuras_texto(row: pd.Series) -> str:
     plan_mejoramiento_utils.py::build_indicador_metas_futuras_texto."""
     signo, decimales = row.get("Signo"), row.get("Decimales")
     partes = [
-        f"{y}: {fmt_valor_plan(row.get(f'Meta_num_{y}'), signo, decimales)}"
+        f"{y}: {fmt_meta_plan(row, y, signo, decimales)}"
         for y in _METAS_ALL_YEARS
     ]
     return " · ".join(partes)
@@ -989,7 +1027,7 @@ def build_indicador_cump_tabla(row: pd.Series) -> list[dict[str, str]]:
         filas.append(
             {
                 "anio": y,
-                "meta": fmt_valor_plan(row.get(f"Meta_num_{y}"), signo, decimales),
+                "meta": fmt_meta_plan(row, y, signo, decimales),
                 "ejecucion": fmt_valor_plan(row.get(f"Ejecucion_num_{y}"), signo, decimales),
                 "cump": fmt_valor_plan(cump * 100 if pd.notna(cump) else None, "%", dec_cump),
             }
@@ -1001,7 +1039,7 @@ def build_indicador_metas_futuras_tabla(row: pd.Series) -> list[dict[str, str]]:
     """Filas (año, meta) 2026-2030 del modal de detalle, ya formateadas."""
     signo, decimales = row.get("Signo"), row.get("Decimales")
     return [
-        {"anio": y, "meta": fmt_valor_plan(row.get(f"Meta_num_{y}"), signo, decimales)}
+        {"anio": y, "meta": fmt_meta_plan(row, y, signo, decimales)}
         for y in _METAS_ALL_YEARS
     ]
 
