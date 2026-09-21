@@ -27,9 +27,15 @@
 | `POST /api/v1/om` | ❌ | ✅ | ✅ |
 | `PUT /api/v1/om/{id}` | ❌ | ✅ | ✅ |
 | `DELETE /api/v1/om/{id}` | ❌ | ✅ | ✅ |
-| `POST /api/v1/ia/*` | ✅ | ✅ | ✅ |
-| `POST /api/v1/etl/run` | ❌ | ✅ | ✅ |
-| `GET /api/v1/export/*` | ✅ | ✅ | ✅ |
+| `GET /api/v1/cmi/procesos/export` | ✅ | ✅ | ✅ |
+| `GET /api/v1/plan-mejoramiento/indicadores/export` | ✅ | ✅ | ✅ |
+| `GET /api/v1/seguimiento/export` | ✅ | ✅ | ✅ |
+
+> Corregido en Oleada 4 (G-12): se retiraron `POST /api/v1/ia/*`, `POST /api/v1/etl/run`
+> y `GET /api/v1/export/*` genérico — ninguno existe en `backend/app/api/v1/`
+> (la IA se invoca dentro de los builders, el ETL corre fuera del backend en
+> `scripts/`, y la exportación es por módulo). Las 3 rutas de exportación
+> reales usan `require_reader`.
 
 ## Implementación FastAPI
 

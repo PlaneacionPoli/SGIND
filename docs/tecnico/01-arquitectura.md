@@ -44,10 +44,25 @@ indicadores, y viceversa.
 
 - Next.js **14.2.35** (App Router), TypeScript 5, Tailwind, Zustand 5 (con
   `persist` en `localStorage`), TanStack Query 5, Axios 1.17.
-- Gráficos: **dos librerías en paralelo**, Plotly (`plotly.js-dist-min` +
-  `react-plotly.js`) para la mayoría de vistas, y Recharts 3.8.1 usado solo
-  en `CmiLineaAnalisis.tsx` — sin una convención documentada de cuándo usar
-  cada una.
+- Gráficos: **dos librerías, con una convención explícita** (documentada en
+  Oleada 4, G-14 — ya se cumplía de facto, no requirió migrar código):
+  - **Plotly** (`plotly.js-dist-min` + `react-plotly.js`): gráficos
+    analíticos complejos e interactivos que ocupan una vista completa
+    (Gantt, sunburst, barras+líneas combinadas, pestañas de análisis).
+    Hoy: `charts/ProyectosGanttChart`, `charts/SunburstPlotlyChart`,
+    `cmi/CmiBarLineasPlotly`, `cmi/CmiCatalogChartsPlotly`,
+    `cmi/CmiCumplimientoHorizBarPlotly`, `cmi/CmiProcesosAnalisisTab` y
+    `seguimiento-operativo/page.tsx`.
+  - **Recharts 3.8.1**: widgets ligeros embebidos en modales o tarjetas
+    (fichas, treemaps pequeños, barras apiladas, sparklines). Hoy:
+    `cmi/CmiFichaModal`, `cmi/CmiLineaAnalisis`, `cmi/CmiProcesosFichaModal`,
+    `cmi/PmFactorCaracteristicaTreemap`, `cmi/PmFactorNivelStackedChart`,
+    `plan-mejoramiento/PmMetricaModal`, `ui/StrategyCard`.
+  - Regla para código nuevo: vista completa/analítica → Plotly; widget
+    dentro de modal o tarjeta → Recharts. Ambas deben tomar los colores de
+    semáforo de `lib/design-tokens.ts::SEMAFORO` (nunca hex propios).
+    Unificar en una sola librería sigue siendo posible pero no se justifica
+    hoy (M-14, evolución futura).
 - 9 páginas bajo `frontend/src/app/(dashboard)/`, todas conectadas a la API
   real (ninguna usa datos mock como sustituto de producción). Detalle en
   [`02-core-del-sistema.md`](02-core-del-sistema.md).
@@ -67,12 +82,13 @@ pipeline de indicadores es 100% manual hoy.
 
 ## Base de datos (`database/`)
 
-Una sola migración de esquema (`001_initial_schema.sql`, SQL plano, sin
-Alembic ni herramienta de migraciones): `roles`, `users`, `registros_om`,
-`acciones`, `audit_log`, `ai_configs`, `ai_prompts`. De estas 7 tablas, el
-backend usa activamente 4 (`roles`, `users`, `registros_om`, `acciones`);
-las otras 3 existen en la BD pero no tienen ningún consumidor verificado en
-`backend/app` — ver [`03-modelo-de-datos.md`](03-modelo-de-datos.md).
+Tres migraciones SQL planas (sin Alembic ni herramienta de migraciones).
+Tablas vigentes: `roles`, `users`, `registros_om`, `acciones`, `audit_log`
+(`ai_configs` y `ai_prompts` se eliminaron en la migración 003, Oleada 4).
+El backend usa activamente 3 (`roles`, `users`, `registros_om`);
+`audit_log` se llena por trigger y no se lee desde la app (intencional), y
+`acciones` quedó sin consumidor tras eliminar su modelo ORM — ver
+[`03-modelo-de-datos.md`](03-modelo-de-datos.md).
 
 ## Documentación previa a tener en cuenta con cautela
 

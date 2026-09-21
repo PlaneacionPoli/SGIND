@@ -62,10 +62,9 @@ async def test_tp_2_1_schema_tables_exist(db_session: AsyncSession):
         )
     )
     tables = [row[0] for row in result.fetchall()]
+    # ai_configs / ai_prompts se eliminaron en la migracion 003 (Oleada 4, G-10).
     assert tables == [
         "acciones",
-        "ai_configs",
-        "ai_prompts",
         "audit_log",
         "registros_om",
         "roles",
@@ -154,14 +153,9 @@ async def test_tp_2_3_dashboard_query_performance(db_session: AsyncSession):
 
 
 async def test_tp_2_5_referential_integrity(db_session: AsyncSession):
-    """TP-2.5: roles seed y prompts IA sin violaciones FK."""
+    """TP-2.5: roles seed sin violaciones FK."""
     roles = await db_session.execute(text("SELECT COUNT(*) FROM roles"))
     assert roles.scalar_one() >= 3
-
-    prompts = await db_session.execute(
-        text("SELECT COUNT(*) FROM ai_prompts WHERE name LIKE 'PT-%'")
-    )
-    assert prompts.scalar_one() >= 3
 
     orphans = await db_session.execute(
         text(

@@ -57,10 +57,11 @@
 
 ### 3. Modelado y diseño de datos
 
-- **Resolver las 3 tablas huérfanas** (`audit_log`, `ai_configs`,
-  `ai_prompts`, G-10): o se implementa su consumo (por ejemplo, exponer
-  `audit_log` en un endpoint de auditoría real) o se retiran del esquema.
-  Un esquema con tablas sin propósito activo es deuda de modelado.
+- ✅ **Tablas huérfanas resueltas (G-10, Oleada 4):** `ai_configs` y
+  `ai_prompts` se eliminaron (migración 003); `audit_log` se conserva como
+  registro de auditoría de consulta manual. Pendiente: política de retención
+  para `audit_log` (crece sin purga) y decidir el destino de `acciones`
+  (tabla sin consumidor tras retirar el modelo `Accion`).
 - **Publicar un diccionario de datos formal** por tabla Postgres y por hoja
   Excel relevante (columnas, tipo, obligatoriedad, regla de negocio
   asociada) — más allá de los `rename_map` dispersos en el código. Ya hay

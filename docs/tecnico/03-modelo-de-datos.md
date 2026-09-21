@@ -1,18 +1,20 @@
 # Modelo de datos real
 
-## PostgreSQL (`database/migrations/001_initial_schema.sql`)
+## PostgreSQL (`database/migrations/`)
 
-Única migración de esquema, SQL plano (sin Alembic).
+Tres migraciones SQL planas (sin Alembic): `001_initial_schema.sql`,
+`002_seed_ai_prompts.sql` y `003_drop_unused_ai_tables.sql` (Oleada 4).
+`/docker-entrypoint-initdb.d` solo corre en una BD nueva: en bases ya
+desplegadas la 003 se aplica a mano con `psql -f`.
 
 | Tabla | Uso real en backend | Notas |
 |---|---|---|
 | `roles` | Sí (`users.role_id`) | Seed: `procesos`, `calidad`, `desempeno` |
 | `users` | Sí (`auth_service.py`, `security.py`) | `azure_oid` único, soporta login Azure AD y dev/email login |
 | `registros_om` | Sí (`om_service.py`, endpoint `om.py`) | Único FK-less pero con `UNIQUE(id_indicador, periodo, anio)` usado como clave de upsert; checks `tiene_om IN (0,1)`, `anio BETWEEN 2018 AND 2035` |
-| `acciones` | Sí (`plan_mejoramiento_service.py`) | `payload JSONB` para columnas no tipadas del Excel origen; `marker_col`/`marker_value` para idempotencia de migración |
-| `audit_log` | **No** — sin consumidor en `backend/app` | Se sigue llenando automáticamente vía trigger en cada cambio de `registros_om`, pero nadie la lee ni expone |
-| `ai_configs` | **No** — sin consumidor en `backend/app` | Config de proveedor/modelo IA, huérfana |
-| `ai_prompts` | **No** — sin consumidor en `backend/app` | 3 prompts sembrados (`002_seed_ai_prompts.sql`) para análisis IA, sin código que los use |
+| `acciones` | **No** — sin modelo ORM ni SQL directo en `backend/app` (desde Oleada 4) | El modelo ORM `Accion` se eliminó (código muerto: las acciones se leen del Excel vía `domain/om_builders.py`/`plan_mejoramiento_builders.py`). La tabla sigue en el esquema (`payload JSONB`, `marker_col`/`marker_value`) como destino de una migración Excel→BD que no se ejecutó; su destino queda pendiente de decisión. Esta doc decía antes que `plan_mejoramiento_service.py` la usaba — era incorrecto |
+| `audit_log` | Intencionalmente **sin lectura desde la app** | Se llena por trigger en cada cambio de `registros_om` y se consulta manualmente en auditorías (decisión de negocio, Oleada 4). Crece sin purga; una política de retención queda como mejora futura |
+| ~~`ai_configs`~~, ~~`ai_prompts`~~ | **Eliminadas en Oleada 4** (migración 003) | Vestigios del diseño original con Anthropic; la IA real usa `google-genai` con config en entorno (G-10, G-20) |
 
 Relaciones: `users.role_id → roles.id`, `audit_log.user_id → users.id (ON
 DELETE SET NULL)`. `registros_om` y `acciones` no tienen FK entrantes ni

@@ -55,14 +55,18 @@
 ## Frontend
 
 - **`npm run build`:** el compilador de Next.js pasa limpio
-  (`✓ Compiled successfully`, `✓ Generating static pages (17/17)`), pero el
-  proceso completo falla al final en el paso de "standalone output"
-  (`Error: UNKNOWN: unknown error, copyfile ... threadChild.js`). Es un
-  error de sistema de archivos de Windows/OneDrive (el repo vive en una
-  carpeta sincronizada por OneDrive, que bloquea archivos intermitentemente
-  durante la sincronización) — no es un error de código. Recomendación:
-  mover el repo fuera de una carpeta sincronizada por OneDrive para
-  builds/CI locales fiables, o excluir la carpeta de la sincronización.
+  (`✓ Compiled successfully`, `✓ Generating static pages`). **Fallo
+  intermitente, no bloqueante (G-18, revisado en Oleada 4):** en la
+  auditoría original el proceso falló al final en el paso de "standalone
+  output" (`Error: UNKNOWN: unknown error, copyfile ... threadChild.js`); en
+  la revisión de Oleada 4 el mismo build completó con exit 0 y regeneró
+  `.next/standalone/server.js`. La causa es de sistema de archivos de
+  Windows/OneDrive (la carpeta sincronizada bloquea archivos
+  intermitentemente durante la sincronización), no de código, y depende de
+  que OneDrive esté sincronizando en ese instante. Si reaparece: reintentar,
+  pausar la sincronización de OneDrive durante el build, o mover el repo
+  fuera de una carpeta sincronizada. El CI/producción (Linux, Render) no
+  está afectado.
 - **`npm run lint`: pasa limpio** (`✔ No ESLint warnings or errors`).
 - Suite unitaria: `vitest`, solo un archivo de test
   (`src/lib/design-tokens.test.ts`) — cobertura mínima de lógica real de
