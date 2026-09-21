@@ -1238,11 +1238,20 @@ def _variacion_pct(previo: float | None, actual: float | None) -> float | None:
     return float((actual - previo) / previo * 100)
 
 
+def _cerrados(serie: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Puntos de la serie hasta el último año cerrado. 2026 es parcial en las
+    fichas de métricas, así que no entra al cálculo de variación ni tendencia
+    (ver MAX_ANIO_FILTROS)."""
+    return [p for p in serie if p["anio"] <= MAX_ANIO_FILTROS]
+
+
 def _anota_variaciones(serie: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    """Agrega a cada punto `variacion_pct` respecto al dato anterior con valor."""
+    """Agrega a cada punto `variacion_pct` respecto al dato anterior con valor.
+    Los años posteriores al último cerrado quedan en None: su dato es parcial."""
     previo = None
     for p in serie:
-        p["variacion_pct"] = _variacion_pct(previo, p["ejecucion"])
+        cerrado = p["anio"] <= MAX_ANIO_FILTROS
+        p["variacion_pct"] = _variacion_pct(previo, p["ejecucion"]) if cerrado else None
         if p["ejecucion"] is not None:
             previo = p["ejecucion"]
     return serie
@@ -1256,12 +1265,14 @@ def _tendencia_lineal(serie: list[dict[str, Any]]) -> str:
     cuadrados (la misma "Tendencia (lineal)" que se dibuja en el gráfico),
     expresada como % del nivel promedio de la serie por año: >+3% Creciente,
     <-3% Decreciente, si no Estable; "Sin suficiente historia" con menos de 2
-    datos.
+    datos. Solo cuentan los años cerrados (hasta MAX_ANIO_FILTROS).
 
     Antes se promediaban las variaciones año a año (paridad con el loader
     legacy), pero un solo salto porcentual enorme (65 -> 2.578 = +3.866%)
     dominaba el promedio y una serie que en conjunto baja salía "Creciente"."""
-    puntos = [(i, p["ejecucion"]) for i, p in enumerate(serie) if p.get("ejecucion") is not None]
+    puntos = [
+        (i, p["ejecucion"]) for i, p in enumerate(_cerrados(serie)) if p.get("ejecucion") is not None
+    ]
     if len(puntos) < 2:
         return "Sin suficiente historia"
     n = len(puntos)
@@ -1468,8 +1479,14 @@ def _build_metricas_historico_uncached(excel) -> pd.DataFrame:
 
         n_anios_con_dato = len(con_dato)
         if n_anios_con_dato:
-            ultimo_anio = int(con_dato["Periodo_anio"].iloc[-1])
-            ultimo_valor = float(con_dato["Ejecucion_num"].iloc[-1]) * factor_valor
+            # El resultado de la ficha es el del último año cerrado, el mismo
+            # de la variación y la tendencia; solo si la serie no tiene ningún
+            # año cerrado (p. ej. empezó en 2026) se muestra el dato parcial.
+            base = con_dato[con_dato["Periodo_anio"] <= MAX_ANIO_FILTROS]
+            if base.empty:
+                base = con_dato
+            ultimo_anio = int(base["Periodo_anio"].iloc[-1])
+            ultimo_valor = float(base["Ejecucion_num"].iloc[-1]) * factor_valor
         else:
             # Sin año real disponible: se conserva el último dato reportado
             # (si existe) para no perder la métrica del tablero.
@@ -1482,10 +1499,11 @@ def _build_metricas_historico_uncached(excel) -> pd.DataFrame:
             )
 
         _anota_variaciones(serie)
-        con_variacion = [p for p in serie if p["ejecucion"] is not None]
+        cerrados = _cerrados(serie)
+        con_variacion = [p for p in cerrados if p["ejecucion"] is not None]
         variacion_ultima_pct = con_variacion[-1]["variacion_pct"] if con_variacion else None
         variaciones = [
-            p["variacion_pct"] for p in serie if p["variacion_pct"] is not None
+            p["variacion_pct"] for p in cerrados if p["variacion_pct"] is not None
         ]
         variacion_promedio_pct = float(pd.Series(variaciones).mean()) if variaciones else None
 
@@ -1709,12 +1727,16 @@ def _estadisticas_serie(serie: list[dict[str, Any]]) -> dict[str, Any]:
     lógica que _build_metricas_historico_uncached, aplicada a series ya
     construidas (consolidados)."""
     con_dato = [p for p in serie if p.get("ejecucion") is not None]
-    variaciones = [p["variacion_pct"] for p in serie if p.get("variacion_pct") is not None]
-    variacion_ultima = con_dato[-1].get("variacion_pct") if con_dato else None
+    cerrados = [p for p in _cerrados(serie) if p.get("ejecucion") is not None]
+    variaciones = [p["variacion_pct"] for p in _cerrados(serie) if p.get("variacion_pct") is not None]
+    variacion_ultima = cerrados[-1].get("variacion_pct") if cerrados else None
     variacion_promedio = sum(variaciones) / len(variaciones) if variaciones else None
+    # Mismo criterio que en el histórico: el resultado es el del último año
+    # cerrado, y solo si no hay ninguno se cae al dato parcial.
+    base = cerrados or con_dato
     return {
-        "ultimo_anio": con_dato[-1]["anio"] if con_dato else None,
-        "ultimo_valor": con_dato[-1]["ejecucion"] if con_dato else None,
+        "ultimo_anio": base[-1]["anio"] if base else None,
+        "ultimo_valor": base[-1]["ejecucion"] if base else None,
         "variacion_ultima_pct": variacion_ultima,
         "variacion_promedio_pct": variacion_promedio,
         "tendencia": _tendencia_lineal(serie),

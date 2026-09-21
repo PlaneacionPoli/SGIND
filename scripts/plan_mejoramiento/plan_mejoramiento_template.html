@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Plan de Mejoramiento · Modelo CNA</title>
+<style>
+:root {
+  --background: #f8fafc; --foreground: #0f172a; --border: #e2e8f0;
+  --navy: #1a2b4a; --blue: #2563eb;
+  --s50: #f8fafc; --s100: #f1f5f9; --s200: #e2e8f0; --s300: #cbd5e1; --s400: #94a3b8;
+  --s500: #64748b; --s600: #475569; --s700: #334155; --s800: #1e293b; --s900: #0f172a;
+}
+*, *::before, *::after { box-sizing: border-box; border-color: var(--border); }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: var(--background); color: var(--foreground);
+  font-family: Inter, ui-sans-serif, system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: 16px; line-height: 1.5; -webkit-font-smoothing: antialiased;
+}
+h2, h3, p { margin: 0; }
+button, select, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+.page { max-width: 1400px; margin: 0 auto; padding: 24px 16px 32px; }
+@media (min-width: 1024px) { .page { padding: 32px; } }
+.stack-6 > * + * { margin-top: 24px; }
+.stack-4 > * + * { margin-top: 16px; }
+.tabular { font-variant-numeric: tabular-nums; }
+
+/* Encabezado */
+.hero { border-radius: 12px; background: linear-gradient(to right, var(--s900), var(--s800)); padding: 24px; color: #fff; box-shadow: 0 4px 6px -1px rgb(0 0 0 / .1), 0 2px 4px -2px rgb(0 0 0 / .1); }
+.hero .eyebrow { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .1em; color: #bfdbfe; }
+.hero h2 { margin-top: 4px; font-size: 24px; line-height: 32px; font-weight: 700; color: #fff; letter-spacing: -.02em; }
+
+/* Pestañas y botones de vista */
+.tabs { display: flex; gap: 8px; }
+.tab, .subtab { border: 0; border-radius: 8px; background: var(--s100); color: var(--s600); font-size: 14px; font-weight: 600; transition: background-color .15s, color .15s; }
+.tab { display: inline-flex; align-items: center; gap: 8px; padding: 8px 20px; }
+.subtab { padding: 8px 16px; }
+.tab:hover, .subtab:hover { background: var(--s200); }
+.tab.active, .subtab.active { background: var(--navy); color: #fff; box-shadow: 0 1px 2px 0 rgb(0 0 0 / .05); }
+
+/* KPI */
+.grid { display: grid; gap: 16px; }
+.kpis { grid-template-columns: 1fr; }
+@media (min-width: 640px) { .kpis { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1024px) { .kpis { grid-template-columns: repeat(4, 1fr); } }
+.kpi { border: 1px solid var(--s200); border-radius: 12px; background: #fff; padding: 20px; box-shadow: 0 1px 2px 0 rgb(0 0 0 / .05); }
+.kpi .label { font-size: 14px; font-weight: 500; color: var(--s500); }
+.kpi .value { margin-top: 8px; font-size: 30px; line-height: 36px; font-weight: 700; color: var(--navy); }
+.kpi .unit { margin-left: 4px; font-size: 16px; font-weight: 400; color: var(--s400); }
+
+/* Filtros */
+.card { border: 1px solid var(--s200); border-radius: 12px; background: #fff; padding: 16px; }
+.card.shadow { box-shadow: 0 1px 2px 0 rgb(0 0 0 / .05); }
+.filters { display: grid; gap: 12px; grid-template-columns: 1fr; }
+@media (min-width: 640px) { .filters { grid-template-columns: repeat(2, 1fr); } .filters .span2 { grid-column: span 2; } }
+@media (min-width: 1024px) { .filters.f5 { grid-template-columns: repeat(5, 1fr); } .filters.f4 { grid-template-columns: repeat(4, 1fr); } .filters.f4 .span2 { grid-column: auto; } }
+.field { width: 100%; border: 1px solid var(--s200); border-radius: 8px; background: #fff; padding: 8px 12px; font-size: 14px; }
+.filters-foot { margin-top: 12px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.count { font-size: 12px; font-weight: 600; color: var(--s500); }
+.btn-outline { border: 1px solid var(--s200); border-radius: 8px; background: #fff; padding: 6px 12px; font-size: 12px; font-weight: 600; color: var(--s600); }
+.btn-outline:hover:not(:disabled) { background: var(--s50); }
+.btn-outline:disabled { opacity: .4; cursor: default; }
+.muted { font-size: 14px; color: var(--s500); }
+.hint { font-size: 12px; color: var(--s500); }
+.sec-title { margin-bottom: 4px; font-size: 14px; font-weight: 700; color: var(--s800); letter-spacing: 0; }
+
+/* Tabla */
+.table-card { overflow: hidden; border: 1px solid var(--s200); border-radius: 12px; background: #fff; box-shadow: 0 1px 2px 0 rgb(0 0 0 / .05); }
+.table-scroll { overflow-x: auto; }
+table { min-width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; }
+thead { background: rgb(248 250 252 / .8); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--s500); }
+th { padding: 12px 16px; text-align: left; }
+th.r, td.r { text-align: right; }
+tbody tr { border-top: 1px solid var(--s100); }
+tbody tr:first-child { border-top: 0; }
+tbody tr.row { cursor: pointer; border-left: 2px solid transparent; transition: background-color .15s; }
+tbody tr.row:nth-child(even) { background: rgb(248 250 252 / .4); }
+tbody tr.row:hover { border-left-width: 4px; border-left-color: var(--fc, transparent); background: var(--s50); }
+td { padding: 10px 16px; vertical-align: middle; }
+td.wrap { white-space: normal; overflow-wrap: anywhere; font-weight: 500; color: var(--s800); }
+td.num { text-align: right; font-variant-numeric: tabular-nums; color: var(--s700); }
+td.num.strong { font-weight: 600; color: var(--s800); }
+.pager { border-top: 1px solid var(--s100); padding: 12px 16px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; font-size: 14px; }
+.pager .grp { display: flex; align-items: center; gap: 8px; }
+.pager .grp span { color: var(--s500); }
+.pager .grp .pg { color: var(--s600); }
+.pager select { border: 1px solid var(--s300); border-radius: 4px; padding: 4px 8px; }
+.pager button { border: 1px solid var(--s300); border-radius: 4px; background: #fff; padding: 4px 12px; }
+.pager button:disabled { opacity: .4; cursor: default; }
+
+/* Etiquetas */
+.badge { display: inline-flex; align-items: center; gap: 4px; border-radius: 6px; padding: 2px 6px; font-size: 11px; font-weight: 700; }
+.badge.full { gap: 6px; border-radius: 8px; padding: 4px 10px; font-size: 12px; color: #fff; }
+.tag { display: inline-block; border-radius: 6px; padding: 2px 8px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .025em; }
+.tag.Indicador { background: #f0f9ff; color: #0369a1; }
+.tag.Metrica { background: #f7fee7; color: #4d7c0f; }
+.tag.other { background: #fff1f2; color: #be123c; }
+.ctag { display: inline-block; border-radius: 6px; background: var(--s100); padding: 2px 6px; font-size: 11px; font-weight: 700; color: var(--s600); }
+.pill { display: inline-block; border-radius: 999px; padding: 2px 8px; font-size: 12px; font-weight: 600; }
+.t-Creciente { background: #ecfdf5; color: #047857; }
+.t-Decreciente { background: #fff1f2; color: #be123c; }
+.t-Estable { background: var(--s100); color: var(--s600); }
+.t-none { background: var(--s50); color: var(--s400); }
+.pill.big { font-size: 14px; }
+.v-pos { color: #059669; } .v-neg { color: #e11d48; } .v-zero { color: var(--s500); }
+.dim { color: var(--s400); font-size: 12px; }
+.svg-i { display: inline-block; vertical-align: -2px; flex: none; }
+
+/* Bullet */
+.bullet { width: 144px; }
+.bullet .track { position: relative; height: 8px; border-radius: 999px; background: var(--s100); }
+.bullet .fill { height: 8px; border-radius: 999px; }
+.bullet .mark { position: absolute; top: 50%; width: 2px; height: 12px; transform: translateY(-50%); border-radius: 999px; background: var(--s700); }
+.bullet .lbl { margin-top: 4px; display: flex; justify-content: space-between; font-size: 10px; color: var(--s500); white-space: nowrap; gap: 6px; }
+
+/* Métricas: desglose */
+.expander { display: inline-block; flex: none; border: 0; background: transparent; border-radius: 4px; padding: 0 4px; color: var(--s400); transition: transform .15s; }
+.expander:hover { background: var(--s200); color: var(--s700); }
+.expander.open { transform: rotate(90deg); }
+.nm { display: flex; align-items: flex-start; gap: 6px; }
+.count-pill { flex: none; border-radius: 999px; background: var(--s100); padding: 2px 6px; font-size: 10px; font-weight: 600; color: var(--s500); }
+tr.sub { cursor: pointer; background: rgb(248 250 252 / .7); }
+tr.sub.grp { background: rgb(241 245 249 / .7); font-weight: 500; }
+tr.sub:hover { background: var(--s100); }
+tr.sub td { padding: 8px 16px; color: var(--s600); }
+tr.sub td.n1 { padding-left: 36px; white-space: normal; overflow-wrap: anywhere; }
+tr.sub td.n2 { padding-left: 56px; white-space: normal; overflow-wrap: anywhere; }
+tr.sub .count-pill { background: #fff; }
+
+/* Modal */
+.overlay { position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; background: rgb(0 0 0 / .4); padding: 16px; }
+.modal { max-height: 90vh; width: 100%; overflow-y: auto; border-radius: 16px; background: #fff; box-shadow: 0 20px 25px -5px rgb(0 0 0 / .1), 0 8px 10px -6px rgb(0 0 0 / .1); }
+.modal.w2 { max-width: 672px; } .modal.w3 { max-width: 768px; }
+.modal-head { position: sticky; top: 0; z-index: 10; display: flex; align-items: center; justify-content: space-between; gap: 12px; border-bottom: 1px solid var(--s200); background: #fff; padding: 16px 24px; }
+.modal-head h3 { font-size: 18px; line-height: 28px; font-weight: 700; color: var(--navy); letter-spacing: -.01em; }
+.modal-head .close { border: 0; background: transparent; border-radius: 8px; padding: 4px 8px; color: var(--s500); }
+.modal-head .close:hover { background: var(--s100); }
+.modal-body { padding: 20px 24px; font-size: 14px; }
+.modal-body > * + * { margin-top: 16px; }
+.modal.w3 .modal-body > * + * { margin-top: 20px; }
+.lbl-b { font-weight: 600; color: var(--s700); }
+.txt { color: var(--s600); white-space: pre-line; }
+.cols2 { display: grid; gap: 16px; grid-template-columns: 1fr; }
+@media (min-width: 640px) { .cols2 { grid-template-columns: repeat(2, 1fr); } }
+.fichas { display: grid; gap: 12px; grid-template-columns: 1fr; }
+@media (min-width: 640px) { .fichas { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1024px) { .fichas.c3 { grid-template-columns: repeat(3, 1fr); } .fichas.c5 { grid-template-columns: repeat(5, 1fr); } }
+.ficha { border: 1px solid var(--s200); border-radius: 12px; background: rgb(248 250 252 / .6); padding: 12px; }
+.ficha .fl { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--s500); }
+.ficha .fv { margin-top: 4px; font-size: 18px; line-height: 28px; font-weight: 700; color: var(--navy); }
+.ficha .fv.sm { font-size: 16px; }
+.ficha .fmeta { margin-top: 4px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 12px; font-weight: 600; }
+.mini { overflow: hidden; border: 1px solid var(--s200); border-radius: 8px; }
+.mini.x { overflow-x: auto; border-radius: 12px; }
+.mini table { width: 100%; min-width: 0; font-size: 14px; }
+.mini thead { background: var(--s50); font-size: 12px; }
+.mini th, .mini td { padding: 8px 12px; }
+.mini tbody { color: var(--s700); font-variant-numeric: tabular-nums; }
+.mini tbody tr { border-top: 1px solid var(--s100); }
+.mini.sm table { font-size: 12px; }
+.mini.sm thead { font-weight: 600; text-transform: none; letter-spacing: 0; }
+.mini.sm td, .mini.sm th { text-align: right; }
+.mini.sm td:first-child, .mini.sm th:first-child { text-align: left; }
+.mini.sm td.tl, .mini.sm th.tl { text-align: left; }
+.mini.sm tr.g { background: var(--s50); font-weight: 600; }
+.mini.sm td.ind { padding-left: 28px; font-weight: 500; }
+.mini.sm td.nm2 { white-space: normal; }
+.chart-wrap { position: relative; height: 288px; }
+.chart-wrap svg { display: block; }
+.tip { position: absolute; pointer-events: none; z-index: 5; border: 1px solid var(--s200); border-radius: 4px; background: #fff; padding: 8px 10px; font-size: 12px; box-shadow: 0 2px 6px rgb(0 0 0 / .12); }
+.tip .th { margin-bottom: 4px; font-weight: 600; color: var(--s700); }
+.tip .tr { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+.tip .sw { width: 8px; height: 8px; border-radius: 999px; }
+
+.footnote { font-size: 12px; color: var(--s400); }
+.fresh { margin-top: 32px; display: flex; align-items: center; gap: 6px; border-top: 1px solid var(--s200); padding: 12px 4px; font-size: 12px; color: var(--s500); flex-wrap: wrap; }
+.fresh.warn { border-color: #fde68a; color: #92400e; }
+.fresh .dot { width: 6px; height: 6px; border-radius: 999px; background: #10b981; }
+.fresh.warn .dot { background: #f59e0b; }
+.hidden { display: none !important; }
+@media print { .tabs, .filters-foot button, .pager { display: none; } }
+</style>
+</head>
+<body>
+<div class="page stack-6" id="app"></div>
+<div id="modal-root"></div>
+
+<script id="pm-data" type="application/json">/*__DATA__*/null</script>
+<script>
+"use strict";
+const D = JSON.parse(document.getElementById("pm-data").textContent);
+const SEP = "\x1f";
+
+/* ── Íconos (Lucide, ISC) ──────────────────────────────────────────────── */
+const ICONS = {
+  landmark: '<path d="M10 18v-7" /><path d="M11.119 2.205a2 2 0 0 1 1.762 0l7.84 3.846A.5.5 0 0 1 20.5 7h-17a.5.5 0 0 1-.22-.949z" /><path d="M14 18v-7" /><path d="M18 18v-7" /><path d="M3 22h18" /><path d="M6 18v-7" />',
+  scale: '<path d="M12 3v18" /><path d="m19 8 3 8a5 5 0 0 1-6 0zV7" /><path d="M3 7h1a17 17 0 0 0 8-2 17 17 0 0 0 8 2h1" /><path d="m5 8 3 8a5 5 0 0 1-6 0zV7" /><path d="M7 21h10" />',
+  leaf: '<path d="M11 20a10 10 0 0010-10 25.9 25.9 0 00-1.04-7.281 1 1 0 00-1.755-.325C15.833 5.5 13 5.5 9.8 6.1A7 7 0 0011 20" /><path d="M2 21a5 5 0 012.911-4.544C7.613 15.212 8.351 15.24 11 13" />',
+  refresh: '<path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" /><path d="M21 3v5h-5" /><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" /><path d="M8 16H3v5" />',
+  graduation: '<path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z" /><path d="M22 10v6" /><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5" />',
+  flask: '<path d="M14 2v6a2 2 0 0 0 .245.96l5.51 10.08A2 2 0 0 1 18 22H6a2 2 0 0 1-1.755-2.96l5.51-10.08A2 2 0 0 0 10 8V2" /><path d="M6.453 15h11.094" /><path d="M8.5 2h7" />',
+  handshake: '<path d="M19.414 14.414C21 12.828 22 11.5 22 9.5a5.5 5.5 0 0 0-9.591-3.676.6.6 0 0 1-.818.001A5.5 5.5 0 0 0 2 9.5c0 2.3 1.5 4 3 5.5l5.535 5.362a2 2 0 0 0 2.879.052 2.12 2.12 0 0 0-.004-3 2.124 2.124 0 1 0 3-3 2.124 2.124 0 0 0 3.004 0 2 2 0 0 0 0-2.828l-1.881-1.882a2.41 2.41 0 0 0-3.409 0l-1.71 1.71a2 2 0 0 1-2.828 0 2 2 0 0 1 0-2.828l2.823-2.762" />',
+  globe: '<circle cx="12" cy="12" r="10" /><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" /><path d="M2 12h20" />',
+  heartpulse: '<path d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5" /><path d="M3.22 13H9.5l.5-1 2 4.5 2-7 1.5 3.5h5.27" />',
+  presentation: '<path d="M2 3h20" /><path d="M21 3v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V3" /><path d="m7 21 5-5 5 5" />',
+  users: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><path d="M16 3.128a4 4 0 0 1 0 7.744" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><circle cx="9" cy="7" r="4" />',
+  award: '<path d="m15.477 12.89 1.515 8.526a.5.5 0 0 1-.81.47l-3.58-2.687a1 1 0 0 0-1.197 0l-3.586 2.686a.5.5 0 0 1-.81-.469l1.514-8.526" /><circle cx="12" cy="8" r="6" />',
+  clipboard: '<rect width="8" height="4" x="8" y="2" rx="1" ry="1" /><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" /><path d="M12 11h4" /><path d="M12 16h4" /><path d="M8 11h.01" /><path d="M8 16h.01" />',
+  chartline: '<path d="M3 3v16a2 2 0 0 0 2 2h16" /><path d="m19 9-5 5-4-4-3 3" />',
+};
+function icon(name, size, sw) {
+  return `<svg class="svg-i" xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${sw || 2}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[name]}</svg>`;
+}
+
+/* ── Tema de factores CNA (igual que pmFactorTheme.ts) ─────────────────── */
+const FACTOR_COLORS = { 1:"#0F385A", 2:"#4C6EF5", 3:"#2F9E44", 4:"#F08C00", 5:"#1FB2DE", 6:"#7048E8", 7:"#E64980", 8:"#12B886", 9:"#FA5252", 10:"#FBAF17", 11:"#A6CE38", 12:"#495057" };
+const FACTOR_ICONS = { 1:"landmark", 2:"scale", 3:"leaf", 4:"refresh", 5:"graduation", 6:"flask", 7:"handshake", 8:"globe", 9:"heartpulse", 10:"presentation", 11:"users", 12:"award" };
+const factorColor = (n) => (n != null && FACTOR_COLORS[n]) || "#64748B";
+const factorIcon = (n) => (n != null && FACTOR_ICONS[n]) || "landmark";
+const parseFactorNum = (label) => { const m = /Factor\s+(\d+)/i.exec(label || ""); return m ? Number(m[1]) : null; };
+/** Llave del factor para el filtro global: su número ("3"), porque cada fuente escribe la etiqueta distinto
+ * ("Factor 3. …" vs "FACTOR 3. …"); sin número (p.ej. "CONTEXTO INSTITUCIONAL") se usa la etiqueta. */
+const fkey = (label) => { const n = parseFactorNum(label); return n != null ? String(n) : label; };
+
+function factorBadge(n, variant) {
+  const c = factorColor(n), label = n != null ? "F" + n : "—";
+  if (variant === "full") return `<span class="badge full" style="background:${c}">${icon(factorIcon(n), 13, 2.5)}${label}</span>`;
+  return `<span class="badge" style="background:${c}1F;color:${c}">${icon(factorIcon(n), 11, 2.5)}${label}</span>`;
+}
+
+/* ── Utilidades ────────────────────────────────────────────────────────── */
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const $ = (sel, root) => (root || document).querySelector(sel);
+
+/** Número en formato colombiano (miles "." y decimales ","), igual que pmVariacion.ts. */
+function fmtNumero(v, dec) {
+  dec = dec || 0;
+  const [entero, fraccion] = Math.abs(v).toFixed(dec).split(".");
+  const miles = entero.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  const signo = v < 0 && Number(Math.abs(v).toFixed(dec)) !== 0 ? "-" : "";
+  return signo + miles + (fraccion ? "," + fraccion : "");
+}
+function fmtValor(v, signo, decimales) {
+  if (v == null) return "—";
+  const dec = decimales ?? 1;
+  if (signo === "ENT") return fmtNumero(v, 0);
+  if (signo === "%FRAC") return fmtNumero(v * 100, dec) + "%";
+  if (signo === "%") return fmtNumero(v, dec) + "%";
+  return fmtNumero(v, dec);
+}
+const fmtVariacion = (v) => (v == null ? "—" : (v > 0 ? "+" : "") + fmtNumero(v, 1) + "%");
+const variacionClass = (v) => (v == null || Math.abs(v) < 0.05 ? "v-zero" : v > 0 ? "v-pos" : "v-neg");
+function lineaTendencia(valores) {
+  const pts = [];
+  valores.forEach((v, i) => { if (v != null) pts.push([i, v]); });
+  if (pts.length < 2) return valores.map(() => null);
+  const n = pts.length;
+  const sx = pts.reduce((a, [x]) => a + x, 0), sy = pts.reduce((a, [, y]) => a + y, 0);
+  const sxy = pts.reduce((a, [x, y]) => a + x * y, 0), sxx = pts.reduce((a, [x]) => a + x * x, 0);
+  const den = n * sxx - sx * sx;
+  const m = den === 0 ? 0 : (n * sxy - sx * sy) / den;
+  const b = (sy - m * sx) / n;
+  return valores.map((_, i) => b + m * i);
+}
+/** round() de Python (mitades al par): los % de los KPI deben coincidir con los del backend. */
+function pyRound(x) { const f = Math.floor(x), d = x - f; return d < 0.5 ? f : d > 0.5 ? f + 1 : (f % 2 === 0 ? f : f + 1); }
+
+const tendPill = (t, cls) => `<span class="pill ${cls || ""} t-${["Creciente", "Decreciente", "Estable"].includes(t) ? t : "none"}">${esc(t)}</span>`;
+
+function sparkline(values, color, trend) {
+  if (!values || values.length < 2) return '<span class="dim">—</span>';
+  const W = 96, H = 28, min = Math.min(...values), max = Math.max(...values), range = max - min || 1;
+  const step = W / (values.length - 1);
+  const coords = values.map((v, i) => [i * step, H - ((v - min) / range) * H]);
+  const pts = coords.map(([x, y]) => x.toFixed(2) + "," + y.toFixed(2)).join(" ");
+  const [lx, ly] = coords[coords.length - 1];
+  const dot = { Creciente: "#2F9E44", Decreciente: "#E03131", Estable: "#64748B" }[trend] || "#94A3B8";
+  const id = "sp" + (sparkline.n = (sparkline.n || 0) + 1);
+  return `<svg width="${W}" height="${H}" style="overflow:visible" aria-hidden="true"><defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${color}" stop-opacity=".35"/><stop offset="100%" stop-color="${color}" stop-opacity="0"/></linearGradient></defs><polygon points="0,${H} ${pts} ${W},${H}" fill="url(#${id})"/><polyline points="${pts}" fill="none" stroke="${color}" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/><circle cx="${lx.toFixed(2)}" cy="${ly.toFixed(2)}" r="2.5" fill="${dot}"/></svg>`;
+}
+
+function bullet(meta, ejec, metaFmt, ejecFmt, color) {
+  if (meta == null && ejec == null) {
+    return metaFmt !== "—" ? `<span style="font-size:11px;color:var(--s500)">Meta: ${esc(metaFmt)}</span>` : '<span class="dim">—</span>';
+  }
+  const scale = Math.max(meta ?? 0, ejec ?? 0, 1) * 1.15;
+  const fill = ejec != null ? Math.min(100, (ejec / scale) * 100) : 0;
+  const mk = meta != null ? Math.min(100, (meta / scale) * 100) : null;
+  return `<div class="bullet"><div class="track"><div class="fill" style="width:${fill}%;background:${color}"></div>${mk != null ? `<div class="mark" style="left:${mk}%" title="Meta: ${esc(metaFmt)}"></div>` : ""}</div><div class="lbl"><span>Ejec ${esc(ejecFmt)}</span><span>Meta ${esc(metaFmt)}</span></div></div>`;
+}
+
+/* ── Selectores / paginación (HTML) ────────────────────────────────────── */
+const opts = (arr, sel) => arr.map((o) => `<option value="${esc(o)}"${o === sel ? " selected" : ""}>${esc(o)}</option>`).join("");
+function pagerHTML(page, totalPages, pageSize) {
+  return `<div class="pager"><div class="grp"><span>Filas por página</span><select data-act="pagesize">${[25, 50, 100].map((s) => `<option value="${s}"${s === pageSize ? " selected" : ""}>${s}</option>`).join("")}</select></div><div class="grp"><button type="button" data-act="prev"${page === 0 ? " disabled" : ""}>Anterior</button><span class="pg">Página ${page + 1} de ${totalPages}</span><button type="button" data-act="next"${page >= totalPages - 1 ? " disabled" : ""}>Siguiente</button></div></div>`;
+}
+function paginar(items, st) {
+  const totalPages = Math.max(1, Math.ceil(items.length / st.pageSize));
+  st.page = Math.min(st.page, totalPages - 1);
+  return { totalPages, pageItems: items.slice(st.page * st.pageSize, (st.page + 1) * st.pageSize) };
+}
+function bindPager(root, st, rerender) {
+  root.addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-act]");
+    if (!b || b.disabled) return;
+    if (b.dataset.act === "prev") st.page--; else if (b.dataset.act === "next") st.page++; else return;
+    rerender();
+  });
+  root.addEventListener("change", (e) => {
+    if (e.target.dataset && e.target.dataset.act === "pagesize") { st.pageSize = Number(e.target.value); st.page = 0; rerender(); }
+  });
+}
+
+/* ── Estado global ─────────────────────────────────────────────────────── */
+const S = {
+  vista: "indicadores", factor: "Todos", caracteristica: "Todas",
+  ind: { subvista: "metas", tipo: "Todos", nombre: "", page: 0, pageSize: 25 },
+  met: { tendencia: "Toda tendencia", nombre: "", page: 0, pageSize: 25, expandidos: new Set() },
+};
+
+/* ── Esqueleto de la página ────────────────────────────────────────────── */
+function fmtFecha(iso) {
+  return new Date(iso).toLocaleString("es-CO", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
+}
+function mountApp() {
+  const dias = Math.floor((Date.now() - new Date(D.datos_actualizados).getTime()) / 86400000);
+  const viejo = dias > 35;
+  $("#app").innerHTML = `
+    <div class="hero"><p class="eyebrow">Modelo CNA</p><h2>Evaluación de Indicadores y Métricas</h2></div>
+    <div class="tabs" id="tabs">
+      <button type="button" class="tab" data-v="indicadores">${icon("clipboard", 16)}Indicadores</button>
+      <button type="button" class="tab" data-v="metricas">${icon("chartline", 16)}Métricas</button>
+    </div>
+    <div id="tab-body"></div>
+    <p class="footnote">Panel generado a partir de "Indicadores Plan de Mejoramiento" y "Resultados Consolidados CNA – Métricas" · Politécnico Grancolombiano</p>
+    <div class="fresh${viejo ? " warn" : ""}"><span class="dot"></span>Datos actualizados: ${esc(fmtFecha(D.datos_actualizados))}${viejo ? '<span style="font-weight:500">· revisar fuentes de datos</span>' : ""}<span title="${esc(D.fuentes.map((f) => f.archivo + " (" + fmtFecha(f.modificado) + ")").join("\n"))}" style="margin-left:8px;color:var(--s400)">· HTML generado el ${esc(fmtFecha(D.generado))}</span></div>`;
+  $("#tabs").addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-v]");
+    if (b && b.dataset.v !== S.vista) { S.vista = b.dataset.v; showTab(); }
+  });
+  showTab();
+}
+function showTab() {
+  document.querySelectorAll("#tabs .tab").forEach((b) => b.classList.toggle("active", b.dataset.v === S.vista));
+  if (S.vista === "indicadores") mountIndicadores(); else mountMetricas();
+}
+/** Etiqueta con que la pestaña `ds` escribe el factor elegido (null si no lo tiene). */
+const factorLabel = (ds) => (S.factor === "Todos" ? "Todos" : ds.factores.find((f) => fkey(f) === S.factor) || null);
+const factorOpts = (ds) => '<option value="Todos">Todos los factores</option>' + ds.factores.map((f) => `<option value="${esc(fkey(f))}"${fkey(f) === S.factor ? " selected" : ""}>${esc(f)}</option>`).join("");
+/** Característica depende del Factor; si la elegida no existe en el catálogo de esta pestaña, se reinicia. */
+function caracOptions(ds) {
+  const lista = ds.carac_por_factor[factorLabel(ds)] || [];
+  if (S.caracteristica !== "Todas" && !lista.includes(S.caracteristica)) S.caracteristica = "Todas";
+  return lista;
+}
+/** Al entrar a una pestaña: si su fuente no tiene el factor elegido en la otra, se limpia el filtro. */
+function validarFactor(ds) { if (factorLabel(ds) === null) { S.factor = "Todos"; S.caracteristica = "Todas"; } }
+function onFactorChange(v) { S.factor = v; S.caracteristica = "Todas"; }
+
+/* ══════════════════════════ PESTAÑA INDICADORES ═════════════════════════ */
+const METAS_YEARS = ["2026", "2027", "2028", "2029", "2030"];
+
+function mountIndicadores() {
+  validarFactor(D.ind);
+  const k = D.ind.kpis, st = S.ind;
+  $("#tab-body").innerHTML = `<div class="stack-6">
+    <div class="grid kpis">
+      ${kpi("Indicadores del plan", k.total, "asociados a 12 factores CNA")}
+      ${kpi("Con meta 2026–2030", k.con_meta_futura)}
+      ${kpi("Con cumplimiento histórico", k.con_cumplimiento_historico)}
+      ${kpi("Aprobados", k.aprobados, k.pct_aprobados + "% del total")}
+    </div>
+    <div class="tabs" id="subtabs">
+      <button type="button" class="subtab" data-sv="metas">Metas 2026–2030</button>
+      <button type="button" class="subtab" data-sv="historico">Cumplimiento histórico</button>
+    </div>
+    <p class="hint" id="sub-desc"></p>
+    <div class="card shadow">
+      <div class="filters f5">
+        <select class="field" id="f-factor"></select>
+        <select class="field" id="f-carac"></select>
+        <select class="field" id="f-tipo"></select>
+        <input class="field span2" id="f-nombre" type="search" placeholder="Buscar indicador, característica…">
+      </div>
+      <div class="filters-foot"><span class="count" id="ind-count"></span><button type="button" class="btn-outline" id="ind-export">Exportar a Excel</button></div>
+    </div>
+    <div id="ind-result"></div>
+  </div>`;
+  $("#f-factor").innerHTML = factorOpts(D.ind);
+  $("#f-tipo").innerHTML = '<option value="Todos">Todos los tipos</option>' + opts(D.ind.tipos, st.tipo);
+  $("#f-nombre").value = st.nombre;
+  $("#f-factor").value = S.factor; $("#f-tipo").value = st.tipo;
+
+  $("#f-factor").addEventListener("change", (e) => { onFactorChange(e.target.value); st.page = 0; updateIndicadores(); });
+  $("#f-carac").addEventListener("change", (e) => { S.caracteristica = e.target.value; st.page = 0; updateIndicadores(); });
+  $("#f-tipo").addEventListener("change", (e) => { st.tipo = e.target.value; st.page = 0; updateIndicadores(); });
+  $("#f-nombre").addEventListener("input", (e) => { st.nombre = e.target.value; st.page = 0; updateIndicadores(); });
+  $("#subtabs").addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-sv]");
+    if (b) { st.subvista = b.dataset.sv; st.page = 0; updateIndicadores(); }
+  });
+  $("#ind-export").addEventListener("click", exportarIndicadores);
+  const res = $("#ind-result");
+  bindPager(res, st, () => updateIndicadores(true));
+  res.addEventListener("click", (e) => {
+    const tr = e.target.closest("tr[data-i]");
+    if (tr) abrirIndicador(D.ind.filas[Number(tr.dataset.i)]);
+  });
+  updateIndicadores();
+}
+function kpi(label, value, unit) {
+  return `<div class="kpi"><p class="label">${esc(label)}</p><p class="value">${esc(value)}${unit ? `<span class="unit">${esc(unit)}</span>` : ""}</p></div>`;
+}
+function filasIndicadores() {
+  const st = S.ind, q = st.nombre.trim().toLowerCase();
+  return D.ind.filas.map((r, i) => ({ r, i })).filter(({ r }) =>
+    (S.factor === "Todos" || fkey(r.factor) === S.factor) &&
+    (S.caracteristica === "Todas" || r.caracteristica === S.caracteristica) &&
+    (st.tipo === "Todos" || r.tipo === st.tipo) &&
+    (!q || r.q.includes(q)));
+}
+function updateIndicadores(soloTabla) {
+  const st = S.ind;
+  const lista = caracOptions(D.ind);
+  const filas = filasIndicadores();
+  if (!soloTabla) {
+    $("#f-carac").innerHTML = '<option value="Todas">Todas las características</option>' + opts(lista, S.caracteristica);
+    $("#f-carac").value = S.caracteristica;
+    $("#f-factor").value = S.factor;
+    document.querySelectorAll("#subtabs .subtab").forEach((b) => b.classList.toggle("active", b.dataset.sv === st.subvista));
+    $("#sub-desc").textContent = st.subvista === "metas"
+      ? "Trayectoria de metas definidas por indicador, agrupadas por factor CNA."
+      : "Meta, ejecución y % de cumplimiento 2025–2026 por indicador.";
+    $("#ind-count").textContent = filas.length + " indicadores";
+    $("#ind-export").disabled = !filas.length;
+  }
+  const res = $("#ind-result");
+  if (!filas.length) { res.innerHTML = '<p class="muted">No hay indicadores para este filtro.</p>'; return; }
+  const { totalPages, pageItems } = paginar(filas, st);
+  const metas = st.subvista === "metas";
+  const head = metas
+    ? `<th>Factor</th><th>Caract.</th><th>Indicador</th><th>Tipo</th>${METAS_YEARS.map((y) => `<th class="r">Meta ${y}</th>`).join("")}`
+    : `<th>Factor</th><th>Caract.</th><th>Indicador</th><th>Meta vs Ejec. 2025</th><th class="r">% Cump 2025</th><th>Meta vs Ejec. 2026</th><th class="r">% Cump 2026</th>`;
+  const body = pageItems.map(({ r, i }) => {
+    const c = factorColor(r.factor_num);
+    const comunes = `<td>${factorBadge(r.factor_num)}</td><td><span class="ctag" title="${esc(r.caracteristica)}">${r.caracteristica_num != null ? "C" + r.caracteristica_num : "—"}</span></td><td class="wrap">${esc(r.indicador)}</td>`;
+    let resto;
+    if (metas) {
+      const tag = r.tipo ? (r.tipo === "Indicador" || r.tipo === "Metrica" ? r.tipo : "other") : "other";
+      resto = `<td><span class="tag ${tag}">${esc(r.tipo || "Sin clasificar")}</span></td>` + METAS_YEARS.map((y) => `<td class="num">${esc(r.metas[y].valor_fmt)}</td>`).join("");
+    } else {
+      const h = r.hist;
+      resto = `<td>${bullet(h.meta_2025.valor, h.ejecucion_2025.valor, h.meta_2025.valor_fmt, h.ejecucion_2025.valor_fmt, c)}</td><td class="num strong">${esc(h.cump_2025.valor_fmt)}</td><td>${bullet(h.meta_2026.valor, h.ejecucion_2026.valor, h.meta_2026.valor_fmt, h.ejecucion_2026.valor_fmt, c)}</td><td class="num strong">${esc(h.cump_2026.valor_fmt)}</td>`;
+    }
+    return `<tr class="row" data-i="${i}" style="--fc:${c}">${comunes}${resto}</tr>`;
+  }).join("");
+  res.innerHTML = `<div class="table-card"><div class="table-scroll"><table><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table></div>${pagerHTML(st.page, totalPages, st.pageSize)}</div>`;
+}
+
+function exportarIndicadores() {
+  const st = S.ind, filas = filasIndicadores().map(({ r }) => r);
+  let hoja, encabezado, datos;
+  if (st.subvista === "historico") {
+    hoja = "Cumplimiento historico";
+    encabezado = ["Factor", "Indicador", "Meta 2025", "Ejecución 2025", "% Cump 2025", "Meta 2026", "Ejecución 2026", "% Cump 2026"];
+    datos = filas.map((r) => [r.factor, r.indicador, r.hist.meta_2025.valor, r.hist.ejecucion_2025.valor, r.hist.cump_2025.valor, r.hist.meta_2026.valor, r.hist.ejecucion_2026.valor, r.hist.cump_2026.valor]);
+  } else {
+    hoja = "Metas 2026-2030";
+    encabezado = ["Factor", "Indicador", "Tipo", ...METAS_YEARS.map((y) => "Meta " + y)];
+    datos = filas.map((r) => [r.factor, r.indicador, r.tipo, ...METAS_YEARS.map((y) => r.metas[y].valor)]);
+  }
+  descargar(xlsxBlob(hoja, [encabezado, ...datos]), st.subvista === "historico" ? "indicadores_cumplimiento.xlsx" : "indicadores_metas.xlsx");
+}
+
+function abrirIndicador(row) {
+  const d = row.detalle;
+  const bloque = (t, v) => `<div><p class="lbl-b">${t}</p><p class="txt">${esc(v)}</p></div>`;
+  abrirModal("w2", esc(row.indicador), `
+    <div style="display:flex;align-items:center;gap:8px">${factorBadge(parseFactorNum(d.factor), "full")}<span class="hint" style="font-weight:600">${esc(d.factor)}</span></div>
+    ${bloque("Característica", d.caracteristica)}
+    <div class="cols2">${bloque("Acción de mejora", d.accion_mejora)}${bloque("Tipo", d.tipo || "Sin clasificar")}</div>
+    <div class="cols2">${bloque("Estado / Aprobación", d.estado + " / " + d.estado_aprobacion)}${bloque("Responsable", d.responsable)}</div>
+    <div class="cols2">${bloque("Fuente", d.fuente)}${bloque("Periodicidad", d.periodicidad)}</div>
+    ${bloque("Fórmula", d.formula)}
+    ${bloque("Observación de desempeño", d.observacion)}
+    <div><p class="lbl-b" style="margin-bottom:8px">Meta y ejecución — 2025 y 2026</p><div class="mini"><table>
+      <thead><tr><th>Año</th><th class="r">Meta</th><th class="r">Ejecución</th><th class="r">% Cumplimiento</th></tr></thead>
+      <tbody>${d.cumplimiento.map((f) => `<tr><td style="font-weight:600;color:var(--s800)">${esc(f.anio)}</td><td class="r">${esc(f.meta)}</td><td class="r">${esc(f.ejecucion)}</td><td class="r" style="font-weight:600;color:var(--s800)">${esc(f.cump)}</td></tr>`).join("")}</tbody></table></div></div>
+    <div><p class="lbl-b" style="margin-bottom:8px">Metas 2026 – 2030</p><div class="mini"><table>
+      <thead><tr>${d.metas_futuras.map((m) => `<th class="r">${esc(m.anio)}</th>`).join("")}</tr></thead>
+      <tbody><tr>${d.metas_futuras.map((m) => `<td class="r">${esc(m.meta)}</td>`).join("")}</tr></tbody></table></div></div>`);
+}
+
+/* ══════════════════════════ PESTAÑA MÉTRICAS ════════════════════════════ */
+function mountMetricas() {
+  validarFactor(D.met);
+  const st = S.met;
+  $("#tab-body").innerHTML = `<div class="stack-6">
+    <div>
+      <h3 class="sec-title">Resultados, tendencia y variaciones</h3>
+      <p class="hint" style="margin-bottom:8px">Los filtros aplican a las fichas y a la tabla. Haz clic en una métrica para ver su gráfica completa.</p>
+      <div class="card">
+        <div class="filters f4">
+          <select class="field" id="m-factor"></select>
+          <select class="field" id="m-carac"></select>
+          <select class="field" id="m-tend"></select>
+          <input class="field" id="m-nombre" type="search" placeholder="Buscar métrica…">
+        </div>
+        <p class="hint hidden" id="m-filtrando" style="margin-top:8px"></p>
+      </div>
+    </div>
+    <div class="grid kpis" id="m-kpis"></div>
+    <div id="m-result"></div>
+  </div>`;
+  $("#m-factor").innerHTML = factorOpts(D.met);
+  $("#m-tend").innerHTML = opts(D.met.tendencias, st.tendencia);
+  $("#m-nombre").value = st.nombre;
+  $("#m-factor").addEventListener("change", (e) => { onFactorChange(e.target.value); st.page = 0; updateMetricas(); });
+  $("#m-carac").addEventListener("change", (e) => { S.caracteristica = e.target.value; st.page = 0; updateMetricas(); });
+  $("#m-tend").addEventListener("change", (e) => { st.tendencia = e.target.value; st.page = 0; updateMetricas(); });
+  $("#m-nombre").addEventListener("input", (e) => { st.nombre = e.target.value; st.page = 0; updateMetricas(); });
+  const res = $("#m-result");
+  bindPager(res, st, () => updateMetricas(true));
+  res.addEventListener("click", clickMetrica);
+  updateMetricas();
+}
+function filasMetricas() {
+  const st = S.met, q = st.nombre.trim().toLowerCase();
+  return D.met.tablas[st.tendencia].map((i) => D.met.pool[i]).filter((r) =>
+    (S.factor === "Todos" || fkey(r.factor) === S.factor) &&
+    (S.caracteristica === "Todas" || r.c === S.caracteristica) &&
+    (!q || r.q.includes(q)));
+}
+function updateMetricas(soloTabla) {
+  const st = S.met;
+  const lista = caracOptions(D.met);
+  const tabla = filasMetricas();
+  if (!soloTabla) {
+    $("#m-carac").innerHTML = '<option value="Todas">Todas las características</option>' + opts(lista, S.caracteristica);
+    $("#m-carac").value = S.caracteristica;
+    $("#m-factor").value = S.factor;
+    const f = [S.factor !== "Todos" ? factorLabel(D.met) : null, S.caracteristica !== "Todas" ? S.caracteristica : null].filter(Boolean);
+    const nota = $("#m-filtrando");
+    nota.classList.toggle("hidden", !f.length);
+    nota.innerHTML = "Filtrando por: " + f.map((x) => `<strong>${esc(x)}</strong>`).join(" · ");
+    const total = tabla.length, n = (t) => tabla.filter((r) => r.tendencia === t).length;
+    const pct = (x) => (total ? pyRound((x / total) * 100) : 0);
+    const [nc, ne, nd] = [n("Creciente"), n("Estable"), n("Decreciente")];
+    $("#m-kpis").innerHTML =
+      kpi("Métricas con histórico", total, "series 2019–2026") +
+      kpi("En tendencia creciente", nc, pct(nc) + "% del total") +
+      kpi("En tendencia estable", ne, pct(ne) + "% del total") +
+      kpi("En tendencia decreciente", nd, pct(nd) + "% del total");
+  }
+  const res = $("#m-result");
+  if (!tabla.length) { res.innerHTML = '<p class="muted">No hay métricas que coincidan con el filtro.</p>'; return; }
+  const { totalPages, pageItems } = paginar(tabla, st);
+  const filas = pageItems.map((row) => {
+    const key = row.factor + "|" + row.indicador, expandible = row.n_desglose > 1, abierto = st.expandidos.has(key);
+    const c = factorColor(row.factor_num);
+    const attrs = `data-f="${esc(row.factor)}" data-i="${esc(row.indicador)}"`;
+    let html = `<tr class="row" ${attrs} data-sub="" data-grp="" style="--fc:${c}">
+      <td>${factorBadge(row.factor_num)}</td>
+      <td class="wrap"><span class="nm">${expandible ? `<button type="button" class="expander${abierto ? " open" : ""}" data-toggle="${esc(key)}" aria-label="${abierto ? "Contraer" : "Expandir"}">▸</button>` : ""}<span style="overflow-wrap:anywhere">${esc(row.indicador)}</span>${expandible ? `<span class="count-pill">${row.n_desglose}</span>` : ""}</span></td>
+      <td style="color:var(--s600)">${esc(row.fuente ?? "—")}</td>
+      <td class="num">${row.ultimo_anio ?? "—"}</td>
+      <td class="num strong">${esc(row.valor_fmt)}</td>
+      <td class="num ${variacionClass(row.variacion_ultima_pct)}" style="font-weight:500">${fmtVariacion(row.variacion_ultima_pct)}</td>
+      <td>${tendPill(row.tendencia)}</td>
+      <td>${sparkline(row.serie, c, row.tendencia)}</td></tr>`;
+    if (expandible && abierto) {
+      if (row.grupos) {
+        for (const g of row.grupos) {
+          const gKey = key + "|" + g.nombre, gAbierto = st.expandidos.has(gKey);
+          html += subFila(row, g.nombre, { ...g, fuente: row.fuente }, c, 1, { badge: g.n_hojas, abierto: gAbierto, toggle: gKey, sub: "", grp: g.nombre });
+          if (gAbierto) g.hojas.forEach((h) => { html += subFila(row, h.subindicador ?? "—", h, c, 2, { sub: g.nombre + " - " + h.subindicador, grp: "" }); });
+        }
+      } else {
+        row.desglose.forEach((d) => { html += subFila(row, d.subindicador ?? "—", d, c, 1, { sub: d.subindicador ?? "", grp: "" }); });
+      }
+    }
+    return html;
+  }).join("");
+  res.innerHTML = `<div class="table-card"><div class="table-scroll"><table>
+    <thead><tr><th>Factor</th><th>Métrica</th><th>Fuente</th><th class="r">Último año</th><th class="r">Resultado</th><th class="r">Variación</th><th>Tendencia</th><th>Serie</th></tr></thead>
+    <tbody>${filas}</tbody></table></div>${pagerHTML(st.page, totalPages, st.pageSize)}</div>`;
+}
+function subFila(row, nombre, d, color, nivel, o) {
+  const esGrupo = o.abierto !== undefined;
+  return `<tr class="sub${esGrupo ? " grp" : ""}" data-f="${esc(row.factor)}" data-i="${esc(row.indicador)}" data-sub="${esc(o.sub)}" data-grp="${esc(o.grp)}">
+    <td></td>
+    <td class="n${nivel}"><span class="nm">${esGrupo ? `<button type="button" class="expander${o.abierto ? " open" : ""}" data-toggle="${esc(o.toggle)}" aria-label="${o.abierto ? "Contraer" : "Expandir"}">▸</button>` : ""}<span>${esc(nombre)}</span>${o.badge ? `<span class="count-pill">${o.badge}</span>` : ""}</span></td>
+    <td style="color:var(--s500)">${esc(d.fuente ?? "—")}</td>
+    <td class="num" style="color:var(--s600)">${d.ultimo_anio ?? "—"}</td>
+    <td class="num">${esc(d.valor_fmt)}</td>
+    <td class="num ${variacionClass(d.variacion_ultima_pct)}" style="font-weight:500">${fmtVariacion(d.variacion_ultima_pct)}</td>
+    <td>${tendPill(d.tendencia)}</td>
+    <td>${sparkline(d.serie, color, d.tendencia)}</td></tr>`;
+}
+function clickMetrica(e) {
+  const tg = e.target.closest("button[data-toggle]");
+  if (tg) {
+    const k = tg.dataset.toggle, ex = S.met.expandidos;
+    ex.has(k) ? ex.delete(k) : ex.add(k);
+    updateMetricas(true);
+    return;
+  }
+  const tr = e.target.closest("tr[data-f]");
+  if (tr) abrirMetrica(tr.dataset.f, tr.dataset.i, tr.dataset.sub || null, tr.dataset.grp || null);
+}
+
+/* ── Modal de métrica (ficha + gráfica) ────────────────────────────────── */
+const TEND_COLORES = ["#7C3AED", "#DB2777", "#059669"];
+function abrirMetrica(factor, indicador, sub, grupo) {
+  const d = D.met.detalles[[factor, indicador, sub || "", grupo || ""].join(SEP)];
+  const subtitulo = grupo ? `Subtotal · ${grupo}` : sub && sub !== indicador ? sub : d && d.consolidado ? `Consolidado · ${(d.desglose || []).length} categorías${d.agregacion ? " · " + d.agregacion.toLowerCase() + " por año" : ""}` : "";
+  const head = esc(indicador);
+  if (!d) { abrirModal("w3", head, '<p class="muted">No se encontró información de la métrica.</p>', subtitulo); return; }
+
+  const color = factorColor(parseFactorNum(d.factor || factor));
+  const fmtNum = (v) => fmtValor(v, d.signo ?? null, d.decimales ?? null);
+  const variables = d.variables || [];
+  const PALETA = [color, "#0EA5E9", "#F59E0B"];
+  const lineas = variables.length
+    ? variables.map((v, i) => ({ clave: v.nombre, serie: v.serie, color: PALETA[i % PALETA.length] }))
+    : [{ clave: "Resultado", serie: d.serie || [], color }];
+  const anios = [...new Set(lineas.flatMap((l) => l.serie.map((p) => p.anio)))].sort((a, b) => a - b);
+  const ajustes = lineas.map((l) => lineaTendencia(anios.map((a) => (l.serie.find((p) => p.anio === a) || {}).ejecucion ?? null)));
+  const chartData = anios.map((a, i) => {
+    const f = { anio: a };
+    lineas.forEach((l, k) => {
+      const p = l.serie.find((x) => x.anio === a);
+      f[l.clave] = p?.ejecucion ?? null;
+      f["Variación " + l.clave] = p?.variacion_pct ?? null;
+      const aj = ajustes[k][i];
+      f["Tendencia " + l.clave] = aj == null ? null : Math.round(aj * 100) / 100;
+    });
+    f.Meta = lineas.length === 1 ? (lineas[0].serie.find((x) => x.anio === a)?.meta ?? null) : null;
+    return f;
+  });
+  const hayTend = ajustes.some((aj) => aj.some((v) => v != null));
+  const hayMeta = chartData.some((p) => p.Meta != null);
+  const desglose = d.desglose || [];
+  const filasDesglose = d.grupos
+    ? d.grupos.flatMap((g) => [{ grupo: true, nombre: g.nombre, serie: g.serie, tendencia: g.tendencia }, ...desglose.filter((c) => c.grupo === g.nombre).map((c) => ({ grupo: false, nombre: c.nombre ?? c.subindicador ?? "—", serie: c.serie, tendencia: c.tendencia }))])
+    : desglose.map((c) => ({ grupo: false, nombre: c.nombre ?? c.subindicador ?? "—", serie: c.serie, tendencia: c.tendencia }));
+  const aniosDes = [...new Set(desglose.flatMap((c) => c.serie.map((p) => p.anio)))].sort();
+  const periodo = d.anio_inicio != null && d.anio_fin != null ? (d.anio_inicio === d.anio_fin ? String(d.anio_inicio) : `${d.anio_inicio} – ${d.anio_fin}`) : d.periodo_texto || "—";
+  const etiqueta = d.consolidado && d.agregacion ? d.agregacion : "Resultado";
+  const ficha = (label, inner, cls, sm) => `<div class="ficha"><p class="fl">${esc(label)}</p><div class="fv${sm ? " sm" : ""} ${cls || ""}">${inner}</div></div>`;
+
+  let fichas;
+  if (variables.length) {
+    fichas = `<div class="fichas c3">${ficha("Periodo", esc(periodo), "", true)}${variables.map((v) => ficha(v.nombre + (v.ultimo_anio ? " " + v.ultimo_anio : ""), `${esc(v.valor_fmt)}<div class="fmeta"><span class="${variacionClass(v.variacion_ultima_pct)}">${fmtVariacion(v.variacion_ultima_pct)}</span>${tendPill(v.tendencia)}</div>`)).join("")}</div>`;
+  } else {
+    fichas = `<div class="fichas c5">${ficha("Periodo", esc(periodo), "", true)}${ficha(etiqueta + (d.ultimo_anio ? " " + d.ultimo_anio : ""), esc(d.valor_fmt))}${ficha("Variación último año", fmtVariacion(d.variacion_ultima_pct), variacionClass(d.variacion_ultima_pct))}${ficha("Variación promedio anual", fmtVariacion(d.variacion_promedio_pct), variacionClass(d.variacion_promedio_pct))}${ficha("Tendencia", tendPill(d.tendencia, "big"))}</div>`;
+  }
+
+  let tablaAnual = "";
+  if (chartData.length) {
+    const filasAnual = lineas.map((l) => `<tr><td style="font-weight:600">${esc(lineas.length > 1 ? l.clave : etiqueta)}</td>${chartData.map((p) => `<td style="font-weight:600">${fmtNum(p[l.clave])}</td>`).join("")}</tr><tr><td style="font-weight:600">${esc(lineas.length > 1 ? "Variación " + l.clave : "Variación")}</td>${chartData.map((p) => `<td class="${variacionClass(p["Variación " + l.clave])}" style="font-weight:500">${fmtVariacion(p["Variación " + l.clave])}</td>`).join("")}</tr>`).join("");
+    const filaMeta = hayMeta ? `<tr><td style="font-weight:600">Meta</td>${chartData.map((p) => `<td>${fmtNum(p.Meta)}</td>`).join("")}</tr>` : "";
+    tablaAnual = `<div class="mini sm x"><table><thead><tr><th>Año</th>${chartData.map((p) => `<th>${p.anio}</th>`).join("")}</tr></thead><tbody>${filasAnual}${filaMeta}</tbody></table></div>`;
+  }
+  let tablaDes = "";
+  if (desglose.length) {
+    tablaDes = `<div><p class="lbl-b" style="margin-bottom:8px">Desglose por categoría</p><div class="mini sm x"><table><thead><tr><th>Categoría</th>${aniosDes.map((a) => `<th>${a}</th>`).join("")}<th class="tl">Tendencia</th></tr></thead><tbody>${filasDesglose.map((c) => `<tr${c.grupo ? ' class="g"' : ""}><td class="nm2 ${c.grupo ? "" : d.grupos ? "ind" : ""}" style="${c.grupo ? "font-weight:600" : d.grupos ? "" : "font-weight:500"}">${esc(c.nombre)}</td>${aniosDes.map((a) => `<td>${fmtNum((c.serie.find((p) => p.anio === a) || {}).ejecucion)}</td>`).join("")}<td class="tl">${tendPill(c.tendencia)}</td></tr>`).join("")}</tbody></table></div></div>`;
+  }
+
+  abrirModal("w3", head, `
+    <div style="display:flex;align-items:center;gap:8px">${factorBadge(parseFactorNum(d.factor), "full")}<span class="hint" style="font-weight:600">${esc(d.factor)}</span></div>
+    ${fichas}
+    ${chartData.length ? '<div class="chart-wrap" id="chart"></div>' : '<p class="muted">Sin serie histórica registrada.</p>'}
+    ${tablaAnual}${tablaDes}
+    <div class="cols2"><div><p class="lbl-b">Fuente</p><p class="txt">${esc(d.fuente)}</p></div><div><p class="lbl-b">Periodicidad</p><p class="txt">${esc(d.periodicidad)}</p></div></div>`, subtitulo);
+
+  if (chartData.length) {
+    const series = lineas.map((l) => ({ clave: l.clave, nombre: l.clave, color: l.color, ancho: 2.5, dash: null, puntos: true, etiquetas: true }));
+    if (hayTend) lineas.forEach((l, k) => series.push({ clave: "Tendencia " + l.clave, nombre: lineas.length > 1 ? "Tendencia " + l.clave : "Tendencia (lineal)", color: TEND_COLORES[k % TEND_COLORES.length], ancho: 2, dash: "6 4", puntos: false, etiquetas: false, recta: true }));
+    if (hayMeta) series.push({ clave: "Meta", nombre: "Meta", color: "#B45309", ancho: 1.5, dash: "4 4", puntos: false, etiquetas: false });
+    const dibujar = () => lineChart($("#chart"), chartData, series, fmtNum);
+    dibujar();
+    modalResize = dibujar;
+  }
+}
+
+/* ── Gráfico de líneas SVG (equivalente al LineChart de recharts) ──────── */
+function niceMax(max) {
+  if (max <= 0) return 1;
+  const exp = Math.pow(10, Math.floor(Math.log10(max))), f = max / exp;
+  const nice = f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10;
+  return nice * exp;
+}
+function lineChart(el, data, series, fmt) {
+  if (!el) return;
+  const W = el.clientWidth || 640, H = el.clientHeight || 288;
+  const vals = series.flatMap((s) => data.map((r) => r[s.clave])).filter((v) => v != null);
+  const yMax = niceMax(Math.max(...vals, 0)), ticks = [0, 1, 2, 3, 4].map((i) => (yMax / 4) * i);
+  const labW = Math.max(...ticks.map((t) => fmt(t).length)) * 6.5 + 12;
+  const m = { top: 22, right: 24, left: Math.max(40, labW), bottom: 36 };
+  const iw = W - m.left - m.right, ih = H - m.top - m.bottom;
+  const x = (i) => m.left + (data.length === 1 ? iw / 2 : (iw / (data.length - 1)) * i);
+  const y = (v) => m.top + ih - (Math.max(0, v) / yMax) * ih;
+  let g = "";
+  ticks.forEach((t) => { g += `<line x1="${m.left}" x2="${W - m.right}" y1="${y(t)}" y2="${y(t)}" stroke="#e2e8f0" stroke-dasharray="3 3"/><text x="${m.left - 8}" y="${y(t) + 4}" text-anchor="end" font-size="11" fill="#64748b">${esc(fmt(t))}</text>`; });
+  data.forEach((r, i) => { g += `<text x="${x(i)}" y="${m.top + ih + 18}" text-anchor="middle" font-size="11" fill="#64748b">${r.anio}</text>`; });
+  g += `<line x1="${m.left}" x2="${W - m.right}" y1="${m.top + ih}" y2="${m.top + ih}" stroke="#94a3b8"/>`;
+  series.forEach((s) => {
+    // Cada segmento continuo (connectNulls: se saltan los huecos y se unen los puntos con dato).
+    const pts = data.map((r, i) => (r[s.clave] == null ? null : [x(i), y(r[s.clave]), r[s.clave]])).filter(Boolean);
+    if (!pts.length) return;
+    g += `<path d="${pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + "," + p[1].toFixed(1)).join(" ")}" fill="none" stroke="${s.color}" stroke-width="${s.ancho}"${s.dash ? ` stroke-dasharray="${s.dash}"` : ""} stroke-linejoin="round"/>`;
+    if (s.puntos) pts.forEach((p) => { g += `<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="3" fill="${s.color}"/>`; });
+    if (s.etiquetas) pts.forEach((p) => { g += `<text x="${p[0].toFixed(1)}" y="${(p[1] - 9).toFixed(1)}" text-anchor="middle" font-size="11" font-weight="600" fill="#334155">${esc(fmt(p[2]))}</text>`; });
+  });
+  // Leyenda inferior
+  const ley = series.map((s) => ({ s, w: s.nombre.length * 6 + 34 }));
+  const total = ley.reduce((a, l) => a + l.w, 0);
+  let lx = Math.max(m.left, (W - total) / 2);
+  ley.forEach(({ s, w }) => { g += `<line x1="${lx}" x2="${lx + 14}" y1="${H - 8}" y2="${H - 8}" stroke="${s.color}" stroke-width="2"${s.dash ? ` stroke-dasharray="${s.dash}"` : ""}/><text x="${lx + 19}" y="${H - 4}" font-size="11" fill="#475569">${esc(s.nombre)}</text>`; lx += w; });
+  g += `<line id="cursor" x1="0" x2="0" y1="${m.top}" y2="${m.top + ih}" stroke="#cbd5e1" visibility="hidden"/>`;
+  el.innerHTML = `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img">${g}</svg><div class="tip hidden" id="tip"></div>`;
+  const svg = el.firstChild, tip = $("#tip", el), cur = $("#cursor", el);
+  svg.addEventListener("mousemove", (e) => {
+    const r = svg.getBoundingClientRect(), px = e.clientX - r.left;
+    let idx = 0, best = Infinity;
+    data.forEach((_, i) => { const dd = Math.abs(x(i) - px); if (dd < best) { best = dd; idx = i; } });
+    cur.setAttribute("x1", x(idx)); cur.setAttribute("x2", x(idx)); cur.setAttribute("visibility", "visible");
+    tip.innerHTML = `<div class="th">${data[idx].anio}</div>` + series.map((s) => (data[idx][s.clave] == null ? "" : `<div class="tr"><span class="sw" style="background:${s.color}"></span>${esc(s.nombre)}: ${esc(fmt(data[idx][s.clave]))}</div>`)).join("");
+    tip.classList.remove("hidden");
+    const left = x(idx) + 12 + tip.offsetWidth > W ? x(idx) - 12 - tip.offsetWidth : x(idx) + 12;
+    tip.style.left = Math.max(0, left) + "px"; tip.style.top = m.top + "px";
+  });
+  svg.addEventListener("mouseleave", () => { tip.classList.add("hidden"); cur.setAttribute("visibility", "hidden"); });
+}
+
+/* ── Modal genérico ────────────────────────────────────────────────────── */
+let modalResize = null;
+function abrirModal(ancho, titulo, cuerpo, subtitulo) {
+  cerrarModal();
+  $("#modal-root").innerHTML = `<div class="overlay" id="overlay"><div class="modal ${ancho}" role="dialog" aria-modal="true"><div class="modal-head"><div><h3>${titulo}</h3>${subtitulo ? `<p class="hint">${esc(subtitulo)}</p>` : ""}</div><button type="button" class="close" aria-label="Cerrar">✕</button></div><div class="modal-body">${cuerpo}</div></div></div>`;
+  $("#overlay").addEventListener("click", (e) => { if (e.target.id === "overlay" || e.target.closest(".close")) cerrarModal(); });
+}
+function cerrarModal() { $("#modal-root").innerHTML = ""; modalResize = null; }
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") cerrarModal(); });
+window.addEventListener("resize", () => { if (modalResize) modalResize(); });
+
+/* ── Exportación a .xlsx (sin librerías: zip "store" + XML mínimo) ─────── */
+const CRC_T = (() => { const t = []; for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+const crc32 = (b) => { let c = 0xffffffff; for (let i = 0; i < b.length; i++) c = CRC_T[(c ^ b[i]) & 255] ^ (c >>> 8); return (c ^ 0xffffffff) >>> 0; };
+function zipStore(files) {
+  const enc = new TextEncoder(), parts = [], central = [];
+  let offset = 0;
+  const u16 = (n) => [n & 255, (n >>> 8) & 255], u32 = (n) => [n & 255, (n >>> 8) & 255, (n >>> 16) & 255, (n >>> 24) & 255];
+  for (const f of files) {
+    const name = enc.encode(f.name), data = enc.encode(f.data), crc = crc32(data);
+    const local = new Uint8Array([...u32(0x04034b50), ...u16(20), ...u16(0x0800), ...u16(0), ...u16(0), ...u16(0x21), ...u32(crc), ...u32(data.length), ...u32(data.length), ...u16(name.length), ...u16(0), ...name]);
+    parts.push(local, data);
+    central.push(new Uint8Array([...u32(0x02014b50), ...u16(20), ...u16(20), ...u16(0x0800), ...u16(0), ...u16(0), ...u16(0x21), ...u32(crc), ...u32(data.length), ...u32(data.length), ...u16(name.length), ...u16(0), ...u16(0), ...u16(0), ...u16(0), ...u32(0), ...u32(offset), ...name]));
+    offset += local.length + data.length;
+  }
+  const cdSize = central.reduce((a, c) => a + c.length, 0);
+  const fin = new Uint8Array([...u32(0x06054b50), ...u16(0), ...u16(0), ...u16(files.length), ...u16(files.length), ...u32(cdSize), ...u32(offset), ...u16(0)]);
+  return new Blob([...parts, ...central, fin], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+}
+function xlsxBlob(hoja, filas) {
+  const col = (i) => { let s = ""; for (i++; i > 0; i = Math.floor((i - 1) / 26)) s = String.fromCharCode(65 + ((i - 1) % 26)) + s; return s; };
+  const x = (s) => String(s).replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c])).replace(/[\x00-\x08\x0b\x0c\x0e-\x1f]/g, "");
+  const rows = filas.map((fila, r) => `<row r="${r + 1}">${fila.map((v, c) => (v == null || v === "" ? "" : typeof v === "number" ? `<c r="${col(c)}${r + 1}"><v>${v}</v></c>` : `<c r="${col(c)}${r + 1}" t="inlineStr"><is><t xml:space="preserve">${x(v)}</t></is></c>`)).join("")}</row>`).join("");
+  const H = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
+  return zipStore([
+    { name: "[Content_Types].xml", data: H + '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/></Types>' },
+    { name: "_rels/.rels", data: H + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>' },
+    { name: "xl/workbook.xml", data: H + `<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="${x(hoja)}" sheetId="1" r:id="rId1"/></sheets></workbook>` },
+    { name: "xl/_rels/workbook.xml.rels", data: H + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/></Relationships>' },
+    { name: "xl/worksheets/sheet1.xml", data: H + `<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>${rows}</sheetData></worksheet>` },
+  ]);
+}
+function descargar(blob, nombre) {
+  const url = URL.createObjectURL(blob), a = document.createElement("a");
+  a.href = url; a.download = nombre; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+mountApp();
+</script>
+</body>
+</html>

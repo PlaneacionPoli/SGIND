@@ -88,7 +88,10 @@ export function PmMetricaModal({ seleccion, onClose }: PmMetricaModalProps) {
     : [{ clave: "Resultado", serie: d?.serie ?? [], color }];
   const aniosSerie = Array.from(new Set(lineas.flatMap((l) => l.serie.map((p) => p.anio)))).sort((x, y) => x - y);
   const ajustes = lineas.map((l) =>
-    lineaTendencia(aniosSerie.map((a) => l.serie.find((p) => p.anio === a)?.ejecucion ?? null)),
+    lineaTendencia(
+      aniosSerie.map((a) => l.serie.find((p) => p.anio === a)?.ejecucion ?? null),
+      aniosSerie,
+    ),
   );
   const chartData: Array<{ anio: number } & Record<string, number | null>> = aniosSerie.map((a, i) => {
     const fila: { anio: number } & Record<string, number | null> = { anio: a };

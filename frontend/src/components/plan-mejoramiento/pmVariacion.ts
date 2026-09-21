@@ -31,12 +31,19 @@ export function variacionClass(v: number | null | undefined): string {
   return v > 0 ? "text-emerald-600" : "text-rose-600";
 }
 
-/** Recta de tendencia (mínimos cuadrados) sobre los puntos con dato; todo null
- * si hay menos de dos. Devuelve el valor ajustado por posición de la serie. */
-export function lineaTendencia(valores: Array<number | null>): Array<number | null> {
+/** Último año cerrado de las fichas de métricas: 2026 es parcial y no entra al
+ * cálculo de variación ni tendencia. Espejo de MAX_ANIO_FILTROS en
+ * backend/app/domain/plan_mejoramiento_builders.py. */
+export const ANIO_CIERRE_METRICAS = 2025;
+
+/** Recta de tendencia (mínimos cuadrados) sobre los puntos con dato de años
+ * cerrados; todo null si hay menos de dos. Devuelve el valor ajustado por
+ * posición de la serie (null en los años posteriores al último cerrado). */
+export function lineaTendencia(valores: Array<number | null>, anios: number[]): Array<number | null> {
+  const cerrado = (i: number) => anios[i] <= ANIO_CIERRE_METRICAS;
   const pts: Array<[number, number]> = [];
   valores.forEach((v, i) => {
-    if (v != null) pts.push([i, v]);
+    if (v != null && cerrado(i)) pts.push([i, v]);
   });
   if (pts.length < 2) return valores.map(() => null);
   const n = pts.length;
@@ -47,5 +54,5 @@ export function lineaTendencia(valores: Array<number | null>): Array<number | nu
   const den = n * sxx - sx * sx;
   const pendiente = den === 0 ? 0 : (n * sxy - sx * sy) / den;
   const intercepto = (sy - pendiente * sx) / n;
-  return valores.map((_, i) => intercepto + pendiente * i);
+  return valores.map((_, i) => (cerrado(i) ? intercepto + pendiente * i : null));
 }
