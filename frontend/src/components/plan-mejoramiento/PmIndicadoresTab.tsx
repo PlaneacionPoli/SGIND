@@ -10,7 +10,6 @@ import { downloadPlanIndicadoresExport, fetchPlanIndicadoresDashboard } from "@/
 import { useAuthReady } from "@/stores/auth-store";
 import { PmBulletProgress } from "./PmBulletProgress";
 import { PmFactorBadge } from "./PmFactorBadge";
-import { PmFactorRings } from "./PmFactorRings";
 import { PmIndicadorModal } from "./PmIndicadorModal";
 import { getFactorColor } from "./pmFactorTheme";
 
@@ -85,32 +84,6 @@ export function PmIndicadoresTab({
   const data = query.data;
   const tabla = useMemo(() => data?.tabla ?? [], [data]);
   const { page, setPage, pageSize, setPageSize, pageItems, totalPages } = usePagination(tabla);
-
-  const chartData = useMemo(() => {
-    const porFactor = new Map<string, { suma: number; n: number; factorNum: number | null }>();
-    for (const row of tabla) {
-      const acc = porFactor.get(row.factor) ?? { suma: 0, n: 0, factorNum: row.factor_num };
-      if ("metas" in row) {
-        const tieneMeta = METAS_YEARS.some((y) => row.metas[y].valor != null);
-        acc.n += tieneMeta ? 1 : 0;
-        acc.suma = acc.n;
-      } else {
-        const vals = [row.cump_2025.valor, row.cump_2026.valor].filter(
-          (v): v is number => v != null
-        );
-        if (vals.length) {
-          acc.suma += vals.reduce((s, v) => s + v, 0) / vals.length;
-          acc.n += 1;
-        }
-      }
-      porFactor.set(row.factor, acc);
-    }
-    return Array.from(porFactor.entries()).map(([f, { suma, n, factorNum }]) => ({
-      factor: f,
-      factorNum,
-      value: subvista === "metas" ? n : n ? Math.round((suma / n) * 10) / 10 : 0,
-    }));
-  }, [tabla, subvista]);
 
   return (
     <div className="space-y-6">
@@ -216,14 +189,6 @@ export function PmIndicadoresTab({
                 Exportar a Excel
               </button>
             </div>
-          </div>
-
-          <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-            <PmFactorRings
-              data={chartData}
-              valueSuffix={subvista === "metas" ? "" : "%"}
-              emptyMessage="No hay indicadores con este filtro."
-            />
           </div>
 
           {!tabla.length ? (
