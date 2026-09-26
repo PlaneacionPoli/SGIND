@@ -114,8 +114,10 @@ class StrategicProcessors:
         cierres_cut["Id"] = cierres_cut["Id"].apply(_normalize_id_value)
 
         result = indicators[merge_cols].merge(
-            cierres_cut, on="Id", how="left", suffixes=("", "_cierre")
+            cierres_cut, on="Id", how="inner", suffixes=("", "_cierre")
         )
+        # inner: un indicador sin ningun cierre hasta el corte aun no existia en
+        # ese anio (p.ej. 2022 tiene 36 de los 53 del catalogo) y no debe contarse.
         if "Indicador_cierre" in result.columns:
             result["Indicador"] = result["Indicador"].where(
                 result["Indicador"].notna() & (result["Indicador"].astype(str).str.strip() != ""),
