@@ -315,10 +315,10 @@ def build_strategy_cards(
     unit_label = "proyectos" if vista == "proyectos" else "indicadores"
     count_col = "N_Proyectos" if vista == "proyectos" else "N_Indicadores"
     if vista == "retos":
-        unit_label = "retos"
+        unit_label = ""  # la ficha de Retos solo muestra cumplimiento (ver get_chip_config_retos)
         count_col = "N_Indicadores"
     elif vista == "consolidado":
-        unit_label = "planes"
+        unit_label = "elementos"
         count_col = "N_Total"
     cards = []
     for line_def in STRATEGIC_LINE_DEFS:
@@ -335,14 +335,12 @@ def build_strategy_cards(
             linea_nombre = str(row.get("Linea", line_def["label"]))
             n_indicadores = int(float(row.get("N_Indicadores", 0) or 0))
             n_proyectos = int(float(row.get("N_Proyectos", 0) or 0))
-            n_retos = int(float(row.get("N_Retos", 0) or 0))
         else:
             count = 0
             cumpl = 0.0
             linea_nombre = line_def["label"]
             n_indicadores = 0
             n_proyectos = 0
-            n_retos = 0
 
         historico: list[dict] = []
         if (
@@ -384,12 +382,14 @@ def build_strategy_cards(
         if vista == "consolidado":
             card["n_indicadores"] = n_indicadores
             card["n_proyectos"] = n_proyectos
-            card["n_retos"] = n_retos
         cards.append(card)
     return cards
 
 
-def build_sunburst_plotly(objetivo_df: pd.DataFrame) -> dict[str, Any]:
+def build_sunburst_plotly(
+    objetivo_df: pd.DataFrame, *, solo_lineas: bool = False
+) -> dict[str, Any]:
+    """solo_lineas: un único nivel (líneas), p.ej. Retos de un año sin objetivos."""
     empty = {
         "ids": ["sin_datos"],
         "labels": ["Sin datos"],
@@ -469,12 +469,12 @@ def build_sunburst_plotly(objetivo_df: pd.DataFrame) -> dict[str, Any]:
         labels.append(linea_name)
         ids.append(line_id)
         parents.append("")
-        values.append(0.0)
+        values.append(1.0 if solo_lineas else 0.0)
         pct = float(line["cumplimiento_pct"]) if pd.notna(line["cumplimiento_pct"]) else 0.0
         customdata.append([pct])
         colors.append(color_map.get(_sunburst_norm_key(linea_name), "#6B728E"))
 
-    for _, row in grouped.iterrows():
+    for _, row in grouped.iloc[0:0].iterrows() if solo_lineas else grouped.iterrows():
         obj_name = str(row["Objetivo"]).strip()
         parent_name = str(row["Linea"]).strip()
         if not obj_name or not parent_name:
@@ -707,6 +707,10 @@ def build_linea_summary_retos(
         .reset_index()
     )
     resumen = resumen.merge(objetivos_count, on="Linea", how="left")
+    # Año con líneas pero sin objetivos/planes (p.ej. Retos 2022): sin conteo, no error.
+    resumen["N_Indicadores"] = (
+        pd.to_numeric(resumen["N_Indicadores"], errors="coerce").fillna(0).astype(int)
+    )
 
     if (
         planes_df is not None
@@ -777,7 +781,7 @@ def merge_consolidado_summaries(
     out["N_Indicadores"] = out["N_Indicadores"].fillna(0).astype(int)
     out["N_Proyectos"] = out["N_Proyectos"].fillna(0).astype(int)
     out["N_Retos"] = out["N_Retos"].fillna(0).astype(int)
-    out["N_Total"] = out[["N_Indicadores", "N_Proyectos", "N_Retos"]].sum(axis=1).astype(int)
+    out["N_Total"] = out[["N_Indicadores", "N_Proyectos"]].sum(axis=1).astype(int)
 
     def _avg_series(summary, name):
         if "Linea_norm" in summary.columns and "Cumpl_Promedio" in summary.columns:
@@ -827,29 +831,29 @@ def merge_consolidado_summaries(
     return out, objetivo_df
 
 
-def get_chip_config_retos(linea_df: pd.DataFrame, area_count: int) -> list[dict]:
-    total_planes = (
-        int(linea_df["N_Indicadores"].sum())
-        if not linea_df.empty and "N_Indicadores" in linea_df.columns
-        else 0
-    )
+def get_chip_config_retos(
+    linea_df: pd.DataFrame, area_count: int, avance_global: float | None = None
+) -> list[dict]:
+    # Un reto puede asociarse a varias líneas: sumar planes por línea lo duplicaría,
+    # por eso se reporta el total de áreas con retos y el cumplimiento general.
     meta_esperada = 100.0
-    ejecucion_real = (
+    cumplimiento = (
         float(linea_df["Cumpl_Promedio"].mean())
         if not linea_df.empty and "Cumpl_Promedio" in linea_df.columns
         else 0.0
     )
-    cumplimiento = round((ejecucion_real / meta_esperada) * 100, 1) if meta_esperada else 0.0
+    if avance_global is not None:
+        cumplimiento = avance_global  # hoja 'Areas' del Plan de Retos
+    if pd.isna(cumplimiento):
+        cumplimiento = 0.0
     return [
-        {"value": total_planes, "label": "Plan de Retos", "color": "#0B5FFF"},
+        {"value": area_count, "label": "Áreas con retos", "color": "#7C3AED"},
         {"value": f"{meta_esperada:.0f}%", "label": "% Meta Esperada", "color": "#6B7280"},
-        {"value": f"{ejecucion_real:.1f}%", "label": "% Ejecución Real", "color": "#2563EB"},
         {
             "value": f"{cumplimiento:.1f}%",
-            "label": "Cumplimiento",
+            "label": "Cumplimiento general",
             "color": "#16A34A" if cumplimiento >= 100 else "#F59E0B",
         },
-        {"value": area_count, "label": "Áreas con retos", "color": "#7C3AED"},
     ]
 
 
@@ -929,11 +933,14 @@ def generate_narrative_proyectos(
     }
 
 
-def generate_narrative_retos(linea_summary: pd.DataFrame) -> dict[str, Any]:
-    total_retos = int(linea_summary["N_Indicadores"].sum()) if not linea_summary.empty else 0
+def generate_narrative_retos(
+    linea_summary: pd.DataFrame, area_count: int = 0, avance_global: float | None = None
+) -> dict[str, Any]:
     cumplimiento_prom = (
         float(linea_summary["Cumpl_Promedio"].mean()) if not linea_summary.empty else 0.0
     )
+    if avance_global is not None:
+        cumplimiento_prom = avance_global
     if cumplimiento_prom >= RETOS_UMBRAL_SOBRECUMPLIMIENTO:
         estado, color, icon = "retos con sobrecumplimiento", "#16A34A", "success"
     elif cumplimiento_prom >= RETOS_UMBRAL_CUMPLIMIENTO:
@@ -974,7 +981,7 @@ def generate_narrative_retos(linea_summary: pd.DataFrame) -> dict[str, Any]:
 
     texto = (
         f'El Plan de Retos presenta un estado <strong style="color:{color};">{estado}</strong>. '
-        f"Se registran <strong>{total_retos}</strong> retos con un cumplimiento promedio de "
+        f"Participan <strong>{area_count}</strong> áreas con retos, con un cumplimiento general de "
         f"<strong>{cumplimiento_prom:.1f}%</strong> respecto a las metas establecidas "
         f"(umbral de cumplimiento desde <strong>{RETOS_UMBRAL_CUMPLIMIENTO:.0f}%</strong>). "
         f"{mejor_linea}{alerta_lineas}"
@@ -992,11 +999,11 @@ def generate_narrative_consolidado(
     *,
     ind_count: int,
     proy_count: int,
-    retos_count: int,
+    area_count: int,
     anio: int,
 ) -> dict[str, Any]:
     cumpl_pdi = float(linea_summary["Cumpl_Promedio"].mean()) if not linea_summary.empty else 0.0
-    total_elementos = ind_count + proy_count + retos_count
+    total_elementos = ind_count + proy_count
     estado, color, icon = _narrative_estado_por_cumplimiento(cumpl_pdi)
 
     mejor_linea = brecha_linea = distribucion = ""
@@ -1018,22 +1025,14 @@ def generate_narrative_consolidado(
                         f"(<strong>{float(worst['Cumpl_Promedio']):.1f}%</strong>). "
                     )
 
-        if {"N_Indicadores", "N_Proyectos", "N_Retos"}.issubset(work.columns):
-            ind_linea = int(work["N_Indicadores"].sum())
-            proy_linea = int(work["N_Proyectos"].sum())
-            ret_linea = int(work["N_Retos"].sum())
-            distribucion = (
-                f"Por línea estratégica se monitorean <strong>{ind_linea}</strong> indicadores, "
-                f"<strong>{proy_linea}</strong> proyectos y <strong>{ret_linea}</strong> retos. "
-            )
 
     texto = (
         f"La visión consolidada del PDI <strong>{anio}</strong> muestra un desempeño institucional "
         f'<strong style="color:{color};">{estado}</strong>, con un cumplimiento promedio integrado de '
         f"<strong>{cumpl_pdi:.1f}%</strong>. El portafolio reúne "
-        f"<strong>{ind_count}</strong> indicadores estratégicos, <strong>{proy_count}</strong> proyectos y "
-        f"<strong>{retos_count}</strong> retos "
-        f"(<strong>{total_elementos}</strong> elementos en conjunto). "
+        f"<strong>{ind_count}</strong> indicadores estratégicos y <strong>{proy_count}</strong> proyectos "
+        f"(<strong>{total_elementos}</strong> elementos), además de "
+        f"<strong>{area_count}</strong> áreas con retos. "
         f"{mejor_linea}{brecha_linea}{distribucion}"
     )
     return {

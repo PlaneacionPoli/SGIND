@@ -659,10 +659,13 @@ class ResumenService:
                 planes_df = self._retos.load_planes(anio)
             area_count = self._retos.load_area_count(max(ANIOS_RANGO) if rango else anio)
             linea_summary = build_linea_summary_retos(linea_df, obj_df, planes_df)
-            chips = get_chip_config_retos(linea_summary, area_count)
+            avance_global = self._retos.load_avance_global(ANIOS_RANGO if rango else [anio])
+            chips = get_chip_config_retos(linea_summary, area_count, avance_global)
             cards = build_strategy_cards(linea_summary, linea_df, vista=vista_norm)
-            sunburst = build_sunburst_plotly(obj_df if not obj_df.empty else linea_df)
-            narrativa = generate_narrative_retos(linea_summary)
+            sunburst = build_sunburst_plotly(
+                obj_df if not obj_df.empty else linea_df, solo_lineas=obj_df.empty
+            )
+            narrativa = generate_narrative_retos(linea_summary, area_count, avance_global)
 
             return {
                 "anio": anio,
@@ -717,11 +720,6 @@ class ResumenService:
                     else 0
                 )
             )
-            retos_count = (
-                int(linea_summary["N_Retos"].sum())
-                if not linea_summary.empty and "N_Retos" in linea_summary.columns
-                else 0
-            )
             area_count = self._retos.load_area_count(max(ANIOS_RANGO) if rango else anio)
 
             chips = get_chip_config_consolidado(linea_summary, ind_count, proy_count, area_count)
@@ -731,7 +729,7 @@ class ResumenService:
                 linea_summary,
                 ind_count=ind_count,
                 proy_count=proy_count,
-                retos_count=retos_count,
+                area_count=area_count,
                 anio=anio,
             )
 
@@ -745,7 +743,7 @@ class ResumenService:
                 "mejoraron": [],
                 "en_riesgo": [],
                 "periodo_comparacion": "",
-                "total_indicadores": ind_count + proy_count + retos_count,
+                "total_indicadores": ind_count + proy_count,
             }
 
         return {

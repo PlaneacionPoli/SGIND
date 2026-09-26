@@ -30,7 +30,6 @@ export interface StrategyCardData {
   historico: { anio: number; cumplimiento: number }[];
   n_indicadores?: number;
   n_proyectos?: number;
-  n_retos?: number;
 }
 
 interface StrategyCardProps {
@@ -41,7 +40,6 @@ function buildDetailParts(card: StrategyCardData): string[] {
   const parts: string[] = [];
   if (card.n_indicadores) parts.push(`Indicadores: ${card.n_indicadores}`);
   if (card.n_proyectos) parts.push(`Proyectos: ${card.n_proyectos}`);
-  if (card.n_retos && card.n_retos !== card.count) parts.push(`Retos: ${card.n_retos}`);
   return parts;
 }
 
@@ -65,9 +63,11 @@ export function StrategyCard({ card }: StrategyCardProps) {
           <div className="text-[22px] font-bold leading-none" style={{ color: card.color }}>
             {card.cumplimiento.toFixed(1)}%
           </div>
-          <div className="mt-1 text-[11px] text-slate-500">
-            {card.count} {card.unit_label}
-          </div>
+          {card.unit_label && (
+            <div className="mt-1 text-[11px] text-slate-500">
+              {card.count} {card.unit_label}
+            </div>
+          )}
           {detailParts.length > 0 && (
             <div className="mt-1 text-[11px] text-slate-600">{detailParts.join(" · ")}</div>
           )}

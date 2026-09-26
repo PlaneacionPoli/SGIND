@@ -600,7 +600,6 @@ export interface ResumenFicha {
   historico: { anio: number; cumplimiento: number }[];
   n_indicadores?: number;
   n_proyectos?: number;
-  n_retos?: number;
 }
 
 export interface ResumenSunburst {

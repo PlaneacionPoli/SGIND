@@ -138,7 +138,7 @@ def test_build_strategy_cards_consolidado_desglose():
     calidad = next(c for c in cards if c["linea"] == "Calidad")
     assert calidad["n_indicadores"] == 9
     assert calidad["n_proyectos"] == 13
-    assert calidad["n_retos"] == 63
+    assert "n_retos" not in calidad  # los planes de Retos no se suman por línea
 
 
 def test_generate_narrative_consolidado_dinamica():
@@ -166,13 +166,13 @@ def test_generate_narrative_consolidado_dinamica():
         linea_summary,
         ind_count=53,
         proy_count=42,
-        retos_count=285,
+        area_count=84,
         anio=2025,
     )
     assert "2025" in narrativa["texto"]
     assert "53" in narrativa["texto"]
     assert "42" in narrativa["texto"]
-    assert "285" in narrativa["texto"]
+    assert "84" in narrativa["texto"]
     assert "Expansión" in narrativa["texto"] or "Expansion" in narrativa["texto"]
     assert narrativa["health_rate"] > 0
     assert "<strong>" in narrativa["texto"]

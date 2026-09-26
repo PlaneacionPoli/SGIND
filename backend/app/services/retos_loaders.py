@@ -80,6 +80,24 @@ class RetosLoaders:
             pass
         return 0
 
+    def load_avance_global(self, anios: list[int]) -> float | None:
+        """Cumplimiento global de Retos (hoja 'Areas', columna Cumplimiento) en %.
+        Con varios años devuelve el promedio de los años con dato."""
+        if not self._exists():
+            return None
+        try:
+            df = self._excel.read_excel(RETOS_PATH, sheet_name="Areas")
+            df.columns = [str(c).strip() for c in df.columns]
+            year_col = next((c for c in df.columns if _norm_key(c) in ("ano", "anio")), None)
+            cumpl_col = next((c for c in df.columns if _norm_key(c) == "cumplimiento"), None)
+            if not year_col or not cumpl_col:
+                return None
+            sub = df[df[year_col].isin(anios)]
+            vals = pd.to_numeric(sub[cumpl_col], errors="coerce").dropna()
+            return float(vals.mean() * 100) if not vals.empty else None
+        except Exception:
+            return None
+
     def load_planes(self, anio: int) -> pd.DataFrame:
         if not self._exists():
             return pd.DataFrame(columns=["Linea", "N_Planes"])
