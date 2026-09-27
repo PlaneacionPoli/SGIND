@@ -22,6 +22,7 @@ from app.domain.resumen_builders import (
     build_linea_summary_retos,
     build_pdi_mindmap,
     build_proyectos_gantt,
+    build_proyectos_pmo_gantt,
     build_proyectos_tabla,
     build_retos_tabla,
     build_strategy_cards,
@@ -42,6 +43,7 @@ from app.domain.resumen_builders import (
 from app.domain.strategic_processors import StrategicProcessors
 from app.services.etl_pipeline import ETLPipelineService
 from app.services.excel_reader import ExcelReaderService
+from app.services.proyectos_pmo_loader import ProyectosPmoLoader
 from app.services.retos_loaders import RetosLoaders
 
 _RESUMEN_COMPLETO_CACHE: dict[tuple, tuple[float, dict]] = {}
@@ -76,6 +78,7 @@ class ResumenService:
         self._cmi = CMIFilterService(excel)
         self._strategic = StrategicProcessors(excel)
         self._retos = RetosLoaders(excel)
+        self._proyectos_pmo = ProyectosPmoLoader(excel)
 
     def _load_cierres(self) -> pd.DataFrame:
         return self._etl.leer_cierres()
@@ -795,12 +798,17 @@ class ResumenService:
 
         anios = [anio] if anio is not None else ANIOS_RANGO
         pdi_df = ensure_nivel_cumplimiento(self._strategic.preparar_pdi_cierre_final())
-        proy_df = self._proyectos_multi_anio(anios)
-        proy_gantt = build_proyectos_gantt(proy_df)
+        # Proyectos PMO: fuente real del Centro de Proyectos (Comienzo/Fin/%
+        # completado por proyecto), no la derivada de Cierres/Consolidado
+        # (build_proyectos_gantt) — esa solo tiene 33 filas totales y no
+        # refleja el maestro PMO real (53 proyectos). Confirmado con negocio
+        # 2026-09-27, ver ProyectosPmoLoader.
+        proy_gantt = build_proyectos_pmo_gantt(self._proyectos_pmo.load(), anios=anios)
         ret_linea_df, ret_obj_df, ret_planes_df = self._retos_multi_anio(anios)
+        signo_lookup = self._build_signo_lookup()
 
         lineas = build_informe_ejecutivo_lineas(
-            pdi_df, proy_gantt, ret_linea_df, ret_obj_df, ret_planes_df
+            pdi_df, proy_gantt, ret_linea_df, ret_obj_df, ret_planes_df, signo_lookup
         )
         return next((li for li in lineas if norm_key(li["linea"]) == target), None)
 
@@ -847,8 +855,11 @@ class ResumenService:
         CMI (objetivo → indicador), sobre el mismo rango fijo que usa la
         vista Consolidado (ANIOS_RANGO)."""
         pdi_df = ensure_nivel_cumplimiento(self._strategic.preparar_pdi_cierre_final())
-        proy_all = self._strategic.load_proyectos()
-        proy_gantt = build_proyectos_gantt(proy_all)
+        # Proyectos PMO: Centro de Proyectos (raw/Proyectos/centroDeProyectos_
+        # PMO_2026.xlsx) es la fuente OFICIAL de proyectos — no Cierres/
+        # Consolidado (build_proyectos_gantt), que solo cubre los que ya
+        # tienen cierre cargado. Confirmado con negocio, 2026-09-27.
+        proy_gantt = build_proyectos_pmo_gantt(self._proyectos_pmo.load())
         ret_linea_df, ret_obj_df, ret_planes_df = self._retos_multi_anio(ANIOS_RANGO)
         signo_lookup = self._build_signo_lookup()
 
@@ -872,9 +883,10 @@ class ResumenService:
         )
 
         proy_count = self._count_proyectos_ciclo_vigente()
-        # Nota: la hoja "Planes" trae # Áreas por línea, no # Retos (ver
-        # build_informe_ejecutivo_lineas) — no hay conteo de retos por línea.
-        areas_count = sum(li["retos"]["n_areas"] for li in lineas)
+        # Total global de áreas (hoja "Areas" — sin desglose por línea en el
+        # dato fuente, ver build_informe_ejecutivo_lineas). Mismo criterio
+        # que la vista Retos/Consolidado: último año del rango.
+        areas_count = self._retos.load_area_count(max(ANIOS_RANGO))
 
         return {
             "generado": "Cierre PDI 2022-2025",

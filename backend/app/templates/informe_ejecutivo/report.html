@@ -98,7 +98,7 @@
       {% for li in data.lineas %}
       <div class="mini-card" style="border-left-color:{{ li.color }}">
         <span class="mini-linea">{{ li.linea }}</span>
-        <div class="mini-row"><span>{{ li.retos.n_areas }}</span> áreas</div>
+        <div class="mini-row"><span>{{ li.retos.cumplimiento }}%</span> retos</div>
         <div class="mini-row"><span>{{ li.proyectos | length }}</span> proyecto{{ "" if li.proyectos | length == 1 else "s" }}</div>
         <div class="mini-row"><span>{{ li.objetivos | map(attribute="indicadores") | map("length") | sum }}</span> indicadores</div>
       </div>
@@ -133,10 +133,6 @@
             <span class="pill-value">{{ li.retos.cumplimiento }}%<small>CUMPLIMIENTO</small></span>
           </div>
         </div>
-        <div class="retos-count-box">
-          <span class="v">{{ li.retos.n_areas }}</span>
-          <span class="l"># ÁREAS</span>
-        </div>
       </div>
 
       <!-- Proyectos PMO -->
@@ -144,19 +140,19 @@
         <p class="col-title">PROYECTOS PMO</p>
         {% if li.proyectos %}
         <div class="proy-legend">
-          {% for anio in [2022, 2023, 2024, 2025] %}
+          {% for anio in [2022, 2023, 2024, 2025, 2026] %}
           <span class="legend-item"><span class="legend-dot" style="background:{{ anio_colors[anio] }}"></span>{{ anio }}</span>
           {% endfor %}
         </div>
         <div class="proy-axis">
-          {% for anio in [2022, 2023, 2024, 2025] %}<span>{{ anio }}</span>{% endfor %}
+          {% for anio in [2022, 2023, 2024, 2025, 2026] %}<span>{{ anio }}</span>{% endfor %}
         </div>
         <div class="proy-list">
           {% for p in li.proyectos[:8] %}
           <div class="proy-row">
             <span class="proy-name">{{ p.nombre[:52] }}</span>
             <div class="proy-track">
-              <div class="proy-fill" style="left:{{ ((p.anio_inicio - 2022) / 4 * 100) | round(1) }}%; width:{{ (((p.anio_fin - p.anio_inicio + 1) / 4) * 100) | round(1) }}%; background:{{ p.anio_color }}">
+              <div class="proy-fill" style="left:{{ ((p.anio_inicio_gantt - 2022) / 5 * 100) | round(1) }}%; width:{{ (((p.anio_fin_gantt - p.anio_inicio_gantt + 1) / 5) * 100) | round(1) }}%; background:{{ p.anio_color }}">
                 {% if p.stand_by %}<span class="proy-standby">Stand by</span>{% else %}{{ p.cumplimiento | round(0, 'floor') | int }}%{% endif %}
               </div>
             </div>

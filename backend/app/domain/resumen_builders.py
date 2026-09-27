@@ -1228,6 +1228,77 @@ def build_proyectos_gantt(
     return {"anio_min": anio_min, "anio_max": anio_max, "items": items}
 
 
+# El maestro PMO escribe esta línea sin "toda" ("Educación para la Vida"),
+# a diferencia de STRATEGIC_LINE_DEFS ("Educación para toda la vida") — alias
+# explícito, norm_key por sí solo no lo resuelve (son textos distintos).
+_PMO_LINEA_ALIASES = {"educacion para la vida": "Educación para toda la vida"}
+
+# Estados administrativos del maestro PMO -> vocabulario ya usado en el
+# resto de Resumen General (badges/colores). "Stand by" se preserva tal
+# cual: es un estado real del maestro, no algo inferido por cumplimiento.
+_ESTADO_MAP_PMO = {
+    "finalizado": "Cerrado",
+    "cierre": "Cerrado",
+    "ejecucion": "En ejecución",
+    "planeacion": "Planeación",
+    "stand by": "Stand by",
+}
+
+
+def build_proyectos_pmo_gantt(
+    pmo_df: pd.DataFrame,
+    *,
+    anios: list[int] | None = None,
+    anio_min: int = 2022,
+    anio_max: int = 2025,
+) -> dict[str, Any]:
+    """Cronograma de Proyectos PMO desde el maestro real (ProyectosPmoLoader:
+    Id, Indicador, Linea, anio_inicio, anio_fin, cumplimiento_pct, estado ya
+    resueltos, una fila por proyecto) — a diferencia de build_proyectos_gantt,
+    que espera una fila por año/cierre. Si `anios` se da, solo incluye
+    proyectos cuyo rango de años se solapa con esos años (p.ej. hoja de
+    línea filtrada a un año puntual)."""
+    empty = {"anio_min": anio_min, "anio_max": anio_max, "items": []}
+    required = {"Id", "Indicador", "Linea", "anio_inicio", "anio_fin"}
+    if pmo_df.empty or not required.issubset(pmo_df.columns):
+        return empty
+
+    work = pmo_df.copy()
+    if anios:
+        lo, hi = min(anios), max(anios)
+        work = work[(work["anio_inicio"] <= hi) & (work["anio_fin"] >= lo)]
+    if work.empty:
+        return empty
+
+    items: list[dict[str, Any]] = []
+    for _, row in work.iterrows():
+        linea_raw = str(row.get("Linea") or "Sin línea").strip()
+        linea_key = norm_key(linea_raw)
+        linea = _PMO_LINEA_ALIASES.get(linea_key, linea_raw)
+        linea_key = norm_key(linea)
+        anio_inicio = int(row["anio_inicio"])
+        anio_fin = int(row["anio_fin"])
+        estado_raw = str(row.get("estado") or "").strip()
+        estado = _ESTADO_MAP_PMO.get(norm_key(estado_raw), estado_raw or "Planeación")
+        items.append(
+            {
+                "id": str(row.get("Id")),
+                "nombre": str(row.get("Indicador") or row.get("Id")).strip(),
+                "linea": linea,
+                "linea_color": LINEA_COLORS_BADGE.get(linea_key, "#64748B"),
+                "anio_inicio": anio_inicio,
+                "anio_fin": anio_fin,
+                "duracion_anios": anio_fin - anio_inicio + 1,
+                "anios_activos": list(range(anio_inicio, anio_fin + 1)),
+                "cumplimiento": _safe_pct(row.get("cumplimiento_pct"), default=0.0) or 0.0,
+                "estado": estado,
+            }
+        )
+
+    items.sort(key=lambda x: (linea_sort_key(x["linea"]), x["nombre"].lower()))
+    return {"anio_min": anio_min, "anio_max": anio_max, "items": items}
+
+
 def build_proyectos_tabla(proy_df: pd.DataFrame) -> list[dict]:
     """Nota: 'estado' (Cerrado/En ejecución/Planeación) es un estado
     administrativo de ciclo de vida, no un semáforo de desempeño — se
@@ -1285,6 +1356,10 @@ _ESTADO_PROYECTO_COLORS_PDF = {
     "Cerrado": "#16A34A",
     "En ejecución": "#F59E0B",
     "Planeación": "#94A3B8",
+    # Estado real del maestro Proyectos PMO (ProyectosPMOLoader) — la fuente
+    # antigua (build_proyectos_gantt) nunca produce este valor, solo infiere
+    # Cerrado/En ejecución/Planeación desde el % de avance.
+    "Stand by": "#94A3B8",
 }
 
 # STRATEGIC_LINE_DEFS["label"] está en ASCII (clave de emparejamiento);
@@ -1402,20 +1477,30 @@ def build_informe_ejecutivo_lineas(
         # Nota: el conteo de la hoja "Planes" es # Áreas por línea, no # Retos
         # (confirmado con negocio, 2026-09-27) — no existe un conteo de
         # retos por línea en el dato fuente.
-        n_areas = int(float(retos_row.get("N_Indicadores", 0) or 0)) if retos_row is not None else 0
+        # "N_Indicadores" (hoja "Planes") NO es # Áreas — la hoja "Areas"
+        # real del Excel de Retos no tiene columna Línea, solo un total
+        # global por año (2025: 84). No existe un desglose de áreas por
+        # línea en el dato fuente (confirmado con negocio, 2026-09-27):
+        # no se fabrica un número por línea. El total global va aparte,
+        # una sola vez, en ResumenService.get_informe_ejecutivo /
+        # get_resumen_linea (ver RetosLoaders.load_area_count).
         retos_block = {
             "avance_real": round(avance_real, 1),
             "avance_esperado": 100.0,
             "cumplimiento": round(avance_real, 1),
-            "n_areas": n_areas,
         }
 
         # ── Proyectos PMO ──
+        # El Centro de Proyectos trae proyectos que arrancan antes de 2022 o
+        # cierran después de 2026 (fuera del eje 2022-2026 del Gantt) — se
+        # acotan solo las posiciones visuales de la barra, no el dato real.
         proyectos_items = proyectos_by_key.get(key, [])
         for item in proyectos_items:
             item["anio_color"] = _ANIO_COLORS_PDF.get(item.get("anio_fin"), "#64748B")
             item["estado_color"] = _ESTADO_PROYECTO_COLORS_PDF.get(item.get("estado"), "#64748B")
-            item["stand_by"] = item.get("estado") == "Planeación"
+            item["stand_by"] = item.get("estado") in ("Planeación", "Stand by")
+            item["anio_inicio_gantt"] = max(2022, min(2026, item.get("anio_inicio") or 2022))
+            item["anio_fin_gantt"] = max(2022, min(2026, item.get("anio_fin") or 2026))
 
         # ── CMI Estratégico (objetivo → indicadores) ──
         objetivos: list[dict[str, Any]] = []

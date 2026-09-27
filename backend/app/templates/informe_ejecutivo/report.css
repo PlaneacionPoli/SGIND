@@ -172,7 +172,7 @@ body {
 .proy-legend { display: flex; gap: 10px; margin-bottom: 6px; }
 .legend-item { display: flex; align-items: center; gap: 4px; font-size: 8px; color: #334155; font-weight: 600; }
 .legend-dot { width: 8px; height: 8px; border-radius: 2px; display: inline-block; }
-.proy-axis { display: grid; grid-template-columns: repeat(4, 1fr); font-size: 8px; color: #64748B; font-weight: 700; margin-bottom: 4px; text-align: center; }
+.proy-axis { display: grid; grid-template-columns: repeat(5, 1fr); font-size: 8px; color: #64748B; font-weight: 700; margin-bottom: 4px; text-align: center; }
 .proy-list { display: flex; flex-direction: column; gap: 7px; }
 .proy-row { display: flex; flex-direction: column; gap: 2px; }
 .proy-name { font-size: 8.5px; color: #334155; font-weight: 600; }
