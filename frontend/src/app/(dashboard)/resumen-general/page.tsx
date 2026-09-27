@@ -23,6 +23,7 @@ export default function ResumenGeneralPage() {
   const [anio, setAnio] = useState<number>(2025);
   const [vista, setVista] = useState("indicadores");
   const [rango, setRango] = useState(true);
+  const [subTab, setSubTab] = useState<"listado" | "gantt">("listado");
 
   const filtrosQuery = useQuery({
     queryKey: ["dashboard-filtros"],
@@ -65,19 +66,22 @@ export default function ResumenGeneralPage() {
 
   return (
     <div className="space-y-6">
-      <div className="rounded-xl bg-gradient-to-r from-slate-900 to-slate-800 p-6 text-white shadow-md">
-        <div className="flex items-start justify-between gap-4">
+      <div className="rounded-xl bg-gradient-to-r from-slate-900 to-slate-800 px-6 py-5 text-white shadow-md">
+        <div className="flex items-center justify-between gap-4">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-widest text-blue-200">Sistema de Indicadores</p>
-            <h2 className="mt-1 text-2xl font-bold text-white">Plan de Desarrollo Institucional 2022–2026</h2>
-            <p className="mt-1 text-sm text-slate-300">
-              Seguimiento estratégico de indicadores PDI · Cuadro de Mando Integral
+            <p className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-widest text-blue-200">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+              Sistema de Indicadores Institucionales
             </p>
-            {health && (
-              <p className="mt-2 text-xs text-slate-400">
-                API {health.status} · v{health.version}
-              </p>
-            )}
+            <h2 className="mt-2 text-2xl font-bold text-white">Plan de Desarrollo Institucional 2022–2026</h2>
+            <p className="mt-1 flex flex-wrap items-center gap-2 text-sm text-slate-300">
+              Seguimiento estratégico de indicadores PDI · Cuadro de Mando Integral
+              {health && (
+                <span className="rounded bg-emerald-500/15 px-2 py-0.5 text-xs text-emerald-300">
+                  API {health.status} · v{health.version}
+                </span>
+              )}
+            </p>
           </div>
           {isAuthenticated && (
             <button
@@ -92,9 +96,9 @@ export default function ResumenGeneralPage() {
         </div>
       </div>
 
-      <div className="rounded-lg border border-slate-200 bg-white p-4 space-y-4">
-        <div>
-          <p className="mb-2 text-xs font-semibold uppercase text-slate-500">Año</p>
+      <div className="flex flex-wrap items-center justify-between gap-4 rounded-lg border border-slate-200 bg-white p-4">
+        <div className="flex flex-wrap items-center gap-3">
+          <p className="text-xs font-semibold uppercase text-slate-500">Año</p>
           <YearSegmentedControl
             years={years}
             anio={anioEfectivo}
@@ -106,24 +110,14 @@ export default function ResumenGeneralPage() {
             onSelectRango={() => setRango(true)}
           />
         </div>
-        <div>
-          <p className="mb-2 text-xs font-semibold uppercase text-slate-500">Vista</p>
+        <div className="flex flex-wrap items-center gap-3">
+          <p className="text-xs font-semibold uppercase text-slate-500">Vista</p>
           <VistaSelector
             vista={vista}
             vistas={filtrosQuery.data?.vistas}
             onChange={setVista}
           />
         </div>
-        <p className="text-xs text-slate-500">
-          Filtros activos: Año {rango ? "Cierre PDI 2022-2025" : anioEfectivo} · Vista{" "}
-          {vista === "indicadores"
-            ? "Indicadores"
-            : vista === "proyectos"
-              ? "Proyectos"
-              : vista === "retos"
-                ? "Plan de Retos"
-                : "Consolidado"}
-        </p>
       </div>
 
       {showLoading ? (
@@ -175,24 +169,47 @@ export default function ResumenGeneralPage() {
 
           <ExecutiveNarrative data={resumenQuery.data.narrativa} />
 
-          {(vista === "proyectos" || vista === "retos") && resumenQuery.data.tabla_detalle && (
+          {vista === "retos" && resumenQuery.data.tabla_detalle && (
             <DetailTables vista={vista} rows={resumenQuery.data.tabla_detalle} />
           )}
 
-          {vista === "proyectos" && resumenQuery.data.gantt_proyectos && (
-            <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-              <h3 className="mb-1 text-sm font-semibold text-slate-800">
-                Cronograma de Proyectos PDI
-              </h3>
-              <p className="mb-3 text-xs text-slate-500">
-                Vigencia activa por proyecto entre {resumenQuery.data.gantt_proyectos.anio_min} y{" "}
-                {resumenQuery.data.gantt_proyectos.anio_max}
-              </p>
-              <ProyectosGanttChart data={resumenQuery.data.gantt_proyectos} />
+          {vista === "proyectos" && (
+            <div className="space-y-3">
+              <div className="inline-flex rounded-lg bg-slate-100 p-1">
+                {(["listado", "gantt"] as const).map((t) => (
+                  <button
+                    key={t}
+                    type="button"
+                    onClick={() => setSubTab(t)}
+                    className={`rounded-md px-4 py-1.5 text-sm font-semibold transition ${
+                      subTab === t ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"
+                    }`}
+                  >
+                    {t === "listado" ? "Listado" : "Gantt"}
+                  </button>
+                ))}
+              </div>
+              {subTab === "listado" && resumenQuery.data.tabla_detalle && (
+                <DetailTables
+                  vista={vista}
+                  rows={resumenQuery.data.tabla_detalle}
+                  lineColors={Object.fromEntries(resumenQuery.data.fichas.map((f) => [f.linea, f.color]))}
+                />
+              )}
+              {subTab === "gantt" && resumenQuery.data.gantt_proyectos && (
+                <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                  <h3 className="mb-1 text-sm font-semibold text-slate-800">Cronograma de Proyectos PDI</h3>
+                  <p className="mb-3 text-xs text-slate-500">
+                    Vigencia activa por proyecto entre {resumenQuery.data.gantt_proyectos.anio_min} y{" "}
+                    {resumenQuery.data.gantt_proyectos.anio_max}
+                  </p>
+                  <ProyectosGanttChart data={resumenQuery.data.gantt_proyectos} />
+                </div>
+              )}
             </div>
           )}
 
-          {(vista === "indicadores" || vista === "proyectos") && (
+          {vista === "indicadores" && (
             <TrendVariationTables
               mejoraron={resumenQuery.data.mejoraron}
               enRiesgo={resumenQuery.data.en_riesgo}
