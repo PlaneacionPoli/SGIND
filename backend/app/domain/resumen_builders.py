@@ -506,12 +506,12 @@ def build_sunburst_plotly(
             wrapped = _wrap_sunburst_label(lab, width=12)
         else:
             parent_name = id_to_label.get(parent_id, "")
-            wrapped = _wrap_sunburst_label(_objective_display_label(lab, parent_name), width=26)
+            wrapped = _wrap_sunburst_label(_objective_display_label(lab, parent_name), width=32)
         line_key = lab_key if parent_id == "" else _sunburst_norm_key(id_to_label.get(parent_id, ""))
         # Solo la cifra: blanca, salvo Transformación Organizacional (cian claro) en azul oscuro.
         color = "#0B2A5B" if "transformacion organizacional" in line_key else "#FFFFFF"
         html_label = f"<b>{str(wrapped).replace(chr(10), '<br>')}</b>"
-        size = 28 if parent_id == "" else 22
+        size = 16 if parent_id == "" else 14
         text.append(
             f'{html_label}<br>'
             f'<span style="font-size:{size}px;color:{color}"><b>{pct:.0f}%</b></span>'
