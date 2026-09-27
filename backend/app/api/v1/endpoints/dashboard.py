@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 
 from app.api.deps import get_excel_service
 from app.core.concurrency import run_sync
@@ -11,6 +11,7 @@ from app.schemas.common import (
     DashboardKPIsResponse,
     DashboardNarrativaResponse,
     DashboardResumenCompletoResponse,
+    DashboardResumenLineaResponse,
     ExcelFileInfo,
     KPIResponse,
     SemaphoreItem,
@@ -133,6 +134,19 @@ async def get_resumen_completo(
     return DashboardResumenCompletoResponse(
         **await run_sync(dashboard.get_resumen_completo, anio=anio, vista=vista, rango=rango)
     )
+
+
+@router.get("/resumen-linea/{key}", response_model=DashboardResumenLineaResponse)
+async def get_resumen_linea(
+    key: str,
+    anio: int | None = Query(None),
+    _user: User = Depends(require_reader),
+    dashboard: DashboardService = Depends(_dashboard_service),
+) -> DashboardResumenLineaResponse:
+    raw = await run_sync(dashboard.get_resumen_linea, key=key, anio=anio)
+    if raw is None:
+        raise HTTPException(status_code=404, detail=f"Línea estratégica '{key}' no encontrada")
+    return DashboardResumenLineaResponse(**raw)
 
 
 @router.get("/narrativa", response_model=DashboardNarrativaResponse)

@@ -602,14 +602,26 @@ export interface ResumenFicha {
   n_proyectos?: number;
 }
 
-export interface ResumenSunburst {
-  ids?: string[];
-  labels: string[];
-  parents: string[];
-  values: number[];
-  colors: string[];
-  text: string[];
-  customdata?: number[][];
+export interface ResumenMindmapSublinea {
+  codigo: string;
+  label: string;
+  cumplimiento: number;
+  n_items: number;
+  alerta: "ok" | "alerta" | "critica";
+}
+
+export interface ResumenMindmapLinea {
+  slug: string;
+  label: string;
+  color: string;
+  icon: string;
+  cumplimiento: number;
+  sublineas: ResumenMindmapSublinea[];
+}
+
+export interface ResumenMindmap {
+  alcance_global: number;
+  lineas: ResumenMindmapLinea[];
 }
 
 export interface ResumenNarrativa {
@@ -651,7 +663,7 @@ export interface ResumenCompletoResponse {
   vista: string;
   chips: ResumenChip[];
   fichas: ResumenFicha[];
-  sunburst: ResumenSunburst;
+  mindmap: ResumenMindmap;
   narrativa: ResumenNarrativa;
   mejoraron: ResumenTrendItem[];
   en_riesgo: ResumenTrendItem[];
@@ -666,6 +678,42 @@ export interface ResumenCompletoResponse {
     estado?: string;
     nivel: string;
   }>;
+}
+
+export interface ResumenLineaProyectoItem extends ProyectoGanttItem {
+  anio_color?: string;
+  estado_color?: string;
+  stand_by?: boolean;
+}
+
+export interface ResumenLineaIndicador {
+  indicador: string;
+  meta: string | null;
+  ejecucion: string | null;
+  cumplimiento: number | null;
+  nivel: string;
+  nivel_color: string;
+}
+
+export interface ResumenLineaObjetivo {
+  objetivo: string;
+  indicadores: ResumenLineaIndicador[];
+}
+
+export interface ResumenLineaRetos {
+  avance_real: number;
+  avance_esperado: number;
+  cumplimiento: number;
+  n_areas: number;
+}
+
+export interface ResumenLineaResponse {
+  linea: string;
+  color: string;
+  icon: string;
+  retos: ResumenLineaRetos;
+  proyectos: ResumenLineaProyectoItem[];
+  objetivos: ResumenLineaObjetivo[];
 }
 
 export interface SeguimientoDashboardResponse {

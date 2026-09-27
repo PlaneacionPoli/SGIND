@@ -1,24 +1,5 @@
-import { ReactNode } from "react";
-import {
-  TrendingUp,
-  GraduationCap,
-  Zap,
-  Leaf,
-  Target,
-  Shield,
-  BarChart3,
-} from "lucide-react";
+import { STRATEGIC_ICON_MAP } from "@/lib/strategic-icons";
 import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis } from "recharts";
-
-const ICON_MAP: Record<string, ({ size, style, className, strokeWidth }: { size: number; style?: React.CSSProperties; className?: string; strokeWidth?: number }) => ReactNode> = {
-  rocket: TrendingUp,
-  chart: BarChart3,
-  medal: Target,
-  bulb: Zap,
-  leaf: Leaf,
-  graduation: GraduationCap,
-  shield: Shield,
-};
 
 export interface StrategyCardData {
   linea: string;
@@ -44,7 +25,7 @@ function buildDetailParts(card: StrategyCardData): string[] {
 }
 
 export function StrategyCard({ card }: StrategyCardProps) {
-  const IconComponent = ICON_MAP[card.icon];
+  const IconComponent = STRATEGIC_ICON_MAP[card.icon];
   const detailParts = buildDetailParts(card);
 
   return (

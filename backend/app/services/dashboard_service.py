@@ -57,3 +57,6 @@ class DashboardService:
         self, anio: int, vista: str = "indicadores", rango: bool = False
     ) -> dict:
         return self._resumen.get_resumen_completo(anio=anio, vista=vista, rango=rango)
+
+    def get_resumen_linea(self, key: str, anio: int | None = None) -> dict | None:
+        return self._resumen.get_resumen_linea(key=key, anio=anio)
