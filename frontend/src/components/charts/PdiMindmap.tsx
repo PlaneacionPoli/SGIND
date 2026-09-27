@@ -27,23 +27,29 @@ const OFFICIAL_LINE_ORDER = [
 // mismatch entre el tamaño lógico y el tamaño físico renderizado.
 const CENTER_R = 100;
 const LINE_R = 72;
-const LINE_ORBIT = 190;
-const SUB_W = 190;
-const SUB_H = 76;
+const LINE_ORBIT = 260;
+const SUB_W = 260;
+const SUB_H = 82;
 // Cada objetivo cuelga directamente de su línea (no en cadena): se distribuyen
 // en abanico alrededor del nodo de la línea, con un pequeño incremento de
 // radio por ítem para separarlos sin necesitar ángulos grandes que invadan el
 // sector de la línea vecina (validado numéricamente para 1-3 objetivos/línea).
-const SUB_LOCAL_R_BASE = 220;
-const SUB_LOCAL_R_STEP = 110;
-const SUB_ANGLE_GAP = 45;
+const SUB_LOCAL_R_BASE = 250;
+const SUB_LOCAL_R_STEP = 170;
+const SUB_ANGLE_GAP = 48;
 const PADDING = 60;
 
-const ALERTA_STYLES: Record<ResumenMindmapSublinea["alerta"], { bg: string; text: string; label: string | null }> = {
-  ok: { bg: "", text: "#0f172a", label: null },
-  alerta: { bg: "#f59e0b", text: "#fff", label: "En Alerta" },
-  critica: { bg: "#dc2626", text: "#fff", label: "ALERTA CRÍTICA" },
-};
+// Umbral de alerta pedido para este mindmap: por debajo de 98% de
+// cumplimiento se marca "En Alerta" (independiente del semáforo institucional
+// que usa el resto del tablero).
+const ALERTA_UMBRAL = 98;
+
+function getAlertaDisplay(cumplimiento: number): { bg: string; text: string; label: string | null } {
+  if (cumplimiento < ALERTA_UMBRAL) {
+    return { bg: "#f59e0b", text: "#fff", label: "En Alerta" };
+  }
+  return { bg: "", text: "#0f172a", label: null };
+}
 
 function toRad(deg: number) {
   return (deg * Math.PI) / 180;
@@ -159,7 +165,7 @@ export function PdiMindmap({ data }: PdiMindmapProps) {
 
   function showSubTooltip(e: ReactMouseEvent, linea: ResumenMindmapLinea, s: SubNode) {
     const { x, y } = svgPointFromEvent(e);
-    const alertStyle = ALERTA_STYLES[s.sub.alerta];
+    const alertStyle = getAlertaDisplay(s.sub.cumplimiento);
     const detail = [
       `Cumplimiento: ${s.sub.cumplimiento.toFixed(1)}%`,
       `${s.sub.n_items} ${s.sub.n_items === 1 ? "elemento" : "elementos"}`,
@@ -185,7 +191,7 @@ export function PdiMindmap({ data }: PdiMindmapProps) {
           style={{ display: "block", margin: "0 auto", maxWidth: "100%", height: "auto" }}
           onMouseLeave={() => setTooltip(null)}
         >
-          <circle cx={0} cy={0} r={LINE_ORBIT - 30} fill="none" stroke="#CBD5E1" strokeDasharray="5 8" strokeWidth={1.5} />
+          <circle cx={0} cy={0} r={LINE_ORBIT - 30} fill="none" stroke="#E2E8F0" strokeWidth={1.5} />
 
           {orderedNodes.map((node) => {
             const isFocused = focused === node.linea.slug;
@@ -195,28 +201,22 @@ export function PdiMindmap({ data }: PdiMindmapProps) {
 
             return (
               <g key={node.linea.slug} opacity={isDimmed ? 0.2 : 1} style={{ transition: "opacity 200ms ease" }}>
-                <line
-                  x1={0}
-                  y1={0}
-                  x2={node.x}
-                  y2={node.y}
-                  stroke={node.linea.color}
-                  strokeDasharray="4 6"
-                  strokeWidth={2}
-                  opacity={0.6}
-                />
-                {node.subs.map((s) => (
-                  <line
-                    key={`link-${node.linea.slug}-${s.codigo}`}
-                    x1={node.x}
-                    y1={node.y}
-                    x2={s.x}
-                    y2={s.y}
-                    stroke={node.linea.color}
-                    strokeDasharray="3 5"
-                    strokeWidth={1.5}
-                    opacity={0.5}
-                  />
+                <line x1={0} y1={0} x2={node.x} y2={node.y} stroke={node.linea.color} strokeWidth={2.5} opacity={0.55} />
+                <circle r={4.5} fill={node.linea.color} opacity={0.9}>
+                  <animateMotion dur="2.6s" repeatCount="indefinite" path={`M0,0 L${node.x},${node.y}`} />
+                </circle>
+                {node.subs.map((s, subIdx) => (
+                  <g key={`link-${node.linea.slug}-${s.codigo}`}>
+                    <line x1={node.x} y1={node.y} x2={s.x} y2={s.y} stroke={node.linea.color} strokeWidth={2} opacity={0.45} />
+                    <circle r={3.5} fill={node.linea.color} opacity={0.85}>
+                      <animateMotion
+                        dur="2.2s"
+                        begin={`${subIdx * 0.35}s`}
+                        repeatCount="indefinite"
+                        path={`M${node.x},${node.y} L${s.x},${s.y}`}
+                      />
+                    </circle>
+                  </g>
                 ))}
 
                 <g
@@ -246,7 +246,7 @@ export function PdiMindmap({ data }: PdiMindmapProps) {
                 </g>
 
                 {node.subs.map((s) => {
-                  const alertStyle = ALERTA_STYLES[s.sub.alerta];
+                  const alertStyle = getAlertaDisplay(s.sub.cumplimiento);
                   const subKey = `${node.linea.slug}::${s.codigo}`;
                   const isSubHovered = hovered === subKey;
                   return (
