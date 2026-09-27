@@ -29,6 +29,13 @@ function groupByLinea<T extends { linea: string }>(rows: T[]): Map<string, T[]> 
   return map;
 }
 
+const NIVEL_COLORS: Record<string, string> = {
+  Sobrecumplimiento: "#173D66",
+  Cumplimiento: "#16A34A",
+  Alerta: "#D97706",
+  Peligro: "#D32F2F",
+};
+
 export function DetailTables({ vista, rows }: DetailTablesProps) {
   if (!rows?.length) return null;
 
@@ -112,7 +119,17 @@ export function DetailTables({ vista, rows }: DetailTablesProps) {
                 <tr key={item.linea} className="border-b border-slate-50 last:border-0">
                   <td className="px-4 py-2 text-slate-800">{item.linea}</td>
                   <td className="px-4 py-2 font-semibold text-slate-700">{item.cumplimiento}%</td>
-                  <td className="px-4 py-2 text-slate-600">{item.nivel}</td>
+                  <td className="px-4 py-2">
+                    <span
+                      className="rounded-full px-3 py-0.5 text-sm font-semibold"
+                      style={{
+                        backgroundColor: `${NIVEL_COLORS[item.nivel] ?? "#6B7280"}22`,
+                        color: NIVEL_COLORS[item.nivel] ?? "#475569",
+                      }}
+                    >
+                      {item.nivel}
+                    </span>
+                  </td>
                 </tr>
               ))}
             </tbody>

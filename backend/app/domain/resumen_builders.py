@@ -942,15 +942,15 @@ def generate_narrative_retos(
     if avance_global is not None:
         cumplimiento_prom = avance_global
     if cumplimiento_prom >= RETOS_UMBRAL_SOBRECUMPLIMIENTO:
-        estado, color, icon = "retos con sobrecumplimiento", "#16A34A", "success"
+        estado, color, icon = "con sobrecumplimiento", "#16A34A", "success"
     elif cumplimiento_prom >= RETOS_UMBRAL_CUMPLIMIENTO:
-        estado, color, icon = "retos en cumplimiento", "#16A34A", "success"
+        estado, color, icon = "en cumplimiento", "#16A34A", "success"
     elif cumplimiento_prom >= RETOS_UMBRAL_ALERTA:
-        estado, color, icon = "retos en buen avance", "#2563EB", "chart"
+        estado, color, icon = "en buen avance", "#2563EB", "chart"
     elif cumplimiento_prom >= 50:
-        estado, color, icon = "retos con avances parciales", "#D97706", "warning"
+        estado, color, icon = "con avances parciales", "#D97706", "warning"
     else:
-        estado, color, icon = "retos requieren atención", "#DC2626", "alert"
+        estado, color, icon = "requiere atención", "#DC2626", "alert"
 
     mejor_linea = alerta_lineas = ""
     if (
@@ -970,8 +970,12 @@ def generate_narrative_retos(
                 f"<strong>{row['Linea']}</strong>" for _, row in bajo_umbral.iterrows()
             )
             alerta_lineas = (
-                f"{len(bajo_umbral)} línea(s) están por debajo del umbral de cumplimiento "
-                f"({RETOS_UMBRAL_CUMPLIMIENTO:.0f}%): {nombres}. "
+                (
+                    f"1 línea está por debajo del umbral de cumplimiento "
+                    if len(bajo_umbral) == 1
+                    else f"{len(bajo_umbral)} líneas están por debajo del umbral de cumplimiento "
+                )
+                + f"({RETOS_UMBRAL_CUMPLIMIENTO:.0f}%): {nombres}. "
             )
         else:
             alerta_lineas = (

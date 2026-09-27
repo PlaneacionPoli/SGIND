@@ -46,14 +46,14 @@ export function SunburstPlotlyChart({ data }: SunburstPlotlyChartProps) {
     texttemplate: "%{text}",
     insidetextorientation: "auto" as const,
     textposition: "auto" as const,
-    textfont: { family: "Inter, sans-serif", size: 11, color: "#062A4F" },
-    insidetextfont: { family: "Inter, sans-serif", size: 11, color: "#062A4F" },
+    textfont: { family: "Inter, sans-serif", size: 17, color: "#0B1220" },
+    insidetextfont: { family: "Inter, sans-serif", size: 17, color: "#0B1220" },
     hovertemplate: "<b>%{label}</b><br>Promedio cumplimiento: %{customdata[0]:.1f}%<extra></extra>",
     domain: { x: [0, 1] as [number, number], y: [0, 1] as [number, number] },
     maxdepth: 2,
     sort: false,
     separation: 0,
-    uniformtext: { minsize: 5, mode: "show" as const },
+    uniformtext: { minsize: 12, mode: "show" as const },
   };
 
   const layout: Partial<Layout> = {
