@@ -27,32 +27,56 @@ const OFFICIAL_LINE_ORDER = [
 // mismatch entre el tamaño lógico y el tamaño físico renderizado.
 const CENTER_R = 100;
 const LINE_R = 72;
-const LINE_ORBIT = 220;
-const SUB_W = 300;
+const LINE_ORBIT = 190;
+const SUB_W = 280;
 // El alto de cada caja se calcula según el largo de su texto (ver
 // estimateSubHeight) para que la etiqueta nunca se corte con "..." — por eso
 // no hay un SUB_H fijo.
-const SUB_MIN_H = 78;
+const SUB_MIN_H = 72;
 // Cada objetivo cuelga directamente de su línea (no en cadena): se distribuyen
 // en abanico alrededor del nodo de la línea. El radio de cada ítem se acumula
-// a partir del alto real del anterior (no un paso fijo), para que las cajas
-// más altas no choquen con la siguiente — validado numéricamente contra los
-// 11 objetivos oficiales del PDI con >=40px de margen en cualquier par.
-const SUB_LOCAL_R_BASE = 280;
-const SUB_LOCAL_R_STEP_MARGIN = 20;
-const SUB_ANGLE_GAP = 22;
+// a partir del alto real del anterior (no un paso fijo, y con un margen
+// pequeño) para que el abanico se apoye más en el ángulo que en el radio —
+// evita que los ejes con varios objetivos se disparen desproporcionadamente
+// hacia las esquinas — validado numéricamente contra los 11 objetivos
+// oficiales del PDI con >=30px de margen en cualquier par.
+const SUB_LOCAL_R_BASE = 260;
+const SUB_LOCAL_R_STEP_MARGIN = 8;
+const SUB_ANGLE_GAP = 24;
 const PADDING = 60;
 
 function estimateSubHeight(label: string): number {
-  const usableWidth = SUB_W - 60;
-  const avgCharWidth = 7;
+  const usableWidth = SUB_W - 56;
+  const avgCharWidth = 6.5;
   const charsPerLine = Math.max(10, Math.floor(usableWidth / avgCharWidth));
   const lines = Math.max(1, Math.ceil(label.length / charsPerLine));
-  return Math.max(SUB_MIN_H, lines * 17 + 30 + 20);
+  return Math.max(SUB_MIN_H, lines * 16 + 26 + 16);
 }
 
 function halfDiagonal(width: number, height: number): number {
   return Math.sqrt((width / 2) ** 2 + (height / 2) ** 2);
+}
+
+// Curva Bézier cuadrática que arquea el conector hacia afuera del centro
+// (en vez de una línea recta), como pétalos — más orgánico y evita que
+// conectores largos crucen el lienzo en diagonal.
+function curvePath(x1: number, y1: number, x2: number, y2: number): string {
+  const mx = (x1 + x2) / 2;
+  const my = (y1 + y2) / 2;
+  const dx = x2 - x1;
+  const dy = y2 - y1;
+  const len = Math.hypot(dx, dy) || 1;
+  let nx = -dy / len;
+  let ny = dx / len;
+  // Asegura que la curva se arquee alejándose del origen, no hacia él.
+  if (nx * mx + ny * my < 0) {
+    nx = -nx;
+    ny = -ny;
+  }
+  const bow = len * 0.14;
+  const cx = mx + nx * bow;
+  const cy = my + ny * bow;
+  return `M${x1},${y1} Q${cx},${cy} ${x2},${y2}`;
 }
 
 // Umbral de alerta pedido para este mindmap: por debajo de 98% de
@@ -228,23 +252,21 @@ export function PdiMindmap({ data }: PdiMindmapProps) {
 
             return (
               <g key={node.linea.slug} opacity={isDimmed ? 0.2 : 1} style={{ transition: "opacity 200ms ease" }}>
-                <line x1={0} y1={0} x2={node.x} y2={node.y} stroke={node.linea.color} strokeWidth={2.5} opacity={0.55} />
+                <path d={curvePath(0, 0, node.x, node.y)} fill="none" stroke={node.linea.color} strokeWidth={2} opacity={0.55} />
                 <circle r={4.5} fill={node.linea.color} opacity={0.9}>
-                  <animateMotion dur="2.6s" repeatCount="indefinite" path={`M0,0 L${node.x},${node.y}`} />
+                  <animateMotion dur="2.6s" repeatCount="indefinite" path={curvePath(0, 0, node.x, node.y)} />
                 </circle>
-                {node.subs.map((s, subIdx) => (
-                  <g key={`link-${node.linea.slug}-${s.codigo}`}>
-                    <line x1={node.x} y1={node.y} x2={s.x} y2={s.y} stroke={node.linea.color} strokeWidth={2} opacity={0.45} />
-                    <circle r={3.5} fill={node.linea.color} opacity={0.85}>
-                      <animateMotion
-                        dur="2.2s"
-                        begin={`${subIdx * 0.35}s`}
-                        repeatCount="indefinite"
-                        path={`M${node.x},${node.y} L${s.x},${s.y}`}
-                      />
-                    </circle>
-                  </g>
-                ))}
+                {node.subs.map((s, subIdx) => {
+                  const path = curvePath(node.x, node.y, s.x, s.y);
+                  return (
+                    <g key={`link-${node.linea.slug}-${s.codigo}`}>
+                      <path d={path} fill="none" stroke={node.linea.color} strokeWidth={2} opacity={0.45} />
+                      <circle r={3.5} fill={node.linea.color} opacity={0.85}>
+                        <animateMotion dur="2.2s" begin={`${subIdx * 0.35}s`} repeatCount="indefinite" path={path} />
+                      </circle>
+                    </g>
+                  );
+                })}
 
                 <g
                   transform={`translate(${node.x} ${node.y}) scale(${isHovered || isFocused ? 1.08 : 1})`}
