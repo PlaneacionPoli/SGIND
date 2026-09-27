@@ -27,17 +27,33 @@ const OFFICIAL_LINE_ORDER = [
 // mismatch entre el tamaño lógico y el tamaño físico renderizado.
 const CENTER_R = 100;
 const LINE_R = 72;
-const LINE_ORBIT = 260;
-const SUB_W = 260;
-const SUB_H = 82;
+const LINE_ORBIT = 220;
+const SUB_W = 300;
+// El alto de cada caja se calcula según el largo de su texto (ver
+// estimateSubHeight) para que la etiqueta nunca se corte con "..." — por eso
+// no hay un SUB_H fijo.
+const SUB_MIN_H = 78;
 // Cada objetivo cuelga directamente de su línea (no en cadena): se distribuyen
-// en abanico alrededor del nodo de la línea, con un pequeño incremento de
-// radio por ítem para separarlos sin necesitar ángulos grandes que invadan el
-// sector de la línea vecina (validado numéricamente para 1-3 objetivos/línea).
-const SUB_LOCAL_R_BASE = 250;
-const SUB_LOCAL_R_STEP = 170;
-const SUB_ANGLE_GAP = 48;
+// en abanico alrededor del nodo de la línea. El radio de cada ítem se acumula
+// a partir del alto real del anterior (no un paso fijo), para que las cajas
+// más altas no choquen con la siguiente — validado numéricamente contra los
+// 11 objetivos oficiales del PDI con >=40px de margen en cualquier par.
+const SUB_LOCAL_R_BASE = 280;
+const SUB_LOCAL_R_STEP_MARGIN = 20;
+const SUB_ANGLE_GAP = 22;
 const PADDING = 60;
+
+function estimateSubHeight(label: string): number {
+  const usableWidth = SUB_W - 60;
+  const avgCharWidth = 7;
+  const charsPerLine = Math.max(10, Math.floor(usableWidth / avgCharWidth));
+  const lines = Math.max(1, Math.ceil(label.length / charsPerLine));
+  return Math.max(SUB_MIN_H, lines * 17 + 30 + 20);
+}
+
+function halfDiagonal(width: number, height: number): number {
+  return Math.sqrt((width / 2) ** 2 + (height / 2) ** 2);
+}
 
 // Umbral de alerta pedido para este mindmap: por debajo de 98% de
 // cumplimiento se marca "En Alerta" (independiente del semáforo institucional
@@ -60,6 +76,7 @@ interface SubNode {
   codigo: string;
   x: number;
   y: number;
+  height: number;
 }
 
 interface LineNode {
@@ -104,11 +121,21 @@ export function PdiMindmap({ data }: PdiMindmapProps) {
       const y = dir.y * LINE_ORBIT;
 
       const items = linea.sublineas ?? [];
+      const heights = items.map((sub) => estimateSubHeight(sub.label));
+      let radius = SUB_LOCAL_R_BASE;
       const subs: SubNode[] = items.map((sub, j) => {
+        if (j > 0) {
+          radius += halfDiagonal(SUB_W, heights[j - 1]) + halfDiagonal(SUB_W, heights[j]) + SUB_LOCAL_R_STEP_MARGIN;
+        }
         const offsetDeg = (j - (items.length - 1) / 2) * SUB_ANGLE_GAP;
         const a = toRad(angleDeg + offsetDeg);
-        const r = SUB_LOCAL_R_BASE + j * SUB_LOCAL_R_STEP;
-        return { sub, codigo: `${i + 1}.${j + 1}`, x: x + r * Math.cos(a), y: y + r * Math.sin(a) };
+        return {
+          sub,
+          codigo: `${i + 1}.${j + 1}`,
+          x: x + radius * Math.cos(a),
+          y: y + radius * Math.sin(a),
+          height: heights[j],
+        };
       });
 
       return { linea, x, y, subs };
@@ -126,8 +153,8 @@ export function PdiMindmap({ data }: PdiMindmapProps) {
       for (const s of node.subs) {
         minX = Math.min(minX, s.x - SUB_W / 2);
         maxX = Math.max(maxX, s.x + SUB_W / 2);
-        minY = Math.min(minY, s.y - SUB_H / 2);
-        maxY = Math.max(maxY, s.y + SUB_H / 2);
+        minY = Math.min(minY, s.y - s.height / 2);
+        maxY = Math.max(maxY, s.y + s.height / 2);
       }
     }
     minX -= PADDING;
@@ -250,7 +277,13 @@ export function PdiMindmap({ data }: PdiMindmapProps) {
                   const subKey = `${node.linea.slug}::${s.codigo}`;
                   const isSubHovered = hovered === subKey;
                   return (
-                    <foreignObject key={subKey} x={s.x - SUB_W / 2} y={s.y - SUB_H / 2} width={SUB_W} height={SUB_H}>
+                    <foreignObject
+                      key={subKey}
+                      x={s.x - SUB_W / 2}
+                      y={s.y - s.height / 2}
+                      width={SUB_W}
+                      height={s.height}
+                    >
                       <div
                         className="flex h-full w-full cursor-pointer flex-col justify-center gap-1 rounded-xl border-2 bg-white px-3 py-2 shadow-md"
                         style={{
@@ -277,7 +310,7 @@ export function PdiMindmap({ data }: PdiMindmapProps) {
                           >
                             {s.codigo}
                           </span>
-                          <span className="line-clamp-2 text-[13px] font-semibold leading-tight text-slate-700">
+                          <span className="text-[13px] font-semibold leading-tight text-slate-700">
                             {s.sub.label}
                           </span>
                         </div>
