@@ -12,7 +12,7 @@ import { ExecutiveNarrative } from "@/components/ui/ExecutiveNarrative";
 import { StrategyCardGrid } from "@/components/ui/StrategyCard";
 import { VistaSelector } from "@/components/ui/VistaSelector";
 import { YearSegmentedControl } from "@/components/ui/YearSegmentedControl";
-import { downloadResumenGeneralPdf, fetchDashboardFiltros, fetchHealth, fetchResumenCompleto } from "@/lib/api";
+import { downloadInformeEjecutivoPdf, fetchDashboardFiltros, fetchHealth, fetchResumenCompleto } from "@/lib/api";
 import { isDevLoginEnabled, useDevLogin } from "@/hooks/use-dev-login";
 import { useAuthReady } from "@/stores/auth-store";
 
@@ -58,7 +58,7 @@ export default function ResumenGeneralPage() {
   async function handleDownloadPdf() {
     setPdfLoading(true);
     try {
-      await downloadResumenGeneralPdf(anioEfectivo);
+      await downloadInformeEjecutivoPdf();
     } finally {
       setPdfLoading(false);
     }
@@ -87,7 +87,7 @@ export default function ResumenGeneralPage() {
             <button
               type="button"
               onClick={handleDownloadPdf}
-              disabled={pdfLoading || showLoading}
+              disabled={pdfLoading}
               className="flex shrink-0 items-center gap-2 rounded-lg border border-slate-600 bg-slate-700 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-600 disabled:opacity-50"
             >
               {pdfLoading ? "Generando…" : "Descargar PDF"}

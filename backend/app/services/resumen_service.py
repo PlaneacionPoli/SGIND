@@ -16,6 +16,7 @@ from app.domain.calculos import (
 from app.domain.cmi_filters import CMIFilterService
 from app.domain.linea_order import linea_sort_key
 from app.domain.resumen_builders import (
+    build_informe_ejecutivo_lineas,
     build_linea_summary,
     build_linea_summary_retos,
     build_proyectos_gantt,
@@ -762,4 +763,48 @@ class ResumenService:
             "en_riesgo": [],
             "periodo_comparacion": "",
             "total_indicadores": 0,
+        }
+
+    def get_informe_ejecutivo(self) -> dict[str, Any]:
+        """Payload del Informe Ejecutivo PDF — Cierre PDI 2022-2025.
+        Articula por línea: Retos, Proyectos PMO (cronograma) e Indicadores
+        CMI (objetivo → indicador), sobre el mismo rango fijo que usa la
+        vista Consolidado (ANIOS_RANGO)."""
+        pdi_df = ensure_nivel_cumplimiento(self._strategic.preparar_pdi_cierre_final())
+        proy_all = self._strategic.load_proyectos()
+        proy_gantt = build_proyectos_gantt(proy_all)
+        ret_linea_df, ret_obj_df, ret_planes_df = self._retos_multi_anio(ANIOS_RANGO)
+
+        lineas = build_informe_ejecutivo_lineas(
+            pdi_df, proy_gantt, ret_linea_df, ret_obj_df, ret_planes_df
+        )
+
+        total_ind = int(pdi_df["Id"].nunique()) if not pdi_df.empty and "Id" in pdi_df.columns else 0
+        nivel = (
+            pdi_df.drop_duplicates("Id")["Nivel de cumplimiento"]
+            if not pdi_df.empty and "Nivel de cumplimiento" in pdi_df.columns
+            else pd.Series(dtype=str)
+        )
+        cumplidos = int((nivel.isin(["Cumplimiento", "Sobrecumplimiento"])).sum())
+        en_progreso = int((nivel == "Alerta").sum())
+        atencion = int((nivel == "Peligro").sum())
+        cumpl_global = (
+            float(pdi_df.drop_duplicates("Id")["cumplimiento_pct"].mean())
+            if not pdi_df.empty and "cumplimiento_pct" in pdi_df.columns
+            else 0.0
+        )
+
+        proy_count = self._count_proyectos_ciclo_vigente()
+        retos_count = sum(li["retos"]["n_retos"] for li in lineas)
+
+        return {
+            "generado": "Cierre PDI 2022-2025",
+            "cumplimiento_global": round(cumpl_global, 1),
+            "total_indicadores": total_ind,
+            "cumplidos": cumplidos,
+            "en_progreso": en_progreso,
+            "atencion": atencion,
+            "total_proyectos": proy_count,
+            "total_retos": retos_count,
+            "lineas": lineas,
         }

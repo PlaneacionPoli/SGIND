@@ -468,6 +468,14 @@ export async function downloadResumenGeneralPdf(anio: number): Promise<void> {
   );
 }
 
+/** Informe Ejecutivo institucional (Cierre PDI 2022-2025): Retos + Proyectos + Indicadores por línea. */
+export async function downloadInformeEjecutivoPdf(): Promise<void> {
+  await _downloadPdf(
+    "/reports/informe-ejecutivo",
+    "informe_ejecutivo_pdi_2022_2025.pdf",
+  );
+}
+
 export async function downloadInformeProcesosPdf(params: {
   anio: number;
   mes?: number;

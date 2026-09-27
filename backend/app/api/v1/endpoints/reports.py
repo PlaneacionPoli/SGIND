@@ -20,6 +20,8 @@ from app.services.pdf_service import (
     generar_informe_procesos,
     generar_resumen_general,
 )
+from app.services.report_html_service import generar_informe_ejecutivo
+from app.services.resumen_service import ResumenService
 
 router = APIRouter()
 
@@ -74,6 +76,33 @@ async def pdf_resumen_general(
     )
 
     filename = f"resumen_general_{anio}.pdf"
+    return StreamingResponse(
+        iter([pdf_bytes]),
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
+@router.get(
+    "/informe-ejecutivo",
+    summary="PDF Informe Ejecutivo — Cierre PDI 2022-2025",
+    response_class=StreamingResponse,
+    responses={
+        200: {
+            "content": {"application/pdf": {}},
+            "description": "Informe institucional con Retos, Proyectos PMO e Indicadores CMI por línea estratégica.",
+        }
+    },
+)
+async def pdf_informe_ejecutivo(
+    _user: User = Depends(require_reader),
+    excel: ExcelReaderService = Depends(_excel),
+) -> StreamingResponse:
+    service = ResumenService(excel)
+    data = await run_sync(service.get_informe_ejecutivo)
+    pdf_bytes = await run_sync(generar_informe_ejecutivo, data)
+
+    filename = "informe_ejecutivo_pdi_2022_2025.pdf"
     return StreamingResponse(
         iter([pdf_bytes]),
         media_type="application/pdf",

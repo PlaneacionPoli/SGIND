@@ -1155,6 +1155,150 @@ def build_proyectos_tabla(proy_df: pd.DataFrame) -> list[dict]:
     return rows
 
 
+_NIVEL_COLORS_PDF = {
+    "Sobrecumplimiento": "#173D66",
+    "Cumplimiento": "#16A34A",
+    "Alerta": "#D97706",
+    "Peligro": "#D32F2F",
+    "Pendiente de reporte": "#6B7280",
+}
+
+_ANIO_COLORS_PDF = {
+    2022: "#1F2937",
+    2023: "#F59E0B",
+    2024: "#06B6D4",
+    2025: "#EC0677",
+    2026: "#A6CE38",
+}
+
+_ESTADO_PROYECTO_COLORS_PDF = {
+    "Cerrado": "#16A34A",
+    "En ejecución": "#F59E0B",
+    "Planeación": "#94A3B8",
+}
+
+# STRATEGIC_LINE_DEFS["label"] está en ASCII (clave de emparejamiento);
+# para el informe se usa el nombre con tildes que ya se muestra en el resto
+# de la app (ChipRow / StrategyCard).
+_LINEA_LABELS_PDF = {
+    "expansion": "Expansión",
+    "transformacion organizacional": "Transformación Organizacional",
+    "calidad": "Calidad",
+    "experiencia": "Experiencia",
+    "sostenibilidad": "Sostenibilidad",
+    "educacion para toda la vida": "Educación para toda la vida",
+}
+
+
+def _fmt_num_pdf(value: Any) -> str | None:
+    """Formatea Meta/Ejecución para el Informe Ejecutivo PDF: 1 decimal fijo,
+    evita floats largos (p.ej. 35.29411764705883 → 35.3)."""
+    if value is None:
+        return None
+    try:
+        num = float(value)
+    except (TypeError, ValueError):
+        return str(value)
+    if math.isnan(num) or math.isinf(num):
+        return None
+    return f"{num:,.1f}"
+
+
+def build_informe_ejecutivo_lineas(
+    pdi_df: pd.DataFrame,
+    proy_gantt: dict[str, Any],
+    ret_linea_df: pd.DataFrame,
+    ret_obj_df: pd.DataFrame,
+    ret_planes_df: pd.DataFrame,
+) -> list[dict[str, Any]]:
+    """Payload por línea estratégica para el Informe Ejecutivo PDF: articula
+    Retos (avance real/esperado/cumplimiento, # retos), Proyectos PMO
+    (cronograma por año, reusa build_proyectos_gantt) e Indicadores CMI
+    (objetivo → indicadores, meta/ejecución/cumplimiento)."""
+    retos_summary = build_linea_summary_retos(ret_linea_df, ret_obj_df, ret_planes_df)
+    retos_by_key = {
+        norm_key(str(row["Linea"])): row for _, row in retos_summary.iterrows()
+    } if not retos_summary.empty else {}
+
+    proyectos_by_key: dict[str, list[dict]] = {}
+    for item in proy_gantt.get("items", []):
+        key = norm_key(item.get("linea", ""))
+        proyectos_by_key.setdefault(key, []).append(item)
+
+    has_pdi = not pdi_df.empty and {"Linea", "Objetivo", "Indicador"}.issubset(pdi_df.columns)
+    pdi_work = pdi_df.copy() if has_pdi else pd.DataFrame()
+
+    lineas: list[dict[str, Any]] = []
+    for line_def in STRATEGIC_LINE_DEFS:
+        key = line_def["key"]
+        linea_label = _LINEA_LABELS_PDF.get(key, line_def["label"])
+
+        # ── Retos ──
+        retos_row = retos_by_key.get(key)
+        if retos_row is None:
+            for alt in [key] + line_def.get("alt", []):
+                matches = [k for k in retos_by_key if alt in k]
+                if matches:
+                    retos_row = retos_by_key[matches[0]]
+                    break
+        avance_real = (
+            _safe_pct(retos_row.get("Cumpl_Promedio"), default=0.0) if retos_row is not None else 0.0
+        ) or 0.0
+        # Nota: el conteo de la hoja "Planes" es # Áreas por línea, no # Retos
+        # (confirmado con negocio, 2026-09-27) — no existe un conteo de
+        # retos por línea en el dato fuente.
+        n_areas = int(float(retos_row.get("N_Indicadores", 0) or 0)) if retos_row is not None else 0
+        retos_block = {
+            "avance_real": round(avance_real, 1),
+            "avance_esperado": 100.0,
+            "cumplimiento": round(avance_real, 1),
+            "n_areas": n_areas,
+        }
+
+        # ── Proyectos PMO ──
+        proyectos_items = proyectos_by_key.get(key, [])
+        for item in proyectos_items:
+            item["anio_color"] = _ANIO_COLORS_PDF.get(item.get("anio_fin"), "#64748B")
+            item["estado_color"] = _ESTADO_PROYECTO_COLORS_PDF.get(item.get("estado"), "#64748B")
+            item["stand_by"] = item.get("estado") == "Planeación"
+
+        # ── CMI Estratégico (objetivo → indicadores) ──
+        objetivos: list[dict[str, Any]] = []
+        if has_pdi:
+            sub = pdi_work[pdi_work["Linea"].apply(lambda v: norm_key(str(v)) == key)]
+            for objetivo_nombre in sub["Objetivo"].dropna().unique():
+                obj_sub = sub[sub["Objetivo"] == objetivo_nombre]
+                indicadores = []
+                for _, row in obj_sub.iterrows():
+                    cumpl = row.get("cumplimiento_pct")
+                    nivel = str(row.get("Nivel de cumplimiento") or "Pendiente de reporte")
+                    indicadores.append(
+                        {
+                            "indicador": str(row.get("Indicador", "")),
+                            "meta": _fmt_num_pdf(row.get("Meta")),
+                            "ejecucion": _fmt_num_pdf(row.get("Ejecucion")),
+                            "cumplimiento": round(float(cumpl), 1) if pd.notna(cumpl) else None,
+                            "nivel": nivel,
+                            "nivel_color": _NIVEL_COLORS_PDF.get(nivel, "#6B7280"),
+                        }
+                    )
+                if indicadores:
+                    objetivos.append({"objetivo": str(objetivo_nombre), "indicadores": indicadores})
+
+        lineas.append(
+            {
+                "linea": linea_label,
+                "color": line_def["color"],
+                "icon": line_def["icon"],
+                "retos": retos_block,
+                "proyectos": sorted(proyectos_items, key=lambda p: p.get("nombre", "")),
+                "objetivos": objetivos,
+            }
+        )
+
+    return lineas
+
+
 def build_retos_tabla(linea_df: pd.DataFrame) -> list[dict]:
     """Una fila por línea; en el rango (varios años) es el promedio de sus años."""
     if linea_df.empty or "Linea" not in linea_df.columns:

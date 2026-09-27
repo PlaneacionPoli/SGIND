@@ -1,6 +1,17 @@
 {
   "name": "Poli - SGING",
-  "dataColors": ["#263A58", "#22B2DE", "#15BECE", "#F7B400", "#B1C900", "#E4006D", "#0E2A47", "#7FA8C9", "#4C6C8F", "#A9D9E8"],
+  "dataColors": [
+    "#263A58",
+    "#22B2DE",
+    "#15BECE",
+    "#F7B400",
+    "#B1C900",
+    "#E4006D",
+    "#0E2A47",
+    "#7FA8C9",
+    "#4C6C8F",
+    "#A9D9E8"
+  ],
   "background": "#FFFFFF",
   "foreground": "#263A58",
   "tableAccent": "#22B2DE",
@@ -11,35 +22,105 @@
   "center": "#22B2DE",
   "minimum": "#FFFFFF",
   "textClasses": {
-    "title": { "fontFace": "Segoe UI Semibold", "color": "#263A58", "fontSize": 14 },
-    "header": { "fontFace": "Segoe UI Semibold", "color": "#263A58", "fontSize": 11 },
-    "label": { "fontFace": "Segoe UI", "color": "#262626", "fontSize": 10 },
-    "callout": { "fontFace": "Segoe UI Semibold", "color": "#263A58", "fontSize": 28 }
+    "title": {
+      "fontFace": "Segoe UI Semibold",
+      "color": "#263A58",
+      "fontSize": 14
+    },
+    "header": {
+      "fontFace": "Segoe UI Semibold",
+      "color": "#263A58",
+      "fontSize": 11
+    },
+    "label": {
+      "fontFace": "Segoe UI",
+      "color": "#262626",
+      "fontSize": 10
+    },
+    "callout": {
+      "fontFace": "Segoe UI Semibold",
+      "color": "#263A58",
+      "fontSize": 28
+    }
   },
   "visualStyles": {
     "*": {
       "*": {
-        "background": [{ "show": false }],
-        "outspacePane": [{ "backgroundColor": { "solid": { "color": "#FFFFFF" } } }],
-        "outline": [{ "show": false }]
+        "background": [
+          {
+            "show": false
+          }
+        ],
+        "outspacePane": [
+          {
+            "backgroundColor": {
+              "solid": {
+                "color": "#FFFFFF"
+              }
+            }
+          }
+        ],
+        "outline": [
+          {
+            "show": false
+          }
+        ]
       }
     },
     "card": {
       "*": [
         {
-          "labels": [{ "color": "#263A58", "fontSize": 28, "fontFamily": "Segoe UI Semibold" }],
-          "categoryLabels": [{ "color": "#5A6B80", "fontSize": 11 }]
+          "labels": [
+            {
+              "color": "#263A58",
+              "fontSize": 28,
+              "fontFamily": "Segoe UI Semibold"
+            }
+          ],
+          "categoryLabels": [
+            {
+              "color": "#5A6B80",
+              "fontSize": 11
+            }
+          ]
         }
       ]
     },
     "multiRowCard": {
       "*": [
-        { "card": [{ "outlineColor": { "solid": { "color": "#E5EAF0" } }, "outlineWeight": 1, "backgroundColor": { "solid": { "color": "#F7F9FB" } } }] }
+        {
+          "card": [
+            {
+              "outlineColor": {
+                "solid": {
+                  "color": "#E5EAF0"
+                }
+              },
+              "outlineWeight": 1,
+              "backgroundColor": {
+                "solid": {
+                  "color": "#F7F9FB"
+                }
+              }
+            }
+          ]
+        }
       ]
     },
     "page": {
       "*": [
-        { "background": [{ "color": { "solid": { "color": "#F7F9FB" } }, "transparency": 0 }] }
+        {
+          "background": [
+            {
+              "color": {
+                "solid": {
+                  "color": "#F7F9FB"
+                }
+              },
+              "transparency": 0
+            }
+          ]
+        }
       ]
     }
   }

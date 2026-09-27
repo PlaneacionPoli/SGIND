@@ -1,4 +1,5 @@
-# Roadmap de Migración — SGIND v2
+t
+ Roadmap de Migración — SGIND v2
 
 **Proyecto:** Sistema de Indicadores Estratégicos, CMI y Planeación Institucional — Poli  
 **Última actualización:** 2026-09-20 (Oleada 1, ver `docs/tecnico/`)  

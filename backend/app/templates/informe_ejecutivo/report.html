@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<title>Informe Ejecutivo PDI — Cierre 2022-2025</title>
+<style>{{ css | safe }}</style>
+</head>
+<body>
+
+  <!-- ── Portada ───────────────────────────────────────────────────────── -->
+  <section class="page cover">
+    <div class="cover-badge">POLI</div>
+    <h1>Informe Ejecutivo<br />Plan de Desarrollo Institucional</h1>
+    <p class="cover-sub">Cierre PDI 2022–2025 · Gerencia de Planeación Institucional</p>
+    <div class="cover-kpis">
+      <div class="cover-kpi">
+        <span class="v">{{ data.cumplimiento_global }}%</span>
+        <span class="l">Cumplimiento global</span>
+      </div>
+      <div class="cover-kpi">
+        <span class="v">{{ data.total_indicadores }}</span>
+        <span class="l">Indicadores</span>
+      </div>
+      <div class="cover-kpi">
+        <span class="v">{{ data.total_proyectos }}</span>
+        <span class="l">Proyectos</span>
+      </div>
+      <div class="cover-kpi">
+        <span class="v">{{ data.total_retos }}</span>
+        <span class="l">Retos</span>
+      </div>
+    </div>
+    <p class="cover-date">Generado el {{ generated_at }}</p>
+  </section>
+
+  <!-- ── Resumen ejecutivo ─────────────────────────────────────────────── -->
+  <section class="page">
+    <header class="page-head">
+      <h2>Resumen Ejecutivo</h2>
+      <span class="page-head-sub">Cierre PDI 2022–2025</span>
+    </header>
+
+    <div class="kpi-row">
+      <div class="kpi-card kpi-main">
+        <span class="v">{{ data.cumplimiento_global }}%</span>
+        <span class="l">Cumplimiento Global PDI</span>
+      </div>
+      <div class="kpi-card">
+        <span class="v">{{ data.total_indicadores }}</span>
+        <span class="l">Total indicadores</span>
+      </div>
+      <div class="kpi-card" style="border-top-color:#16A34A">
+        <span class="v" style="color:#16A34A">{{ data.cumplidos }}</span>
+        <span class="l">Cumplidos</span>
+      </div>
+      <div class="kpi-card" style="border-top-color:#D97706">
+        <span class="v" style="color:#D97706">{{ data.en_progreso }}</span>
+        <span class="l">En progreso</span>
+      </div>
+      <div class="kpi-card" style="border-top-color:#D32F2F">
+        <span class="v" style="color:#D32F2F">{{ data.atencion }}</span>
+        <span class="l">Atención</span>
+      </div>
+    </div>
+
+    <h3 class="section-title">Cumplimiento por línea estratégica</h3>
+    <div class="linea-bars">
+      {% for li in data.lineas %}
+      <div class="linea-bar-row">
+        <span class="linea-bar-label">{{ li.linea }}</span>
+        <div class="linea-bar-track">
+          <div class="linea-bar-fill" style="width:{{ [li.retos.cumplimiento, 100] | min }}%; background:{{ li.color }}"></div>
+        </div>
+        <span class="linea-bar-value" style="color:{{ li.color }}">{{ li.retos.cumplimiento }}%</span>
+      </div>
+      {% endfor %}
+    </div>
+
+    <h3 class="section-title">Portafolio institucional</h3>
+    <div class="mini-grid">
+      {% for li in data.lineas %}
+      <div class="mini-card" style="border-left-color:{{ li.color }}">
+        <span class="mini-linea">{{ li.linea }}</span>
+        <div class="mini-row"><span>{{ li.retos.n_retos }}</span> retos</div>
+        <div class="mini-row"><span>{{ li.proyectos | length }}</span> proyectos</div>
+        <div class="mini-row"><span>{{ li.objetivos | map(attribute="indicadores") | map("length") | sum }}</span> indicadores</div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <!-- ── Una página por línea estratégica ─────────────────────────────── -->
+  {% for li in data.lineas %}
+  <section class="page linea-page">
+    <header class="linea-head" style="background:{{ li.color }}">
+      <span class="linea-head-icon">◎</span>
+      <h2>{{ li.linea }}</h2>
+    </header>
+
+    <div class="linea-top">
+      <!-- Retos -->
+      <div class="retos-col">
+        <p class="col-title">RETOS</p>
+        <div class="retos-pills">
+          <div class="retos-pill">
+            <span class="pill-icon" style="background:{{ li.color }}">↗</span>
+            <span class="pill-value">{{ li.retos.avance_real }}%<small>AVANCE REAL</small></span>
+          </div>
+          <div class="retos-pill">
+            <span class="pill-icon" style="background:{{ li.color }}">◎</span>
+            <span class="pill-value">{{ li.retos.avance_esperado | round(0, 'floor') | int }}%<small>AVANCE ESPERADO</small></span>
+          </div>
+          <div class="retos-pill">
+            <span class="pill-icon" style="background:{{ li.color }}">✓</span>
+            <span class="pill-value">{{ li.retos.cumplimiento }}%<small>CUMPLIMIENTO</small></span>
+          </div>
+        </div>
+        <div class="retos-count-box">
+          <span class="v">{{ li.retos.n_retos }}</span>
+          <span class="l"># RETOS</span>
+        </div>
+      </div>
+
+      <!-- Proyectos PMO -->
+      <div class="proy-col">
+        <p class="col-title">PROYECTOS PMO</p>
+        {% if li.proyectos %}
+        <div class="proy-legend">
+          {% for anio in [2022, 2023, 2024, 2025] %}
+          <span class="legend-item"><span class="legend-dot" style="background:{{ anio_colors[anio] }}"></span>{{ anio }}</span>
+          {% endfor %}
+        </div>
+        <div class="proy-axis">
+          {% for anio in [2022, 2023, 2024, 2025] %}<span>{{ anio }}</span>{% endfor %}
+        </div>
+        <div class="proy-list">
+          {% for p in li.proyectos[:8] %}
+          <div class="proy-row">
+            <span class="proy-name">{{ p.nombre[:52] }}</span>
+            <div class="proy-track">
+              <div class="proy-fill" style="left:{{ ((p.anio_inicio - 2022) / 4 * 100) | round(1) }}%; width:{{ (((p.anio_fin - p.anio_inicio + 1) / 4) * 100) | round(1) }}%; background:{{ p.anio_color }}">
+                {% if p.stand_by %}<span class="proy-standby">Stand by</span>{% else %}{{ p.cumplimiento | round(0, 'floor') | int }}%{% endif %}
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% if li.proyectos | length > 8 %}
+        <p class="proy-more">+ {{ li.proyectos | length - 8 }} proyecto(s) adicional(es) — ver Detalle de Indicadores.</p>
+        {% endif %}
+        {% else %}
+        <p class="empty-note">Sin proyectos registrados para esta línea en el ciclo.</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- CMI Estratégico -->
+    <div class="cmi-band" style="background:{{ li.color }}">CMI ESTRATÉGICO</div>
+    {% if li.objetivos %}
+    <div class="cmi-grid">
+      {% for obj in li.objetivos %}
+      <div class="cmi-obj">
+        <div class="cmi-obj-head" style="background:{{ li.color }}1F; color:{{ li.color }}">{{ obj.objetivo | upper }}</div>
+        <table class="cmi-table">
+          <thead>
+            <tr><th>Indicador</th><th>Meta</th><th>Ejecución</th><th>Cumplimiento</th></tr>
+          </thead>
+          <tbody>
+            {% for ind in obj.indicadores %}
+            <tr>
+              <td>{{ ind.indicador }}</td>
+              <td class="num">{{ ind.meta if ind.meta is not none else "—" }}</td>
+              <td class="num">{{ ind.ejecucion if ind.ejecucion is not none else "—" }}</td>
+              <td class="num"><span class="cumpl-tag" style="color:{{ ind.nivel_color }}">{{ (ind.cumplimiento ~ "%") if ind.cumplimiento is not none else "—" }}</span></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="empty-note">Sin indicadores CMI registrados para esta línea en el ciclo.</p>
+    {% endif %}
+  </section>
+  {% endfor %}
+
+  <!-- ── Conclusiones ──────────────────────────────────────────────────── -->
+  <section class="page">
+    <header class="page-head">
+      <h2>Conclusiones y Recomendaciones</h2>
+      <span class="page-head-sub">Cierre PDI 2022–2025</span>
+    </header>
+    <div class="kpi-row">
+      <div class="kpi-card" style="border-top-color:#16A34A">
+        <span class="v" style="color:#16A34A">{{ data.cumplimiento_global }}%</span>
+        <span class="l">Cumplimiento Global PDI</span>
+      </div>
+      <div class="kpi-card"><span class="v">{{ data.total_indicadores }}</span><span class="l">Total</span></div>
+      <div class="kpi-card" style="border-top-color:#16A34A"><span class="v" style="color:#16A34A">{{ data.cumplidos }}</span><span class="l">Cumplidos</span></div>
+      <div class="kpi-card" style="border-top-color:#D97706"><span class="v" style="color:#D97706">{{ data.en_progreso }}</span><span class="l">Progreso</span></div>
+      <div class="kpi-card" style="border-top-color:#D32F2F"><span class="v" style="color:#D32F2F">{{ data.atencion }}</span><span class="l">Atención</span></div>
+    </div>
+    <p class="conclusion-text">
+      El PDI 2022–2026 registra un cumplimiento global del <strong>{{ data.cumplimiento_global }}%</strong>.
+      De {{ data.total_indicadores }} indicadores, {{ data.cumplidos }} alcanzaron o superaron su meta,
+      {{ data.en_progreso }} están en progreso y {{ data.atencion }} requieren atención inmediata.
+    </p>
+    <h3 class="section-title">Recomendaciones estratégicas</h3>
+    <div class="reco-box">
+      <p><strong>Sostenimiento de logros institucionales.</strong> Documentar las mejores prácticas de las líneas
+      con mejor desempeño y replicar metodologías exitosas en las líneas con menor dinamismo para el siguiente
+      ciclo de planeación.</p>
+    </div>
+  </section>
+
+</body>
+</html>
