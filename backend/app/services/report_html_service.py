@@ -8,6 +8,7 @@ no reproduce con fidelidad. Ver docs de la propuesta en el chat 2026-09-27.
 
 from __future__ import annotations
 
+import base64
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -16,6 +17,29 @@ from jinja2 import Environment, FileSystemLoader, select_autoescape
 from playwright.sync_api import sync_playwright
 
 _TEMPLATE_DIR = Path(__file__).resolve().parent.parent / "templates" / "informe_ejecutivo"
+
+
+def _logo_data_uri() -> str:
+    logo_path = _TEMPLATE_DIR / "assets" / "logo.png"
+    if not logo_path.exists():
+        return ""
+    encoded = base64.b64encode(logo_path.read_bytes()).decode("ascii")
+    return f"data:image/png;base64,{encoded}"
+
+# STRATEGIC_LINE_DEFS["icon"] (resumen_builders.py) → glifo del encabezado
+# de cada página de línea en el Informe Ejecutivo.
+_ICON_GLYPHS = {
+    "rocket": "↗",  # ↗ Expansión
+    "chart": "⚙",  # ⚙ Transformación Organizacional
+    "medal": "☆",  # ☆ Calidad
+    "bulb": "✦",  # ✦ Experiencia
+    "leaf": "☘",  # ☘ Sostenibilidad
+    # U+1F393 (🎓) es de un plano Unicode que las fuentes base de Chromium en
+    # el contenedor no siempre cubren (se ve como tofu) — se usa un símbolo
+    # del mismo bloque que el resto de iconos (garantizado por las fuentes
+    # que instala `playwright install --with-deps`).
+    "graduation": "❖",  # ❖ Educación para toda la vida
+}
 
 _ANIO_COLORS = {
     2022: "#1F2937",
@@ -44,6 +68,8 @@ def generar_informe_ejecutivo(data: dict[str, Any]) -> bytes:
         data=data,
         css=css,
         anio_colors=_ANIO_COLORS,
+        icon_glyphs=_ICON_GLYPHS,
+        logo_data_uri=_logo_data_uri(),
         generated_at=datetime.now(UTC).strftime("%d/%m/%Y %H:%M UTC"),
     )
 

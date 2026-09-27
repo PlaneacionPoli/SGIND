@@ -804,6 +804,43 @@ class ResumenService:
         )
         return next((li for li in lineas if norm_key(li["linea"]) == target), None)
 
+    def _build_signo_lookup(self) -> dict[str, dict[str, Any]]:
+        """Meta_Signo/Ejecucion_s/Decimales_* por Id — no viven en
+        preparar_pdi_cierre_final() (solo en el histórico de cierres), pero
+        son metadatos fijos por indicador, así que un registro cualquiera
+        (el último) alcanza. Ver formatValor.ts (fmtValorSigno) — misma
+        lógica de formato, portada a Python en _fmt_valor_signo."""
+        cierres = self._load_cierres()
+        if cierres.empty or "Id" not in cierres.columns:
+            return {}
+        cols = [
+            c
+            for c in ["Id", "Meta_Signo", "Ejecucion_s", "Decimales_Meta", "Decimales_Ejecucion"]
+            if c in cierres.columns
+        ]
+        if "Id" not in cols:
+            return {}
+        dedup = cierres[cols].dropna(subset=["Id"]).drop_duplicates(subset=["Id"], keep="last")
+
+        def _clean(v: Any) -> Any:
+            return None if (v is None or (isinstance(v, float) and pd.isna(v))) else v
+
+        lookup: dict[str, dict[str, Any]] = {}
+        for _, row in dedup.iterrows():
+            meta_signo = _clean(row.get("Meta_Signo"))
+            dec_meta = _clean(row.get("Decimales_Meta"))
+            # Ejecucion_s casi nunca viene poblado en el histórico de cierres
+            # (columna vacía por indicador) — meta y ejecución de un mismo
+            # indicador miden la misma unidad, así que ante ausencia se usa
+            # el signo/decimales de Meta en vez de asumir "%" a ciegas.
+            lookup[str(row["Id"])] = {
+                "meta_signo": meta_signo,
+                "ejec_signo": _clean(row.get("Ejecucion_s")) or meta_signo,
+                "dec_meta": dec_meta,
+                "dec_ejec": _clean(row.get("Decimales_Ejecucion")) or dec_meta,
+            }
+        return lookup
+
     def get_informe_ejecutivo(self) -> dict[str, Any]:
         """Payload del Informe Ejecutivo PDF — Cierre PDI 2022-2025.
         Articula por línea: Retos, Proyectos PMO (cronograma) e Indicadores
@@ -813,9 +850,10 @@ class ResumenService:
         proy_all = self._strategic.load_proyectos()
         proy_gantt = build_proyectos_gantt(proy_all)
         ret_linea_df, ret_obj_df, ret_planes_df = self._retos_multi_anio(ANIOS_RANGO)
+        signo_lookup = self._build_signo_lookup()
 
         lineas = build_informe_ejecutivo_lineas(
-            pdi_df, proy_gantt, ret_linea_df, ret_obj_df, ret_planes_df
+            pdi_df, proy_gantt, ret_linea_df, ret_obj_df, ret_planes_df, signo_lookup
         )
 
         total_ind = int(pdi_df["Id"].nunique()) if not pdi_df.empty and "Id" in pdi_df.columns else 0

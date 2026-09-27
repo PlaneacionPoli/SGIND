@@ -1300,10 +1300,25 @@ _LINEA_LABELS_PDF = {
 }
 
 
-def _fmt_num_pdf(value: Any) -> str | None:
-    """Formatea Meta/Ejecución para el Informe Ejecutivo PDF: 1 decimal fijo,
-    evita floats largos (p.ej. 35.29411764705883 → 35.3)."""
+def _norm_signo(value: Any) -> str | None:
+    """None/NaN/"" → None (falta el dato); cualquier otra cosa → texto limpio.
+    OJO: `value or ""` NO sirve aquí — un float('nan') es truthy en Python."""
     if value is None:
+        return None
+    if isinstance(value, float) and pd.isna(value):
+        return None
+    text = str(value).strip()
+    return text or None
+
+
+def _fmt_valor_signo(value: Any, signo: str | None, decimales: Any) -> str | None:
+    """Formatea Meta/Ejecución según signo y decimales propios del indicador —
+    puerto fiel de fmtValorSigno (frontend/src/lib/formatValor.ts), que a su
+    vez replica _formatear_valor_por_signo del Streamlit original. NO usar un
+    redondeo genérico: cada indicador define su propio signo (%, $, ENT, DEC,
+    m3, Kg, tCO2e, …) y su propia cantidad de decimales. Signo ausente → "%"
+    (mismo default que getSignoMeta/getSignoEjec en formatValor.ts)."""
+    if value is None or (isinstance(value, float) and pd.isna(value)):
         return None
     try:
         num = float(value)
@@ -1311,7 +1326,35 @@ def _fmt_num_pdf(value: Any) -> str | None:
         return str(value)
     if math.isnan(num) or math.isinf(num):
         return None
-    return f"{num:,.1f}"
+
+    s = _norm_signo(signo) or "%"
+    try:
+        dec = max(0, int(float(decimales)))
+    except (TypeError, ValueError):
+        dec = 0
+
+    if s == "Sin reporte":
+        return "Pendiente"
+    if s == "Linea Base":
+        return "Linea Base"
+    if s == "ENT":
+        return "0" if num == 0 else f"{round(num):,.0f}"
+    if s in ("%", "kWh"):
+        return f"{num:,.{dec}f}{s}" if dec > 0 else f"{round(num):,.0f}{s}"
+    if s == "$":
+        body = f"{num:,.{dec}f}" if dec > 0 else f"{round(num):,.0f}"
+        return f"${body}"
+    if s == "DEC":
+        return f"{num:,.{dec}f}" if dec > 0 else f"{round(num):,.0f}"
+    su = s.upper()
+    if su in ("NO APLICA", "SIN REPORTE", "NA"):
+        return f"{num:.{dec}f}" if dec > 0 else f"{round(num):,.0f}"
+    if s in ("m3", "Kg", "tCO2e"):
+        return f"{round(num):,.0f} {s}"
+    # Default: con sufijo
+    if dec > 0:
+        return f"{num:.{dec}f} {s}".strip()
+    return f"{round(num):,.0f}{f' {s}' if s else ''}".strip()
 
 
 def build_informe_ejecutivo_lineas(
@@ -1320,6 +1363,7 @@ def build_informe_ejecutivo_lineas(
     ret_linea_df: pd.DataFrame,
     ret_obj_df: pd.DataFrame,
     ret_planes_df: pd.DataFrame,
+    signo_lookup: dict[str, dict[str, Any]] | None = None,
 ) -> list[dict[str, Any]]:
     """Payload por línea estratégica para el Informe Ejecutivo PDF: articula
     Retos (avance real/esperado/cumplimiento, # retos), Proyectos PMO
@@ -1337,6 +1381,7 @@ def build_informe_ejecutivo_lineas(
 
     has_pdi = not pdi_df.empty and {"Linea", "Objetivo", "Indicador"}.issubset(pdi_df.columns)
     pdi_work = pdi_df.copy() if has_pdi else pd.DataFrame()
+    signo_lookup = signo_lookup or {}
 
     lineas: list[dict[str, Any]] = []
     for line_def in STRATEGIC_LINE_DEFS:
@@ -1382,11 +1427,16 @@ def build_informe_ejecutivo_lineas(
                 for _, row in obj_sub.iterrows():
                     cumpl = row.get("cumplimiento_pct")
                     nivel = str(row.get("Nivel de cumplimiento") or "Pendiente de reporte")
+                    signo = signo_lookup.get(str(row.get("Id", "")), {})
                     indicadores.append(
                         {
                             "indicador": str(row.get("Indicador", "")),
-                            "meta": _fmt_num_pdf(row.get("Meta")),
-                            "ejecucion": _fmt_num_pdf(row.get("Ejecucion")),
+                            "meta": _fmt_valor_signo(
+                                row.get("Meta"), signo.get("meta_signo"), signo.get("dec_meta")
+                            ),
+                            "ejecucion": _fmt_valor_signo(
+                                row.get("Ejecucion"), signo.get("ejec_signo"), signo.get("dec_ejec")
+                            ),
                             "cumplimiento": round(float(cumpl), 1) if pd.notna(cumpl) else None,
                             "nivel": nivel,
                             "nivel_color": _NIVEL_COLORS_PDF.get(nivel, "#6B7280"),

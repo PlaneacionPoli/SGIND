@@ -22,35 +22,66 @@ body {
 
 /* ── Portada ───────────────────────────────────────────────────────── */
 .cover {
-  background: linear-gradient(160deg, #0B2A5B 0%, #173D66 55%, #0F385A 100%);
+  background: linear-gradient(160deg, #0B2A5B 0%, #12335F 45%, #0F385A 100%);
   color: #fff;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
+  justify-content: space-between;
+  padding: 14mm 16mm 16mm;
+  overflow: hidden;
 }
-.cover-badge {
-  width: 64px; height: 64px; border-radius: 16px;
-  background: rgba(255,255,255,.12);
-  display: flex; align-items: center; justify-content: center;
-  font-weight: 800; font-size: 18px; letter-spacing: 1px;
-  margin-bottom: 18px;
+/* Franjas diagonales al estilo del informe físico (sin depender de una foto) */
+.cover-diagonal {
+  position: absolute; top: 0; right: -12%; width: 72%; height: 58%;
+  background: linear-gradient(135deg, #1FB2DE 0%, #0891B2 100%);
+  clip-path: polygon(100% 0, 100% 100%, 0 100%, 42% 0);
+  opacity: .22;
 }
-.cover h1 { font-size: 30px; line-height: 1.25; margin: 0 0 8px; font-weight: 800; }
-.cover-sub { font-size: 13px; color: #BFD3EE; margin: 0 0 30px; }
-.cover-kpis { display: flex; gap: 14px; margin-bottom: 26px; }
+.cover-diagonal-2 {
+  position: absolute; left: -18%; bottom: -10%; width: 78%; height: 48%;
+  background: linear-gradient(135deg, #A6CE38 0%, #173D66 100%);
+  clip-path: polygon(0 0, 100% 35%, 65% 100%, 0 100%);
+  opacity: .18;
+}
+.cover-top { position: relative; z-index: 1; }
+.cover-logo { height: 34px; filter: brightness(0) invert(1); opacity: .95; }
+.cover-middle { position: relative; z-index: 1; margin: auto 0; text-align: center; }
+.cover-eyebrow {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 10px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase;
+  color: #7DD3E8; margin: 0 0 10px;
+}
+.cover-eyebrow::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: #22C55E; display: inline-block; }
+.cover h1 { font-size: 42px; line-height: 1.12; margin: 0 0 10px; font-weight: 800; }
+.cover-sub { font-size: 13px; color: #BFD3EE; margin: 0 0 26px; font-weight: 600; }
+.cover-kpis { display: flex; gap: 12px; justify-content: center; margin: 0 0 22px; }
 .cover-kpi {
+  width: 110px;
   background: rgba(255,255,255,.08);
-  border: 1px solid rgba(255,255,255,.18);
-  border-radius: 12px;
-  padding: 14px 20px;
+  border: 1px solid rgba(255,255,255,.2);
+  border-top: 3px solid #1FB2DE;
+  border-radius: 10px;
+  padding: 14px 8px;
   display: flex; flex-direction: column; align-items: center;
-  min-width: 90px;
+  backdrop-filter: blur(2px);
 }
-.cover-kpi .v { font-size: 24px; font-weight: 800; }
-.cover-kpi .l { font-size: 9px; color: #BFD3EE; text-transform: uppercase; letter-spacing: .5px; margin-top: 4px; }
-.cover-date { font-size: 10px; color: #8FA9CC; position: absolute; bottom: 14mm; }
+.cover-kpi .v { font-size: 22px; font-weight: 800; }
+.cover-kpi .l { font-size: 8.5px; color: #BFD3EE; text-transform: uppercase; letter-spacing: .5px; margin-top: 4px; text-align: center; }
+.cover-lineas { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; max-width: 140mm; margin: 0 auto; }
+.cover-linea-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 8.5px; font-weight: 700; color: #E7EEF9;
+  background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.28); border-radius: 999px;
+  padding: 5px 12px;
+}
+.cover-linea-chip .dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; box-shadow: 0 0 0 2px rgba(255,255,255,.25); }
+.cover-footer {
+  position: relative; z-index: 1;
+  display: flex; justify-content: space-between; align-items: center;
+  border-top: 1px solid rgba(255,255,255,.18);
+  padding-top: 10px;
+  font-size: 8.5px; color: #8FA9CC; letter-spacing: .2px;
+}
 
 /* ── Encabezado de página genérico ────────────────────────────────── */
 .page-head {
@@ -96,20 +127,28 @@ body {
 
 /* ── Página por línea ──────────────────────────────────────────────── */
 .linea-head {
+  position: relative; overflow: hidden;
   display: flex; align-items: center; gap: 10px;
-  border-radius: 10px; padding: 10px 16px; margin-bottom: 10px;
+  border-radius: 10px; padding: 12px 16px; margin-bottom: 10px;
+  box-shadow: 0 4px 10px rgba(11,42,91,.18);
+}
+.linea-head-diagonal {
+  position: absolute; top: -60%; right: -4%; width: 34%; height: 220%;
+  background: rgba(255,255,255,.14);
+  transform: rotate(18deg);
 }
 .linea-head-icon {
-  width: 28px; height: 28px; border-radius: 50%;
+  position: relative; z-index: 1;
+  width: 30px; height: 30px; border-radius: 50%;
   background: rgba(255,255,255,.25); color: #fff;
-  display: flex; align-items: center; justify-content: center; font-size: 14px;
+  display: flex; align-items: center; justify-content: center; font-size: 15px;
 }
-.linea-head h2 { color: #fff; font-size: 16px; font-weight: 800; margin: 0; letter-spacing: .3px; }
+.linea-head h2 { position: relative; z-index: 1; color: #fff; font-size: 17px; font-weight: 800; margin: 0; letter-spacing: .3px; }
 
 .linea-top { display: grid; grid-template-columns: 1fr 1.6fr; gap: 12px; margin-bottom: 10px; }
 .col-title { font-size: 10px; font-weight: 800; color: #334155; text-align: center; margin: 0 0 8px; letter-spacing: .5px; }
 
-.retos-col { background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 10px; }
+.retos-col { background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 10px; box-shadow: 0 1px 3px rgba(15,23,42,.06); }
 .retos-pills { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
 .retos-pill { display: flex; align-items: center; gap: 8px; }
 .pill-icon {
@@ -129,7 +168,7 @@ body {
 .retos-count-box .v { display: block; font-size: 20px; font-weight: 800; color: #0F172A; }
 .retos-count-box .l { font-size: 8px; color: #64748B; letter-spacing: .3px; }
 
-.proy-col { background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 10px; }
+.proy-col { background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 10px; box-shadow: 0 1px 3px rgba(15,23,42,.06); }
 .proy-legend { display: flex; gap: 10px; margin-bottom: 6px; }
 .legend-item { display: flex; align-items: center; gap: 4px; font-size: 8px; color: #334155; font-weight: 600; }
 .legend-dot { width: 8px; height: 8px; border-radius: 2px; display: inline-block; }
