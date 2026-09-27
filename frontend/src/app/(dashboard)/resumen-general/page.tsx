@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { SunburstPlotlyChart } from "@/components/charts/SunburstPlotlyChart";
+import { PdiMindmap } from "@/components/charts/PdiMindmap";
 import { ProyectosGanttChart } from "@/components/charts/ProyectosGanttChart";
 import { DataFreshnessFooter } from "@/components/layout/DataFreshnessFooter";
 import { DetailTables } from "@/components/tables/DetailTables";
@@ -17,6 +18,7 @@ import { isDevLoginEnabled, useDevLogin } from "@/hooks/use-dev-login";
 import { useAuthReady } from "@/stores/auth-store";
 
 export default function ResumenGeneralPage() {
+  const router = useRouter();
   const { ready, isAuthenticated } = useAuthReady();
   const { login, loading: loginLoading, error: loginError } = useDevLogin();
   const showDevLogin = isDevLoginEnabled();
@@ -84,14 +86,23 @@ export default function ResumenGeneralPage() {
             </p>
           </div>
           {isAuthenticated && (
-            <button
-              type="button"
-              onClick={handleDownloadPdf}
-              disabled={pdfLoading}
-              className="flex shrink-0 items-center gap-2 rounded-lg border border-slate-600 bg-slate-700 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-600 disabled:opacity-50"
-            >
-              {pdfLoading ? "Generando…" : "Informe Ejecutivo"}
-            </button>
+            <div className="flex shrink-0 items-center gap-2">
+              <button
+                type="button"
+                onClick={() => router.push("/resumen-general/consolidado-por-linea")}
+                className="flex items-center gap-2 rounded-lg border border-blue-400/40 bg-blue-500/20 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-500/30"
+              >
+                Consolidado por Línea
+              </button>
+              <button
+                type="button"
+                onClick={handleDownloadPdf}
+                disabled={pdfLoading}
+                className="flex items-center gap-2 rounded-lg border border-slate-600 bg-slate-700 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-600 disabled:opacity-50"
+              >
+                {pdfLoading ? "Generando…" : "Informe Ejecutivo"}
+              </button>
+            </div>
           )}
         </div>
       </div>
@@ -164,7 +175,7 @@ export default function ResumenGeneralPage() {
             <h3 className="mb-3 text-sm font-semibold text-slate-800">
               Alineación de Objetivos Estratégicos
             </h3>
-            <SunburstPlotlyChart data={resumenQuery.data.sunburst} />
+            <PdiMindmap data={resumenQuery.data.mindmap} />
           </div>
 
           <ExecutiveNarrative data={resumenQuery.data.narrativa} />

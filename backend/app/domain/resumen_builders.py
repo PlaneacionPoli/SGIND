@@ -10,7 +10,12 @@ from typing import Any
 import pandas as pd
 
 from app.domain.categorization import categorizar_cumplimiento
-from app.domain.constants import UMBRAL_ALERTA_PA, UMBRAL_PELIGRO, UMBRAL_SOBRECUMPLIMIENTO_PA
+from app.domain.constants import (
+    UMBRAL_ALERTA_PA,
+    UMBRAL_PELIGRO,
+    UMBRAL_SOBRECUMPLIMIENTO_PA,
+    CategoriaCumplimiento,
+)
 from app.domain.linea_order import linea_sort_key
 
 # Umbrales narrativos de Retos, alineados al régimen Plan Anual (95/100) que
@@ -526,6 +531,111 @@ def build_sunburst_plotly(
         "text": text,
         "customdata": customdata,
     }
+
+
+def _alerta_desde_pct(pct: float, *, regimen: str | None) -> str:
+    nivel = categorizar_cumplimiento(pct / 100.0, regimen=regimen)
+    if nivel == CategoriaCumplimiento.PELIGRO.value:
+        return "critica"
+    if nivel == CategoriaCumplimiento.ALERTA.value:
+        return "alerta"
+    return "ok"
+
+
+def build_pdi_mindmap(
+    objetivo_df: pd.DataFrame,
+    linea_cards: list[dict] | None = None,
+    *,
+    regimen: str | None = None,
+    solo_lineas: bool = False,
+) -> dict[str, Any]:
+    """Arbol Linea -> sub-linea (Objetivo) para el mindmap radial de Resumen
+    General ("PDI 2022-2026"). Reusa la misma limpieza/agregacion que
+    build_sunburst_plotly pero devuelve una estructura anidada en vez de los
+    arrays planos que requiere un trace de Plotly."""
+    cumplimiento_by_line: dict[str, float] = {}
+    for card in linea_cards or []:
+        cumplimiento_by_line[_sunburst_norm_key(card.get("linea", ""))] = float(
+            card.get("cumplimiento", 0.0) or 0.0
+        )
+
+    df = pd.DataFrame()
+    if not objetivo_df.empty and "Linea" in objetivo_df.columns:
+        df = ensure_nivel_cumplimiento(objetivo_df.copy())
+        if "Objetivo" not in df.columns:
+            df["Objetivo"] = df["Linea"]
+        if "cumplimiento_pct" in df.columns:
+            df["cumplimiento_pct"] = pd.to_numeric(df["cumplimiento_pct"], errors="coerce")
+            df["cumplimiento_pct"] = df["cumplimiento_pct"].replace([math.inf, -math.inf], pd.NA)
+        for col in ["Linea", "Objetivo"]:
+            if col in df.columns:
+                df = df[df[col].notna() & (df[col].astype(str).str.strip() != "")]
+        if "cumplimiento_pct" in df.columns:
+            df = df[df["cumplimiento_pct"].notna()]
+        if not df.empty:
+            df["Linea"] = df["Linea"].apply(_clean_sunburst_label)
+            df["Objetivo"] = df["Objetivo"].apply(_clean_sunburst_label)
+            df = df[df["Objetivo"].astype(str).str.strip() != ""]
+
+    grouped = pd.DataFrame(columns=["Linea", "Objetivo", "cumplimiento_pct"])
+    obj_counts: dict[tuple, int] = {}
+    if not df.empty and not solo_lineas:
+        grouped = (
+            df.groupby(["Linea", "Objetivo"], dropna=False)
+            .agg(cumplimiento_pct=("cumplimiento_pct", "mean"))
+            .reset_index()
+        )
+        obj_counts = df.groupby(["Linea", "Objetivo"]).size().to_dict()
+
+    nombres_reales = df["Linea"].unique().tolist() if not df.empty else []
+
+    lineas: list[dict[str, Any]] = []
+    for idx, line_def in enumerate(STRATEGIC_LINE_DEFS, start=1):
+        linea_norm = line_def["key"]
+        candidatos = [linea_norm, *line_def.get("alt", [])]
+        real_name = next(
+            (
+                nombre
+                for nombre in nombres_reales
+                if _sunburst_norm_key(nombre) in candidatos
+                or any(alt in _sunburst_norm_key(nombre) for alt in candidatos)
+            ),
+            None,
+        )
+
+        sublineas: list[dict[str, Any]] = []
+        if real_name is not None and not grouped.empty:
+            sub_df = grouped[grouped["Linea"] == real_name].reset_index(drop=True)
+            for sub_idx, row in sub_df.iterrows():
+                obj_name = str(row["Objetivo"]).strip()
+                pct = float(row["cumplimiento_pct"]) if pd.notna(row["cumplimiento_pct"]) else 0.0
+                n_items = int(obj_counts.get((real_name, row["Objetivo"]), 0) or 0)
+                sublineas.append(
+                    {
+                        "codigo": f"{idx}.{sub_idx + 1}",
+                        "label": _objective_display_label(obj_name, real_name),
+                        "cumplimiento": round(pct, 1),
+                        "n_items": n_items,
+                        "alerta": _alerta_desde_pct(pct, regimen=regimen),
+                    }
+                )
+
+        lineas.append(
+            {
+                "slug": linea_norm.replace(" ", "-"),
+                "label": line_def["label"],
+                "color": line_def["color"],
+                "icon": line_def["icon"],
+                "cumplimiento": round(cumplimiento_by_line.get(linea_norm, 0.0), 1),
+                "sublineas": sublineas,
+            }
+        )
+
+    alcance_global = (
+        round(sum(l["cumplimiento"] for l in lineas) / len(lineas), 1) if lineas else 0.0
+    )
+
+    return {"alcance_global": alcance_global, "lineas": lineas}
 
 
 def compute_trends(current: pd.DataFrame, previous: pd.DataFrame) -> tuple[list[dict], list[dict]]:

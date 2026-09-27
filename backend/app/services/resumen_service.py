@@ -20,6 +20,7 @@ from app.domain.resumen_builders import (
     build_informe_ejecutivo_lineas,
     build_linea_summary,
     build_linea_summary_retos,
+    build_pdi_mindmap,
     build_proyectos_gantt,
     build_proyectos_tabla,
     build_retos_tabla,
@@ -569,7 +570,7 @@ class ResumenService:
                 c for c in ["Linea", "Objetivo", "cumplimiento_pct"] if c in pdi_df.columns
             ]
             objetivo_df = pdi_df[objetivo_cols].copy() if objetivo_cols else pd.DataFrame()
-            sunburst = build_sunburst_plotly(objetivo_df)
+            mindmap = build_pdi_mindmap(objetivo_df, cards)
             narrativa = generate_narrative_indicadores(pdi_df, linea_summary, chips)
 
             prev_month = self._strategic.latest_month_for_year(anio - 1)
@@ -587,7 +588,7 @@ class ResumenService:
                 "vista": vista_norm,
                 "chips": chips,
                 "fichas": cards,
-                "sunburst": sunburst,
+                "mindmap": mindmap,
                 "narrativa": narrativa,
                 "mejoraron": best,
                 "en_riesgo": worst,
@@ -624,7 +625,7 @@ class ResumenService:
                 c for c in ["Linea", "Objetivo", "cumplimiento_pct"] if c in proy_df.columns
             ]
             objetivo_df = proy_df[objetivo_cols].copy() if objetivo_cols else pd.DataFrame()
-            sunburst = build_sunburst_plotly(objetivo_df)
+            mindmap = build_pdi_mindmap(objetivo_df, cards, regimen="plan_anual")
             narrativa = generate_narrative_proyectos(proy_df, linea_summary)
             gantt = build_proyectos_gantt(proy_all)
 
@@ -644,7 +645,7 @@ class ResumenService:
                 "vista": vista_norm,
                 "chips": chips,
                 "fichas": cards,
-                "sunburst": sunburst,
+                "mindmap": mindmap,
                 "narrativa": narrativa,
                 "mejoraron": best_p,
                 "en_riesgo": worst_p,
@@ -665,8 +666,11 @@ class ResumenService:
             avance_global = self._retos.load_avance_global(ANIOS_RANGO if rango else [anio])
             chips = get_chip_config_retos(linea_summary, area_count, avance_global)
             cards = build_strategy_cards(linea_summary, linea_df, vista=vista_norm)
-            sunburst = build_sunburst_plotly(
-                obj_df if not obj_df.empty else linea_df, solo_lineas=obj_df.empty
+            mindmap = build_pdi_mindmap(
+                obj_df if not obj_df.empty else linea_df,
+                cards,
+                regimen="plan_anual",
+                solo_lineas=obj_df.empty,
             )
             narrativa = generate_narrative_retos(linea_summary, area_count, avance_global)
 
@@ -675,7 +679,7 @@ class ResumenService:
                 "vista": vista_norm,
                 "chips": chips,
                 "fichas": cards,
-                "sunburst": sunburst,
+                "mindmap": mindmap,
                 "narrativa": narrativa,
                 "mejoraron": [],
                 "en_riesgo": [],
@@ -727,7 +731,7 @@ class ResumenService:
 
             chips = get_chip_config_consolidado(linea_summary, ind_count, proy_count, area_count)
             cards = build_strategy_cards(linea_summary, None, vista=vista_norm)
-            sunburst = build_sunburst_plotly(objetivo_df)
+            mindmap = build_pdi_mindmap(objetivo_df, cards)
             narrativa = generate_narrative_consolidado(
                 linea_summary,
                 ind_count=ind_count,
@@ -741,7 +745,7 @@ class ResumenService:
                 "vista": vista_norm,
                 "chips": chips,
                 "fichas": cards,
-                "sunburst": sunburst,
+                "mindmap": mindmap,
                 "narrativa": narrativa,
                 "mejoraron": [],
                 "en_riesgo": [],
@@ -754,7 +758,7 @@ class ResumenService:
             "vista": vista_norm,
             "chips": get_chip_config_indicadores(pd.DataFrame()),
             "fichas": build_strategy_cards(pd.DataFrame(), None, vista=vista_norm),
-            "sunburst": build_sunburst_plotly(pd.DataFrame()),
+            "mindmap": build_pdi_mindmap(pd.DataFrame(), []),
             "narrativa": {
                 "texto": "Vista en construcción.",
                 "estado_color": "#6B728E",
@@ -766,6 +770,39 @@ class ResumenService:
             "periodo_comparacion": "",
             "total_indicadores": 0,
         }
+
+    def get_resumen_linea(self, *, key: str, anio: int | None = None) -> dict[str, Any] | None:
+        """Payload de una línea estratégica individual para la hoja de línea
+        del portal Resumen General: Retos + Proyectos PMO + Indicadores CMI.
+        Reutiliza build_informe_ejecutivo_lineas (misma fuente que el PDF
+        Informe Ejecutivo) — cero lógica de agregación duplicada.
+        Si `anio` es None se usa el rango completo (Cierre PDI 2022-2025);
+        el bloque CMI/objetivos no varía con el año (cierre final del ciclo)."""
+        cache_key = (id(self._excel), "resumen-linea", key, anio)
+        return cache_get(
+            _RESUMEN_COMPLETO_CACHE,
+            cache_key,
+            lambda: self._get_resumen_linea_uncached(key=key, anio=anio),
+            ttl=self._excel.ttl,
+        )
+
+    def _get_resumen_linea_uncached(
+        self, *, key: str, anio: int | None = None
+    ) -> dict[str, Any] | None:
+        target = norm_key(key)
+        if target not in {norm_key(d["key"]) for d in STRATEGIC_LINE_DEFS}:
+            return None
+
+        anios = [anio] if anio is not None else ANIOS_RANGO
+        pdi_df = ensure_nivel_cumplimiento(self._strategic.preparar_pdi_cierre_final())
+        proy_df = self._proyectos_multi_anio(anios)
+        proy_gantt = build_proyectos_gantt(proy_df)
+        ret_linea_df, ret_obj_df, ret_planes_df = self._retos_multi_anio(anios)
+
+        lineas = build_informe_ejecutivo_lineas(
+            pdi_df, proy_gantt, ret_linea_df, ret_obj_df, ret_planes_df
+        )
+        return next((li for li in lineas if norm_key(li["linea"]) == target), None)
 
     def get_informe_ejecutivo(self) -> dict[str, Any]:
         """Payload del Informe Ejecutivo PDF — Cierre PDI 2022-2025.

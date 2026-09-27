@@ -31,6 +31,7 @@ import type {
   RegistroOMUpdate,
   SeguimientoDashboardResponse,
   ResumenCompletoResponse,
+  ResumenLineaResponse,
   SemaphoreItem,
   SunburstNode,
   TrendItem,
@@ -123,6 +124,16 @@ export async function fetchResumenCompleto(params: {
   rango?: boolean;
 }): Promise<ResumenCompletoResponse> {
   const { data } = await api.get<ResumenCompletoResponse>("/dashboard/resumen-completo", { params });
+  return data;
+}
+
+export async function fetchResumenLinea(
+  key: string,
+  anio?: number
+): Promise<ResumenLineaResponse> {
+  const { data } = await api.get<ResumenLineaResponse>(`/dashboard/resumen-linea/${key}`, {
+    params: anio ? { anio } : undefined,
+  });
   return data;
 }
 

@@ -8,6 +8,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends curl \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Informe Ejecutivo PDF (report_html_service.py) renderiza HTML/CSS con
+# Chromium headless — instala el navegador + libs de sistema que necesita.
+RUN python -m playwright install --with-deps chromium
+
 COPY app ./app
 
 EXPOSE 8000
