@@ -1,0 +1,24 @@
+table Dim_CNA_FactorCaracteristica
+	lineageTag: 501837ae-ae79-4644-8298-994cc636d92a
+
+	column Factor
+		dataType: string
+		lineageTag: 3b36c669-5185-4b09-9523-4f0a86310341
+		sourceColumn: Factor
+
+	column Caracteristica
+		dataType: string
+		lineageTag: 75a55c02-eb88-4bde-aabd-90ade53b3e37
+		sourceColumn: Caracteristica
+
+	partition Dim_CNA_FactorCaracteristica = m
+		mode: import
+		source =
+				let
+				    Origen = Excel.Workbook(File.Contents(RutaBase & "\output\Resultados_Consolidados_CNA.xlsx"), null, true),
+				    Hoja = Origen{[Item="Factor- Caracteristica",Kind="Sheet"]}[Data],
+				    Promovidos = Table.PromoteHeaders(Hoja, [PromoteAllScalars=true]),
+				    Tipos = Table.TransformColumnTypes(Promovidos,{{"Factor", type text},{"Caracteristica", type text}})
+				in
+				    Tipos
+

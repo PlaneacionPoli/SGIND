@@ -1,0 +1,157 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "e2116c601220464ba3ce346b577dba42",
+  "position": {
+    "x": 40,
+    "y": 200,
+    "z": 6000,
+    "height": 500,
+    "width": 1100,
+    "tabOrder": 4000
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Fact_PlanMejoramiento"
+                    }
+                  },
+                  "Property": "Factor"
+                }
+              },
+              "queryRef": "Fact_PlanMejoramiento.Factor",
+              "nativeQueryRef": "Factor"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Fact_PlanMejoramiento"
+                    }
+                  },
+                  "Property": "Indicador"
+                }
+              },
+              "queryRef": "Fact_PlanMejoramiento.Indicador",
+              "nativeQueryRef": "Indicador"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Fact_PlanMejoramiento"
+                    }
+                  },
+                  "Property": "Meta_2025"
+                }
+              },
+              "queryRef": "Fact_PlanMejoramiento.Meta_2025",
+              "nativeQueryRef": "Meta_2025"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Fact_PlanMejoramiento"
+                    }
+                  },
+                  "Property": "Ejecucion_2025"
+                }
+              },
+              "queryRef": "Fact_PlanMejoramiento.Ejecucion_2025",
+              "nativeQueryRef": "Ejecucion_2025"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Fact_PlanMejoramiento"
+                    }
+                  },
+                  "Property": "Meta_2026"
+                }
+              },
+              "queryRef": "Fact_PlanMejoramiento.Meta_2026",
+              "nativeQueryRef": "Meta_2026"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Fact_PlanMejoramiento"
+                    }
+                  },
+                  "Property": "Ejecucion_2026"
+                }
+              },
+              "queryRef": "Fact_PlanMejoramiento.Ejecucion_2026",
+              "nativeQueryRef": "Ejecucion_2026"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Fact_PlanMejoramiento"
+                    }
+                  },
+                  "Property": "Categoria_2026"
+                }
+              },
+              "queryRef": "Fact_PlanMejoramiento.Categoria_2026",
+              "nativeQueryRef": "Categoria_2026"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Fact_PlanMejoramiento"
+                    }
+                  },
+                  "Property": "Meta_2030"
+                }
+              },
+              "queryRef": "Fact_PlanMejoramiento.Meta_2030",
+              "nativeQueryRef": "Meta_2030"
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Indicadores Plan de Mejoramiento (Metas 2025-2030)'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "Report",
+    "displayName": "Sistema de gestión de indicadores"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "c9780e83-ef3e-4a2e-ab38-fb1f06d95860"
+  }
+}

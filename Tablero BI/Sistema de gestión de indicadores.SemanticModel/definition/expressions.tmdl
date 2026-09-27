@@ -1,0 +1,4 @@
+/// Carpeta base de datos SGING (cambiar aquí para mover a SharePoint u otra ruta)
+expression RutaBase = "C:\Users\ximen\OneDrive\Proyectos_DS\SGING\data" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+	lineageTag: 49b0b30e-0414-4d5e-81d8-dcf262c29bfb
+

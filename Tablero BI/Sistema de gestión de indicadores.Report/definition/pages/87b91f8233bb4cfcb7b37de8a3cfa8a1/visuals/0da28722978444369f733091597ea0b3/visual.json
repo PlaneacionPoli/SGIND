@@ -1,0 +1,101 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "0da28722978444369f733091597ea0b3",
+  "position": {
+    "x": 620,
+    "y": 200,
+    "z": 1000,
+    "height": 700,
+    "width": 1000,
+    "tabOrder": 5000
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Dim_Catalogo"
+                    }
+                  },
+                  "Property": "Proceso"
+                }
+              },
+              "queryRef": "Dim_Catalogo.Proceso",
+              "nativeQueryRef": "Proceso"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Dim_Catalogo"
+                    }
+                  },
+                  "Property": "Indicador"
+                }
+              },
+              "queryRef": "Dim_Catalogo.Indicador",
+              "nativeQueryRef": "Indicador"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Medidas"
+                    }
+                  },
+                  "Property": "Cumplimiento (último)"
+                }
+              },
+              "queryRef": "_Medidas.Cumplimiento (último)",
+              "nativeQueryRef": "Cumplimiento (último)"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Medidas"
+                    }
+                  },
+                  "Property": "Categoria (último)"
+                }
+              },
+              "queryRef": "_Medidas.Categoria (último)",
+              "nativeQueryRef": "Categoria (último)"
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Detalle por Proceso'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

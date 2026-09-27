@@ -1,0 +1,32 @@
+model Model
+	culture: es-ES
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	sourceQueryCulture: es-CO
+	valueFilterBehavior: independent
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
+
+annotation __PBI_TimeIntelligenceEnabled = 1
+
+annotation PBI_ProTooling = ["DevMode","MCP-PBIModeling"]
+
+ref table Dim_Catalogo
+ref table Fact_Cierres
+ref table Dim_Calendario
+ref table Fact_PlanMejoramiento
+ref table _Medidas
+ref table Fact_Historico
+ref table Fact_Semestral
+ref table Dim_Variables
+ref table Fact_DesgloseSeries
+ref table Fact_CNA_Metricas
+ref table Dim_CNA_FactorCaracteristica
+ref table Dim_Retos_Linea
+ref table Dim_Retos_Objetivo
+ref table Dim_Retos_Planes
+ref table Dim_Retos_Areas
+ref table Vista
+
+ref cultureInfo es-ES
+

@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "SemanticModel",
+    "displayName": "Sistema de gestión de indicadores"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "a6f694c3-a439-41f3-bc42-927f67476dd9"
+  }
+}

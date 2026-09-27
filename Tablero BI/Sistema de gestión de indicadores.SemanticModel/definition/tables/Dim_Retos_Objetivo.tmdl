@@ -1,0 +1,45 @@
+table Dim_Retos_Objetivo
+	lineageTag: d563ef42-4b43-454d-af75-65632ba7f2bf
+
+	column Linea_Estrategica
+		dataType: string
+		lineageTag: fd8b4f74-e91d-4f57-8d21-ab9faa2dd811
+		sourceColumn: Línea Estratégica
+
+	column Objetivo
+		dataType: string
+		lineageTag: 5f651fd2-c10a-4bdd-ae49-f21d25e05e2b
+		sourceColumn: Objetivo
+
+	column Año
+		dataType: int64
+		lineageTag: d8b24edf-67aa-4f6e-85d4-5f866f4921e2
+		sourceColumn: Año
+
+	column Meta
+		dataType: double
+		lineageTag: bb83f5a6-00d6-42ae-85bc-589338c29ad0
+		sourceColumn: Meta
+
+	column Ejecucion
+		dataType: double
+		lineageTag: 81dc5db9-c2bd-4b89-b818-264c219e811d
+		sourceColumn: Ejecución
+
+	column Cumplimiento
+		dataType: double
+		formatString: 0.0%
+		lineageTag: e65ae925-bb72-4031-b6d4-843dfcf8b774
+		sourceColumn: Cumplimiento
+
+	partition Dim_Retos_Objetivo = m
+		mode: import
+		source =
+				let
+				    Origen = Excel.Workbook(File.Contents(RutaBase & "\raw\Retos\Plan de retos.xlsx"), null, true),
+				    Hoja = Origen{[Item="Objetivo",Kind="Sheet"]}[Data],
+				    Promovidos = Table.PromoteHeaders(Hoja, [PromoteAllScalars=true]),
+				    Tipos = Table.TransformColumnTypes(Promovidos,{{"Línea Estratégica", type text},{"Objetivo", type text},{"Año", Int64.Type},{"Meta", type number},{"Ejecución", type number},{"Cumplimiento", type number}})
+				in
+				    Tipos
+

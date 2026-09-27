@@ -1,0 +1,152 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "a1251e8ebd944a4bbab42b29caf5e491",
+  "position": {
+    "x": 40,
+    "y": 680,
+    "z": 8000,
+    "height": 360,
+    "width": 1840,
+    "tabOrder": 14000
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Dim_Catalogo"
+                    }
+                  },
+                  "Property": "Linea_Estrategica"
+                }
+              },
+              "queryRef": "Dim_Catalogo.Linea_Estrategica",
+              "nativeQueryRef": "Linea_Estrategica"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Dim_Catalogo"
+                    }
+                  },
+                  "Property": "Indicador"
+                }
+              },
+              "queryRef": "Dim_Catalogo.Indicador",
+              "nativeQueryRef": "Indicador"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Medidas"
+                    }
+                  },
+                  "Property": "Meta (último)"
+                }
+              },
+              "queryRef": "_Medidas.Meta (último)",
+              "nativeQueryRef": "Meta (último)"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Medidas"
+                    }
+                  },
+                  "Property": "Ejecucion (último)"
+                }
+              },
+              "queryRef": "_Medidas.Ejecucion (último)",
+              "nativeQueryRef": "Ejecucion (último)"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Medidas"
+                    }
+                  },
+                  "Property": "Cumplimiento (último)"
+                }
+              },
+              "queryRef": "_Medidas.Cumplimiento (último)",
+              "nativeQueryRef": "Cumplimiento (último)"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Medidas"
+                    }
+                  },
+                  "Property": "Categoria (último)"
+                }
+              },
+              "queryRef": "_Medidas.Categoria (último)",
+              "nativeQueryRef": "Categoria (último)"
+            }
+          ]
+        }
+      }
+    },
+    "objects": {
+      "columnWidth": [
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "149D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Dim_Catalogo.Indicador"
+          }
+        }
+      ],
+      "columnHeaders": [
+        {
+          "properties": {}
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Detalle de indicadores'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

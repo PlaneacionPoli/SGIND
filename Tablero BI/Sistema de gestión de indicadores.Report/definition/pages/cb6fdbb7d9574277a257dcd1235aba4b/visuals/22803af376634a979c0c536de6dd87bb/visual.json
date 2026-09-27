@@ -1,0 +1,138 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "22803af376634a979c0c536de6dd87bb",
+  "position": {
+    "x": 620,
+    "y": 200,
+    "z": 0,
+    "height": 700,
+    "width": 1000,
+    "tabOrder": 3000
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Dim_Catalogo"
+                    }
+                  },
+                  "Property": "Linea_Estrategica"
+                }
+              },
+              "queryRef": "Dim_Catalogo.Linea_Estrategica",
+              "nativeQueryRef": "Linea_Estrategica"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Dim_Catalogo"
+                    }
+                  },
+                  "Property": "Objetivo_Estrategico"
+                }
+              },
+              "queryRef": "Dim_Catalogo.Objetivo_Estrategico",
+              "nativeQueryRef": "Objetivo_Estrategico"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Dim_Catalogo"
+                    }
+                  },
+                  "Property": "Indicador"
+                }
+              },
+              "queryRef": "Dim_Catalogo.Indicador",
+              "nativeQueryRef": "Indicador"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Medidas"
+                    }
+                  },
+                  "Property": "Cumplimiento (último)"
+                }
+              },
+              "queryRef": "_Medidas.Cumplimiento (último)",
+              "nativeQueryRef": "Cumplimiento (último)"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Medidas"
+                    }
+                  },
+                  "Property": "Categoria (último)"
+                }
+              },
+              "queryRef": "_Medidas.Categoria (último)",
+              "nativeQueryRef": "Categoria (último)"
+            }
+          ]
+        }
+      }
+    },
+    "objects": {
+      "columnWidth": [
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "106.34891525465207D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Dim_Catalogo.Indicador"
+          }
+        }
+      ],
+      "columnHeaders": [
+        {
+          "properties": {}
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Detalle por Línea / Objetivo'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

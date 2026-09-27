@@ -1,0 +1,871 @@
+table Fact_DesgloseSeries
+	lineageTag: 29d460af-be22-410f-8db8-5e45dc34bd3d
+
+	column Id
+		dataType: string
+		lineageTag: 096c6a79-514f-45ba-8e18-9491860c1957
+		sourceColumn: Id
+
+	column Indicador
+		dataType: string
+		lineageTag: a3fa9d49-12c3-4643-b05c-939255dc4fc6
+		sourceColumn: Indicador
+
+	column Proceso
+		dataType: string
+		lineageTag: c019434a-928d-4311-b8df-45b6e6ef6634
+		sourceColumn: Proceso
+
+	column Periodicidad
+		dataType: string
+		lineageTag: 14639c6b-35cc-4d69-b9ea-e7568810db8c
+		sourceColumn: Periodicidad
+
+	column Sentido
+		dataType: string
+		lineageTag: 922368bd-2d33-4ec0-8547-1f722d2bcd3a
+		sourceColumn: Sentido
+
+	column fecha
+		dataType: dateTime
+		formatString: dd/mm/yyyy
+		lineageTag: ef159420-b59b-419d-a8bc-0e6df44635eb
+		sourceColumn: fecha
+
+	column LLAVE
+		dataType: string
+		lineageTag: bebf4180-ad97-4895-92b1-ea8451032147
+		sourceColumn: LLAVE
+
+	column serie_nombre
+		dataType: string
+		lineageTag: 59fb650e-2f00-49e5-bf54-955558ec35fa
+		sourceColumn: serie_nombre
+
+	column serie_meta
+		dataType: double
+		lineageTag: 2ca92fbb-eae8-4622-b0a9-1f4de740f35b
+		sourceColumn: serie_meta
+
+	column serie_resultado
+		dataType: double
+		lineageTag: 471f9e2d-6b3d-4160-a9b4-35e1e6b7b0c4
+		sourceColumn: serie_resultado
+
+	column var_M3AGUA2
+		dataType: double
+		lineageTag: b961bd21-2bf3-4a50-8fc8-a36378aa9439
+		sourceColumn: var_M3AGUA2
+
+	column var_KGRA
+		dataType: double
+		lineageTag: 8714b539-41c5-45aa-aea9-ef6c29bf6da4
+		sourceColumn: var_KGRA
+
+	column var_KGRNA
+		dataType: double
+		lineageTag: b69cad68-7455-4905-ba63-868da5e437bb
+		sourceColumn: var_KGRNA
+
+	column var_KWHEE
+		dataType: double
+		lineageTag: decab8b2-dbcd-4b12-9bd8-41e715e6de4f
+		sourceColumn: var_KWHEE
+
+	column var_COLPRS
+		dataType: double
+		lineageTag: 3cdef37b-26fa-4ea7-84ea-1f4b7efc961a
+		sourceColumn: var_COLPRS
+
+	column var_DOCPPRES
+		dataType: double
+		lineageTag: 19806756-674e-4258-9db7-490db373940c
+		sourceColumn: var_DOCPPRES
+
+	column var_ESPRPRES
+		dataType: double
+		lineageTag: 66f302f1-50a1-4b23-9c30-17c785ab5ce2
+		sourceColumn: var_ESPRPRES
+
+	column var_ESPRPOSS
+		dataType: double
+		lineageTag: 590ab2b0-1c4b-44f5-9c80-a594db6d365f
+		sourceColumn: var_ESPRPOSS
+
+	column var_COLPRSA
+		dataType: double
+		lineageTag: 8cdf12ab-723b-4bdb-b977-4ad752056f9d
+		sourceColumn: var_COLPRSA
+
+	column var_DOCPPRESA
+		dataType: double
+		lineageTag: cdc8ba14-f745-4cf8-a3f8-66f224b745c0
+		sourceColumn: var_DOCPPRESA
+
+	column var_ESPRPRESA
+		dataType: double
+		lineageTag: fcf52403-5d5d-4d3c-8f06-f9586bedde1c
+		sourceColumn: var_ESPRPRESA
+
+	column var_ESPRPOSSA
+		dataType: double
+		lineageTag: ff16f70e-fe42-46c5-aa16-332294893c36
+		sourceColumn: var_ESPRPOSSA
+
+	column var_KWHEES
+		dataType: double
+		lineageTag: f6123095-805f-4443-87bc-174abc726e6a
+		sourceColumn: var_KWHEES
+
+	column var_KWHEESA
+		dataType: double
+		lineageTag: c696d831-0441-4a89-95c4-322d44309e10
+		sourceColumn: var_KWHEESA
+
+	column var_M3S
+		dataType: double
+		lineageTag: 184eba79-33cb-4a1c-aa1e-1219863c776a
+		sourceColumn: var_M3S
+
+	column var_M3SA
+		dataType: double
+		lineageTag: 938619ae-31c8-4332-81fb-3d1ff5a0774b
+		sourceColumn: var_M3SA
+
+	column var_TKRAS
+		dataType: double
+		lineageTag: 8a77ca84-ca2a-41c7-b340-436141185e48
+		sourceColumn: var_TKRAS
+
+	column var_TKRNAS
+		dataType: double
+		lineageTag: 08af02eb-59fb-4b1b-afe4-e9ea87f74f71
+		sourceColumn: var_TKRNAS
+
+	column var_KGRPCGPAN
+		dataType: double
+		lineageTag: f495393d-6338-4b14-ac9b-f46c75d6a76e
+		sourceColumn: var_KGRPCGPAN
+
+	column var_KGRPCGPAC
+		dataType: double
+		lineageTag: fb1d7298-f292-404a-94d7-b764fb4a1760
+		sourceColumn: var_KGRPCGPAC
+
+	column var_KGRESPELGP
+		dataType: double
+		lineageTag: caa4f111-3970-400b-872d-3d3626f6ce6c
+		sourceColumn: var_KGRESPELGP
+
+	column var_KGRESPELDP
+		dataType: double
+		lineageTag: 37524ed9-d598-4760-8a33-e43c576fc6d8
+		sourceColumn: var_KGRESPELDP
+
+	column var_PMSRIIRCA
+		dataType: double
+		lineageTag: 0fa5410f-96a7-4570-bce0-855a1da06a54
+		sourceColumn: var_PMSRIIRCA
+
+	column var_TPMAP
+		dataType: double
+		lineageTag: 2aded79e-e35e-4556-aa11-20fa0e535619
+		sourceColumn: var_TPMAP
+
+	column var_PCNPEN
+		dataType: double
+		lineageTag: 43b9b578-771d-4016-b6e1-3f8f5aa5b5d1
+		sourceColumn: var_PCNPEN
+
+	column var_TPEN
+		dataType: double
+		lineageTag: 8a34a384-c72f-4de7-b99c-85a78a710705
+		sourceColumn: var_TPEN
+
+	column var_PCNRPN
+		dataType: double
+		lineageTag: 7183dcca-42c6-456c-a3a3-bb79a086ac8b
+		sourceColumn: var_PCNRPN
+
+	column var_TPM
+		dataType: double
+		lineageTag: 9438625a-4850-4e76-99f3-eb069d6d0178
+		sourceColumn: var_TPM
+
+	column var_tCO2eq
+		dataType: double
+		lineageTag: 68a36aa9-1df6-44b6-bdb4-b1741369a33f
+		sourceColumn: var_tCO2eq
+
+	column var_COLPRE3
+		dataType: double
+		lineageTag: 0e0d4d8c-e96b-4e6b-a1c7-7cb9c2c7ce31
+		sourceColumn: var_COLPRE3
+
+	column var_DOCPPRE3
+		dataType: double
+		lineageTag: 11558bc1-7376-495e-9174-a3fca9ecf59d
+		sourceColumn: var_DOCPPRE3
+
+	column var_ESPRPRE3
+		dataType: double
+		lineageTag: ded1d815-1e7f-42d8-8590-5632b6bab07c
+		sourceColumn: var_ESPRPRE3
+
+	column var_ESPRPOS3
+		dataType: double
+		lineageTag: f691f956-4d46-4c29-bcef-87c2999aee67
+		sourceColumn: var_ESPRPOS3
+
+	column var_tCO2eqC
+		dataType: double
+		lineageTag: 6530ba07-c325-449f-8e5e-503d8f4546aa
+		sourceColumn: var_tCO2eqC
+
+	column var_KTGRA
+		dataType: double
+		lineageTag: 1f094b7e-c394-4f7d-b152-152e48671913
+		sourceColumn: var_KTGRA
+
+	column var_ACMEFSANE
+		dataType: double
+		lineageTag: c361d9f0-973e-48a7-b276-e162ba5db57e
+		sourceColumn: var_ACMEFSANE
+
+	column var_NPROY
+		dataType: double
+		lineageTag: 648c742c-d82e-4000-a0fb-9667b3b0cd16
+		sourceColumn: var_NPROY
+
+	column var_KGRP
+		dataType: double
+		lineageTag: cfa58216-d6fd-48b1-8dba-b0522124596b
+		sourceColumn: var_KGRP
+
+	column var_TAP
+		dataType: double
+		lineageTag: aed8254f-2457-434a-8fc1-ac57a5245590
+		sourceColumn: var_TAP
+
+	column var_TAE
+		dataType: double
+		lineageTag: 80845059-a61e-42f2-bd2b-0e36b221b738
+		sourceColumn: var_TAE
+
+	column var_ICPAP
+		dataType: double
+		lineageTag: 3d21a595-e470-4066-8d98-6cf376a578b2
+		sourceColumn: var_ICPAP
+
+	column var_IAP
+		dataType: double
+		lineageTag: 7f844781-dad9-42e8-aa0c-8317592aeaa8
+		sourceColumn: var_IAP
+
+	column var_TIPRE
+		dataType: double
+		lineageTag: 041ecde2-8eff-419b-a5c3-5c9d802df7c4
+		sourceColumn: var_TIPRE
+
+	column var_TIEJE
+		dataType: double
+		lineageTag: 985f0804-d7f2-44da-9ac6-e5d5338bacd3
+		sourceColumn: var_TIEJE
+
+	column var_TEMS
+		dataType: double
+		lineageTag: 4ff93f87-44f9-4c0c-bf84-6ee6a9533766
+		sourceColumn: var_TEMS
+
+	column var_TEP
+		dataType: double
+		lineageTag: 061776aa-3bf5-4933-99d1-9089682b109c
+		sourceColumn: var_TEP
+
+	column var_NDCPT
+		dataType: double
+		lineageTag: 15aad83f-250d-4b45-b2bc-2bda7a237206
+		sourceColumn: var_NDCPT
+
+	column var_NDNF
+		dataType: double
+		lineageTag: 80ad5060-0879-429a-a481-455aa4f59484
+		sourceColumn: var_NDNF
+
+	column var_PADPSA
+		dataType: double
+		lineageTag: a9149b58-a741-4aa3-ab40-48e208d344ac
+		sourceColumn: var_PADPSA
+
+	column var_PADPAA
+		dataType: double
+		lineageTag: 26e23455-8a6a-429e-8c0f-cc4821cd46c4
+		sourceColumn: var_PADPAA
+
+	column var_PACSA
+		dataType: double
+		lineageTag: a2ba4c61-b819-488a-8842-36bfb86cd9f1
+		sourceColumn: var_PACSA
+
+	column var_PACAA
+		dataType: double
+		lineageTag: e1c6ba58-e308-4f36-8355-0d8fc8dab4d3
+		sourceColumn: var_PACAA
+
+	column var_NAES
+		dataType: double
+		lineageTag: c0b5a5cc-a614-4586-a066-c182c38bcecc
+		sourceColumn: var_NAES
+
+	column var_NAPS
+		dataType: double
+		lineageTag: c33a2215-4b9e-459e-abbb-d1ecfa6b7031
+		sourceColumn: var_NAPS
+
+	column var_NVP
+		dataType: double
+		lineageTag: 5c4805c4-d054-41f7-843f-c152fcdfca96
+		sourceColumn: var_NVP
+
+	column var_NPVPP
+		dataType: double
+		lineageTag: 45437ee8-ef26-46ef-82a0-b8b17e3ab8d8
+		sourceColumn: var_NPVPP
+
+	column var_ITEEPV
+		dataType: double
+		lineageTag: f48727a7-bd9a-4f78-a01d-b1b9d322a702
+		sourceColumn: var_ITEEPV
+
+	column var_ITPEPV
+		dataType: double
+		lineageTag: 2a36d19d-ce0c-4dc3-8211-7b304a69590a
+		sourceColumn: var_ITPEPV
+
+	column var_PPPE
+		dataType: double
+		lineageTag: fedf7f25-6af7-4b3e-a952-5d2c5e115511
+		sourceColumn: var_PPPE
+
+	column var_NPNRPF
+		dataType: double
+		lineageTag: 18b5cda2-3766-4171-b27b-c377fe0155d7
+		sourceColumn: var_NPNRPF
+
+	column var_NPNARPF
+		dataType: double
+		lineageTag: 4aa2f2f2-811d-42fd-9a48-16454d90ca32
+		sourceColumn: var_NPNARPF
+
+	column var_TIPR
+		dataType: double
+		lineageTag: 97256552-dc22-4689-a114-4dedca47b2c1
+		sourceColumn: var_TIPR
+
+	column var_TIEJEC
+		dataType: double
+		lineageTag: 614a6e75-8185-4cf1-b689-3e0ccaae132b
+		sourceColumn: var_TIEJEC
+
+	column var_TKRPS
+		dataType: double
+		lineageTag: ed72c741-bfc6-478b-bd53-8de540112d43
+		sourceColumn: var_TKRPS
+
+	column var_KGRPPCGPAN
+		dataType: double
+		lineageTag: a26f89a5-3800-4389-8fb2-55681337095a
+		sourceColumn: var_KGRPPCGPAN
+
+	column var_KGRPPCGPAC
+		dataType: double
+		lineageTag: 2665d785-5738-4036-b353-408c88574d72
+		sourceColumn: var_KGRPPCGPAC
+
+	column var_PCI
+		dataType: double
+		lineageTag: da6a8b3f-13c3-43a2-a2ea-12c5c3598787
+		sourceColumn: var_PCI
+
+	column var_PAVAN
+		dataType: double
+		lineageTag: a53216f3-8261-4b79-a388-e065abbddfe1
+		sourceColumn: var_PAVAN
+
+	column var_PEAVAN
+		dataType: double
+		lineageTag: f95703d3-81ff-43e8-b668-45ef13bdc5ab
+		sourceColumn: var_PEAVAN
+
+	column var_PAPRE
+		dataType: double
+		lineageTag: 0e7e6c18-a37b-4a5e-934d-fa59711425c3
+		sourceColumn: var_PAPRE
+
+	column var_PEPRE
+		dataType: double
+		lineageTag: 8aafb6b6-8882-4205-a0cc-fe45e8213b70
+		sourceColumn: var_PEPRE
+
+	column var_PAVR
+		dataType: double
+		lineageTag: 93c0fb58-0ca7-4074-8167-b9fe26fa11f4
+		sourceColumn: var_PAVR
+
+	column var_PERE
+		dataType: double
+		lineageTag: a0f4f74e-3998-4213-a840-69378970168d
+		sourceColumn: var_PERE
+
+	column var_PAVE
+		dataType: double
+		lineageTag: ad8f3b10-ad2b-4604-ba32-6cd159ce1226
+		sourceColumn: var_PAVE
+
+	column var_PESVE
+		dataType: double
+		lineageTag: 7aae7721-a983-453d-8be8-a1b36af11719
+		sourceColumn: var_PESVE
+
+	column var_PAVC
+		dataType: double
+		lineageTag: efb1a2e8-fe8a-4907-9181-24d0864324be
+		sourceColumn: var_PAVC
+
+	column var_PEVE
+		dataType: double
+		lineageTag: 189fe839-8d36-40ce-8b8d-3f122dc3aab3
+		sourceColumn: var_PEVE
+
+	column var_PAVF
+		dataType: double
+		lineageTag: 97d9c7ae-05fa-4387-a19d-54affbdc9bba
+		sourceColumn: var_PAVF
+
+	column var_PEVF
+		dataType: double
+		lineageTag: a7d71571-6a50-4cfd-995c-1322cc776c4d
+		sourceColumn: var_PEVF
+
+	column var_PAVA
+		dataType: double
+		lineageTag: 172e0a48-b17a-4e86-b590-74c1572c75bc
+		sourceColumn: var_PAVA
+
+	column var_PEVA
+		dataType: double
+		lineageTag: 969839f3-7a2e-4bc1-910f-208e96c62ef8
+		sourceColumn: var_PEVA
+
+	column var_PAGE
+		dataType: double
+		lineageTag: aea9c67a-8288-4d39-a992-a3d3ed6d3cf8
+		sourceColumn: var_PAGE
+
+	column var_PEGE
+		dataType: double
+		lineageTag: a3d4a66b-dfb9-405a-86b0-73e0a296a7c2
+		sourceColumn: var_PEGE
+
+	column var_PANSSOL
+		dataType: double
+		lineageTag: 5784949d-4dc0-41fd-b943-683e1a00b061
+		sourceColumn: var_PANSSOL
+
+	column var_NERDTE
+		dataType: double
+		lineageTag: 50bf5e64-ae5f-42e2-995f-c988211b6678
+		sourceColumn: var_NERDTE
+
+	column var_NERDP
+		dataType: double
+		lineageTag: be998516-4366-4970-9708-afd1baaab87f
+		sourceColumn: var_NERDP
+
+	column var_TAEPGR
+		dataType: double
+		lineageTag: 10d7b4ad-b311-4861-aba7-d7172b3e6895
+		sourceColumn: var_TAEPGR
+
+	column var_TAPGR
+		dataType: double
+		lineageTag: 81801daa-c2fe-4267-aecc-6f2f54c594e0
+		sourceColumn: var_TAPGR
+
+	column var_NECMA
+		dataType: double
+		lineageTag: b1ef5829-db72-4694-ad79-36a1aa7ccdd7
+		sourceColumn: var_NECMA
+
+	column var_NECMFP
+		dataType: double
+		lineageTag: 55e83052-681c-458a-bc9b-a78bd23c1dec
+		sourceColumn: var_NECMFP
+
+	column var_NAA
+		dataType: double
+		lineageTag: 7f763633-bf00-4977-a0c5-63d0760aa9e8
+		sourceColumn: var_NAA
+
+	column var_TACGB
+		dataType: double
+		lineageTag: e1092333-78f1-402a-adf2-1e0e0ce8fa99
+		sourceColumn: var_TACGB
+
+	column var_NAAV
+		dataType: double
+		lineageTag: ef329c64-0263-4b9f-b475-794c0f2f8d2f
+		sourceColumn: var_NAAV
+
+	column var_TACBV
+		dataType: double
+		lineageTag: df7bf0d2-87ae-434f-bafe-1d8cc54f14d2
+		sourceColumn: var_TACBV
+
+	column var_NEMAV
+		dataType: double
+		lineageTag: f5e3d948-2eae-480a-b3ff-71dcaf415b43
+		sourceColumn: var_NEMAV
+
+	column var_NEMFV
+		dataType: double
+		lineageTag: a8b70a75-2ce3-43a3-b773-1743a79c0631
+		sourceColumn: var_NEMFV
+
+	column var_EPEVRT
+		dataType: double
+		lineageTag: cb0b10fb-649e-49bc-9b1c-06c03da68b2a
+		sourceColumn: var_EPEVRT
+
+	column var_TEPEV
+		dataType: double
+		lineageTag: d1f043a0-9ba4-4f2c-9fc9-76fc22787195
+		sourceColumn: var_TEPEV
+
+	column var_INDH
+		dataType: double
+		lineageTag: 450e0450-0ee1-4dfb-b7de-81d923f09d97
+		sourceColumn: var_INDH
+
+	column var_PARM
+		dataType: double
+		lineageTag: 9c37ed30-6cbb-421a-b9b4-ead564956e95
+		sourceColumn: var_PARM
+
+	column var_PAEM
+		dataType: double
+		lineageTag: 6293796b-486e-42ef-ac0a-a5af2c69cd9e
+		sourceColumn: var_PAEM
+
+	column var_PASAE
+		dataType: double
+		lineageTag: 451961e3-02ed-4d2e-a41c-d1b44636eea5
+		sourceColumn: var_PASAE
+
+	column var_PESAE
+		dataType: double
+		lineageTag: a47141ac-685d-4842-a9a6-c2ef095a4bf0
+		sourceColumn: var_PESAE
+
+	column var_PAGTH
+		dataType: double
+		lineageTag: c6c4944a-a2a7-4b9f-9566-78f90bbd4362
+		sourceColumn: var_PAGTH
+
+	column var_PEGTH
+		dataType: double
+		lineageTag: d44f060c-dd52-48f3-8c92-5fb55b012578
+		sourceColumn: var_PEGTH
+
+	column var_NSRT
+		dataType: double
+		lineageTag: d3388ea2-6837-44a7-9011-7b6765969bcd
+		sourceColumn: var_NSRT
+
+	column var_NPPED
+		dataType: double
+		lineageTag: 460edd8b-4dab-47d3-9d14-07caf531aee8
+		sourceColumn: var_NPPED
+
+	column var_NPPEP
+		dataType: double
+		lineageTag: e29e6a95-11b0-49b9-a9dc-20e8cd83a92c
+		sourceColumn: var_NPPEP
+
+	column var_NPPEDE
+		dataType: double
+		lineageTag: 03758163-5f0c-4ba7-a845-8fe1d4a9a5a5
+		sourceColumn: var_NPPEDE
+
+	column var_NPPEPE
+		dataType: double
+		lineageTag: 03b00fe6-d5fa-4786-925a-9a9c3bc43a5f
+		sourceColumn: var_NPPEPE
+
+	column var_NFRAE
+		dataType: double
+		lineageTag: 3213f258-1f2c-47a9-b424-2b47243e6540
+		sourceColumn: var_NFRAE
+
+	column var_NFRAP
+		dataType: double
+		lineageTag: 724dbd4f-5052-4d00-af49-0772067e7f24
+		sourceColumn: var_NFRAP
+
+	column var_NPPED2
+		dataType: double
+		lineageTag: 09c5e4d8-c4ab-4671-b70e-d66e85979451
+		sourceColumn: var_NPPED2
+
+	column var_NPEP2
+		dataType: double
+		lineageTag: 62980740-14c1-4dfc-a411-863ba4e68b70
+		sourceColumn: var_NPEP2
+
+	column var_NPPED3
+		dataType: double
+		lineageTag: 599e8f0b-9d2a-4cbb-8f28-0f1e65353d9f
+		sourceColumn: var_NPPED3
+
+	column var_NPPEP3
+		dataType: double
+		lineageTag: ac88f161-8736-4074-9f85-a07764f944b4
+		sourceColumn: var_NPPEP3
+
+	column var_NFRAE2
+		dataType: double
+		lineageTag: 29603a29-3468-4f60-ace1-f9d862b8ce81
+		sourceColumn: var_NFRAE2
+
+	column var_NFRAP2
+		dataType: double
+		lineageTag: c4d83c64-b5df-4ed3-b938-1403a5995537
+		sourceColumn: var_NFRAP2
+
+	column var_PIEG
+		dataType: double
+		lineageTag: f955c0d2-2c96-40e1-bb2f-2cc67aa93da0
+		sourceColumn: var_PIEG
+
+	column var_PIMR
+		dataType: double
+		lineageTag: 3e821f4f-3bcb-46f8-baa3-e4145cfc74e4
+		sourceColumn: var_PIMR
+
+	column var_PAEME
+		dataType: double
+		lineageTag: 3fb61ba4-368f-4c44-92ec-545733d4dc16
+		sourceColumn: var_PAEME
+
+	column var_PAEMR
+		dataType: double
+		lineageTag: 7a2f0ebb-ee6c-477e-8ab8-1d57d256cfc6
+		sourceColumn: var_PAEMR
+
+	column var_TOMCEP
+		dataType: double
+		lineageTag: e0030379-4634-49d1-abe4-078b81571b1c
+		sourceColumn: var_TOMCEP
+
+	column var_TOMPCEP
+		dataType: double
+		lineageTag: 4cb181b8-ed9c-432a-b1c8-abe85acf4cfb
+		sourceColumn: var_TOMPCEP
+
+	column var_NACTE
+		dataType: double
+		lineageTag: f8bc854c-2d3d-47b1-8fc4-ea4b3f31557a
+		sourceColumn: var_NACTE
+
+	column var_TAPP
+		dataType: double
+		lineageTag: 268a1957-2a82-437e-8a7a-411a1198300c
+		sourceColumn: var_TAPP
+
+	column var_SP
+		dataType: double
+		lineageTag: 802f7c14-69d3-41cd-8707-beb8ec734ae4
+		sourceColumn: var_SP
+
+	column var_NFRAE3
+		dataType: double
+		lineageTag: 815cac14-d0d7-4d82-8472-26b5cb314663
+		sourceColumn: var_NFRAE3
+
+	column var_NFRA2
+		dataType: double
+		lineageTag: 92ab830f-7eb0-46b9-93ca-b64c20fd430c
+		sourceColumn: var_NFRA2
+
+	column var_PAEPR
+		dataType: double
+		lineageTag: 84e82b45-b5b2-47fc-8b6b-5a3d9da61611
+		sourceColumn: var_PAEPR
+
+	column var_PARPR
+		dataType: double
+		lineageTag: 40fd9077-be53-4ac7-a4ed-8970c6f9e7dd
+		sourceColumn: var_PARPR
+
+	column var_NRM
+		dataType: double
+		lineageTag: cac2b990-a8ff-4ad9-b6c1-84c9de80cde8
+		sourceColumn: var_NRM
+
+	column var_NRD
+		dataType: double
+		lineageTag: bce8d51c-4a45-4583-a76e-062e9c2a05a2
+		sourceColumn: var_NRD
+
+	column var_NCVNF
+		dataType: double
+		lineageTag: 3ad7cc52-619d-4340-aca2-03be2e632278
+		sourceColumn: var_NCVNF
+
+	column var_NCE
+		dataType: double
+		lineageTag: 96d8e556-1738-4e45-a9b5-a929006fac2c
+		sourceColumn: var_NCE
+
+	column var_PSE
+		dataType: double
+		lineageTag: b5cfbf4d-e31e-4f61-881f-bf381fa16cb8
+		sourceColumn: var_PSE
+
+	column var_PSER
+		dataType: double
+		lineageTag: 264866ca-8d08-4c2d-bab3-b1c5e0d7619b
+		sourceColumn: var_PSER
+
+	column var_IPE
+		dataType: double
+		lineageTag: d49a4d0e-ee34-4952-82de-2149afecabcf
+		sourceColumn: var_IPE
+
+	column var_IEE
+		dataType: double
+		lineageTag: f6e4aae3-9612-45c6-b166-7ddf4c98fb41
+		sourceColumn: var_IEE
+
+	column var_TOLEADS
+		dataType: double
+		lineageTag: d57e567c-913a-4d10-ab7c-6c2acb8f3fb3
+		sourceColumn: var_TOLEADS
+
+	column var_BULEADS
+		dataType: double
+		lineageTag: 045a05ee-71b8-4671-b91e-4da40ef169f9
+		sourceColumn: var_BULEADS
+
+	column var_NARVNI
+		dataType: double
+		lineageTag: 881b8207-e98f-4193-a810-3df2fe9e7dd5
+		sourceColumn: var_NARVNI
+
+	column var_NAPP
+		dataType: double
+		lineageTag: 5bf9243e-6e6d-4e1f-a317-a7b730c9bcaa
+		sourceColumn: var_NAPP
+
+	column var_NEPI
+		dataType: double
+		lineageTag: 8b9cf8ae-cfa5-4461-a734-7ef6bd064fcc
+		sourceColumn: var_NEPI
+
+	column var_NEPA
+		dataType: double
+		lineageTag: 027c0868-838e-43c0-b767-71c6788edb49
+		sourceColumn: var_NEPA
+
+	column var_NEPACI
+		dataType: double
+		lineageTag: 77c4edc1-0d16-403f-9511-129bb5a2d719
+		sourceColumn: var_NEPACI
+
+	column var_NEPACIN
+		dataType: double
+		lineageTag: 43eed8be-ed0d-43d6-8436-44fe241f0509
+		sourceColumn: var_NEPACIN
+
+	column var_NPPAC
+		dataType: double
+		lineageTag: 63e913f7-53da-4d1a-aeea-9340593a0b69
+		sourceColumn: var_NPPAC
+
+	column var_NPPAI
+		dataType: double
+		lineageTag: 89f1d97f-897a-4483-902a-54661d1715cb
+		sourceColumn: var_NPPAI
+
+	column var_NPPP
+		dataType: double
+		lineageTag: d499b6c1-7e3c-4f55-89da-a3c5a1dea701
+		sourceColumn: var_NPPP
+
+	column var_NPPPACI
+		dataType: double
+		lineageTag: 914f6341-dc90-4599-bc3e-61ac61585601
+		sourceColumn: var_NPPPACI
+
+	column var_TEE
+		dataType: double
+		lineageTag: d070b2b6-afce-4449-a944-cc5fc7fef93f
+		sourceColumn: var_TEE
+
+	column var_NUAC
+		dataType: double
+		lineageTag: 4279a2fe-0615-468e-8e41-32652912a6eb
+		sourceColumn: var_NUAC
+
+	column var_NDP
+		dataType: double
+		lineageTag: 178aa3bc-d102-4c66-8f45-54f4709b1292
+		sourceColumn: var_NDP
+
+	column var_NSPE
+		dataType: double
+		lineageTag: 62d1b246-5df3-4a58-bb57-eae0e94535e5
+		sourceColumn: var_NSPE
+
+	column var_TSCE
+		dataType: double
+		lineageTag: eae7309a-16cf-42ca-9135-bf738b95c3b0
+		sourceColumn: var_TSCE
+
+	column var_NSCANS
+		dataType: double
+		lineageTag: 8e3de161-65fa-4232-93cb-86dc883ad644
+		sourceColumn: var_NSCANS
+
+	column var_NGRI
+		dataType: double
+		lineageTag: a200a443-5736-4b7d-8601-ad9ca5336f9a
+		sourceColumn: var_NGRI
+
+	column var_NGIC
+		dataType: double
+		lineageTag: 4007b23a-ae10-4ec6-be35-3ca3804af413
+		sourceColumn: var_NGIC
+
+	column var_NGRIS
+		dataType: double
+		lineageTag: 31dbd7a6-939f-441a-876c-53ef9908ee48
+		sourceColumn: var_NGRIS
+
+	column var_NGM
+		dataType: double
+		lineageTag: d6c8be54-0055-4f20-b4a2-2c28e75a3316
+		sourceColumn: var_NGM
+
+	partition Fact_DesgloseSeries = m
+		mode: import
+		source =
+				let
+				    Origen = Excel.Workbook(File.Contents(RutaBase & "\output\Resultados Consolidados.xlsx"), null, true),
+				    Hoja = Origen{[Item="Desglose Series",Kind="Sheet"]}[Data],
+				    Promovidos = Table.PromoteHeaders(Hoja, [PromoteAllScalars=true]),
+				    Tipos = Table.TransformColumnTypes(Promovidos,{{"Id", type text},{"Indicador", type text},{"Proceso", type text},{"Periodicidad", type text},{"Sentido", type text},{"fecha", type date},{"LLAVE", type text},{"serie_nombre", type text},{"serie_meta", type number},{"serie_resultado", type number},{"var_M3AGUA2", type number},{"var_KGRA", type number},{"var_KGRNA", type number},{"var_KWHEE", type number},{"var_COLPRS", type number},{"var_DOCPPRES", type number},{"var_ESPRPRES", type number},{"var_ESPRPOSS", type number},{"var_COLPRSA", type number},{"var_DOCPPRESA", type number},{"var_ESPRPRESA", type number},{"var_ESPRPOSSA", type number},{"var_KWHEES", type number},{"var_KWHEESA", type number},{"var_M3S", type number},{"var_M3SA", type number},{"var_TKRAS", type number},{"var_TKRNAS", type number},{"var_KGRPCGPAN", type number},{"var_KGRPCGPAC", type number},{"var_KGRESPELGP", type number},{"var_KGRESPELDP", type number},{"var_PMSRIIRCA", type number},{"var_TPMAP", type number},{"var_PCNPEN", type number},{"var_TPEN", type number},{"var_PCNRPN", type number},{"var_TPM", type number},{"var_tCO2eq", type number},{"var_COLPRE3", type number},{"var_DOCPPRE3", type number},{"var_ESPRPRE3", type number},{"var_ESPRPOS3", type number},{"var_tCO2eqC", type number},{"var_KTGRA", type number},{"var_ACMEFSANE", type number},{"var_NPROY", type number},{"var_KGRP", type number},{"var_TAP", type number},{"var_TAE", type number},{"var_ICPAP", type number},{"var_IAP", type number},{"var_TIPRE", type number},{"var_TIEJE", type number},{"var_TEMS", type number},{"var_TEP", type number},{"var_NDCPT", type number},{"var_NDNF", type number},{"var_PADPSA", type number},{"var_PADPAA", type number},{"var_PACSA", type number},{"var_PACAA", type number},{"var_NAES", type number},{"var_NAPS", type number},{"var_NVP", type number},{"var_NPVPP", type number},{"var_ITEEPV", type number},{"var_ITPEPV", type number},{"var_PPPE", type number},{"var_NPNRPF", type number},{"var_NPNARPF", type number},{"var_TIPR", type number},{"var_TIEJEC", type number},{"var_TKRPS", type number},{"var_KGRPPCGPAN", type number},{"var_KGRPPCGPAC", type number},{"var_PCI", type number},{"var_PAVAN", type number},{"var_PEAVAN", type number},{"var_PAPRE", type number},{"var_PEPRE", type number},{"var_PAVR", type number},{"var_PERE", type number},{"var_PAVE", type number},{"var_PESVE", type number},{"var_PAVC", type number},{"var_PEVE", type number},{"var_PAVF", type number},{"var_PEVF", type number},{"var_PAVA", type number},{"var_PEVA", type number},{"var_PAGE", type number},{"var_PEGE", type number},{"var_PANSSOL", type number},{"var_NERDTE", type number},{"var_NERDP", type number},{"var_TAEPGR", type number},{"var_TAPGR", type number},{"var_NECMA", type number},{"var_NECMFP", type number},{"var_NAA", type number},{"var_TACGB", type number},{"var_NAAV", type number},{"var_TACBV", type number},{"var_NEMAV", type number},{"var_NEMFV", type number},{"var_EPEVRT", type number},{"var_TEPEV", type number},{"var_INDH", type number},{"var_PARM", type number},{"var_PAEM", type number},{"var_PASAE", type number},{"var_PESAE", type number},{"var_PAGTH", type number},{"var_PEGTH", type number},{"var_NSRT", type number},{"var_NPPED", type number},{"var_NPPEP", type number},{"var_NPPEDE", type number},{"var_NPPEPE", type number},{"var_NFRAE", type number},{"var_NFRAP", type number},{"var_NPPED2", type number},{"var_NPEP2", type number},{"var_NPPED3", type number},{"var_NPPEP3", type number},{"var_NFRAE2", type number},{"var_NFRAP2", type number},{"var_PIEG", type number},{"var_PIMR", type number},{"var_PAEME", type number},{"var_PAEMR", type number},{"var_TOMCEP", type number},{"var_TOMPCEP", type number},{"var_NACTE", type number},{"var_TAPP", type number},{"var_SP", type number},{"var_NFRAE3", type number},{"var_NFRA2", type number},{"var_PAEPR", type number},{"var_PARPR", type number},{"var_NRM", type number},{"var_NRD", type number},{"var_NCVNF", type number},{"var_NCE", type number},{"var_PSE", type number},{"var_PSER", type number},{"var_IPE", type number},{"var_IEE", type number},{"var_TOLEADS", type number},{"var_BULEADS", type number},{"var_NARVNI", type number},{"var_NAPP", type number},{"var_NEPI", type number},{"var_NEPA", type number},{"var_NEPACI", type number},{"var_NEPACIN", type number},{"var_NPPAC", type number},{"var_NPPAI", type number},{"var_NPPP", type number},{"var_NPPPACI", type number},{"var_TEE", type number},{"var_NUAC", type number},{"var_NDP", type number},{"var_NSPE", type number},{"var_TSCE", type number},{"var_NSCANS", type number},{"var_NGRI", type number},{"var_NGIC", type number},{"var_NGRIS", type number},{"var_NGM", type number}}),
+				    SinNulos = Table.SelectRows(Tipos, each [Id] <> null and [Id] <> "")
+				in
+				    SinNulos
+

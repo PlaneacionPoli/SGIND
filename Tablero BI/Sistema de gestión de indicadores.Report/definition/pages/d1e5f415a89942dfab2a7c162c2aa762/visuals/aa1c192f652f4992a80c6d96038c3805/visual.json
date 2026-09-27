@@ -1,0 +1,74 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "aa1c192f652f4992a80c6d96038c3805",
+  "position": {
+    "x": 880,
+    "y": 40,
+    "z": 5000,
+    "height": 140,
+    "width": 260,
+    "tabOrder": 3000
+  },
+  "visual": {
+    "visualType": "card",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Medidas"
+                    }
+                  },
+                  "Property": "PM N Sobrecumplimiento 2026"
+                }
+              },
+              "queryRef": "_Medidas.PM N Sobrecumplimiento 2026",
+              "nativeQueryRef": "PM N Sobrecumplimiento 2026"
+            }
+          ]
+        }
+      }
+    },
+    "objects": {
+      "categoryLabels": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Sobrecumplimiento (2026)'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

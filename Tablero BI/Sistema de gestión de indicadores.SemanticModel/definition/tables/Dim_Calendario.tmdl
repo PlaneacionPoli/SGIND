@@ -1,0 +1,59 @@
+table Dim_Calendario
+	lineageTag: 3d16a04b-d95a-4118-bf87-a26733b05b4b
+
+	column Date
+		dataType: dateTime
+		isKey
+		formatString: dd/mm/yyyy
+		lineageTag: f4344a38-a60a-4cc2-bc17-9b040a5abd6d
+		sourceColumn: Date
+
+	column Año
+		dataType: int64
+		lineageTag: cc21d7d3-2b2e-4c84-b607-813ad1ed1217
+		sourceColumn: Año
+
+	column MesNum
+		dataType: int64
+		lineageTag: 50d34de0-164f-4b45-bd9e-bf5ce018dbda
+		sourceColumn: MesNum
+
+	column Mes
+		dataType: string
+		lineageTag: d19a306c-3f81-4100-b207-71f2644788a7
+		sourceColumn: Mes
+
+	column Trimestre
+		dataType: string
+		lineageTag: c52ac261-affb-43e3-a5c4-2a6fd7029727
+		sourceColumn: Trimestre
+
+	column Semestre
+		dataType: string
+		lineageTag: ec8e0a11-cfb0-4907-8e0d-7c02e8614b7a
+		sourceColumn: Semestre
+
+	column AnioMes
+		dataType: string
+		lineageTag: 5c83c685-d2e2-42ba-b813-f7a64fcafd79
+		sourceColumn: AnioMes
+
+	partition Dim_Calendario = m
+		mode: import
+		source =
+				let
+				    FechaIni = #date(2021,1,1),
+				    FechaFin = #date(2027,12,31),
+				    NumDias = Duration.Days(FechaFin - FechaIni) + 1,
+				    Fechas = List.Dates(FechaIni, NumDias, #duration(1,0,0,0)),
+				    Tabla = Table.FromList(Fechas, Splitter.SplitByNothing(), {"Date"}),
+				    Tipos = Table.TransformColumnTypes(Tabla, {{"Date", type date}}),
+				    ConAnio = Table.AddColumn(Tipos, "Año", each Date.Year([Date]), Int64.Type),
+				    ConMesNum = Table.AddColumn(ConAnio, "MesNum", each Date.Month([Date]), Int64.Type),
+				    ConMesNombre = Table.AddColumn(ConMesNum, "Mes", each Date.ToText([Date],"MMMM","es-CO"), type text),
+				    ConTrimestre = Table.AddColumn(ConMesNombre, "Trimestre", each "T" & Text.From(Date.QuarterOfYear([Date])), type text),
+				    ConSemestre = Table.AddColumn(ConTrimestre, "Semestre", each if Date.Month([Date])<=6 then "S1" else "S2", type text),
+				    ConAnioMes = Table.AddColumn(ConSemestre, "AnioMes", each Date.ToText([Date],"yyyy-MM"), type text)
+				in
+				    ConAnioMes
+

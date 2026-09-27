@@ -1,0 +1,40 @@
+relationship Fact_Cierres_Id_Dim_Catalogo_Id
+	fromColumn: Fact_Cierres.Id
+	toColumn: Dim_Catalogo.Id
+
+relationship Fact_Cierres_Fecha_Dim_Calendario_Date
+	fromColumn: Fact_Cierres.Fecha
+	toColumn: Dim_Calendario.Date
+
+relationship Fact_Historico_Id_Dim_Catalogo_Id
+	fromColumn: Fact_Historico.Id
+	toColumn: Dim_Catalogo.Id
+
+relationship Fact_Historico_Fecha_Dim_Calendario_Date
+	fromColumn: Fact_Historico.Fecha
+	toColumn: Dim_Calendario.Date
+
+relationship Fact_Semestral_Id_Dim_Catalogo_Id
+	fromColumn: Fact_Semestral.Id
+	toColumn: Dim_Catalogo.Id
+
+relationship Fact_Semestral_Fecha_Dim_Calendario_Date
+	fromColumn: Fact_Semestral.Fecha
+	toColumn: Dim_Calendario.Date
+
+relationship Dim_Variables_Id_Dim_Catalogo_Id
+	fromColumn: Dim_Variables.Id
+	toColumn: Dim_Catalogo.Id
+
+relationship Fact_DesgloseSeries_Id_Dim_Catalogo_Id
+	fromColumn: Fact_DesgloseSeries.Id
+	toColumn: Dim_Catalogo.Id
+
+relationship Fact_DesgloseSeries_fecha_Dim_Calendario_Date
+	fromColumn: Fact_DesgloseSeries.fecha
+	toColumn: Dim_Calendario.Date
+
+relationship Fact_CNA_Metricas_Fecha_Dim_Calendario_Date
+	fromColumn: Fact_CNA_Metricas.Fecha
+	toColumn: Dim_Calendario.Date
+

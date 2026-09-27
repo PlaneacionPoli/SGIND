@@ -1,0 +1,172 @@
+table Dim_Catalogo
+	lineageTag: 100bd184-16a9-42ad-b662-ca916d043e38
+
+	column Id
+		dataType: string
+		isKey
+		lineageTag: 535e2932-b132-404d-a274-319bea060383
+		sourceColumn: Id
+
+	column Indicador
+		dataType: string
+		lineageTag: aaea3449-b01a-4f90-92ba-147fac95ac55
+		sourceColumn: Indicador
+
+	column Clasificacion
+		dataType: string
+		lineageTag: 274bc42f-1470-4432-9c6f-fa545d1f9577
+		sourceColumn: Clasificacion
+
+	column Proceso
+		dataType: string
+		lineageTag: 595ecaf8-1cb0-4a6d-96e2-fefb6acb85af
+		sourceColumn: Proceso
+
+	column Periodicidad
+		dataType: string
+		lineageTag: e2592a63-82bb-4586-9bb3-0365f9d6d4e5
+		sourceColumn: Periodicidad
+
+	column Sentido
+		dataType: string
+		lineageTag: a04bcc44-d4bb-4fd3-89c9-300c71369392
+		sourceColumn: Sentido
+
+	column Estado
+		dataType: string
+		lineageTag: 4b9da92a-38e9-43fe-8134-418ace683423
+		sourceColumn: Estado
+
+	column Fuente
+		dataType: string
+		lineageTag: c0f4ff7f-5e8b-450a-ad79-204f76af4626
+		sourceColumn: Fuente
+
+	column TipoCalculo
+		dataType: string
+		lineageTag: 474a9db4-c01d-46df-84cb-8d2f187e6da4
+		sourceColumn: TipoCalculo
+
+	column Subproceso
+		dataType: string
+		lineageTag: 6438eba6-5bff-4e48-97af-f832d8aa2e00
+		sourceColumn: Subproceso
+
+	column Linea_Estrategica
+		dataType: string
+		lineageTag: f5274846-77b8-41a0-a67a-15d0662572a1
+		sourceColumn: Linea_Estrategica
+
+	column Objetivo_Estrategico
+		dataType: string
+		lineageTag: d8344c7f-cf53-49a6-9357-8f27c229f16f
+		sourceColumn: Objetivo_Estrategico
+
+	column Meta_Estrategica
+		dataType: string
+		lineageTag: 079fcac2-6814-458e-8869-7e0007f8a9de
+		sourceColumn: Meta_Estrategica
+
+	column Proyecto
+		dataType: int64
+		lineageTag: 7bce5c5d-8116-4584-a09a-cca0e646718b
+		sourceColumn: Proyecto
+
+	column Orden_CMI
+		dataType: int64
+		lineageTag: 4925d72e-5206-4bdb-87a6-d543e19489dd
+		sourceColumn: Orden_CMI
+
+	column Plan_Anual
+		dataType: int64
+		lineageTag: 1868dbea-0808-4969-8df2-8257f5da1800
+		sourceColumn: Plan_Anual
+
+	column Formula
+		dataType: string
+		lineageTag: 98c320bf-119e-4cf6-b0f9-aa23d1c40f82
+		sourceColumn: Formula
+
+	column Descripcion
+		dataType: string
+		lineageTag: b075907b-af60-418c-b048-c1156f308d31
+		sourceColumn: Descripcion
+
+	column Unidad
+		dataType: string
+		lineageTag: 106ee077-881a-4394-bbaf-2ad7f3b76c1a
+		sourceColumn: Unidad
+
+	column Responsable_Calculo
+		dataType: string
+		lineageTag: c1cfcbe9-50bf-4006-8497-db1a99202e53
+		sourceColumn: Responsable_Calculo
+
+	column Responsable_Analisis
+		dataType: string
+		lineageTag: 1175bac9-b931-40e1-89b1-757009683d38
+		sourceColumn: Responsable_Analisis
+
+	column ID_Kawak
+		dataType: string
+		lineageTag: b4c56a02-41b4-4a0f-a484-d3783af1d6d3
+		sourceColumn: ID_Kawak
+
+	column CNA_SNIES
+		dataType: string
+		lineageTag: 0a040733-5c1b-4ba5-b6ef-353fd674dc55
+		sourceColumn: CNA_SNIES
+
+	column Factor
+		dataType: string
+		lineageTag: 65926105-9525-4cce-a672-cdc85b4ceeae
+		sourceColumn: Factor
+
+	column Caracteristica
+		dataType: string
+		lineageTag: fd5f7491-0f74-48bd-82df-6e449f2e296d
+		sourceColumn: Caracteristica
+
+	column Indicadores_Clave
+		dataType: int64
+		lineageTag: a0e6fd23-8e42-4bc3-b0dd-d3e3da051e94
+		sourceColumn: Indicadores_Clave
+
+	column Indicadores_Plan_Estrategico
+		dataType: int64
+		lineageTag: 2296bd28-e3f0-46b2-aa24-bce4fda12040
+		sourceColumn: Indicadores_Plan_Estrategico
+
+	column Indicadores_Vicerrectoria
+		dataType: int64
+		lineageTag: 1cd55815-8767-45b4-8df0-205ac2b3dc05
+		sourceColumn: Indicadores_Vicerrectoria
+
+	column Subprocesos
+		dataType: int64
+		lineageTag: b67b74c1-4276-4faf-a154-c3af00856ecd
+		sourceColumn: Subprocesos
+
+	column General
+		dataType: int64
+		lineageTag: 8b3bf56e-5adf-4844-b319-61154f69be46
+		sourceColumn: General
+
+	column Ind_Act
+		dataType: int64
+		lineageTag: ca05f090-489a-4528-9d43-9402400b2728
+		sourceColumn: Ind_Act
+
+	partition Dim_Catalogo = m
+		mode: import
+		source =
+				let
+				    Origen = Excel.Workbook(File.Contents(RutaBase & "\raw\Catalogo de Indicadores.xlsx"), null, true),
+				    Hoja = Origen{[Item="Catalogo Indicadores",Kind="Sheet"]}[Data],
+				    Promovidos = Table.PromoteHeaders(Hoja, [PromoteAllScalars=true]),
+				    Tipos = Table.TransformColumnTypes(Promovidos,{{"Id", type text}, {"Indicador", type text}, {"Clasificacion", type text}, {"Proceso", type text}, {"Periodicidad", type text}, {"Sentido", type text}, {"Estado", type text}, {"Fuente", type text}, {"TipoCalculo", type text}, {"Subproceso", type text}, {"Linea_Estrategica", type text}, {"Objetivo_Estrategico", type text}, {"Meta_Estrategica", type text}, {"Proyecto", Int64.Type}, {"Orden_CMI", Int64.Type}, {"Plan_Anual", Int64.Type}, {"Formula", type text}, {"Descripcion", type text}, {"Unidad", type text}, {"Responsable_Calculo", type text}, {"Responsable_Analisis", type text}, {"ID_Kawak", type text}, {"CNA_SNIES", type text}, {"Factor", type text}, {"Caracteristica", type text}, {"Indicadores_Clave", Int64.Type}, {"Indicadores_Plan_Estrategico", Int64.Type}, {"Indicadores_Vicerrectoria", Int64.Type}, {"Subprocesos", Int64.Type}, {"General", Int64.Type}, {"Ind_Act", Int64.Type}}),
+				    SinNulos = Table.SelectRows(Tipos, each [Id] <> null and [Id] <> ""),
+				    SinDuplicados = Table.Distinct(SinNulos, {"Id"})
+				in
+				    SinDuplicados
+

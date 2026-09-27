@@ -1,0 +1,11 @@
+table Vista
+	lineageTag: 7370bc00-ef60-4cf5-acd9-32599b3ab676
+
+	column Vista
+		isNameInferred
+		sourceColumn: [Vista]
+
+	partition Vista = calculated
+		mode: import
+		source = DATATABLE("Vista", STRING, {{"Indicadores"}, {"Proyectos"}})
+

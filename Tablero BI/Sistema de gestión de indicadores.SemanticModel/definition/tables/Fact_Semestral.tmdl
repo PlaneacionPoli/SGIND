@@ -1,0 +1,135 @@
+table Fact_Semestral
+	lineageTag: 50f4cd44-fc6f-4b8f-ad10-bacb74cc50ff
+
+	column Id
+		dataType: string
+		lineageTag: 6a0d16b4-5593-40c0-bcde-dbe957471084
+		sourceColumn: Id
+
+	column Indicador
+		dataType: string
+		lineageTag: 492c8fee-158c-4398-9fd3-c83af0eebafb
+		sourceColumn: Indicador
+
+	column Proceso
+		dataType: string
+		lineageTag: ed86feaa-97e9-4688-919f-2aa93fb4009d
+		sourceColumn: Proceso
+
+	column Periodicidad
+		dataType: string
+		lineageTag: c2042849-0076-40b7-945f-7b09f47de661
+		sourceColumn: Periodicidad
+
+	column Sentido
+		dataType: string
+		lineageTag: 915f55c1-6d8e-4204-9cf4-3aa2aa1ce84d
+		sourceColumn: Sentido
+
+	column Fecha
+		dataType: dateTime
+		formatString: dd/mm/yyyy
+		lineageTag: be190257-6baf-44d2-8259-b5e87708c3e4
+		sourceColumn: Fecha
+
+	column Año
+		dataType: int64
+		lineageTag: 461de295-865d-4384-b3ed-364e01ec23ab
+		sourceColumn: Año
+
+	column Mes
+		dataType: string
+		lineageTag: 5e42d904-e0dc-45f1-af32-4d051d1843f5
+		sourceColumn: Mes
+
+	column Periodo
+		dataType: string
+		lineageTag: 6c646972-5713-4a23-863b-d4e76031c52a
+		sourceColumn: Periodo
+
+	column Meta
+		dataType: double
+		lineageTag: 4b4c2ece-95c2-4f2b-9ff0-1b759f539e05
+		sourceColumn: Meta
+
+	column Ejecucion
+		dataType: double
+		lineageTag: 16afe4a3-b2c6-4f6e-a51a-08b324a77f32
+		sourceColumn: Ejecucion
+
+	column Cumplimiento
+		dataType: double
+		formatString: 0.0%
+		lineageTag: 7240c91a-21f5-4838-b381-ab0d18d2c2fb
+		sourceColumn: Cumplimiento
+
+	column 'Cumplimiento Real'
+		dataType: double
+		formatString: 0.0%
+		lineageTag: 39dac326-3da3-4c14-a666-6f6dafd41557
+		sourceColumn: Cumplimiento Real
+
+	column Meta_Signo
+		dataType: string
+		lineageTag: 5446f04e-be4d-4430-bc9c-672e768ea4c1
+		sourceColumn: Meta_Signo
+
+	column Ejecucion_Signo
+		dataType: string
+		lineageTag: d0e8ed8d-8d1a-4a78-b633-9258544ad93c
+		sourceColumn: Ejecucion_Signo
+
+	column Decimales_Meta
+		dataType: int64
+		lineageTag: 13882cb7-f5c6-4792-bebf-3f78e6b2011a
+		sourceColumn: Decimales_Meta
+
+	column Decimales_Ejecucion
+		dataType: int64
+		lineageTag: c67a7d64-daa5-40bc-8003-caee993117ef
+		sourceColumn: Decimales_Ejecucion
+
+	column LLAVE
+		dataType: string
+		lineageTag: af0411b4-02ff-4f72-9ed3-a72bc97fec85
+		sourceColumn: LLAVE
+
+	column Tipo_Registro
+		dataType: string
+		lineageTag: 86c499f7-3082-4a19-8b66-7202d0205418
+		sourceColumn: Tipo_Registro
+
+	column Cumplimiento_norm =
+			VAR EsMetrica = LOWER(TRIM(COALESCE(Fact_Semestral[Tipo_Registro], ""))) = "metrica"
+			VAR EsNoAplica = LOWER(TRIM(COALESCE(Fact_Semestral[Tipo_Registro], ""))) = "no aplica"
+			VAR MetaNum = Fact_Semestral[Meta]
+			VAR SinMeta = ISBLANK(MetaNum) || MetaNum = 0
+			VAR SinReporte = NOT(EsMetrica) && (SinMeta || EsNoAplica)
+			VAR Valor = Fact_Semestral[Cumplimiento]
+			RETURN
+			    IF(EsMetrica || SinReporte || ISBLANK(Valor), BLANK(), IF(Valor > 1.3 && Valor <= 100, Valor / 100, IF(Valor >= 0 && Valor <= 1.3, Valor, BLANK())))
+		dataType: double
+		formatString: 0.0%
+		lineageTag: bcbf7a4e-efe6-4675-8f7e-34cad5ce0843
+
+	column Categoria =
+			VAR C = Fact_Semestral[Cumplimiento_norm]
+			VAR EsPlanAnual = RELATED(Dim_Catalogo[Plan_Anual]) = 1 || RELATED(Dim_Catalogo[Proyecto]) = 1
+			VAR EsNegPct = NOT(EsPlanAnual) && Fact_Semestral[Id] IN {"121", "207", "377", "561"}
+			RETURN
+			SWITCH(TRUE(), ISBLANK(C), "Sin dato", EsPlanAnual, SWITCH(TRUE(), C < 0.8, "Peligro", C < 0.95, "Alerta", C <= 1.0, "Cumplimiento", "Sobrecumplimiento"), EsNegPct, SWITCH(TRUE(), C < 1.02, "Cumplimiento", C <= 1.10, "Alerta", "Peligro"), SWITCH(TRUE(), C < 0.8, "Peligro", C < 1.0, "Alerta", C < 1.05, "Cumplimiento", "Sobrecumplimiento"))
+		dataType: string
+		lineageTag: 8c1f6a0f-4f1f-49ae-a340-b12d0e162852
+
+	partition Fact_Semestral = m
+		mode: import
+		source =
+				let
+				    Origen = Excel.Workbook(File.Contents(RutaBase & "\output\Resultados Consolidados.xlsx"), null, true),
+				    Hoja = Origen{[Item="Consolidado Semestral",Kind="Sheet"]}[Data],
+				    Promovidos = Table.PromoteHeaders(Hoja, [PromoteAllScalars=true]),
+				    Tipos = Table.TransformColumnTypes(Promovidos,{{"Id", type text}, {"Indicador", type text}, {"Proceso", type text}, {"Periodicidad", type text}, {"Sentido", type text}, {"Fecha", type date}, {"Año", Int64.Type}, {"Mes", type text}, {"Periodo", type text}, {"Meta", type number}, {"Ejecucion", type number}, {"Cumplimiento", type number}, {"Cumplimiento Real", type number}, {"Meta_Signo", type text}, {"Ejecucion_Signo", type text}, {"Decimales_Meta", Int64.Type}, {"Decimales_Ejecucion", Int64.Type}, {"LLAVE", type text}, {"Tipo_Registro", type text}}),
+				    SinNulos = Table.SelectRows(Tipos, each [Id] <> null and [Id] <> "")
+				in
+				    SinNulos
+

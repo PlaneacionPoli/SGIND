@@ -1,0 +1,74 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "b4bdb9b30c5a48aaaea87aa8f0f66694",
+  "position": {
+    "x": 40,
+    "y": 40,
+    "z": 3000,
+    "height": 140,
+    "width": 260,
+    "tabOrder": 0
+  },
+  "visual": {
+    "visualType": "card",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Medidas"
+                    }
+                  },
+                  "Property": "Indicadores Evaluados (Estrategicos)"
+                }
+              },
+              "queryRef": "_Medidas.Indicadores Evaluados (Estrategicos)",
+              "nativeQueryRef": "Indicadores Evaluados (Estrategicos)"
+            }
+          ]
+        }
+      }
+    },
+    "objects": {
+      "categoryLabels": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Indicadores Estratégicos'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

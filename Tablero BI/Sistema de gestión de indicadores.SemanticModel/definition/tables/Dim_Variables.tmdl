@@ -1,0 +1,55 @@
+table Dim_Variables
+	lineageTag: 936598bc-e099-4225-9230-8d67305fee14
+
+	column Id
+		dataType: string
+		lineageTag: 0ca91025-7bfb-427b-b16b-e9cd70eb2efd
+		sourceColumn: Id
+
+	column Indicador
+		dataType: string
+		lineageTag: ecf85aef-b0fa-48c2-bbe5-5773e08696bf
+		sourceColumn: Indicador
+
+	column Proceso
+		dataType: string
+		lineageTag: 521a763d-d383-41fa-8b9a-1c95f57a9dda
+		sourceColumn: Proceso
+
+	column Periodicidad
+		dataType: string
+		lineageTag: 5e9df936-f474-4e79-9060-16db6514b89d
+		sourceColumn: Periodicidad
+
+	column Sentido
+		dataType: string
+		lineageTag: a56f8f97-7224-481b-a51a-462308fb1f37
+		sourceColumn: Sentido
+
+	column var_simbolo
+		dataType: string
+		lineageTag: 5019eb06-8fb5-407e-b391-33906899a661
+		sourceColumn: var_simbolo
+
+	column var_nombre
+		dataType: string
+		lineageTag: 6f47941b-9078-47e2-879b-67dab0bf51d5
+		sourceColumn: var_nombre
+
+	column Campo
+		dataType: string
+		lineageTag: 676ab646-5087-455f-8866-b59aa2f6dbd7
+		sourceColumn: Campo
+
+	partition Dim_Variables = m
+		mode: import
+		source =
+				let
+				    Origen = Excel.Workbook(File.Contents(RutaBase & "\output\Resultados Consolidados.xlsx"), null, true),
+				    Hoja = Origen{[Item="Variables",Kind="Sheet"]}[Data],
+				    Promovidos = Table.PromoteHeaders(Hoja, [PromoteAllScalars=true]),
+				    Tipos = Table.TransformColumnTypes(Promovidos,{{"Id", type text}, {"Indicador", type text}, {"Proceso", type text}, {"Periodicidad", type text}, {"Sentido", type text}, {"var_simbolo", type text}, {"var_nombre", type text}, {"Campo", type text}}),
+				    SinNulos = Table.SelectRows(Tipos, each [Id] <> null and [Id] <> "")
+				in
+				    SinNulos
+

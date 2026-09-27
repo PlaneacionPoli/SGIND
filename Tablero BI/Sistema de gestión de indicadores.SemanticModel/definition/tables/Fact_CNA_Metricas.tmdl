@@ -1,0 +1,129 @@
+table Fact_CNA_Metricas
+	lineageTag: 5f849818-92e4-40bf-b118-b7170c52011e
+
+	column Id
+		dataType: string
+		lineageTag: d6731d5a-2c50-4d82-a0d5-e355c3ad227b
+		sourceColumn: Id
+
+	column Indicador
+		dataType: string
+		lineageTag: 61da0aa6-63b9-4d10-9112-51d0769429d6
+		sourceColumn: Indicador
+
+	column Subindicador
+		dataType: string
+		lineageTag: 19619331-bd1c-48ce-914c-777bd5987227
+		sourceColumn: Subindicador
+
+	column Factor
+		dataType: string
+		lineageTag: fd34340c-9bf4-46d8-87fb-1091f7f8330b
+		sourceColumn: Factor
+
+	column Caracteristica
+		dataType: string
+		lineageTag: 8917b48d-4a60-491e-9a39-acb35e1213e7
+		sourceColumn: Caracteristica
+
+	column Proceso
+		dataType: string
+		lineageTag: c7294e3a-05b3-4588-84f9-4df48ff00530
+		sourceColumn: Proceso
+
+	column Periodicidad
+		dataType: string
+		lineageTag: 242ebb56-cfd6-48f5-a6ee-47db9025a872
+		sourceColumn: Periodicidad
+
+	column Sentido
+		dataType: string
+		lineageTag: f9c40b20-650a-4164-a5e2-7c0eb25f69c4
+		sourceColumn: Sentido
+
+	column Fecha
+		dataType: dateTime
+		formatString: dd/mm/yyyy
+		lineageTag: 9f8b59a4-3a70-431f-b604-dc9f039201bd
+		sourceColumn: Fecha
+
+	column Año
+		dataType: int64
+		lineageTag: 1a9bf21c-f419-4aef-91c5-0cab16910449
+		sourceColumn: Año
+
+	column Mes
+		dataType: string
+		lineageTag: 9e3c76ee-4dfa-4c47-adcf-6ca13bfc4b92
+		sourceColumn: Mes
+
+	column Periodo
+		dataType: string
+		lineageTag: 26a792b7-ac6b-4358-a510-e01631ee21ec
+		sourceColumn: Periodo
+
+	column Meta
+		dataType: double
+		lineageTag: 99e28653-0dee-4a16-88ce-ef89eca53360
+		sourceColumn: Meta
+
+	column Ejecucion
+		dataType: double
+		lineageTag: bcc706a4-5e97-4a67-a9d3-81e3f77e97dc
+		sourceColumn: Ejecución
+
+	column Ejecucion_s
+		dataType: string
+		lineageTag: 04243ffd-017b-41b8-94e6-456136db6a76
+		sourceColumn: Ejecución s
+
+	column Decimales
+		dataType: int64
+		lineageTag: 44a50792-46f7-4447-be7e-6ab2000eb493
+		sourceColumn: Decimales
+
+	column DecimalesEje
+		dataType: int64
+		lineageTag: 5c00ccec-53a2-4024-a1e9-73e4f0d54fbb
+		sourceColumn: DecimalesEje
+
+	column Proyecto
+		dataType: string
+		lineageTag: baa2733a-13f5-4169-a3e9-6e8b65dcb7b4
+		sourceColumn: Proyecto
+
+	column Llave
+		dataType: string
+		lineageTag: c793a293-4a5f-49d4-bceb-8f64f571b7cf
+		sourceColumn: Llave
+
+	column Fuente
+		dataType: string
+		lineageTag: 621f26a6-282f-4d9c-bb4f-e809f13696ad
+		sourceColumn: Fuente
+
+	column Variable
+		dataType: string
+		lineageTag: 8df83b8b-ef7c-4dc6-b0cb-3f7326d4da71
+		sourceColumn: Variable
+
+	column Cumplimiento_calc =
+			VAR M = Fact_CNA_Metricas[Meta]
+			VAR E = Fact_CNA_Metricas[Ejecucion]
+			RETURN IF(ISBLANK(M) || M = 0 || ISBLANK(E), BLANK(), MIN(MAX(DIVIDE(E, M), 0), 1.3))
+		dataType: double
+		formatString: 0.0%
+		lineageTag: 8f3a901a-1f03-43fc-aad3-fd1e2bff93b0
+
+	partition Fact_CNA_Metricas = m
+		mode: import
+		source =
+				let
+				    Origen = Excel.Workbook(File.Contents(RutaBase & "\output\Resultados_Consolidados_CNA.xlsx"), null, true),
+				    Hoja = Origen{[Item="Metricas",Kind="Sheet"]}[Data],
+				    Promovidos = Table.PromoteHeaders(Hoja, [PromoteAllScalars=true]),
+				    Tipos = Table.TransformColumnTypes(Promovidos,{{"Id", type text},{"Indicador", type text},{"Subindicador", type text},{"Factor", type text},{"Caracteristica", type text},{"Proceso", type text},{"Periodicidad", type text},{"Sentido", type text},{"Fecha", type date},{"Año", Int64.Type},{"Mes", type text},{"Periodo", type text},{"Meta", type number},{"Ejecución", type number},{"Ejecución s", type text},{"Decimales", Int64.Type},{"DecimalesEje", Int64.Type},{"Proyecto", type text},{"Llave", type text},{"Fuente", type text},{"Variable", type text}}),
+				    SinNulos = Table.SelectRows(Tipos, each [Id] <> null and [Id] <> "")
+				in
+				    SinNulos
+

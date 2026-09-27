@@ -1,0 +1,29 @@
+table Dim_Retos_Planes
+	lineageTag: ec5b2f0a-6b4c-4158-92bc-f0af1347d8d4
+
+	column Año
+		dataType: int64
+		lineageTag: 889da229-81d7-4496-b650-97e0b644641f
+		sourceColumn: Año
+
+	column Desglose
+		dataType: string
+		lineageTag: 0abf9eea-ebb1-4d92-8279-9a21dd99ad76
+		sourceColumn: Desglose
+
+	column N
+		dataType: int64
+		lineageTag: 4c1ec916-9c8d-4b64-b1ce-1ad13c2009a4
+		sourceColumn: N°
+
+	partition Dim_Retos_Planes = m
+		mode: import
+		source =
+				let
+				    Origen = Excel.Workbook(File.Contents(RutaBase & "\raw\Retos\Plan de retos.xlsx"), null, true),
+				    Hoja = Origen{[Item="Planes",Kind="Sheet"]}[Data],
+				    Promovidos = Table.PromoteHeaders(Hoja, [PromoteAllScalars=true]),
+				    Tipos = Table.TransformColumnTypes(Promovidos,{{"Año", Int64.Type},{"Desglose", type text},{"N°", Int64.Type}})
+				in
+				    Tipos
+

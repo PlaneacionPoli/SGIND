@@ -1,0 +1,78 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "4c59775d4ac744428c27282542cb2491",
+  "position": {
+    "x": 1180,
+    "y": 460,
+    "z": 1000,
+    "height": 240,
+    "width": 500,
+    "tabOrder": 6000
+  },
+  "visual": {
+    "visualType": "clusteredBarChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Dim_Retos_Linea"
+                    }
+                  },
+                  "Property": "Linea_Estrategica"
+                }
+              },
+              "queryRef": "Dim_Retos_Linea.Linea_Estrategica",
+              "nativeQueryRef": "Linea_Estrategica",
+              "active": true
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Medidas"
+                    }
+                  },
+                  "Property": "Retos Cumplimiento Promedio (Linea)"
+                }
+              },
+              "queryRef": "_Medidas.Retos Cumplimiento Promedio (Linea)",
+              "nativeQueryRef": "Retos Cumplimiento Promedio (Linea)"
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Retos: Cumplimiento por Línea'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

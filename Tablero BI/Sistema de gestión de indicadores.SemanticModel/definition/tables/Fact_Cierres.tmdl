@@ -1,0 +1,149 @@
+table Fact_Cierres
+	lineageTag: dfba1455-81f8-40b3-a25d-1d5081b43cf0
+
+	column Id
+		dataType: string
+		lineageTag: 0e7bba1b-8db2-4dbb-93fc-1fcc4f270986
+		sourceColumn: Id
+
+	column Indicador
+		dataType: string
+		lineageTag: 58c4f714-51e1-4967-9d77-5ed27255dde4
+		sourceColumn: Indicador
+
+	column Proceso
+		dataType: string
+		lineageTag: 5a30cb2c-0c2e-4eef-a4f1-9e6276846dda
+		sourceColumn: Proceso
+
+	column Periodicidad
+		dataType: string
+		lineageTag: 8e5857ba-eaa6-45aa-a92b-fc941cb87222
+		sourceColumn: Periodicidad
+
+	column Sentido
+		dataType: string
+		lineageTag: 922d18cb-ab1d-4c1d-b364-fb105d7a2708
+		sourceColumn: Sentido
+
+	column Fecha
+		dataType: dateTime
+		formatString: dd/mm/yyyy
+		lineageTag: 0c3a7aab-16ad-4481-aac7-c0d75f503e2c
+		sourceColumn: Fecha
+
+	column Año
+		dataType: int64
+		lineageTag: 354fcd1f-c33d-42b2-ae78-0c4a2f28f6fb
+		sourceColumn: Año
+
+	column Mes
+		dataType: string
+		lineageTag: f2b45c8e-fb74-4be0-8512-ba1966157a34
+		sourceColumn: Mes
+
+	column Periodo
+		dataType: string
+		lineageTag: 5dc56042-a38b-4eb9-9f6e-fbef33235e88
+		sourceColumn: Periodo
+
+	column Meta
+		dataType: double
+		lineageTag: 1a71268b-9849-43f6-a92c-8bad3b6b053a
+		sourceColumn: Meta
+
+	column Ejecucion
+		dataType: double
+		lineageTag: 8a833fff-4a41-411a-b05c-df003000d40e
+		sourceColumn: Ejecucion
+
+	column Cumplimiento
+		dataType: double
+		formatString: 0.0%
+		lineageTag: 9912e468-3279-4cb5-9457-415478998095
+		sourceColumn: Cumplimiento
+
+	column 'Cumplimiento Real'
+		dataType: double
+		formatString: 0.0%
+		lineageTag: 04bcbf94-01ac-4679-9bc8-3dc906fe9260
+		sourceColumn: Cumplimiento Real
+
+	column Meta_Signo
+		dataType: string
+		lineageTag: a0afe796-c68e-422b-9f79-e1b851d75ded
+		sourceColumn: Meta_Signo
+
+	column Ejecucion_Signo
+		dataType: string
+		lineageTag: 656cddaa-022d-4105-a46f-f7747eeb934c
+		sourceColumn: Ejecucion_Signo
+
+	column Decimales_Meta
+		dataType: int64
+		lineageTag: 0c34ce0c-c36d-4c5e-84e4-a0c7c35da562
+		sourceColumn: Decimales_Meta
+
+	column Decimales_Ejecucion
+		dataType: int64
+		lineageTag: b5dcd2be-8442-473f-9dfa-0f752cab2d58
+		sourceColumn: Decimales_Ejecucion
+
+	column LLAVE
+		dataType: string
+		lineageTag: 12fc2e84-7f4c-4861-8688-f6ce94b417e4
+		sourceColumn: LLAVE
+
+	column Tipo_Registro
+		dataType: string
+		lineageTag: 0430c6bf-7d30-4b47-bd67-58533ff83404
+		sourceColumn: Tipo_Registro
+
+	column Cumplimiento_norm =
+			VAR EsMetrica = LOWER(TRIM(COALESCE(Fact_Cierres[Tipo_Registro], ""))) = "metrica"
+			VAR EsNoAplica = LOWER(TRIM(COALESCE(Fact_Cierres[Tipo_Registro], ""))) = "no aplica"
+			VAR MetaNum = Fact_Cierres[Meta]
+			VAR SinMeta = ISBLANK(MetaNum) || MetaNum = 0
+			VAR SinReporte = NOT(EsMetrica) && (SinMeta || EsNoAplica)
+			VAR Valor = Fact_Cierres[Cumplimiento]
+			RETURN
+			    IF(
+			        EsMetrica || SinReporte || ISBLANK(Valor),
+			        BLANK(),
+			        IF(Valor > 1.3 && Valor <= 100, Valor / 100, IF(Valor >= 0 && Valor <= 1.3, Valor, BLANK()))
+			    )
+		dataType: double
+		formatString: 0.0%
+		lineageTag: 1659854e-7ca2-4334-a50e-c90fa6b02a81
+
+	column EsMetrica = LOWER(TRIM(COALESCE(Fact_Cierres[Tipo_Registro], ""))) = "metrica"
+		dataType: boolean
+		lineageTag: 488cd798-dbf3-406d-8c30-f84efccae6d7
+
+	column Categoria =
+			VAR C = Fact_Cierres[Cumplimiento_norm]
+			VAR EsPlanAnual = RELATED(Dim_Catalogo[Plan_Anual]) = 1 || RELATED(Dim_Catalogo[Proyecto]) = 1
+			VAR EsNegPct = NOT(EsPlanAnual) && Fact_Cierres[Id] IN {"121", "207", "377", "561"}
+			RETURN
+			SWITCH(
+			    TRUE(),
+			    ISBLANK(C), "Sin dato",
+			    EsPlanAnual, SWITCH(TRUE(), C < 0.8, "Peligro", C < 0.95, "Alerta", C <= 1.0, "Cumplimiento", "Sobrecumplimiento"),
+			    EsNegPct, SWITCH(TRUE(), C < 1.02, "Cumplimiento", C <= 1.10, "Alerta", "Peligro"),
+			    SWITCH(TRUE(), C < 0.8, "Peligro", C < 1.0, "Alerta", C < 1.05, "Cumplimiento", "Sobrecumplimiento")
+			)
+		dataType: string
+		lineageTag: df341748-ff99-4dc7-b20a-52daed5f3416
+
+	partition Fact_Cierres = m
+		mode: import
+		source =
+				let
+				    Origen = Excel.Workbook(File.Contents(RutaBase & "\output\Resultados Consolidados.xlsx"), null, true),
+				    Hoja = Origen{[Item="Consolidado Cierres",Kind="Sheet"]}[Data],
+				    Promovidos = Table.PromoteHeaders(Hoja, [PromoteAllScalars=true]),
+				    Tipos = Table.TransformColumnTypes(Promovidos,{{"Id", type text}, {"Indicador", type text}, {"Proceso", type text}, {"Periodicidad", type text}, {"Sentido", type text}, {"Fecha", type date}, {"Año", Int64.Type}, {"Mes", type text}, {"Periodo", type text}, {"Meta", type number}, {"Ejecucion", type number}, {"Cumplimiento", type number}, {"Cumplimiento Real", type number}, {"Meta_Signo", type text}, {"Ejecucion_Signo", type text}, {"Decimales_Meta", Int64.Type}, {"Decimales_Ejecucion", Int64.Type}, {"LLAVE", type text}, {"Tipo_Registro", type text}}),
+				    SinNulos = Table.SelectRows(Tipos, each [Id] <> null and [Id] <> "")
+				in
+				    SinNulos
+

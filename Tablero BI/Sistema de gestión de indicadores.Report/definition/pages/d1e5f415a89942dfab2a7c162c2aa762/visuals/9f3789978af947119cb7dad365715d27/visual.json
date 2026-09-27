@@ -1,0 +1,78 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "9f3789978af947119cb7dad365715d27",
+  "position": {
+    "x": 1180,
+    "y": 200,
+    "z": 4000,
+    "height": 240,
+    "width": 500,
+    "tabOrder": 5000
+  },
+  "visual": {
+    "visualType": "lineChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Fact_CNA_Metricas"
+                    }
+                  },
+                  "Property": "Año"
+                }
+              },
+              "queryRef": "Fact_CNA_Metricas.Año",
+              "nativeQueryRef": "Año",
+              "active": true
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Medidas"
+                    }
+                  },
+                  "Property": "CNA Ejecucion Promedio"
+                }
+              },
+              "queryRef": "_Medidas.CNA Ejecucion Promedio",
+              "nativeQueryRef": "CNA Ejecucion Promedio"
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Ejecución promedio CNA por Año'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

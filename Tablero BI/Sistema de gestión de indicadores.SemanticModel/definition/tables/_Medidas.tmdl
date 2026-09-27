@@ -1,0 +1,374 @@
+table _Medidas
+	lineageTag: 812b79ed-d3f1-4047-90ed-3813f63bd4ec
+
+	measure 'Indicadores Evaluados' =
+			VAR UltimoPorId = ADDCOLUMNS(VALUES(Fact_Cierres[Id]), "@Fecha", CALCULATE(MAX(Fact_Cierres[Fecha])))
+			RETURN SUMX(UltimoPorId, VAR _id = Fact_Cierres[Id] VAR _f = [@Fecha] VAR _cat = CALCULATE(SELECTEDVALUE(Fact_Cierres[Categoria]), Fact_Cierres[Id] = _id, Fact_Cierres[Fecha] = _f) RETURN IF(NOT ISBLANK(_cat) && _cat <> "Sin dato", 1, 0))
+		formatString: #,0
+		displayFolder: Resumen General
+		lineageTag: c6dc099c-8964-46ab-ad73-91a2345f3f85
+
+	measure 'Cumplimiento Global %' =
+			VAR UltimoPorId = ADDCOLUMNS(VALUES(Fact_Cierres[Id]), "@Fecha", CALCULATE(MAX(Fact_Cierres[Fecha])))
+			VAR Suma = SUMX(UltimoPorId, VAR _id = Fact_Cierres[Id] VAR _f = [@Fecha] RETURN CALCULATE(SELECTEDVALUE(Fact_Cierres[Cumplimiento_norm]), Fact_Cierres[Id] = _id, Fact_Cierres[Fecha] = _f))
+			RETURN DIVIDE(Suma, [Indicadores Evaluados])
+		formatString: 0.0%
+		displayFolder: Resumen General
+		lineageTag: 522fea32-1ee9-4ac3-a6e5-122cb245202c
+
+	measure 'N Peligro' =
+			VAR UltimoPorId = ADDCOLUMNS(VALUES(Fact_Cierres[Id]), "@Fecha", CALCULATE(MAX(Fact_Cierres[Fecha])))
+			RETURN SUMX(UltimoPorId, VAR _id = Fact_Cierres[Id] VAR _f = [@Fecha] VAR _cat = CALCULATE(SELECTEDVALUE(Fact_Cierres[Categoria]), Fact_Cierres[Id] = _id, Fact_Cierres[Fecha] = _f) RETURN IF(_cat = "Peligro", 1, 0))
+		formatString: #,0
+		displayFolder: Resumen General
+		lineageTag: fb3b799b-9b11-40f2-bfc7-3b57cfe98e07
+
+	measure 'N Alerta' =
+			VAR UltimoPorId = ADDCOLUMNS(VALUES(Fact_Cierres[Id]), "@Fecha", CALCULATE(MAX(Fact_Cierres[Fecha])))
+			RETURN SUMX(UltimoPorId, VAR _id = Fact_Cierres[Id] VAR _f = [@Fecha] VAR _cat = CALCULATE(SELECTEDVALUE(Fact_Cierres[Categoria]), Fact_Cierres[Id] = _id, Fact_Cierres[Fecha] = _f) RETURN IF(_cat = "Alerta", 1, 0))
+		formatString: #,0
+		displayFolder: Resumen General
+		lineageTag: ac591ecf-528c-4249-8e3e-40b17c91e00d
+
+	measure 'N Cumplimiento' =
+			VAR UltimoPorId = ADDCOLUMNS(VALUES(Fact_Cierres[Id]), "@Fecha", CALCULATE(MAX(Fact_Cierres[Fecha])))
+			RETURN SUMX(UltimoPorId, VAR _id = Fact_Cierres[Id] VAR _f = [@Fecha] VAR _cat = CALCULATE(SELECTEDVALUE(Fact_Cierres[Categoria]), Fact_Cierres[Id] = _id, Fact_Cierres[Fecha] = _f) RETURN IF(_cat = "Cumplimiento", 1, 0))
+		formatString: #,0
+		displayFolder: Resumen General
+		lineageTag: 03dcba6b-48ce-40c7-a3f2-86d7ac599976
+
+	measure 'N Sobrecumplimiento' =
+			VAR UltimoPorId = ADDCOLUMNS(VALUES(Fact_Cierres[Id]), "@Fecha", CALCULATE(MAX(Fact_Cierres[Fecha])))
+			RETURN SUMX(UltimoPorId, VAR _id = Fact_Cierres[Id] VAR _f = [@Fecha] VAR _cat = CALCULATE(SELECTEDVALUE(Fact_Cierres[Categoria]), Fact_Cierres[Id] = _id, Fact_Cierres[Fecha] = _f) RETURN IF(_cat = "Sobrecumplimiento", 1, 0))
+		formatString: #,0
+		displayFolder: Resumen General
+		lineageTag: 51e762fd-9f1e-4801-8686-a189e80911f5
+
+	measure '% Peligro' = DIVIDE([N Peligro], [Indicadores Evaluados])
+		formatString: 0.0%
+		displayFolder: Resumen General
+		lineageTag: 816482c7-3e12-4ab4-8b3a-c3128a3aad7f
+
+	measure '% Alerta' = DIVIDE([N Alerta], [Indicadores Evaluados])
+		formatString: 0.0%
+		displayFolder: Resumen General
+		lineageTag: e3059022-11d1-48bd-be6b-29d5974254a8
+
+	measure '% Cumplimiento' = DIVIDE([N Cumplimiento], [Indicadores Evaluados])
+		formatString: 0.0%
+		displayFolder: Resumen General
+		lineageTag: ede08536-d609-403f-852d-ebfebd826ffe
+
+	measure '% Sobrecumplimiento' = DIVIDE([N Sobrecumplimiento], [Indicadores Evaluados])
+		formatString: 0.0%
+		displayFolder: Resumen General
+		lineageTag: 7ea93a82-03ea-49f7-a145-2d956a17b8f5
+
+	measure 'Indicadores Evaluados (Estrategicos)' = CALCULATE([Indicadores Evaluados], Dim_Catalogo[Indicadores_Plan_Estrategico] = 1, Dim_Catalogo[Proyecto] <> 1)
+		formatString: #,0
+		displayFolder: CMI
+		lineageTag: c566b6ac-9112-4d9b-ae71-7c7dd8a609f5
+
+	measure 'Cumplimiento Global % (Estrategicos)' = CALCULATE([Cumplimiento Global %], Dim_Catalogo[Indicadores_Plan_Estrategico] = 1, Dim_Catalogo[Proyecto] <> 1)
+		formatString: 0.0%
+		displayFolder: CMI
+		lineageTag: b870ee9c-ba48-4e40-9000-42570c673636
+
+	measure 'Indicadores Evaluados (Proyectos)' = CALCULATE([Indicadores Evaluados], Dim_Catalogo[Proyecto] = 1)
+		formatString: #,0
+		displayFolder: CMI
+		lineageTag: a88009fb-f588-457b-a768-d537e01b1a76
+
+	measure 'Cumplimiento Global % (Proyectos)' = CALCULATE([Cumplimiento Global %], Dim_Catalogo[Proyecto] = 1)
+		formatString: 0.0%
+		displayFolder: CMI
+		lineageTag: ef400175-eee4-4726-93f1-d05433c32346
+
+	measure 'Indicadores Evaluados (Procesos)' = CALCULATE([Indicadores Evaluados], Dim_Catalogo[Subprocesos] = 1)
+		formatString: #,0
+		displayFolder: CMI
+		lineageTag: deeae2af-4fd3-419b-b948-b77980f9cbe8
+
+	measure 'Cumplimiento Global % (Procesos)' = CALCULATE([Cumplimiento Global %], Dim_Catalogo[Subprocesos] = 1)
+		formatString: 0.0%
+		displayFolder: CMI
+		lineageTag: cb5ef848-f433-4672-86cb-1d2be7d54b16
+
+	measure 'PM Indicadores Activos' = CALCULATE(COUNTROWS(Fact_PlanMejoramiento), Fact_PlanMejoramiento[Estado_final] = "Activo")
+		formatString: #,0
+		displayFolder: Plan de Mejoramiento
+		lineageTag: 438ea5a0-8cfa-4eeb-b7b5-cd63e6bc91ca
+
+	measure 'PM Cumplimiento Global 2026 %' = AVERAGEX(FILTER(Fact_PlanMejoramiento, NOT ISBLANK(Fact_PlanMejoramiento[Cump_calc_2026])), Fact_PlanMejoramiento[Cump_calc_2026])
+		formatString: 0.0%
+		displayFolder: Plan de Mejoramiento
+		lineageTag: c0644e20-94b7-4093-899d-e81002d66e6f
+
+	measure 'PM Cumplimiento Global 2025 %' = AVERAGEX(FILTER(Fact_PlanMejoramiento, NOT ISBLANK(Fact_PlanMejoramiento[Cump_calc_2025])), Fact_PlanMejoramiento[Cump_calc_2025])
+		formatString: 0.0%
+		displayFolder: Plan de Mejoramiento
+		lineageTag: bc1b6a92-6441-44ac-a3a8-d6898e5cd420
+
+	measure 'PM N Peligro 2026' = CALCULATE(COUNTROWS(Fact_PlanMejoramiento), Fact_PlanMejoramiento[Categoria_2026] = "Peligro")
+		formatString: #,0
+		displayFolder: Plan de Mejoramiento
+		lineageTag: 0a22860b-9278-4888-a896-e487b68c62bc
+
+	measure 'PM N Alerta 2026' = CALCULATE(COUNTROWS(Fact_PlanMejoramiento), Fact_PlanMejoramiento[Categoria_2026] = "Alerta")
+		formatString: #,0
+		displayFolder: Plan de Mejoramiento
+		lineageTag: c470f469-ab61-487d-8f58-7b7cf7d0857e
+
+	measure 'PM N Cumplimiento 2026' = CALCULATE(COUNTROWS(Fact_PlanMejoramiento), Fact_PlanMejoramiento[Categoria_2026] = "Cumplimiento")
+		formatString: #,0
+		displayFolder: Plan de Mejoramiento
+		lineageTag: 2e6d8565-271e-4220-b0fe-e472eed17f0c
+
+	measure 'PM N Sobrecumplimiento 2026' = CALCULATE(COUNTROWS(Fact_PlanMejoramiento), Fact_PlanMejoramiento[Categoria_2026] = "Sobrecumplimiento")
+		formatString: #,0
+		displayFolder: Plan de Mejoramiento
+		lineageTag: 80c55020-4bd5-46ad-b2eb-6b6939414601
+
+	measure 'PM Meta 2030 Promedio' = AVERAGEX(FILTER(Fact_PlanMejoramiento, NOT ISBLANK(Fact_PlanMejoramiento[Meta_2030])), Fact_PlanMejoramiento[Meta_2030])
+		formatString: 0.0%
+		displayFolder: Plan de Mejoramiento
+		lineageTag: 2aa11a9c-1273-4664-a5e6-fefe408a0b16
+
+	measure 'CNA Cumplimiento Promedio' =
+			VAR SinMeta = COUNTROWS(FILTER(Fact_CNA_Metricas, NOT ISBLANK(Fact_CNA_Metricas[Meta])))
+			RETURN IF(SinMeta = 0, BLANK(), AVERAGE(Fact_CNA_Metricas[Cumplimiento_calc]))
+		formatString: 0.0%
+		displayFolder: CNA Metricas
+		lineageTag: dfd38564-5f80-4789-88f1-017c9b984be3
+
+	measure 'CNA Registros con Dato' = COUNTROWS(FILTER(Fact_CNA_Metricas, NOT ISBLANK(Fact_CNA_Metricas[Cumplimiento_calc])))
+		formatString: #,0
+		displayFolder: CNA Metricas
+		lineageTag: 88afe22f-f005-4a58-94b3-630dbe055596
+
+	measure 'Retos Cumplimiento Promedio (Linea)' = AVERAGE(Dim_Retos_Linea[Cumplimiento])
+		formatString: 0.0%
+		displayFolder: Retos
+		lineageTag: 745cbd22-b573-45bd-8847-f7fd6dab6bf3
+
+	measure 'Retos Cumplimiento Promedio (Objetivo)' = AVERAGE(Dim_Retos_Objetivo[Cumplimiento])
+		formatString: 0.0%
+		displayFolder: Retos
+		lineageTag: 8b8e6002-e136-4976-a72a-0a5b3e47653e
+
+	measure 'Retos Cumplimiento Promedio (Areas)' = AVERAGE(Dim_Retos_Areas[Cumplimiento])
+		formatString: 0.0%
+		displayFolder: Retos
+		lineageTag: fa2bef90-a7ad-4cfb-9391-7762b8ea5975
+
+	measure 'CNA Ejecucion Promedio' = AVERAGE(Fact_CNA_Metricas[Ejecucion])
+		formatString: #,##0.00
+		displayFolder: CNA Metricas
+		lineageTag: e25a581e-d30c-4d21-ac8e-088023a0f846
+
+	measure 'CNA Total Registros' = COUNTROWS(Fact_CNA_Metricas)
+		formatString: #,0
+		displayFolder: CNA Metricas
+		lineageTag: 2fac8cfb-a1df-4eb8-b178-796128fcc1d1
+
+	measure 'Cumplimiento Calidad %' = CALCULATE([Cumplimiento Global %], Dim_Catalogo[Linea_Estrategica] = "Calidad")
+		formatString: 0.0%
+		displayFolder: Resumen General\Por Línea
+		lineageTag: 1df7dff1-ee03-4ee6-8f3c-5dc3ebbedbb4
+
+	measure 'Indicadores Calidad' = CALCULATE([Indicadores Evaluados], Dim_Catalogo[Linea_Estrategica] = "Calidad")
+		formatString: 0
+		displayFolder: Resumen General\Por Línea
+		lineageTag: 5810ddb5-b441-4c7f-bee9-8bdb140392fe
+
+	measure 'Cumplimiento Expansión %' = CALCULATE([Cumplimiento Global %], Dim_Catalogo[Linea_Estrategica] = "Expansión")
+		formatString: 0.0%
+		displayFolder: Resumen General\Por Línea
+		lineageTag: cae748ff-9fe2-4414-b195-b088c7b19058
+
+	measure 'Indicadores Expansión' = CALCULATE([Indicadores Evaluados], Dim_Catalogo[Linea_Estrategica] = "Expansión")
+		formatString: 0
+		displayFolder: Resumen General\Por Línea
+		lineageTag: 6edacf73-780e-4857-bfbd-dd90fa6157be
+
+	measure 'Cumplimiento Educación %' = CALCULATE([Cumplimiento Global %], Dim_Catalogo[Linea_Estrategica] = "Educación_para_toda_la_vida")
+		formatString: 0.0%
+		displayFolder: Resumen General\Por Línea
+		lineageTag: b61bc467-317e-4a5b-9d7f-5f1c3554a0a7
+
+	measure 'Indicadores Educación' = CALCULATE([Indicadores Evaluados], Dim_Catalogo[Linea_Estrategica] = "Educación_para_toda_la_vida")
+		formatString: 0
+		displayFolder: Resumen General\Por Línea
+		lineageTag: fd6e0382-f78b-450f-a616-cbef264ae113
+
+	measure 'Cumplimiento Experiencia %' = CALCULATE([Cumplimiento Global %], Dim_Catalogo[Linea_Estrategica] = "Experiencia")
+		formatString: 0.0%
+		displayFolder: Resumen General\Por Línea
+		lineageTag: 6ed54a94-6019-4907-85b9-e11966b7783e
+
+	measure 'Indicadores Experiencia' = CALCULATE([Indicadores Evaluados], Dim_Catalogo[Linea_Estrategica] = "Experiencia")
+		formatString: 0
+		displayFolder: Resumen General\Por Línea
+		lineageTag: aaf2e84a-5dd3-4538-8f9f-4967a54f6369
+
+	measure 'Cumplimiento Transformación %' = CALCULATE([Cumplimiento Global %], Dim_Catalogo[Linea_Estrategica] = "Transformación_Organizacional")
+		formatString: 0.0%
+		displayFolder: Resumen General\Por Línea
+		lineageTag: a310c227-40d8-4e86-9256-cd600c6962ea
+
+	measure 'Indicadores Transformación' = CALCULATE([Indicadores Evaluados], Dim_Catalogo[Linea_Estrategica] = "Transformación_Organizacional")
+		formatString: 0
+		displayFolder: Resumen General\Por Línea
+		lineageTag: c8f2825b-5457-47d4-8b4f-e0542e62f838
+
+	measure 'Cumplimiento Sostenibilidad %' = CALCULATE([Cumplimiento Global %], Dim_Catalogo[Linea_Estrategica] = "Sostenibilidad")
+		formatString: 0.0%
+		displayFolder: Resumen General\Por Línea
+		lineageTag: c15b5c73-48aa-4ce6-904f-1051b15f13b7
+
+	measure 'Indicadores Sostenibilidad' = CALCULATE([Indicadores Evaluados], Dim_Catalogo[Linea_Estrategica] = "Sostenibilidad")
+		formatString: 0
+		displayFolder: Resumen General\Por Línea
+		lineageTag: cf5e8210-9b2e-4e40-a1cd-0901d8131c6b
+
+	measure 'Meta (último)' =
+			VAR UltimoPorId = ADDCOLUMNS(VALUES(Fact_Cierres[Id]), "@Fecha", CALCULATE(MAX(Fact_Cierres[Fecha])))
+			RETURN SUMX(UltimoPorId, VAR _id = Fact_Cierres[Id] VAR _f = [@Fecha] RETURN CALCULATE(SELECTEDVALUE(Fact_Cierres[Meta]), Fact_Cierres[Id] = _id, Fact_Cierres[Fecha] = _f))
+		formatString: #,0.00
+		displayFolder: Resumen General\Detalle
+		lineageTag: 2771f5f6-4c2d-4688-a618-01fa472410ca
+
+	measure 'Ejecucion (último)' =
+			VAR UltimoPorId = ADDCOLUMNS(VALUES(Fact_Cierres[Id]), "@Fecha", CALCULATE(MAX(Fact_Cierres[Fecha])))
+			RETURN SUMX(UltimoPorId, VAR _id = Fact_Cierres[Id] VAR _f = [@Fecha] RETURN CALCULATE(SELECTEDVALUE(Fact_Cierres[Ejecucion]), Fact_Cierres[Id] = _id, Fact_Cierres[Fecha] = _f))
+		formatString: #,0.00
+		displayFolder: Resumen General\Detalle
+		lineageTag: a0700264-2950-49ff-8e19-8b352bc75152
+
+	measure 'Cumplimiento (último)' =
+			VAR UltimoPorId = ADDCOLUMNS(VALUES(Fact_Cierres[Id]), "@Fecha", CALCULATE(MAX(Fact_Cierres[Fecha])))
+			RETURN SUMX(UltimoPorId, VAR _id = Fact_Cierres[Id] VAR _f = [@Fecha] RETURN CALCULATE(SELECTEDVALUE(Fact_Cierres[Cumplimiento_norm]), Fact_Cierres[Id] = _id, Fact_Cierres[Fecha] = _f))
+		formatString: 0.0%
+		displayFolder: Resumen General\Detalle
+		lineageTag: ad2703b0-a2c4-4bff-951b-11d8efbe0dde
+
+	measure 'Categoria (último)' =
+			VAR UltimoPorId = ADDCOLUMNS(VALUES(Fact_Cierres[Id]), "@Fecha", CALCULATE(MAX(Fact_Cierres[Fecha])))
+			RETURN MAXX(UltimoPorId, VAR _id = Fact_Cierres[Id] VAR _f = [@Fecha] RETURN CALCULATE(SELECTEDVALUE(Fact_Cierres[Categoria]), Fact_Cierres[Id] = _id, Fact_Cierres[Fecha] = _f))
+		displayFolder: Resumen General\Detalle
+		lineageTag: cc37af94-39ae-45ff-a083-38ef91b69381
+
+	measure 'V Total' = IF(SELECTEDVALUE(Vista[Vista],"Indicadores")="Proyectos", CALCULATE([Indicadores Evaluados], Dim_Catalogo[Proyecto]=1), [Indicadores Evaluados])
+		formatString: #,0
+		displayFolder: Resumen General\Vista
+		lineageTag: 20e38f8e-21c5-441d-a385-5455cb90bd5a
+
+	measure 'V Sobrecumplimiento' =
+			VAR EsProyectos = SELECTEDVALUE(Vista[Vista],"Indicadores")="Proyectos"
+			VAR IdsProyecto = CALCULATETABLE(VALUES(Fact_Cierres[Id]), Dim_Catalogo[Proyecto]=1)
+			VAR UltimoPorId = ADDCOLUMNS(IdsProyecto, "@Fecha", CALCULATE(MAX(Fact_Cierres[Fecha])))
+			VAR ResultadoProyectos = SUMX(UltimoPorId, VAR _id=Fact_Cierres[Id] VAR _f=[@Fecha] VAR _c=CALCULATE(SELECTEDVALUE(Fact_Cierres[Cumplimiento_norm]), Fact_Cierres[Id]=_id, Fact_Cierres[Fecha]=_f) RETURN IF(NOT ISBLANK(_c) && _c>=1, 1, 0))
+			RETURN IF(EsProyectos, ResultadoProyectos, [N Sobrecumplimiento])
+		formatString: #,0
+		displayFolder: Resumen General\Vista
+		lineageTag: f44c6c1f-b260-4ef6-bce8-eebec1c0e674
+
+	measure 'V Cumplimiento' =
+			VAR EsProyectos = SELECTEDVALUE(Vista[Vista],"Indicadores")="Proyectos"
+			VAR IdsProyecto = CALCULATETABLE(VALUES(Fact_Cierres[Id]), Dim_Catalogo[Proyecto]=1)
+			VAR UltimoPorId = ADDCOLUMNS(IdsProyecto, "@Fecha", CALCULATE(MAX(Fact_Cierres[Fecha])))
+			VAR ResultadoProyectos = SUMX(UltimoPorId, VAR _id=Fact_Cierres[Id] VAR _f=[@Fecha] VAR _c=CALCULATE(SELECTEDVALUE(Fact_Cierres[Cumplimiento_norm]), Fact_Cierres[Id]=_id, Fact_Cierres[Fecha]=_f) RETURN IF(NOT ISBLANK(_c) && _c>0 && _c<1, 1, 0))
+			RETURN IF(EsProyectos, ResultadoProyectos, [N Cumplimiento])
+		formatString: #,0
+		displayFolder: Resumen General\Vista
+		lineageTag: 1212ad80-608c-4a6f-8089-16889f57b63f
+
+	measure 'V Alerta' =
+			VAR EsProyectos = SELECTEDVALUE(Vista[Vista],"Indicadores")="Proyectos"
+			VAR IdsProyecto = CALCULATETABLE(VALUES(Fact_Cierres[Id]), Dim_Catalogo[Proyecto]=1)
+			VAR UltimoPorId = ADDCOLUMNS(IdsProyecto, "@Fecha", CALCULATE(MAX(Fact_Cierres[Fecha])))
+			VAR ResultadoProyectos = SUMX(UltimoPorId, VAR _id=Fact_Cierres[Id] VAR _f=[@Fecha] VAR _c=CALCULATE(SELECTEDVALUE(Fact_Cierres[Cumplimiento_norm]), Fact_Cierres[Id]=_id, Fact_Cierres[Fecha]=_f) RETURN IF(ISBLANK(_c) || _c=0, 1, 0))
+			RETURN IF(EsProyectos, ResultadoProyectos, [N Alerta])
+		formatString: #,0
+		displayFolder: Resumen General\Vista
+		lineageTag: f5726c66-d739-414c-802c-6f791e2bc448
+
+	measure 'V Peligro' = IF(SELECTEDVALUE(Vista[Vista],"Indicadores")="Proyectos", BLANK(), [N Peligro])
+		formatString: #,0
+		displayFolder: Resumen General\Vista
+		lineageTag: 3da3311f-8bbb-4cdf-a68e-14d0c63bdedc
+
+	measure 'V Cumplimiento Calidad %' = IF(SELECTEDVALUE(Vista[Vista],"Indicadores")="Proyectos", CALCULATE([Cumplimiento Global %], Dim_Catalogo[Linea_Estrategica]="Calidad", Dim_Catalogo[Proyecto]=1), [Cumplimiento Calidad %])
+		formatString: 0.0%
+		displayFolder: Resumen General\Vista
+		lineageTag: 567a22cf-ed78-414e-9fe8-0e976db0f3f6
+
+	measure 'V Indicadores Calidad' = IF(SELECTEDVALUE(Vista[Vista],"Indicadores")="Proyectos", CALCULATE([Indicadores Evaluados], Dim_Catalogo[Linea_Estrategica]="Calidad", Dim_Catalogo[Proyecto]=1), [Indicadores Calidad])
+		formatString: #,0
+		displayFolder: Resumen General\Vista
+		lineageTag: cacff29b-d2e7-41a5-a0dc-9ce1a418db99
+
+	measure 'V Cumplimiento Expansión %' = IF(SELECTEDVALUE(Vista[Vista],"Indicadores")="Proyectos", CALCULATE([Cumplimiento Global %], Dim_Catalogo[Linea_Estrategica]="Expansión", Dim_Catalogo[Proyecto]=1), [Cumplimiento Expansión %])
+		formatString: 0.0%
+		displayFolder: Resumen General\Vista
+		lineageTag: 3c7b66ca-7823-408d-9c11-6d9713a94514
+
+	measure 'V Indicadores Expansión' = IF(SELECTEDVALUE(Vista[Vista],"Indicadores")="Proyectos", CALCULATE([Indicadores Evaluados], Dim_Catalogo[Linea_Estrategica]="Expansión", Dim_Catalogo[Proyecto]=1), [Indicadores Expansión])
+		formatString: #,0
+		displayFolder: Resumen General\Vista
+		lineageTag: b5d4ad4c-38be-4dd7-80b9-b618cc9da9b3
+
+	measure 'V Cumplimiento Educación %' = IF(SELECTEDVALUE(Vista[Vista],"Indicadores")="Proyectos", CALCULATE([Cumplimiento Global %], Dim_Catalogo[Linea_Estrategica]="Educación_para_toda_la_vida", Dim_Catalogo[Proyecto]=1), [Cumplimiento Educación %])
+		formatString: 0.0%
+		displayFolder: Resumen General\Vista
+		lineageTag: f28d2c8f-5144-4050-a486-f81767b51b5d
+
+	measure 'V Indicadores Educación' = IF(SELECTEDVALUE(Vista[Vista],"Indicadores")="Proyectos", CALCULATE([Indicadores Evaluados], Dim_Catalogo[Linea_Estrategica]="Educación_para_toda_la_vida", Dim_Catalogo[Proyecto]=1), [Indicadores Educación])
+		formatString: #,0
+		displayFolder: Resumen General\Vista
+		lineageTag: dee4136c-148f-4a31-b0c5-e11047ffef3b
+
+	measure 'V Cumplimiento Experiencia %' = IF(SELECTEDVALUE(Vista[Vista],"Indicadores")="Proyectos", CALCULATE([Cumplimiento Global %], Dim_Catalogo[Linea_Estrategica]="Experiencia", Dim_Catalogo[Proyecto]=1), [Cumplimiento Experiencia %])
+		formatString: 0.0%
+		displayFolder: Resumen General\Vista
+		lineageTag: 1f6c1e63-a5e7-4546-99db-47f1b091035c
+
+	measure 'V Indicadores Experiencia' = IF(SELECTEDVALUE(Vista[Vista],"Indicadores")="Proyectos", CALCULATE([Indicadores Evaluados], Dim_Catalogo[Linea_Estrategica]="Experiencia", Dim_Catalogo[Proyecto]=1), [Indicadores Experiencia])
+		formatString: #,0
+		displayFolder: Resumen General\Vista
+		lineageTag: f1d604ba-8993-4ed0-a9d5-0906e9c0ec0f
+
+	measure 'V Cumplimiento Transformación %' = IF(SELECTEDVALUE(Vista[Vista],"Indicadores")="Proyectos", CALCULATE([Cumplimiento Global %], Dim_Catalogo[Linea_Estrategica]="Transformación_Organizacional", Dim_Catalogo[Proyecto]=1), [Cumplimiento Transformación %])
+		formatString: 0.0%
+		displayFolder: Resumen General\Vista
+		lineageTag: 5813a509-20dd-4355-b09e-f59c18bd755a
+
+	measure 'V Indicadores Transformación' = IF(SELECTEDVALUE(Vista[Vista],"Indicadores")="Proyectos", CALCULATE([Indicadores Evaluados], Dim_Catalogo[Linea_Estrategica]="Transformación_Organizacional", Dim_Catalogo[Proyecto]=1), [Indicadores Transformación])
+		formatString: #,0
+		displayFolder: Resumen General\Vista
+		lineageTag: f82e0933-c806-4a6f-8afd-f997568b821a
+
+	measure 'V Cumplimiento Sostenibilidad %' = IF(SELECTEDVALUE(Vista[Vista],"Indicadores")="Proyectos", CALCULATE([Cumplimiento Global %], Dim_Catalogo[Linea_Estrategica]="Sostenibilidad", Dim_Catalogo[Proyecto]=1), [Cumplimiento Sostenibilidad %])
+		formatString: 0.0%
+		displayFolder: Resumen General\Vista
+		lineageTag: 5e577c44-72e2-4a12-884a-a5b79b221f90
+
+	measure 'V Indicadores Sostenibilidad' = IF(SELECTEDVALUE(Vista[Vista],"Indicadores")="Proyectos", CALCULATE([Indicadores Evaluados], Dim_Catalogo[Linea_Estrategica]="Sostenibilidad", Dim_Catalogo[Proyecto]=1), [Indicadores Sostenibilidad])
+		formatString: #,0
+		displayFolder: Resumen General\Vista
+		lineageTag: a6597893-2aba-403a-91c8-371aea006bb0
+
+	column Medidas
+		dataType: int64
+		isHidden
+		lineageTag: 43c1457f-95da-4320-ad28-86098d9c1c76
+		sourceColumn: Medidas
+
+	partition _Medidas = m
+		mode: import
+		source =
+				let
+				    Origen = #table({"Medidas"}, {{1}})
+				in
+				    Origen
+

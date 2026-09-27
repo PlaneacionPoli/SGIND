@@ -1,0 +1,40 @@
+table Dim_Retos_Areas
+	lineageTag: 6cfb2fc3-45d2-4fec-a5c3-435d7b89828c
+
+	column Año
+		dataType: int64
+		lineageTag: 87e19360-b361-4274-9754-7a85d8ab2bca
+		sourceColumn: Año
+
+	column N
+		dataType: int64
+		lineageTag: d66b38c9-2295-4de2-8ac5-89d1f9c8bb2a
+		sourceColumn: N°
+
+	column Meta
+		dataType: double
+		lineageTag: 58dc6f60-51f1-40f8-bde9-0bfdadaac1c2
+		sourceColumn: Meta
+
+	column Ejecucion
+		dataType: double
+		lineageTag: 957ba7da-9834-4802-b5fd-e72da08b0936
+		sourceColumn: Ejecución
+
+	column Cumplimiento
+		dataType: double
+		formatString: 0.0%
+		lineageTag: d635a979-7297-4339-bdde-e2de92b625a0
+		sourceColumn: Cumplimiento
+
+	partition Dim_Retos_Areas = m
+		mode: import
+		source =
+				let
+				    Origen = Excel.Workbook(File.Contents(RutaBase & "\raw\Retos\Plan de retos.xlsx"), null, true),
+				    Hoja = Origen{[Item="Areas",Kind="Sheet"]}[Data],
+				    Promovidos = Table.PromoteHeaders(Hoja, [PromoteAllScalars=true]),
+				    Tipos = Table.TransformColumnTypes(Promovidos,{{"Año", Int64.Type},{"N°", Int64.Type},{"Meta", type number},{"Ejecución", type number},{"Cumplimiento", type number}})
+				in
+				    Tipos
+

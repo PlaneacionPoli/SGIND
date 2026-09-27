@@ -1,0 +1,164 @@
+table Fact_PlanMejoramiento
+	lineageTag: 532e8ee8-1254-4e66-ade6-bcad803917a8
+
+	column IdPlan
+		dataType: int64
+		isKey
+		lineageTag: 3878a818-43bf-4562-8f85-76c508bf86be
+		sourceColumn: IdPlan
+
+	column Factor
+		dataType: string
+		lineageTag: 621e8d1b-1355-4e8e-92c5-b54352b5f4c9
+		sourceColumn: Factor
+
+	column Caracteristica
+		dataType: string
+		lineageTag: 7ff252a9-f8f4-4e92-9fe7-5a1139557bd8
+		sourceColumn: Caracteristica
+
+	column Indicador
+		dataType: string
+		lineageTag: f0e01bee-45dd-49e7-bdd9-402f9fe7d80e
+		sourceColumn: Indicador
+
+	column Tipo
+		dataType: string
+		lineageTag: ca00863a-613c-41ef-a87f-dab7311c8df0
+		sourceColumn: Tipo
+
+	column Estado_Aprobacion
+		dataType: string
+		lineageTag: 16e0aa2b-fb48-4657-8567-91110a2c28de
+		sourceColumn: Estado_Aprobacion
+
+	column Periodicidad
+		dataType: string
+		lineageTag: e3916f62-e9df-4c5b-bd50-55aca61d7ceb
+		sourceColumn: Periodicidad
+
+	column Signo
+		dataType: string
+		lineageTag: 8da5cbe2-2146-452e-b50f-8504e8592114
+		sourceColumn: Signo
+
+	column Decimales
+		dataType: int64
+		lineageTag: 64ab0272-ee2b-48d3-90f8-4fad8a1c104c
+		sourceColumn: Decimales
+
+	column Decimales_Cump
+		dataType: int64
+		lineageTag: 2de2f316-5d46-4ce3-b5b0-6a18fe3813d7
+		sourceColumn: Decimales_Cump
+
+	column Meta_2025
+		dataType: double
+		lineageTag: 75ae089c-3365-4caa-8051-b55afdc88ce8
+		sourceColumn: Meta_2025_final
+
+	column Ejecucion_2025
+		dataType: double
+		lineageTag: b3408f90-b5cc-442d-8c4b-196995d34481
+		sourceColumn: Ejecucion_2025
+
+	column Meta_2026
+		dataType: double
+		lineageTag: 99776b17-1af6-4350-b55e-6bf8e9a92d5a
+		sourceColumn: Meta_2026_final
+
+	column Ejecucion_2026
+		dataType: double
+		lineageTag: dcd75ce8-9f7e-4b96-9b0a-845fdae955c2
+		sourceColumn: Ejecucion_2026
+
+	column Meta_2027
+		dataType: double
+		lineageTag: 5e568cac-782e-4d1c-9e3d-22c673a221f8
+		sourceColumn: Meta_2027
+
+	column Meta_2028
+		dataType: double
+		lineageTag: 2d66ed04-8bea-4adc-afb4-b512eabb1cab
+		sourceColumn: Meta_2028
+
+	column Meta_2029
+		dataType: double
+		lineageTag: d944199d-b5c4-45bb-83a8-2575c4135dbb
+		sourceColumn: Meta_2029
+
+	column Meta_2030
+		dataType: double
+		lineageTag: ee949f2b-22f4-49d7-9f12-62b4dc06042f
+		sourceColumn: Meta_2030
+
+	column Cump_calc_2025 =
+			VAR M = Fact_PlanMejoramiento[Meta_2025]
+			VAR E = Fact_PlanMejoramiento[Ejecucion_2025]
+			RETURN IF(ISBLANK(M) || M = 0 || ISBLANK(E), BLANK(), MIN(MAX(DIVIDE(E, M), 0), 1.3))
+		dataType: double
+		formatString: 0.0%
+		lineageTag: 339fd901-41c3-4b54-a783-3f45bc100113
+
+	column Cump_calc_2026 =
+			VAR M = Fact_PlanMejoramiento[Meta_2026]
+			VAR E = Fact_PlanMejoramiento[Ejecucion_2026]
+			RETURN IF(ISBLANK(M) || M = 0 || ISBLANK(E), BLANK(), MIN(MAX(DIVIDE(E, M), 0), 1.3))
+		dataType: double
+		formatString: 0.0%
+		lineageTag: 49f36566-9a9c-41d9-8202-76f90ee7cebd
+
+	column Categoria_2025 =
+			VAR C = Fact_PlanMejoramiento[Cump_calc_2025]
+			RETURN IF(ISBLANK(C), "Sin dato", SWITCH(TRUE(), C < 0.8, "Peligro", C < 1.0, "Alerta", C < 1.05, "Cumplimiento", "Sobrecumplimiento"))
+		dataType: string
+		lineageTag: 8c70e684-6706-4cfc-b183-00e1e04b40be
+
+	column Categoria_2026 =
+			VAR C = Fact_PlanMejoramiento[Cump_calc_2026]
+			RETURN IF(ISBLANK(C), "Sin dato", SWITCH(TRUE(), C < 0.8, "Peligro", C < 1.0, "Alerta", C < 1.05, "Cumplimiento", "Sobrecumplimiento"))
+		dataType: string
+		lineageTag: 5d3e266d-227c-49aa-9715-272552c2c0dc
+
+	column Estado_final =
+			VAR Aprob = TRIM(COALESCE(Fact_PlanMejoramiento[Estado_Aprobacion], ""))
+			VAR Tipo = TRIM(COALESCE(Fact_PlanMejoramiento[Tipo], ""))
+			VAR TieneMedicion = NOT ISBLANK(Fact_PlanMejoramiento[Meta_2025]) || NOT ISBLANK(Fact_PlanMejoramiento[Ejecucion_2025]) || NOT ISBLANK(Fact_PlanMejoramiento[Meta_2026]) || NOT ISBLANK(Fact_PlanMejoramiento[Ejecucion_2026])
+			RETURN
+			IF(Aprob = "Aprobado" && Tipo = "Indicador" && TieneMedicion, "Activo", IF(Aprob = "Aprobado", "Aprobado", "Pendiente"))
+		dataType: string
+		lineageTag: 31ba85e8-c544-49c2-8263-5f7f2fedaa81
+
+	partition Fact_PlanMejoramiento = m
+		mode: import
+		source =
+				let
+				    Origen = Excel.Workbook(File.Contents(RutaBase & "\raw\Plan de mejoramiento\Indicadores Plan de Mejoramiento.xlsx"), null, true),
+				    HojaPlan = Origen{[Item="Indicadores Plan de Mejor",Kind="Sheet"]}[Data],
+				    SinFilaExtra = Table.Skip(HojaPlan, 1),
+				    PromPlan = Table.PromoteHeaders(SinFilaExtra, [PromoteAllScalars=true]),
+				    NombresPlan = Table.ColumnNames(PromPlan),
+				    RenPlan = Table.RenameColumns(PromPlan, {{NombresPlan{0}, "Factor"}, {NombresPlan{1}, "Caracteristica"}, {NombresPlan{2}, "Accion_Mejora"}, {NombresPlan{3}, "Indicador"}, {NombresPlan{4}, "Id_Kawak"}, {NombresPlan{5}, "Tipo"}, {NombresPlan{6}, "Observacion"}, {NombresPlan{7}, "Estado_raw"}, {NombresPlan{8}, "Estado_Aprobacion"}, {NombresPlan{9}, "Formula"}, {NombresPlan{10}, "Fuente"}, {NombresPlan{11}, "Responsable"}, {NombresPlan{12}, "Periodicidad"}, {NombresPlan{13}, "MetaFutura_2025"}, {NombresPlan{14}, "MetaFutura_2026"}, {NombresPlan{15}, "Meta_2027"}, {NombresPlan{16}, "Meta_2028"}, {NombresPlan{17}, "Meta_2029"}, {NombresPlan{18}, "Meta_2030"}}),
+				    HojaReal = Origen{[Item="Indicadores Real",Kind="Sheet"]}[Data],
+				    SinFilaExtraR = Table.Skip(HojaReal, 1),
+				    PromReal = Table.PromoteHeaders(SinFilaExtraR, [PromoteAllScalars=true]),
+				    NombresReal = Table.ColumnNames(PromReal),
+				    RenReal = Table.RenameColumns(PromReal, {{NombresReal{0}, "Factor"}, {NombresReal{3}, "Indicador"}, {NombresReal{13}, "Meta_2025"}, {NombresReal{14}, "Ejecucion_2025"}, {NombresReal{15}, "Cump_2025"}, {NombresReal{16}, "Meta_2026"}, {NombresReal{17}, "Ejecucion_2026"}, {NombresReal{18}, "Cump_2026"}}),
+				    RealSel = Table.SelectColumns(RenReal, {"Factor","Indicador","Meta_2025","Ejecucion_2025","Cump_2025","Meta_2026","Ejecucion_2026","Cump_2026"}),
+				    Combinado = Table.NestedJoin(RenPlan, {"Factor","Indicador"}, RealSel, {"Factor","Indicador"}, "Real", JoinKind.LeftOuter),
+				    Expandido = Table.ExpandTableColumn(Combinado, "Real", {"Meta_2025","Ejecucion_2025","Cump_2025","Meta_2026","Ejecucion_2026","Cump_2026"}),
+				    OrigenCat = Excel.Workbook(File.Contents(RutaBase & "\raw\Plan de mejoramiento\Catalogo_Indicadores_Plan_Mejoramiento.xlsx"), null, true),
+				    HojaCat = OrigenCat{[Item="Catalogo",Kind="Sheet"]}[Data],
+				    PromCat = Table.PromoteHeaders(HojaCat, [PromoteAllScalars=true]),
+				    CatSel = Table.SelectColumns(PromCat, {"Factor","Indicador","Signo","Decimales","Decimales_Cump"}),
+				    CatDist = Table.Distinct(CatSel, {"Factor","Indicador"}),
+				    ConCatalogo = Table.NestedJoin(Expandido, {"Factor","Indicador"}, CatDist, {"Factor","Indicador"}, "Cat", JoinKind.LeftOuter),
+				    ExpCat = Table.ExpandTableColumn(ConCatalogo, "Cat", {"Signo","Decimales","Decimales_Cump"}),
+				    ConMetaFinal2025 = Table.AddColumn(ExpCat, "Meta_2025_final", each if [Meta_2025] <> null then [Meta_2025] else [MetaFutura_2025], type number),
+				    ConMetaFinal2026 = Table.AddColumn(ConMetaFinal2025, "Meta_2026_final", each if [Meta_2026] <> null then [Meta_2026] else [MetaFutura_2026], type number),
+				    Limpio = Table.SelectColumns(ConMetaFinal2026, {"Factor","Caracteristica","Indicador","Tipo","Estado_Aprobacion","Periodicidad","Signo","Decimales","Decimales_Cump","Meta_2025_final","Ejecucion_2025","Meta_2026_final","Ejecucion_2026","Meta_2027","Meta_2028","Meta_2029","Meta_2030"}),
+				    TiposCol = Table.TransformColumnTypes(Limpio, {{"Factor", type text}, {"Caracteristica", type text}, {"Indicador", type text}, {"Tipo", type text}, {"Estado_Aprobacion", type text}, {"Periodicidad", type text}, {"Signo", type text}, {"Decimales", Int64.Type}, {"Decimales_Cump", Int64.Type}, {"Meta_2025_final", type number}, {"Ejecucion_2025", type number}, {"Meta_2026_final", type number}, {"Ejecucion_2026", type number}, {"Meta_2027", type number}, {"Meta_2028", type number}, {"Meta_2029", type number}, {"Meta_2030", type number}}),
+				    ConIndice = Table.AddIndexColumn(TiposCol, "IdPlan", 1, 1, Int64.Type)
+				in
+				    ConIndice
+

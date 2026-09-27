@@ -1156,13 +1156,19 @@ def build_proyectos_tabla(proy_df: pd.DataFrame) -> list[dict]:
 
 
 def build_retos_tabla(linea_df: pd.DataFrame) -> list[dict]:
+    """Una fila por línea; en el rango (varios años) es el promedio de sus años."""
     if linea_df.empty or "Linea" not in linea_df.columns:
         return []
+    promedios = (
+        linea_df.assign(cumplimiento_pct=pd.to_numeric(linea_df["cumplimiento_pct"], errors="coerce"))
+        .groupby("Linea", sort=False, dropna=False)["cumplimiento_pct"]
+        .mean()
+    )
     return [
         {
-            "linea": str(row["Linea"]),
-            "cumplimiento": round(float(row.get("cumplimiento_pct", 0) or 0), 1),
-            "nivel": _retos_category(row.get("cumplimiento_pct")),
+            "linea": str(linea),
+            "cumplimiento": round(float(pct), 1) if pd.notna(pct) else 0.0,
+            "nivel": _retos_category(pct),
         }
-        for _, row in linea_df.iterrows()
+        for linea, pct in promedios.items()
     ]
