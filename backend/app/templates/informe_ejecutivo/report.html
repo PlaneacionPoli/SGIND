@@ -7,21 +7,13 @@
 </head>
 <body>
 
-  <!-- ── Portada ───────────────────────────────────────────────────────── -->
-  <section class="page cover">
-    <div class="cover-diagonal"></div>
-    <div class="cover-diagonal-2"></div>
-    <div class="cover-top">
-      {% if logo_data_uri %}<img class="cover-logo" src="{{ logo_data_uri }}" alt="POLI" />{% endif %}
-    </div>
-    <div class="cover-middle">
-      <p class="cover-eyebrow">Sistema de Indicadores Institucionales</p>
-      <h1>Cierre PDI<br />2022–2025</h1>
-      <p class="cover-sub">Gerencia de Planeación Institucional</p>
+  <!-- ── Portada (foto oficial assets/Portada.png) ───────────────────────── -->
+  <section class="page cover" style="background-image:url('{{ portada_data_uri }}')">
+    <div class="cover-overlay">
       <div class="cover-kpis">
         <div class="cover-kpi">
           <span class="v">{{ data.cumplimiento_global }}%</span>
-          <span class="l">Cumplimiento global</span>
+          <span class="l">Cumplimiento</span>
         </div>
         <div class="cover-kpi">
           <span class="v">{{ data.total_indicadores }}</span>
@@ -36,17 +28,10 @@
           <span class="l">Áreas</span>
         </div>
       </div>
-      <div class="cover-lineas">
-        {% for li in data.lineas %}
-        <span class="cover-linea-chip">
-          <span class="dot" style="background:{{ li.color }}"></span>{{ li.linea }}
-        </span>
-        {% endfor %}
+      <div class="cover-footer">
+        <span>Politécnico Grancolombiano · Institución Universitaria</span>
+        <span>Generado el {{ generated_at }}</span>
       </div>
-    </div>
-    <div class="cover-footer">
-      <span>Politécnico Grancolombiano · Institución Universitaria</span>
-      <span>Generado el {{ generated_at }}</span>
     </div>
   </section>
 
@@ -90,9 +75,9 @@
       <div class="linea-bar-row">
         <span class="linea-bar-label">{{ li.linea }}</span>
         <div class="linea-bar-track">
-          <div class="linea-bar-fill" style="width:{{ [li.retos.cumplimiento, 100] | min }}%; background:{{ li.color }}"></div>
+          <div class="linea-bar-fill" style="width:{{ [li.cumplimiento_consolidado, 100] | min }}%; background:{{ li.color }}"></div>
         </div>
-        <span class="linea-bar-value" style="color:{{ li.color }}">{{ li.retos.cumplimiento }}%</span>
+        <span class="linea-bar-value" style="color:{{ li.color }}">{{ li.cumplimiento_consolidado }}%</span>
       </div>
       {% endfor %}
     </div>
@@ -102,6 +87,7 @@
       {% for li in data.lineas %}
       <div class="mini-card" style="border-left-color:{{ li.color }}">
         <span class="mini-linea">{{ li.linea }}</span>
+        <div class="mini-row"><span>{{ li.cumplimiento_consolidado }}%</span> consolidado</div>
         <div class="mini-row"><span>{{ li.retos.cumplimiento }}%</span> retos</div>
         <div class="mini-row"><span>{{ li.proyectos | length }}</span> proyecto{{ "" if li.proyectos | length == 1 else "s" }}</div>
         <div class="mini-row"><span>{{ li.objetivos | map(attribute="indicadores") | map("length") | sum }}</span> indicadores</div>
@@ -178,7 +164,22 @@
     {% if li.narrativa and li.narrativa.parrafo_logros %}
     <div class="narrativa-block" style="border-left-color:{{ li.color }}">
       <p class="narrativa-kicker" style="color:{{ li.color }}">ANÁLISIS DE LOGROS</p>
-      <p class="narrativa-text">{{ li.narrativa.parrafo_logros }}</p>
+      <div class="logros-grid">
+        <div class="logros-item">
+          <p class="logros-item-label" style="color:{{ li.color }}">Retos</p>
+          <p class="narrativa-text">{{ li.narrativa.parrafo_logros.retos }}</p>
+        </div>
+        <div class="logros-item">
+          <p class="logros-item-label" style="color:{{ li.color }}">Proyectos</p>
+          <p class="narrativa-text">{{ li.narrativa.parrafo_logros.proyectos }}</p>
+        </div>
+        <div class="logros-item">
+          <p class="logros-item-label" style="color:{{ li.color }}">Indicadores</p>
+          <p class="narrativa-text">{{ li.narrativa.parrafo_logros.indicadores }}</p>
+        </div>
+      </div>
+      <p class="logros-item-label" style="color:{{ li.color }}">Consolidado</p>
+      <p class="narrativa-text narrativa-text-consolidado">{{ li.narrativa.parrafo_logros.consolidado }}</p>
     </div>
     {% endif %}
 

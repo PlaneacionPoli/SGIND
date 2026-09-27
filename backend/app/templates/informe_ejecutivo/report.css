@@ -20,67 +20,42 @@ body {
 }
 .page:last-child { page-break-after: auto; }
 
-/* ── Portada ───────────────────────────────────────────────────────── */
+/* ── Portada (foto oficial assets/Portada.png) ────────────────────────── */
 .cover {
-  background: linear-gradient(160deg, #0B2A5B 0%, #12335F 45%, #0F385A 100%);
+  background-color: #0B2A5B;
+  background-size: cover;
+  background-position: top center;
+  background-repeat: no-repeat;
   color: #fff;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  padding: 14mm 16mm 16mm;
-  overflow: hidden;
+  justify-content: flex-end;
+  padding: 0 14mm 6mm;
 }
-/* Franjas diagonales al estilo del informe físico (sin depender de una foto) */
-.cover-diagonal {
-  position: absolute; top: 0; right: -12%; width: 72%; height: 58%;
-  background: linear-gradient(135deg, #1FB2DE 0%, #0891B2 100%);
-  clip-path: polygon(100% 0, 100% 100%, 0 100%, 42% 0);
-  opacity: .22;
-}
-.cover-diagonal-2 {
-  position: absolute; left: -18%; bottom: -10%; width: 78%; height: 48%;
-  background: linear-gradient(135deg, #A6CE38 0%, #173D66 100%);
-  clip-path: polygon(0 0, 100% 35%, 65% 100%, 0 100%);
-  opacity: .18;
-}
-.cover-top { position: relative; z-index: 1; }
-.cover-logo { height: 34px; filter: brightness(0) invert(1); opacity: .95; }
-.cover-middle { position: relative; z-index: 1; margin: auto 0; text-align: center; }
-.cover-eyebrow {
-  display: inline-flex; align-items: center; gap: 6px;
-  font-size: 10px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase;
-  color: #7DD3E8; margin: 0 0 10px;
-}
-.cover-eyebrow::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: #22C55E; display: inline-block; }
-.cover h1 { font-size: 42px; line-height: 1.12; margin: 0 0 10px; font-weight: 800; }
-.cover-sub { font-size: 13px; color: #BFD3EE; margin: 0 0 26px; font-weight: 600; }
-.cover-kpis { display: flex; gap: 12px; justify-content: center; margin: 0 0 22px; }
+/* La zona oscura inferior de la foto (donde ya está impreso el título
+   "CIERRE PDI-2022-2025") deja un margen libre de ~25-28mm antes del borde
+   de la página — aquí solo se sobreponen los KPIs dinámicos del corte,
+   compactos, para no invadir el texto de la imagen. */
+.cover-overlay { position: relative; z-index: 1; }
+.cover-kpis { display: flex; gap: 8px; justify-content: center; margin: 0 0 6px; }
 .cover-kpi {
-  width: 110px;
-  background: rgba(255,255,255,.08);
-  border: 1px solid rgba(255,255,255,.2);
-  border-top: 3px solid #1FB2DE;
-  border-radius: 10px;
-  padding: 14px 8px;
+  flex: 1;
+  max-width: 90px;
+  background: rgba(11,42,91,.6);
+  border: 1px solid rgba(255,255,255,.25);
+  border-top: 2px solid #1FB2DE;
+  border-radius: 7px;
+  padding: 5px 4px;
   display: flex; flex-direction: column; align-items: center;
-  backdrop-filter: blur(2px);
+  backdrop-filter: blur(3px);
 }
-.cover-kpi .v { font-size: 22px; font-weight: 800; }
-.cover-kpi .l { font-size: 8.5px; color: #BFD3EE; text-transform: uppercase; letter-spacing: .5px; margin-top: 4px; text-align: center; }
-.cover-lineas { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; max-width: 140mm; margin: 0 auto; }
-.cover-linea-chip {
-  display: inline-flex; align-items: center; gap: 6px;
-  font-size: 8.5px; font-weight: 700; color: #E7EEF9;
-  background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.28); border-radius: 999px;
-  padding: 5px 12px;
-}
-.cover-linea-chip .dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; box-shadow: 0 0 0 2px rgba(255,255,255,.25); }
+.cover-kpi .v { font-size: 14px; font-weight: 800; line-height: 1.1; }
+.cover-kpi .l { font-size: 6px; color: #DCE7F7; text-transform: uppercase; letter-spacing: .3px; margin-top: 2px; text-align: center; }
 .cover-footer {
-  position: relative; z-index: 1;
   display: flex; justify-content: space-between; align-items: center;
-  border-top: 1px solid rgba(255,255,255,.18);
-  padding-top: 10px;
-  font-size: 8.5px; color: #8FA9CC; letter-spacing: .2px;
+  padding-top: 5px;
+  border-top: 1px solid rgba(255,255,255,.3);
+  font-size: 6.5px; color: #DCE7F7; letter-spacing: .2px;
 }
 
 /* ── Encabezado de página genérico ────────────────────────────────── */
@@ -231,6 +206,12 @@ body {
 }
 .narrativa-kicker-amber { color: #D97706; }
 .narrativa-text { font-size: 9px; line-height: 1.55; color: #334155; margin: 0; text-align: justify; }
+.logros-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 8px; }
+.logros-item-label {
+  font-size: 7px; font-weight: 800; letter-spacing: .4px; text-transform: uppercase;
+  margin: 6px 0 3px;
+}
+.narrativa-text-consolidado { font-style: italic; }
 .linea-tagline { color: rgba(255,255,255,.85); font-size: 9px; font-style: italic; margin: 2px 0 0; max-width: 110mm; }
 .balance-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px; }
 

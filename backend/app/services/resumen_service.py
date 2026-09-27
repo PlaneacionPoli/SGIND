@@ -876,6 +876,21 @@ class ResumenService:
         lineas = build_informe_ejecutivo_lineas(
             pdi_df, proy_gantt, ret_linea_df, ret_obj_df, ret_planes_df, signo_lookup
         )
+        # El PDF debe listar las líneas en el orden oficial del documento
+        # PDI 2022-2026 (docs/PDI/Plan_de_Desarrollo_Institucional_PDI_2022-
+        # 2026.docx: 1. Calidad, 2. Expansión, 3. Educación para Toda la
+        # Vida, 4. Experiencia, 5. Transformación Organizacional, 6.
+        # Sostenibilidad) — no el orden interno de STRATEGIC_LINE_DEFS, que
+        # se usa como clave de emparejamiento en el resto de la app.
+        _ORDEN_PDI = [
+            "calidad",
+            "expansion",
+            "educacion para toda la vida",
+            "experiencia",
+            "transformacion organizacional",
+            "sostenibilidad",
+        ]
+        lineas.sort(key=lambda li: _ORDEN_PDI.index(norm_key(li["linea"])))
 
         total_ind = int(pdi_df["Id"].nunique()) if not pdi_df.empty and "Id" in pdi_df.columns else 0
         nivel = (

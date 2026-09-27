@@ -19,12 +19,22 @@ from playwright.sync_api import sync_playwright
 _TEMPLATE_DIR = Path(__file__).resolve().parent.parent / "templates" / "informe_ejecutivo"
 
 
-def _logo_data_uri() -> str:
-    logo_path = _TEMPLATE_DIR / "assets" / "logo.png"
-    if not logo_path.exists():
+def _image_data_uri(filename: str) -> str:
+    path = _TEMPLATE_DIR / "assets" / filename
+    if not path.exists():
         return ""
-    encoded = base64.b64encode(logo_path.read_bytes()).decode("ascii")
+    encoded = base64.b64encode(path.read_bytes()).decode("ascii")
     return f"data:image/png;base64,{encoded}"
+
+
+def _logo_data_uri() -> str:
+    return _image_data_uri("logo.png")
+
+
+def _portada_data_uri() -> str:
+    """Foto oficial de portada (fachada + diagonales + logo + título ya
+    incluidos en la imagen) — assets/Portada.png del repo."""
+    return _image_data_uri("portada.png")
 
 # STRATEGIC_LINE_DEFS["icon"] (resumen_builders.py) → glifo del encabezado
 # de cada página de línea en el Informe Ejecutivo.
@@ -70,6 +80,7 @@ def generar_informe_ejecutivo(data: dict[str, Any]) -> bytes:
         anio_colors=_ANIO_COLORS,
         icon_glyphs=_ICON_GLYPHS,
         logo_data_uri=_logo_data_uri(),
+        portada_data_uri=_portada_data_uri(),
         generated_at=datetime.now(UTC).strftime("%d/%m/%Y %H:%M UTC"),
     )
 

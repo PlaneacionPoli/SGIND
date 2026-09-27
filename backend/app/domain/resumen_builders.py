@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import difflib
 import math
 import re
 import unicodedata
@@ -86,6 +87,56 @@ SUNBURST_LINE_COLORS = {
 LABEL_WRAP_OVERRIDES = {
     "educacion para toda la vida": "Educación para\ntoda la vida",
 }
+
+# Los 11 Objetivos Institucionales oficiales del PDI 2022-2026 (docs/PDI/
+# Plan_de_Desarrollo_Institucional_PDI_2022-2026.docx), uno por línea. Las
+# hojas fuente (indicadores/proyectos/retos) redactan el mismo objetivo con
+# variantes textuales distintas entre sí — sin normalizar, un groupby exacto
+# por texto los separa en objetivos "duplicados". _match_canonical_objetivo
+# los reconduce al título oficial antes de agrupar.
+CANONICAL_OBJETIVOS: dict[str, list[str]] = {
+    "calidad": [
+        "Asegurar la alta calidad a nivel institucional",
+        "Fortalecer la oferta educativa y la innovación curricular",
+    ],
+    "expansion": [
+        "Crecer con compromiso social",
+    ],
+    "educacion para toda la vida": [
+        "Incursionar en los niveles de educación media y de educación para el "
+        "trabajo y el desarrollo humano",
+        "Impulsar y potenciar la educación continua",
+    ],
+    "experiencia": [
+        "Garantizar una experiencia significativa y de valor agregado a la comunidad POLI",
+    ],
+    "transformacion organizacional": [
+        "Contar con un equipo humano feliz y apasionado, que trabaja de forma "
+        "colaborativa para alcanzar las metas institucionales",
+        "Asegurar una arquitectura tecnológica institucional centrada en la "
+        "experiencia de la comunidad educativa",
+        "Fortalecer la gestión por procesos y la toma de decisiones basada en "
+        "el análisis de los datos",
+    ],
+    "sostenibilidad": [
+        "Promover una cultura de optimización de recursos financieros como "
+        "apalancador de la estrategia",
+        "Contribuir a la inclusión, la proyección social y el cuidado del "
+        "medio ambiente",
+    ],
+}
+
+
+def _match_canonical_objetivo(raw: str, linea_key: str) -> str:
+    candidatos = CANONICAL_OBJETIVOS.get(linea_key)
+    if not candidatos:
+        return raw
+    raw_norm = _sunburst_norm_key(raw)
+    norm_candidatos = [_sunburst_norm_key(c) for c in candidatos]
+    match = difflib.get_close_matches(raw_norm, norm_candidatos, n=1, cutoff=0.3)
+    if not match:
+        return raw
+    return candidatos[norm_candidatos.index(match[0])]
 
 
 def _sunburst_norm_key(value: str | None) -> str:
@@ -576,6 +627,15 @@ def build_pdi_mindmap(
             df["Linea"] = df["Linea"].apply(_clean_sunburst_label)
             df["Objetivo"] = df["Objetivo"].apply(_clean_sunburst_label)
             df = df[df["Objetivo"].astype(str).str.strip() != ""]
+        if not df.empty:
+            # Reconduce cada objetivo a su título oficial por línea para que
+            # variantes de redacción entre indicadores/proyectos/retos (o el
+            # concat de merge_consolidado_summaries) no se cuenten como
+            # objetivos distintos.
+            df["Objetivo"] = [
+                _match_canonical_objetivo(obj, _sunburst_norm_key(lin))
+                for lin, obj in zip(df["Linea"], df["Objetivo"], strict=True)
+            ]
 
     grouped = pd.DataFrame(columns=["Linea", "Objetivo", "cumplimiento_pct"])
     obj_counts: dict[tuple, int] = {}
@@ -1530,6 +1590,42 @@ def build_informe_ejecutivo_lineas(
                 if indicadores:
                     objetivos.append({"objetivo": str(objetivo_nombre), "indicadores": indicadores})
 
+        # ── Cumplimiento consolidado (Retos + Proyectos + Indicadores) ──
+        # El "cumplimiento" que se venía mostrando como si fuera de la línea
+        # era solo el de Retos — no un consolidado de las 3 dimensiones
+        # (hallazgo 2026-09-27). Promedio simple de las 3 dimensiones que sí
+        # tengan dato (cada dimensión pesa igual, sin importar cuántos
+        # elementos tenga).
+        proy_cumpl_vals = [
+            p["cumplimiento"] for p in proyectos_items if p.get("cumplimiento") is not None
+        ]
+        proyectos_cumplimiento_promedio = (
+            round(sum(proy_cumpl_vals) / len(proy_cumpl_vals), 1) if proy_cumpl_vals else None
+        )
+        ind_cumpl_vals = [
+            ind["cumplimiento"]
+            for obj in objetivos
+            for ind in obj["indicadores"]
+            if ind.get("cumplimiento") is not None
+        ]
+        indicadores_cumplimiento_promedio = (
+            round(sum(ind_cumpl_vals) / len(ind_cumpl_vals), 1) if ind_cumpl_vals else None
+        )
+        partes_consolidado = [
+            v
+            for v in (
+                retos_block["cumplimiento"],
+                proyectos_cumplimiento_promedio,
+                indicadores_cumplimiento_promedio,
+            )
+            if v is not None
+        ]
+        cumplimiento_consolidado = (
+            round(sum(partes_consolidado) / len(partes_consolidado), 1)
+            if partes_consolidado
+            else retos_block["cumplimiento"]
+        )
+
         lineas.append(
             {
                 "linea": linea_label,
@@ -1538,6 +1634,9 @@ def build_informe_ejecutivo_lineas(
                 "retos": retos_block,
                 "proyectos": sorted(proyectos_items, key=lambda p: p.get("nombre", "")),
                 "objetivos": objetivos,
+                "cumplimiento_consolidado": cumplimiento_consolidado,
+                "proyectos_cumplimiento_promedio": proyectos_cumplimiento_promedio,
+                "indicadores_cumplimiento_promedio": indicadores_cumplimiento_promedio,
             }
         )
 
