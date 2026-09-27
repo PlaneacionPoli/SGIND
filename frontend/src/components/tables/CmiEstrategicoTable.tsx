@@ -15,30 +15,33 @@ export function CmiEstrategicoTable({ objetivos, color }: CmiEstrategicoTablePro
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       {objetivos.map((obj) => (
         <div key={obj.objetivo} className="overflow-hidden rounded-lg border border-slate-200">
-          <div className="px-3 py-2 text-xs font-bold uppercase tracking-wide text-white" style={{ backgroundColor: color }}>
+          <div
+            className="px-4 py-2.5 text-sm font-bold uppercase tracking-wide text-white"
+            style={{ backgroundColor: color }}
+          >
             {obj.objetivo}
           </div>
-          <table className="w-full text-left text-xs">
-            <thead className="bg-slate-50 text-[11px] uppercase text-slate-500">
+          <table className="w-full text-left text-sm">
+            <thead className="bg-slate-50 text-xs uppercase text-slate-500">
               <tr>
-                <th className="px-3 py-2 font-semibold">Indicador</th>
-                <th className="px-3 py-2 font-semibold">Meta</th>
-                <th className="px-3 py-2 font-semibold">Ejecución</th>
-                <th className="px-3 py-2 font-semibold">Cumplimiento</th>
+                <th className="px-4 py-3 font-bold">Indicador</th>
+                <th className="px-4 py-3 font-bold">Meta</th>
+                <th className="px-4 py-3 font-bold">Ejecución</th>
+                <th className="px-4 py-3 font-bold">Cumplimiento</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {obj.indicadores.map((ind, idx) => (
-                <tr key={`${obj.objetivo}-${idx}`}>
-                  <td className="px-3 py-2 text-slate-700">{ind.indicador}</td>
-                  <td className="px-3 py-2 text-slate-600">{ind.meta ?? "—"}</td>
-                  <td className="px-3 py-2 text-slate-600">{ind.ejecucion ?? "—"}</td>
-                  <td className="px-3 py-2">
+                <tr key={`${obj.objetivo}-${idx}`} className="hover:bg-slate-50">
+                  <td className="px-4 py-3 font-medium text-slate-700">{ind.indicador}</td>
+                  <td className="px-4 py-3 text-slate-600">{ind.meta ?? "—"}</td>
+                  <td className="px-4 py-3 text-slate-600">{ind.ejecucion ?? "—"}</td>
+                  <td className="px-4 py-3">
                     <span
-                      className="rounded px-2 py-0.5 text-[11px] font-bold text-white"
+                      className="inline-block rounded px-2.5 py-1 text-sm font-bold text-white"
                       style={{ backgroundColor: ind.nivel_color }}
                     >
                       {ind.cumplimiento != null ? `${ind.cumplimiento.toFixed(1)}%` : "—"}

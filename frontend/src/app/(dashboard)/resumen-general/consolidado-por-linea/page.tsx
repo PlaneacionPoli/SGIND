@@ -67,25 +67,6 @@ export default function ConsolidadoPorLineaPage() {
           cumplimientoPorLinea={cumplimientoPorLinea}
         />
       </div>
-
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-        {STRATEGIC_LINES.map((l) => (
-          <button
-            key={l.slug}
-            type="button"
-            onClick={() => goToLinea(l.slug)}
-            className="group rounded-lg border border-slate-200 bg-white px-3 py-2 text-left text-xs font-semibold text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
-            style={{ borderLeft: `4px solid ${l.color}` }}
-          >
-            {l.label}
-            {cumplimientoPorLinea[l.slug] != null && (
-              <span className="ml-1 font-bold" style={{ color: l.color }}>
-                {cumplimientoPorLinea[l.slug].toFixed(1)}%
-              </span>
-            )}
-          </button>
-        ))}
-      </div>
     </div>
   );
 }
