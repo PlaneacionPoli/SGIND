@@ -18,17 +18,28 @@ import logging
 from pathlib import Path
 from typing import Any
 
+from app.core.config import get_settings
 from app.domain.resumen_builders import STRATEGIC_LINE_DEFS, norm_key
 
 logger = logging.getLogger(__name__)
 
+# Dentro del paquete app/ (services -> app, 2 niveles): estable tanto en
+# local (backend/app/services/..) como en el contenedor (/app/app/services/..).
 _PDI_JSON_PATH = Path(__file__).resolve().parent.parent / "data" / "pdi_2022_2026.json"
-_OUTPUT_PATH = (
-    Path(__file__).resolve().parent.parent.parent.parent
-    / "data"
-    / "derived"
-    / "narrativa_estrategica_2022_2025.json"
-)
+
+
+def _output_path() -> Path:
+    """data/derived/narrativa_estrategica_2022_2025.json, relativo a
+    SGIND_DATA_PATH (igual que ExcelReaderService.data_root) — NO contar
+    niveles de carpetas desde __file__: local es backend/app/services/.. (4
+    parents -> repo root) pero el contenedor copia backend/app -> /app/app
+    (3 parents -> /app), así que ese conteo apuntaba a /data en vez de
+    /app/data y la narrativa nunca se encontraba en producción
+    (hallazgo 2026-09-27)."""
+    data_root = Path(get_settings().sgind_data_path).resolve()
+    # sgind_data_path apunta a <root>/data (ver ExcelReaderService); el JSON
+    # derivado vive junto a raw/ dentro de esa misma carpeta.
+    return data_root / "derived" / "narrativa_estrategica_2022_2025.json"
 
 _LINEA_LABELS = {
     "expansion": "Expansión",
@@ -47,10 +58,12 @@ def _load_pdi_oficial() -> dict[str, Any]:
 def leer_narrativa_estrategica() -> dict[str, Any] | None:
     """Lee el JSON estático ya generado — None si aún no se ha corrido el
     script de generación (el PDF/dashboard deben degradar con gracia)."""
-    if not _OUTPUT_PATH.exists():
+    path = _output_path()
+    if not path.exists():
+        logger.warning("narrativa_estrategica_2022_2025.json no encontrado en %s", path)
         return None
     try:
-        return json.loads(_OUTPUT_PATH.read_text(encoding="utf-8"))
+        return json.loads(path.read_text(encoding="utf-8"))
     except (json.JSONDecodeError, OSError):
         logger.exception("No se pudo leer narrativa_estrategica_2022_2025.json")
         return None
@@ -133,6 +146,7 @@ def ensamblar_narrativa(
 
 
 def guardar(data: dict[str, Any]) -> Path:
-    _OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
-    _OUTPUT_PATH.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
-    return _OUTPUT_PATH
+    path = _output_path()
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+    return path
