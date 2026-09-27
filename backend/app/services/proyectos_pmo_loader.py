@@ -107,3 +107,38 @@ class ProyectosPmoLoader:
         out["anio_fin"] = out["anio_fin"].astype(int)
 
         return out[_OUT_COLS].reset_index(drop=True)
+
+    def load_cualitativo(self) -> pd.DataFrame:
+        """Columnas narrativas del Centro de Proyectos (Entregables, Impactos
+        Generados, Riesgos, Objetivo del proyecto) para la triangulación
+        cualitativa del Informe Estratégico — separado de load() para no
+        tocar el shape que build_proyectos_pmo_gantt ya usa en producción."""
+        cols = {
+            "Nombre del proyecto": "nombre",
+            "0. Estado del proyecto": "estado",
+            "% completado": "pct_completado",
+            "4. Líneas estratégicas": "linea",
+            "Objetivo del proyecto": "objetivo_proyecto",
+            "Entregables": "entregables",
+            "Impactos Generados": "impactos",
+            "Riesgos": "riesgos",
+        }
+        empty = pd.DataFrame(columns=list(cols.values()))
+        if not self._exists():
+            return empty
+        try:
+            df = self._excel.read_excel(PMO_PATH, sheet_name=PMO_SHEET)
+        except Exception:
+            return empty
+        df.columns = [str(c).strip() for c in df.columns]
+        available = {src: dst for src, dst in cols.items() if src in df.columns}
+        if "Nombre del proyecto" not in available:
+            return empty
+        out = df[list(available.keys())].rename(columns=available)
+        out = out[out["nombre"].notna() & (out["nombre"].astype(str).str.strip() != "")].copy()
+        out["pct_completado"] = out["pct_completado"].apply(_parse_pct)
+        for c in out.columns:
+            if c == "pct_completado":
+                continue
+            out[c] = out[c].apply(lambda v: str(v).strip() if pd.notna(v) else "")
+        return out.reset_index(drop=True)

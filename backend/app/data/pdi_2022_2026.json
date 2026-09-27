@@ -1,0 +1,147 @@
+{
+  "fuente": "docs/PDI/Plan_de_Desarrollo_Institucional_PDI_2022-2026.docx",
+  "lineas": {
+    "calidad": {
+      "nombre": "Calidad",
+      "tagline": "Calidad para el POLI significa el profundo compromiso con la Acreditación Institucional, a partir del mejoramiento de las funciones sustantivas de docencia, investigación, proyección social e internacionalización y el fortalecimiento de una oferta educativa innovadora y acorde con las necesidades de las empresas y la sociedad.",
+      "objetivos": [
+        {
+          "numero": 1,
+          "titulo": "Asegurar la alta calidad a nivel institucional",
+          "descripcion": "El aseguramiento de la calidad a nivel institucional, apalancado en el Sistema Integrado de Aseguramiento y Gestión para la Sostenibilidad (POLISIGS), contempla el fortalecimiento de programas académicos y procesos institucionales que permitan obtener la acreditación institucional para la Sede de Bogotá en 2025. Asimismo, aspira que para el cierre del ciclo de planeación 2022-2026, mejore su ubicación entre las Instituciones Universitarias en el desempeño en las competencias genéricas de las pruebas Saber.",
+          "metas": ["Al 2025 contar con la acreditación institucional en alta calidad de la Sede de Bogotá."]
+        },
+        {
+          "numero": 2,
+          "titulo": "Fortalecer la oferta educativa y la innovación curricular",
+          "descripcion": "El POLI ha sido líder en educación virtual en el país. Para este ciclo de planeación, la Institución se ha propuesto promover el diseño y desarrollo de programas en nuevas modalidades y así mismo dar fiel cumplimiento a los compromisos establecidos en el Proyecto Educativo Institucional.",
+          "metas": [
+            "Contar con un portafolio de programas académicos innovador, de calidad, pertinente y flexible, que responda a las necesidades del estudiante y del entorno.",
+            "Avanzar en la construcción de una cultura de buena docencia centrada en el estudiante, su aprendizaje y en la excelencia pedagógica del equipo de profesores.",
+            "Innovar en el currículo."
+          ]
+        }
+      ]
+    },
+    "expansion": {
+      "nombre": "Expansión",
+      "tagline": "Expansión para el POLI es crecer con compromiso social, siendo ejemplo de dedicación y empeño por brindar más y mejores oportunidades de acceso a una educación pertinente y de calidad.",
+      "objetivos": [
+        {
+          "numero": 3,
+          "titulo": "Crecer con compromiso social",
+          "descripcion": "La expansión institucional supone considerar variables integrales del sistema educativo, tales como ampliar la cobertura, que se constituye en un desafío ético, en la medida en que brinda oportunidades de acceso y mejoramiento de proyectos de vida a través de la educación. Por otra parte, la oferta de programas académicos de calidad y pertinentes, impacta significativamente el desarrollo de proyectos sociales colectivos de alcance local, regional y nacional. Así, el crecimiento y consolidación institucional se constituye en aportes concretos a las políticas de acceso, de inclusión, de generación de oportunidades, de cualificación del talento humano y de desarrollo social.",
+          "metas": [
+            "En el 2026, alcanzar una población estudiantil superior a 70.000 estudiantes.",
+            "Diseñar e implementar el esquema de relacionamiento con la empresa y el Estado.",
+            "Posicionar al POLI como una de las opciones más atractivas para iniciar los estudios de educación superior.",
+            "Lanzamiento efectivo de nuevos programas."
+          ]
+        }
+      ]
+    },
+    "educacion para toda la vida": {
+      "nombre": "Educación para Toda la Vida",
+      "tagline": "Educación para toda la vida en el POLI es impulsar permanentemente soluciones integrales para la formación y el desarrollo humano, personal y profesional.",
+      "objetivos": [
+        {
+          "numero": 4,
+          "titulo": "Incursionar en los niveles de Educación Media y de Educación para el Trabajo y el Desarrollo Humano",
+          "descripcion": "Este objetivo busca ampliar el alcance del POLI y pasar de ser una Institución enfocada en Educación Superior a contar con una nueva oferta de educación para el trabajo y el desarrollo humano y de educación media con la creación de un colegio para grados décimo y once. Este objetivo apoyará tanto los propósitos de expansión, como los de impacto social del POLI.",
+          "metas": [
+            "Creación del Instituto para la Educación para el Trabajo y el Desarrollo Humano, con 10 programas de ETDH y 750 estudiantes por programa al año 2026.",
+            "Creación del colegio virtual para tener una matrícula de 100 estudiantes en los niveles décimo y once de educación media al año 2026."
+          ]
+        },
+        {
+          "numero": 5,
+          "titulo": "Impulsar y potenciar la educación continua",
+          "descripcion": "Con este objetivo se espera que el POLI, como Institución Universitaria al servicio de la sociedad, sea vanguardista en satisfacer las necesidades del sector empresarial, así como en adoptar las microcertificaciones como una manera de acercar la Institución al mundo laboral y a los sectores productivos con el acelerado cambio que se da hoy fuera de sus campus.",
+          "metas": [
+            "Incrementar en más del 50% los ingresos de B2B y B2G para el año 2026.",
+            "Ofrecer 250 microcertificaciones con 1.000 estudiantes al año 2026."
+          ]
+        }
+      ]
+    },
+    "experiencia": {
+      "nombre": "Experiencia",
+      "tagline": "Experiencia en el POLI es dar lo mejor de nosotros cada día, basados en principios de excelencia, solidaridad, empatía y sencillez, para brindar momentos significativos a toda la comunidad.",
+      "objetivos": [
+        {
+          "numero": 6,
+          "titulo": "Garantizar una experiencia significativa y de valor agregado a la comunidad POLI",
+          "descripcion": "El POLI confía en el potencial de las nuevas tecnologías para crear experiencias educativas muy potentes y 'personalizar' las ofertas y rutas de formación, de manera que se acomoden a sus expectativas iniciales y a los cambios que experimenten a lo largo de sus carreras y trayectorias laborales. Se apalanca en tres ejes: el diseño e implementación del modelo de experiencia institucional, la satisfacción en el servicio y la permanencia de la comunidad POLI, y la innovación en el modelo de Bienestar Universitario.",
+          "metas": [
+            "Diseñar e implementar el Modelo de Experiencia Institucional que defina los principios, valores, cualidades, indicadores y variables.",
+            "Alcanzar una satisfacción del servicio superior al 85%.",
+            "Alcanzar una tasa de permanencia intersemestral superior al 90%.",
+            "Innovar en el modelo de bienestar universitario para velar por la calidad de vida de todos los actores del POLI."
+          ]
+        }
+      ]
+    },
+    "transformacion organizacional": {
+      "nombre": "Transformación Organizacional",
+      "tagline": "Transformación Organizacional para el POLI representa el compromiso por lograr cambios profundos en la cultura POLI y así alcanzar proyectos de vida felices y productivos.",
+      "objetivos": [
+        {
+          "numero": 7,
+          "titulo": "Contar con un equipo humano feliz y apasionado, que trabaja de forma colaborativa para alcanzar las metas institucionales",
+          "descripcion": "Por encima de las herramientas necesarias para llevar a cabo día a día la misión y alcanzar la visión a 5 años, el recurso principal y lo que ofrece el POLI son servicios que brindan seres humanos. La pasión, la actitud consecuente y el logro de los objetivos enmarcados en un ambiente de cordialidad, realización personal y crecimiento que conducen a la felicidad, son elementos necesarios en el quehacer del talento humano. En el plan de desarrollo, la relación estudiante-profesor está en el centro y se convierte en el fin último.",
+          "metas": [
+            "Estar en el ranking de las 100 mejores empresas para trabajar en Colombia.",
+            "Implementar el Plan Talento para colaboradores alineado con la estrategia.",
+            "Contar con una estrategia de comunicaciones integrada que apalanque la cultura y el posicionamiento institucional.",
+            "Contribuir a la formación permanente del equipo humano."
+          ]
+        },
+        {
+          "numero": 8,
+          "titulo": "Asegurar una arquitectura tecnológica institucional centrada en la experiencia de la comunidad educativa",
+          "descripcion": "Desarrollar y desplegar la arquitectura tecnológica que asegure que la Institución ofrezca la experiencia requerida para satisfacer las necesidades, que permita el crecimiento institucional y ofrezca educación para toda la vida, que apalanque el logro de la acreditación de calidad y que permita que el POLI llegue a ser una universidad \"digital\", mediante el diseño e implementación del ecosistema de experiencia digital con sistemas integrados y servicios de autogestión.",
+          "metas": [
+            "Contar con una arquitectura IT implementada al 100%, con un 99,7% de disponibilidad.",
+            "Contar con un ecosistema digital centrado en la experiencia institucional."
+          ]
+        },
+        {
+          "numero": 9,
+          "titulo": "Fortalecer la gestión por procesos y la toma de decisiones basada en el análisis de los datos",
+          "descripcion": "Contempla la ampliación del alcance del Sistema Integrado de Aseguramiento y Gestión para la Sostenibilidad (POLISIGS), que conlleva a rediseñar el modelo de procesos institucionales de tal manera que permita ser un habilitador de la estrategia, así como fortalecer la cultura de mejora continua. Desde el punto de vista de analítica de datos, la estrategia busca brindar información veraz, concisa, oportuna, confiable, única y segura, y avanzar en modelos de analítica e inteligencia artificial como apalancador clave de las decisiones futuras.",
+          "metas": [
+            "Ampliar el alcance del sistema integrado POLISIGS y su apropiación en la comunidad.",
+            "Impulsar la mejora y optimización de procesos.",
+            "Asegurar un esquema de gobierno y calidad de datos institucional.",
+            "Promover el uso de los datos, a partir del diseño e implementación de soluciones analíticas."
+          ]
+        }
+      ]
+    },
+    "sostenibilidad": {
+      "nombre": "Sostenibilidad",
+      "tagline": "Sostenibilidad significa que contribuimos a la inclusión, al medio ambiente y al impacto positivo de nuestros graduados y de la sociedad, optimizando nuestros recursos.",
+      "objetivos": [
+        {
+          "numero": 10,
+          "titulo": "Promover una cultura de optimización de recursos financieros como apalancador de la estrategia",
+          "descripcion": "Desde el punto de vista de sostenibilidad financiera, hace referencia a la consecución de recursos de diferentes fuentes y al uso racional de los mismos, de tal manera que permita contar con presupuesto para inversión en pro del cumplimiento de las metas establecidas por línea estratégica, y al desarrollo misional de la Institución.",
+          "metas": ["Incrementar los ingresos y el presupuesto de inversión en proyectos institucionales."]
+        },
+        {
+          "numero": 11,
+          "titulo": "Contribuir a la inclusión, la proyección social y el cuidado del medio ambiente",
+          "descripcion": "Vela para que las actividades que desarrolle la Institución tengan como fin principal la promoción del bienestar social de la comunidad y protección de los recursos naturales, aportando a la solución de los problemas sociales y ambientales por medio de procesos permanentes de interacción e integración con agentes y sectores sociales e institucionales, implementando alternativas respetuosas con el medio ambiente y contribuyendo a los Objetivos de Desarrollo Sostenible.",
+          "metas": [
+            "Mejorar la empleabilidad de nuestros graduados.",
+            "Creación de la asociación de graduados.",
+            "Incrementar el índice de inclusión institucional.",
+            "Propiciar espacios de interacción con la comunidad del entorno.",
+            "Mantener hasta el 5% de estudiantes becados, sobre el total de estudiantes.",
+            "Promover una cultura de protección y cuidado del medio ambiente, apalancados en estándares internacionales."
+          ]
+        }
+      ]
+    }
+  }
+}
