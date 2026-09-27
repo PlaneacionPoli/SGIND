@@ -16,6 +16,7 @@ from app.domain.calculos import (
 from app.domain.cmi_filters import CMIFilterService
 from app.domain.linea_order import linea_sort_key
 from app.domain.resumen_builders import (
+    STRATEGIC_LINE_DEFS,
     build_informe_ejecutivo_lineas,
     build_linea_summary,
     build_linea_summary_retos,
@@ -35,6 +36,7 @@ from app.domain.resumen_builders import (
     get_chip_config_proyectos,
     get_chip_config_retos,
     merge_consolidado_summaries,
+    norm_key,
 )
 from app.domain.strategic_processors import StrategicProcessors
 from app.services.etl_pipeline import ETLPipelineService
@@ -795,7 +797,9 @@ class ResumenService:
         )
 
         proy_count = self._count_proyectos_ciclo_vigente()
-        retos_count = sum(li["retos"]["n_retos"] for li in lineas)
+        # Nota: la hoja "Planes" trae # Áreas por línea, no # Retos (ver
+        # build_informe_ejecutivo_lineas) — no hay conteo de retos por línea.
+        areas_count = sum(li["retos"]["n_areas"] for li in lineas)
 
         return {
             "generado": "Cierre PDI 2022-2025",
@@ -805,6 +809,6 @@ class ResumenService:
             "en_progreso": en_progreso,
             "atencion": atencion,
             "total_proyectos": proy_count,
-            "total_retos": retos_count,
+            "total_areas": areas_count,
             "lineas": lineas,
         }

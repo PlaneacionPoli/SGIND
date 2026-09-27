@@ -389,6 +389,21 @@ class DashboardResumenCompletoResponse(BaseModel):
     total_indicadores: int = 0
 
 
+class DashboardResumenLineaResponse(BaseModel):
+    """Payload de una línea estratégica individual (hoja de línea del
+    portal Resumen General): Retos + Proyectos PMO + Indicadores CMI,
+    misma forma que un elemento de `lineas` en get_informe_ejecutivo()."""
+
+    model_config = ConfigDict(extra="allow")
+
+    linea: str
+    color: str
+    icon: str
+    retos: dict[str, Any] = Field(default_factory=dict)
+    proyectos: list[dict[str, Any]] = Field(default_factory=list)
+    objetivos: list[dict[str, Any]] = Field(default_factory=list)
+
+
 class IndicatorDetailResponse(BaseModel):
     """Fila de indicador con columnas dinámicas del Excel origen — mismo
     patrón que FichaIndicadorResponse (extra="allow")."""

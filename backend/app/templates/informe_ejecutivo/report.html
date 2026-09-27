@@ -26,8 +26,8 @@
         <span class="l">Proyectos</span>
       </div>
       <div class="cover-kpi">
-        <span class="v">{{ data.total_retos }}</span>
-        <span class="l">Retos</span>
+        <span class="v">{{ data.total_areas }}</span>
+        <span class="l">Áreas</span>
       </div>
     </div>
     <p class="cover-date">Generado el {{ generated_at }}</p>
@@ -81,7 +81,7 @@
       {% for li in data.lineas %}
       <div class="mini-card" style="border-left-color:{{ li.color }}">
         <span class="mini-linea">{{ li.linea }}</span>
-        <div class="mini-row"><span>{{ li.retos.n_retos }}</span> retos</div>
+        <div class="mini-row"><span>{{ li.retos.n_areas }}</span> áreas</div>
         <div class="mini-row"><span>{{ li.proyectos | length }}</span> proyectos</div>
         <div class="mini-row"><span>{{ li.objetivos | map(attribute="indicadores") | map("length") | sum }}</span> indicadores</div>
       </div>
@@ -116,8 +116,8 @@
           </div>
         </div>
         <div class="retos-count-box">
-          <span class="v">{{ li.retos.n_retos }}</span>
-          <span class="l"># RETOS</span>
+          <span class="v">{{ li.retos.n_areas }}</span>
+          <span class="l"># ÁREAS</span>
         </div>
       </div>
 
