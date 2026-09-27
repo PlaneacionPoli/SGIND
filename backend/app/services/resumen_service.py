@@ -744,6 +744,14 @@ class ResumenService:
                 anio=anio,
             )
 
+            # Informe Estratégico (cualitativo, autoría directa — ver
+            # scripts/generar_narrativa_estrategica.py): solo en el rango
+            # fijo "Cierre PDI 2022-2025", que es sobre el que se redactó.
+            narrativa_estrategica_data = leer_narrativa_estrategica() if rango else None
+            narrativa_estrategica = (
+                narrativa_estrategica_data.get("consolidado") if narrativa_estrategica_data else None
+            )
+
             return {
                 "anio": anio,
                 "vista": vista_norm,
@@ -751,6 +759,7 @@ class ResumenService:
                 "fichas": cards,
                 "mindmap": mindmap,
                 "narrativa": narrativa,
+                "narrativa_estrategica": narrativa_estrategica,
                 "mejoraron": [],
                 "en_riesgo": [],
                 "periodo_comparacion": "",

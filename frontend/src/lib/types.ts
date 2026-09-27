@@ -665,6 +665,12 @@ export interface ResumenCompletoResponse {
   fichas: ResumenFicha[];
   mindmap: ResumenMindmap;
   narrativa: ResumenNarrativa;
+  /** Informe Estratégico (cualitativo): solo en vista=consolidado, rango=true (Cierre PDI 2022-2025). */
+  narrativa_estrategica?: {
+    resumen_ejecutivo: string;
+    logros: string;
+    retos_priorizados: string;
+  } | null;
   mejoraron: ResumenTrendItem[];
   en_riesgo: ResumenTrendItem[];
   periodo_comparacion: string;

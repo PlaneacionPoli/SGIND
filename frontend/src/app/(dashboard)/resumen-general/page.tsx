@@ -10,6 +10,7 @@ import { DetailTables } from "@/components/tables/DetailTables";
 import { TrendVariationTables } from "@/components/tables/TrendVariationTables";
 import { ChipRow } from "@/components/ui/ChipRow";
 import { ExecutiveNarrative } from "@/components/ui/ExecutiveNarrative";
+import { InformeEstrategicoConsolidado } from "@/components/ui/InformeEstrategicoConsolidado";
 import { StrategyCardGrid } from "@/components/ui/StrategyCard";
 import { VistaSelector } from "@/components/ui/VistaSelector";
 import { YearSegmentedControl } from "@/components/ui/YearSegmentedControl";
@@ -23,7 +24,7 @@ export default function ResumenGeneralPage() {
   const { login, loading: loginLoading, error: loginError } = useDevLogin();
   const showDevLogin = isDevLoginEnabled();
   const [anio, setAnio] = useState<number>(2025);
-  const [vista, setVista] = useState("indicadores");
+  const [vista, setVista] = useState("consolidado");
   const [rango, setRango] = useState(true);
   const [subTab, setSubTab] = useState<"listado" | "gantt">("listado");
 
@@ -109,6 +110,14 @@ export default function ResumenGeneralPage() {
 
       <div className="flex flex-wrap items-center justify-between gap-4 rounded-lg border border-slate-200 bg-white p-4">
         <div className="flex flex-wrap items-center gap-3">
+          <p className="text-xs font-semibold uppercase text-slate-500">Vista</p>
+          <VistaSelector
+            vista={vista}
+            vistas={filtrosQuery.data?.vistas}
+            onChange={setVista}
+          />
+        </div>
+        <div className="flex flex-wrap items-center gap-3">
           <p className="text-xs font-semibold uppercase text-slate-500">Año</p>
           <YearSegmentedControl
             years={years}
@@ -119,14 +128,6 @@ export default function ResumenGeneralPage() {
               setAnio(y);
             }}
             onSelectRango={() => setRango(true)}
-          />
-        </div>
-        <div className="flex flex-wrap items-center gap-3">
-          <p className="text-xs font-semibold uppercase text-slate-500">Vista</p>
-          <VistaSelector
-            vista={vista}
-            vistas={filtrosQuery.data?.vistas}
-            onChange={setVista}
           />
         </div>
       </div>
@@ -179,6 +180,10 @@ export default function ResumenGeneralPage() {
           </div>
 
           <ExecutiveNarrative data={resumenQuery.data.narrativa} />
+
+          {vista === "consolidado" && rango && (
+            <InformeEstrategicoConsolidado data={resumenQuery.data.narrativa_estrategica} />
+          )}
 
           {vista === "retos" && resumenQuery.data.tabla_detalle && (
             <DetailTables vista={vista} rows={resumenQuery.data.tabla_detalle} />
