@@ -3,25 +3,52 @@
 import { useRouter } from "next/navigation";
 import { STRATEGIC_LINES } from "@/lib/strategic-lines";
 
-// Réplica EXACTA de la landing "flor" del proyecto de referencia
-// Informe_Interactivo_Poli_2025 (index.html, slide-home): imagen
-// lineas-estrategicas.jpg en un contenedor aspect-ratio 721/735, círculo
-// blanco + esfera giratoria en el centro (cx=374,cy=352,r=105 sobre el
-// viewBox 721x735), y un <svg> superpuesto con <ellipse> clicables por
-// pétalo — mismo orden y mismas coordenadas que el original (que ya
-// funcionaba correctamente ahí). El centro navega de vuelta a Resumen
-// General en vez de a una hoja de línea (única diferencia funcional).
-const VB_W = 721;
-const VB_H = 735;
+// Réplica EXACTA del diagrama "Avance Líneas Estratégicas" del proyecto de
+// referencia Informe_Interactivo_Poli_2025 (index.html, var avPiezas +
+// slide-avances): 6 imágenes PNG independientes por línea (PDI/*.png)
+// ensambladas con posicionamiento absoluto sobre un contenedor
+// aspect-ratio 945/944, cada una con el mismo efecto hover del original
+// (filter: brightness/saturate/drop-shadow con el color de la línea) y
+// cursor pointer + onClick. Comunidad.png va decorativa en el centro.
+// Única diferencia funcional: el centro navega de vuelta a Resumen
+// General (en el original es solo decorativo, sin acción).
+interface PiezaDef {
+  slug: string;
+  img: string;
+  css: React.CSSProperties;
+}
 
-// Mismo orden que el <svg> original: cal, exp, edu, exp2, to, sos.
-const PETALOS: { slug: string; cx: number; cy: number; rx: number; ry: number }[] = [
-  { slug: "calidad", cx: 72, cy: 303, rx: 59, ry: 180 },
-  { slug: "expansion", cx: 611, cy: 236, rx: 100, ry: 117 },
-  { slug: "educacion-para-toda-la-vida", cx: 193, cy: 605, rx: 103, ry: 69 },
-  { slug: "experiencia", cx: 594, cy: 487, rx: 95, ry: 105 },
-  { slug: "transformacion-organizacional", cx: 462, cy: 656, rx: 86, ry: 200 },
-  { slug: "sostenibilidad", cx: 489, cy: 12, rx: 75, ry: 200 },
+const PIEZAS: PiezaDef[] = [
+  {
+    slug: "sostenibilidad",
+    img: "/img/pdi/SOSTENIBILIDAD.png",
+    css: { top: "5.3%", left: 0, width: "100%", height: "50%", zIndex: 1 },
+  },
+  {
+    slug: "transformacion-organizacional",
+    img: "/img/pdi/Tranformacion.png",
+    css: { bottom: "5.84%", left: 0, width: "100%", height: "50%", zIndex: 1 },
+  },
+  {
+    slug: "expansion",
+    img: "/img/pdi/Expansion.png",
+    css: { top: "13%", right: "9%", width: "50%", height: "50%", zIndex: 3 },
+  },
+  {
+    slug: "educacion-para-toda-la-vida",
+    img: "/img/pdi/Eduvida.png",
+    css: { bottom: "9%", right: "13.3%", width: "50%", height: "50%", zIndex: 3 },
+  },
+  {
+    slug: "experiencia",
+    img: "/img/pdi/Experiencia.png",
+    css: { bottom: "13.4%", left: "9%", width: "50%", height: "50%", zIndex: 3 },
+  },
+  {
+    slug: "calidad",
+    img: "/img/pdi/Calidad.png",
+    css: { top: "17%", left: "18%", width: "41%", height: "31.5%", zIndex: 3 },
+  },
 ];
 
 interface FlorEstrategicaProps {
@@ -38,22 +65,39 @@ export function FlorEstrategica({
   const router = useRouter();
 
   return (
-    <div className="flor-estrategica mx-auto" style={{ aspectRatio: "721/735", maxWidth: 560 }}>
-      <img
-        src="/img/brand/lineas-estrategicas.jpg"
-        alt="Líneas estratégicas del PDI"
-        className="flor-img"
-        draggable={false}
-      />
+    <div className="flor-estrategica mx-auto" style={{ aspectRatio: "945/944", maxWidth: 560 }}>
+      {PIEZAS.map((p) => {
+        const line = STRATEGIC_LINES.find((l) => l.slug === p.slug);
+        return (
+          <div
+            key={p.slug}
+            className="pieza"
+            style={{ ...p.css, ["--glow" as string]: `${line?.color ?? "#0F385A"}CC` }}
+            onClick={() => onSelectLinea(p.slug)}
+            role="button"
+            tabIndex={0}
+            aria-label={`Ir a la línea estratégica ${line?.label ?? p.slug}`}
+            title={line?.label ?? p.slug}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                onSelectLinea(p.slug);
+              }
+            }}
+          >
+            <img src={p.img} alt={line?.label ?? p.slug} draggable={false} />
+          </div>
+        );
+      })}
 
-      {/* Círculo blanco que cubre el ícono original del centro, igual que la referencia */}
-      <svg viewBox={`0 0 ${VB_W} ${VB_H}`} className="flor-overlay" aria-hidden="true">
-        <circle cx="374" cy="352" r="105" fill="white" />
-      </svg>
-
-      {/* Esfera giratoria: Comunidad -> Logo Poli -> Comunidad (loop); clic = volver */}
-      <div className="esfera" onClick={onSelectCentro} role="button" tabIndex={0}
-        aria-label="Volver a Resumen General" title="Volver a Resumen General"
+      {/* Comunidad Universitaria — centro; clic = volver a Resumen General */}
+      <div
+        className="pieza pieza-centro"
+        onClick={onSelectCentro}
+        role="button"
+        tabIndex={0}
+        aria-label="Volver a Resumen General"
+        title="Volver a Resumen General"
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
@@ -61,38 +105,10 @@ export function FlorEstrategica({
           }
         }}
       >
-        <div className="esfera-banda">
-          <div className="esfera-cara esfera-cara-icon">
-            <img src="/img/pdi/Comunidad.png" alt="Comunidad Universitaria" />
-          </div>
-          <div className="esfera-cara esfera-cara-logo">
-            <img src="/img/brand/logo-poli.jpg" alt="Logo Poli" />
-          </div>
-          <div className="esfera-cara esfera-cara-icon">
-            <img src="/img/pdi/Comunidad.png" alt="Comunidad Universitaria" />
-          </div>
-        </div>
-        <div className="esfera-curva" />
-        <div className="esfera-luz" />
+        <img src="/img/pdi/Comunidad.png" alt="Comunidad Universitaria" draggable={false} />
       </div>
 
-      {/* Pétalos clicables — mismas coordenadas 721x735 del original */}
-      <svg viewBox={`0 0 ${VB_W} ${VB_H}`} className="flor-petalos">
-        {PETALOS.map((p) => (
-          <ellipse
-            key={p.slug}
-            cx={p.cx}
-            cy={p.cy}
-            rx={p.rx}
-            ry={p.ry}
-            fill="rgba(0,0,0,0.001)"
-            className="petalo-hit"
-            onClick={() => onSelectLinea(p.slug)}
-          />
-        ))}
-      </svg>
-
-      {/* Alternativa accesible sin depender del hit-area (lectores de pantalla / teclado) */}
+      {/* Alternativa accesible sin depender del hover/hit-area (lectores de pantalla / teclado) */}
       <nav aria-label="Líneas estratégicas" className="sr-only">
         <ul>
           {STRATEGIC_LINES.map((l) => (
@@ -116,51 +132,20 @@ export function FlorEstrategica({
 
       <style>{`
         .flor-estrategica { position: relative; width: 100%; }
-        .flor-img { width: 100%; height: 100%; display: block; }
-        .flor-overlay { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
-        .flor-petalos { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 4; pointer-events: none; }
-        .petalo-hit { cursor: pointer; pointer-events: all; }
-        .petalo-hit:hover { fill: rgba(11,95,255,0.12) !important; }
-
-        .esfera {
-          position: absolute; left: 51.9%; top: 47.9%; transform: translate(-50%, -50%);
-          width: 28%; aspect-ratio: 1/1; border-radius: 50%; overflow: hidden;
-          background: radial-gradient(circle at 38% 32%, #ffffff 0%, #f2eff2 38%, #d0cdd0 75%, #b8b5b8 100%);
-          box-shadow: inset 0 -8px 18px rgba(0,30,80,0.1), inset 3px 3px 10px rgba(255,255,255,0.9),
-            0 5px 18px rgba(0,0,0,0.18), 0 0 0 2px rgba(255,255,255,0.95);
-          z-index: 3; cursor: pointer;
+        .pieza {
+          position: absolute; cursor: pointer; transition: filter 0.18s ease;
         }
-        .esfera:hover { box-shadow: inset 0 -8px 18px rgba(0,30,80,0.1), inset 3px 3px 10px rgba(255,255,255,0.9),
-            0 6px 20px rgba(11,95,255,0.3), 0 0 0 2px rgba(11,95,255,0.5); }
-        .esfera-banda {
-          position: absolute; top: 0; left: 0; height: 100%; width: 300%;
-          display: flex; animation: girar-esfera 8s linear infinite;
+        .pieza img { width: 100%; height: 100%; display: block; pointer-events: none; }
+        .pieza:hover, .pieza:focus-visible {
+          filter: brightness(1.2) saturate(1.3) drop-shadow(0 0 18px var(--glow));
+          outline: none;
         }
-        .esfera-cara { flex: 1; height: 100%; background: #f5f1f4; overflow: hidden; position: relative; }
-        .esfera-cara-icon img {
-          position: absolute; width: 160%; height: auto; top: 50%; left: 50%; transform: translate(-50%, -50%);
+        .pieza-centro {
+          position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+          width: 70%; height: auto; z-index: 5; border-radius: 50%;
         }
-        .esfera-cara-logo img {
-          position: absolute; width: 88%; height: auto; top: 50%; left: 50%; transform: translate(-50%, -50%);
-          mix-blend-mode: multiply;
-        }
-        .esfera-curva {
-          position: absolute; inset: 0;
-          background:
-            radial-gradient(circle at 50% 50%, transparent 36%, rgba(0,20,60,0.14) 58%, rgba(0,20,60,0.50) 82%, rgba(0,20,60,0.68) 100%),
-            radial-gradient(ellipse 28% 100% at 0% 50%, rgba(0,20,60,0.18) 0%, transparent 100%),
-            radial-gradient(ellipse 28% 100% at 100% 50%, rgba(0,20,60,0.10) 0%, transparent 100%),
-            radial-gradient(ellipse 100% 22% at 50% 100%, rgba(0,20,60,0.18) 0%, transparent 100%);
-          z-index: 2; pointer-events: none;
-        }
-        .esfera-luz {
-          position: absolute; width: 32%; height: 26%; top: 7%; left: 9%; border-radius: 50%;
-          background: radial-gradient(ellipse, rgba(255,255,255,0.96) 0%, rgba(255,255,255,0.65) 35%, transparent 68%);
-          pointer-events: none; z-index: 4;
-        }
-        @keyframes girar-esfera {
-          from { transform: translateX(0%); }
-          to   { transform: translateX(-66.66%); }
+        .pieza-centro:hover, .pieza-centro:focus-visible {
+          filter: brightness(1.08) drop-shadow(0 0 14px rgba(11,95,255,0.55));
         }
         .sr-only {
           position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;

@@ -43,6 +43,7 @@ from app.domain.resumen_builders import (
 from app.domain.strategic_processors import StrategicProcessors
 from app.services.etl_pipeline import ETLPipelineService
 from app.services.excel_reader import ExcelReaderService
+from app.services.narrativa_estrategica_service import leer_narrativa_estrategica
 from app.services.proyectos_pmo_loader import ProyectosPmoLoader
 from app.services.retos_loaders import RetosLoaders
 
@@ -888,6 +889,17 @@ class ResumenService:
         # que la vista Retos/Consolidado: último año del rango.
         areas_count = self._retos.load_area_count(max(ANIOS_RANGO))
 
+        # Narrativa cualitativa (Informe Estratégico): estática, generada
+        # aparte con scripts/generar_narrativa_estrategica.py — se lee del
+        # JSON si ya se corrió; si no existe aún, cada línea/el consolidado
+        # simplemente no traen texto cualitativo (degradación con gracia).
+        narrativa = leer_narrativa_estrategica()
+        narrativa_consolidada = narrativa.get("consolidado") if narrativa else None
+        narrativa_lineas = narrativa.get("lineas", {}) if narrativa else {}
+        for li in lineas:
+            nl = narrativa_lineas.get(norm_key(li["linea"]))
+            li["narrativa"] = nl
+
         return {
             "generado": "Cierre PDI 2022-2025",
             "cumplimiento_global": round(cumpl_global, 1),
@@ -898,4 +910,5 @@ class ResumenService:
             "total_proyectos": proy_count,
             "total_areas": areas_count,
             "lineas": lineas,
+            "narrativa_consolidada": narrativa_consolidada,
         }

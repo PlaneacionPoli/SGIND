@@ -1,3 +1,4 @@
+import { TrendingUp, Target, CheckCircle2 } from "lucide-react";
 import type { ResumenLineaRetos } from "@/lib/types";
 
 interface RetosBadgesProps {
@@ -5,25 +6,34 @@ interface RetosBadgesProps {
   color: string;
 }
 
+// Réplica de retoBadge() del proyecto de referencia: icono en cuadro con
+// tinte del color, valor+label en caja navy (#0F385A) — mismos 3 colores
+// fijos de icono que el original (color de línea / #FBAF17 / #A6CE38).
 export function RetosBadges({ retos, color }: RetosBadgesProps) {
   const badges = [
-    { label: "Avance Real", value: `${retos.avance_real.toFixed(0)}%` },
-    { label: "Avance Esperado", value: `${retos.avance_esperado.toFixed(0)}%` },
-    { label: "Cumplimiento", value: `${retos.cumplimiento.toFixed(0)}%` },
+    { Icon: TrendingUp, iconColor: color, value: retos.avance_real, label: "Avance Real" },
+    { Icon: Target, iconColor: "#FBAF17", value: retos.avance_esperado, label: "Avance Esperado" },
+    { Icon: CheckCircle2, iconColor: "#A6CE38", value: retos.cumplimiento, label: "Cumplimiento" },
   ];
 
   return (
     <div className="space-y-3">
-      <div className="grid grid-cols-3 gap-2">
+      <div className="flex gap-1.5">
         {badges.map((b) => (
-          <div
-            key={b.label}
-            className="rounded-lg px-2 py-3 text-center text-white shadow-sm"
-            style={{ backgroundColor: color }}
-          >
-            <div className="text-lg font-black leading-none">{b.value}</div>
-            <div className="mt-1 text-[10px] font-semibold uppercase tracking-wide opacity-90">
-              {b.label}
+          <div key={b.label} className="flex flex-1 overflow-hidden rounded-lg shadow-sm">
+            <div
+              className="flex w-9 shrink-0 items-center justify-center"
+              style={{ backgroundColor: `${b.iconColor}20` }}
+            >
+              <b.Icon size={16} color={b.iconColor} strokeWidth={2} />
+            </div>
+            <div className="flex flex-1 flex-col items-center justify-center bg-[#0F385A] px-1 py-2">
+              <div className="text-base font-black leading-none text-white">
+                {Math.round(b.value)}%
+              </div>
+              <div className="mt-1 text-center text-[9px] font-bold uppercase leading-tight tracking-wide text-white">
+                {b.label}
+              </div>
             </div>
           </div>
         ))}

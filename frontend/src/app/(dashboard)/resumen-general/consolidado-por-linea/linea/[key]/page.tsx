@@ -3,10 +3,9 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { ProyectosGanttChart } from "@/components/charts/ProyectosGanttChart";
+import { ProyectosPmoTimeline } from "@/components/charts/ProyectosPmoTimeline";
 import { CmiEstrategicoTable } from "@/components/tables/CmiEstrategicoTable";
 import { RetosBadges } from "@/components/ui/RetosBadges";
-import { STRATEGIC_ICON_MAP } from "@/lib/strategic-icons";
 import { findStrategicLine } from "@/lib/strategic-lines";
 import { fetchDashboardFiltros, fetchResumenLinea } from "@/lib/api";
 import { useAuthReady } from "@/stores/auth-store";
@@ -18,7 +17,6 @@ export default function HojaLineaPage({ params }: { params: { key: string } }) {
   const [anio, setAnio] = useState<number | null>(null); // null = rango Cierre PDI 2022-2025
 
   const lineDef = findStrategicLine(key);
-  const IconComponent = lineDef ? STRATEGIC_ICON_MAP[lineDef.icon] : undefined;
 
   const filtrosQuery = useQuery({
     queryKey: ["dashboard-filtros"],
@@ -44,46 +42,33 @@ export default function HojaLineaPage({ params }: { params: { key: string } }) {
   const color = data?.color ?? lineDef?.color ?? "#0F385A";
   const label = data?.linea ?? lineDef?.label ?? key;
 
-  const proyectosGanttData = data
-    ? {
-        anio_min: 2022,
-        anio_max: 2025,
-        items: data.proyectos.map((p) => ({
-          ...p,
-          estado: p.stand_by ? "Stand by" : p.estado,
-        })),
-      }
-    : null;
+  function volver() {
+    router.push("/resumen-general/consolidado-por-linea");
+  }
 
   return (
-    <div className="space-y-6 animate-in fade-in-50 slide-in-from-bottom-2 duration-500">
-      <div className="flex items-center gap-2 text-sm text-slate-500">
+    <div className="space-y-4 animate-in fade-in-50 slide-in-from-bottom-2 duration-500">
+      {/* Header: réplica del header de línea del proyecto de referencia
+          (barra sólida del color de línea, ícono 🎯 en círculo punteado,
+          botón ✕ que vuelve al portal — equivalente a goBack()). */}
+      <div
+        className="flex items-center gap-3.5 rounded-xl px-5 py-3 shadow-md"
+        style={{ backgroundColor: color }}
+      >
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-2 border-dashed border-white/60 text-2xl">
+          🎯
+        </div>
+        <h1 className="flex-1 text-lg font-black uppercase tracking-wide text-white sm:text-2xl">
+          {label}
+        </h1>
         <button
           type="button"
-          onClick={() => router.push("/resumen-general/consolidado-por-linea")}
-          className="inline-flex items-center gap-1 font-medium text-poli-navy hover:underline"
+          onClick={volver}
+          aria-label="Volver a Consolidado por Línea"
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-white/20 text-lg text-white transition hover:bg-white/40"
         >
-          ← Consolidado por Línea
+          ✕
         </button>
-        <span className="text-slate-300">/</span>
-        <span className="font-semibold text-slate-700">{label}</span>
-      </div>
-
-      <div
-        className="flex items-center gap-3 rounded-xl px-6 py-5 text-white shadow-md"
-        style={{ background: `linear-gradient(120deg, ${color}, ${color}CC)` }}
-      >
-        {IconComponent && (
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white/20">
-            <IconComponent size={26} strokeWidth={1.75} />
-          </div>
-        )}
-        <div>
-          <p className="text-[11px] font-semibold uppercase tracking-widest text-white/80">
-            Línea Estratégica
-          </p>
-          <h1 className="text-2xl font-bold">{label}</h1>
-        </div>
       </div>
 
       <div className="flex flex-wrap items-center gap-3 rounded-lg border border-slate-200 bg-white p-4">
@@ -114,25 +99,26 @@ export default function HojaLineaPage({ params }: { params: { key: string } }) {
       </div>
 
       {lineaQuery.isLoading || !data ? (
-        <div className="grid gap-4 lg:grid-cols-2">
+        <div className="grid gap-4 lg:grid-cols-[1fr_1.6fr]">
           <div className="h-64 animate-pulse rounded-xl bg-slate-200" />
           <div className="h-64 animate-pulse rounded-xl bg-slate-200" />
         </div>
       ) : (
         <>
-          <div className="grid gap-4 lg:grid-cols-2">
-            <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-              <h3 className="mb-3 text-sm font-semibold text-slate-800">Retos</h3>
+          <div className="grid gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm lg:grid-cols-[1fr_1.6fr]">
+            <div className="border-slate-100 lg:border-r lg:pr-4">
+              <h3 className="mb-3 text-center text-xs font-black uppercase tracking-wide text-[#0F385A]">
+                Retos
+              </h3>
               <RetosBadges retos={data.retos} color={color} />
             </div>
-            <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-              <h3 className="mb-3 text-sm font-semibold text-slate-800">Proyectos PMO</h3>
-              {proyectosGanttData && <ProyectosGanttChart data={proyectosGanttData} />}
+            <div>
+              <h3 className="mb-3 text-sm font-bold text-slate-800">Proyectos PMO</h3>
+              <ProyectosPmoTimeline items={data.proyectos} />
             </div>
           </div>
 
           <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-            <h3 className="mb-3 text-sm font-semibold text-slate-800">CMI Estratégico</h3>
             <CmiEstrategicoTable objetivos={data.objetivos} color={color} />
           </div>
 

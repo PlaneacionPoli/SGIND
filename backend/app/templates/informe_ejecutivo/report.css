@@ -216,3 +216,36 @@ body {
   padding: 10px 14px;
 }
 .reco-box p { font-size: 9.5px; color: #14532D; line-height: 1.6; margin: 0; }
+
+/* ── Narrativa cualitativa (Informe Estratégico) ──────────────────────── */
+.narrativa-lead { font-size: 10.5px; color: #334155; line-height: 1.6; margin: 0 0 14px; }
+.narrativa-block {
+  background: #F8FAFC; border-left: 4px solid #0B2A5B; border-radius: 8px;
+  padding: 10px 14px; margin: 10px 0;
+}
+.narrativa-block-tight { margin: 0; }
+.narrativa-pendientes { background: #FFFBEB; border-left-color: #D97706; }
+.narrativa-kicker {
+  font-size: 8px; font-weight: 800; letter-spacing: .5px; text-transform: uppercase;
+  margin: 0 0 5px;
+}
+.narrativa-kicker-amber { color: #D97706; }
+.narrativa-text { font-size: 9px; line-height: 1.55; color: #334155; margin: 0; text-align: justify; }
+.linea-tagline { color: rgba(255,255,255,.85); font-size: 9px; font-style: italic; margin: 2px 0 0; max-width: 110mm; }
+.balance-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px; }
+
+/* ── Hoja de Ruta Transicional ────────────────────────────────────────── */
+.roadmap-table { width: 100%; border-collapse: collapse; }
+.roadmap-table th {
+  font-size: 7.5px; text-transform: uppercase; color: #fff; background: #0B2A5B;
+  text-align: left; padding: 6px 8px;
+}
+.roadmap-table td {
+  font-size: 8px; padding: 6px 8px; border-bottom: 1px solid #E2E8F0;
+  color: #334155; vertical-align: top; line-height: 1.4;
+}
+.roadmap-table tr:nth-child(even) td { background: #F8FAFC; }
+.roadmap-linea {
+  display: inline-block; font-size: 8px; font-weight: 800;
+  border-radius: 5px; padding: 3px 8px; white-space: nowrap;
+}

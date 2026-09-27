@@ -1,0 +1,234 @@
+{
+  "fuente": "heuristico",
+  "cumplimiento_global": 106.9,
+  "consolidado": {
+    "resumen_ejecutivo": "El PDI 2022-2026 cierra su corte 2022-2025 con un cumplimiento institucional acumulado del 106.9%, reflejo de una ejecución sostenida en las 6 líneas estratégicas. Expansión lidera el desempeño (98.9%), mientras Educación para toda la vida concentra las mayores oportunidades de cierre de brecha (94.7%) de cara al siguiente ciclo de planeación.",
+    "logros": "Los mayores logros transformacionales del ciclo se concentran en la consolidación de arquitectura tecnológica institucional, el fortalecimiento de la oferta académica y el avance sostenido en cumplimiento financiero y de indicadores misionales.",
+    "retos_priorizados": "Los retos priorizados para el PDI 2026-2030 giran en torno a los proyectos aún en planeación o en pausa, los indicadores sin medición consolidada y el cierre de las brechas identificadas en las líneas con menor cumplimiento relativo."
+  },
+  "lineas": {
+    "expansion": {
+      "nombre": "Expansión",
+      "tagline": "Expansión para el POLI es crecer con compromiso social, siendo ejemplo de dedicación y empeño por brindar más y mejores oportunidades de acceso a una educación pertinente y de calidad.",
+      "objetivos_oficiales": [
+        {
+          "numero": 3,
+          "titulo": "Crecer con compromiso social",
+          "descripcion": "La expansión institucional supone considerar variables integrales del sistema educativo, tales como ampliar la cobertura, que se constituye en un desafío ético, en la medida en que brinda oportunidades de acceso y mejoramiento de proyectos de vida a través de la educación. Por otra parte, la oferta de programas académicos de calidad y pertinentes, impacta significativamente el desarrollo de proyectos sociales colectivos de alcance local, regional y nacional. Así, el crecimiento y consolidación institucional se constituye en aportes concretos a las políticas de acceso, de inclusión, de generación de oportunidades, de cualificación del talento humano y de desarrollo social.",
+          "metas": [
+            "En el 2026, alcanzar una población estudiantil superior a 70.000 estudiantes.",
+            "Diseñar e implementar el esquema de relacionamiento con la empresa y el Estado.",
+            "Posicionar al POLI como una de las opciones más atractivas para iniciar los estudios de educación superior.",
+            "Lanzamiento efectivo de nuevos programas."
+          ]
+        }
+      ],
+      "parrafo_logros": "La línea Expansión registra un desempeño satisfactorio (98.9% de cumplimiento acumulado) frente a su objetivo estratégico de crecer con compromiso social. Los proyectos cerrados en el ciclo (PRICING; Proyecto Silver) materializaron entregables concretos —entre ellos • HubSpot Eduvida implementado para estrategia ingresantes\n• Herramienta Chattigo de atención por WhatsApp operativa\n• Integración con flujos de acompañamiento a estudiantes nuevos; • Optimización SEO y accesibilidad del portal web\n• Estrategia de captación digital segmentada (brand y performance)\n• Medición periódica de brand equity e indicadores de marca\n• Campaña 'Somos diferentes, somos Poli' y nueva fase 2025; • Análisis de competencia y percepción de valor por programa\n• Modelo de elasticidad/inelasticidad de demanda por precio\n• Estrategia diferenciada de precios y descuentos\n• Marco de referencia de pricing institucional; • Mapeo de situación actual universidades y sector empresarial\n• Diagnóstico interno y sesión de co-creación\n• Informe de intergeneracionalidad y resultados de co-creación\n• Informe con hallazgos y oportunidades institucionales\n• Propuesta de programas y servicios de intergeneracionalidad\n• Informe final del proyecto— que consolidan avances de madurez institucional más allá de la ejecución operativa, en línea con lo trazado en el PDI 2022-2026 para esta línea.",
+      "parrafo_pendientes": "La línea Expansión cierra el ciclo sin pendientes críticos identificados; la prioridad para el PDI 2026-2030 es sostener el ritmo alcanzado y explorar metas más ambiciosas sobre la misma base construida.",
+      "proyectos_pendientes": [],
+      "indicadores_pendientes": [],
+      "indicadores_criticos": []
+    },
+    "transformacion organizacional": {
+      "nombre": "Transformación Organizacional",
+      "tagline": "Transformación Organizacional para el POLI representa el compromiso por lograr cambios profundos en la cultura POLI y así alcanzar proyectos de vida felices y productivos.",
+      "objetivos_oficiales": [
+        {
+          "numero": 7,
+          "titulo": "Contar con un equipo humano feliz y apasionado, que trabaja de forma colaborativa para alcanzar las metas institucionales",
+          "descripcion": "Por encima de las herramientas necesarias para llevar a cabo día a día la misión y alcanzar la visión a 5 años, el recurso principal y lo que ofrece el POLI son servicios que brindan seres humanos. La pasión, la actitud consecuente y el logro de los objetivos enmarcados en un ambiente de cordialidad, realización personal y crecimiento que conducen a la felicidad, son elementos necesarios en el quehacer del talento humano. En el plan de desarrollo, la relación estudiante-profesor está en el centro y se convierte en el fin último.",
+          "metas": [
+            "Estar en el ranking de las 100 mejores empresas para trabajar en Colombia.",
+            "Implementar el Plan Talento para colaboradores alineado con la estrategia.",
+            "Contar con una estrategia de comunicaciones integrada que apalanque la cultura y el posicionamiento institucional.",
+            "Contribuir a la formación permanente del equipo humano."
+          ]
+        },
+        {
+          "numero": 8,
+          "titulo": "Asegurar una arquitectura tecnológica institucional centrada en la experiencia de la comunidad educativa",
+          "descripcion": "Desarrollar y desplegar la arquitectura tecnológica que asegure que la Institución ofrezca la experiencia requerida para satisfacer las necesidades, que permita el crecimiento institucional y ofrezca educación para toda la vida, que apalanque el logro de la acreditación de calidad y que permita que el POLI llegue a ser una universidad \"digital\", mediante el diseño e implementación del ecosistema de experiencia digital con sistemas integrados y servicios de autogestión.",
+          "metas": [
+            "Contar con una arquitectura IT implementada al 100%, con un 99,7% de disponibilidad.",
+            "Contar con un ecosistema digital centrado en la experiencia institucional."
+          ]
+        },
+        {
+          "numero": 9,
+          "titulo": "Fortalecer la gestión por procesos y la toma de decisiones basada en el análisis de los datos",
+          "descripcion": "Contempla la ampliación del alcance del Sistema Integrado de Aseguramiento y Gestión para la Sostenibilidad (POLISIGS), que conlleva a rediseñar el modelo de procesos institucionales de tal manera que permita ser un habilitador de la estrategia, así como fortalecer la cultura de mejora continua. Desde el punto de vista de analítica de datos, la estrategia busca brindar información veraz, concisa, oportuna, confiable, única y segura, y avanzar en modelos de analítica e inteligencia artificial como apalancador clave de las decisiones futuras.",
+          "metas": [
+            "Ampliar el alcance del sistema integrado POLISIGS y su apropiación en la comunidad.",
+            "Impulsar la mejora y optimización de procesos.",
+            "Asegurar un esquema de gobierno y calidad de datos institucional.",
+            "Promover el uso de los datos, a partir del diseño e implementación de soluciones analíticas."
+          ]
+        }
+      ],
+      "parrafo_logros": "La línea Transformación Organizacional registra un desempeño satisfactorio (97.5% de cumplimiento acumulado) frente a su objetivo estratégico de contar con un equipo humano feliz y apasionado, que trabaja de forma colaborativa para alcanzar las metas institucionales. Los proyectos cerrados en el ciclo (Actualización de TRD y creación del Plan de Gestión documental; Datalake; HUBSPOT CRM; Monarca - Ecosistema Banner (+7 más)) materializaron entregables concretos —entre ellos • Declaración del ADN POLI (identidad del colaborador)\n• Modelo de Experiencia del Colaborador\n• Plataforma de inducción interactiva en Canvas (niveles 1 al 6)\n• Estrategia de comunicación 2026 del modelo\n• Campaña de sensibilización de beneficios institucionales; • Marco de gobierno de datos (en proceso)\n• Plan ajustado de gobierno de datos\n• Lineamientos de calidad, seguridad y accesibilidad de datos; • Modelo de mejoramiento continuo actualizado\n• Política POLISIGS revisada y actualizada\n• Micrositio de herramientas de mejoramiento continuo (en diseño)\n• Inventario de fuentes y herramientas de mejoramiento consolidado; • Blueprint del proceso de titulación autogestionada\n• Product Backlog del proyecto\n• Propuesta de solución con fases de implementación\n• Estimación de esfuerzo y costos del proyecto— que consolidan avances de madurez institucional más allá de la ejecución operativa, en línea con lo trazado en el PDI 2022-2026 para esta línea.",
+      "parrafo_pendientes": "Hacia el cierre del ciclo, quedan 3 proyecto(s) en planeación o en pausa (Automatización y Optimización proceso contractual; Homologaciones IA - ILUMNO; Implementación reforma Curricular); 2 indicador(es) en zona de alerta o peligro (Cumplimiento de diagnóstico necesidades de capacitación por área; % de depuración histórico  SNIES); 7 indicador(es) catalogados sin medición aún (Diseño del Gobierno de IT; Arquitectura de Microservicios; Smart Assistant; Optimización de procesos del ciclo de vida del estudiante (+3 más)). Estos elementos son el insumo directo para la formulación del PDI 2026-2030 en Transformación Organizacional: requieren decisión explícita sobre continuidad, redefinición de alcance o cierre, y asignación de recursos antes del inicio del siguiente ciclo.",
+      "proyectos_pendientes": [
+        "Automatización y Optimización proceso contractual",
+        "Homologaciones IA - ILUMNO",
+        "Implementación reforma Curricular"
+      ],
+      "indicadores_pendientes": [
+        "Diseño del Gobierno de IT",
+        "Arquitectura de Microservicios",
+        "Smart Assistant",
+        "Optimización de procesos del ciclo de vida del estudiante",
+        "Cumplimiento proyecto creación del centro de excelencia analítica",
+        "ïndice de madurez analítica institucional y  por proceso",
+        "Desempeño de Modelos (Machine Learning - IA)"
+      ],
+      "indicadores_criticos": [
+        "Cumplimiento de diagnóstico necesidades de capacitación por área",
+        "% de depuración histórico  SNIES"
+      ]
+    },
+    "calidad": {
+      "nombre": "Calidad",
+      "tagline": "Calidad para el POLI significa el profundo compromiso con la Acreditación Institucional, a partir del mejoramiento de las funciones sustantivas de docencia, investigación, proyección social e internacionalización y el fortalecimiento de una oferta educativa innovadora y acorde con las necesidades de las empresas y la sociedad.",
+      "objetivos_oficiales": [
+        {
+          "numero": 1,
+          "titulo": "Asegurar la alta calidad a nivel institucional",
+          "descripcion": "El aseguramiento de la calidad a nivel institucional, apalancado en el Sistema Integrado de Aseguramiento y Gestión para la Sostenibilidad (POLISIGS), contempla el fortalecimiento de programas académicos y procesos institucionales que permitan obtener la acreditación institucional para la Sede de Bogotá en 2025. Asimismo, aspira que para el cierre del ciclo de planeación 2022-2026, mejore su ubicación entre las Instituciones Universitarias en el desempeño en las competencias genéricas de las pruebas Saber.",
+          "metas": [
+            "Al 2025 contar con la acreditación institucional en alta calidad de la Sede de Bogotá."
+          ]
+        },
+        {
+          "numero": 2,
+          "titulo": "Fortalecer la oferta educativa y la innovación curricular",
+          "descripcion": "El POLI ha sido líder en educación virtual en el país. Para este ciclo de planeación, la Institución se ha propuesto promover el diseño y desarrollo de programas en nuevas modalidades y así mismo dar fiel cumplimiento a los compromisos establecidos en el Proyecto Educativo Institucional.",
+          "metas": [
+            "Contar con un portafolio de programas académicos innovador, de calidad, pertinente y flexible, que responda a las necesidades del estudiante y del entorno.",
+            "Avanzar en la construcción de una cultura de buena docencia centrada en el estudiante, su aprendizaje y en la excelencia pedagógica del equipo de profesores.",
+            "Innovar en el currículo."
+          ]
+        }
+      ],
+      "parrafo_logros": "La línea Calidad registra un desempeño satisfactorio (97.8% de cumplimiento acumulado) frente a su objetivo estratégico de asegurar la alta calidad a nivel institucional. Los proyectos cerrados en el ciclo (Fortalecimiento de planta docente; Acreditación Institucional Fase II; Acreditación Institucional fase III – Etapa de evaluación externa o evaluación por pares; Acreditación Institucional Sede Bogotá-Fase I (+6 más)) materializaron entregables concretos —entre ellos • Modelo de gestión de nómina docente documentado e implementado\n• Proceso de categorización y escalafón docente operativo\n• Lineamiento de Evaluación Integral de Desempeño Profesor 360°\n• Plan de formación docente con más de 9.000 asistencias registradas\n• Documentación del proceso de administración, gestión y solicitud de nómina docente; • Ecosistema de Centros de Investigación, Ciencia, Tecnología e Innovación\n• Ruta de formación investigativa implementada en 89% de los programas\n• Manual de semilleros de investigación\n• Estrategia de divulgación científica Paradigma\n• Inventario de producción intelectual (464 productos consolidados)\n• Plan de mejoramiento implementado en 16 grupos (100%); • Plataforma InterU de Universia para gestión de información ORII\n• 61 convenios nacionales e internacionales firmados en 2025\n• Programa de movilidad docente entrante y saliente\n• Sistema de recolección, sistematización y seguimiento de internacionalización\n• Designación como coordinador ALACAURP 2025-2027; • Vista de administración de la plataforma curricular desarrollada\n• Integración con sistemas institucionales (en progreso)\n• Soporte tecnológico al proceso de reforma curricular meso curricular— que consolidan avances de madurez institucional más allá de la ejecución operativa, en línea con lo trazado en el PDI 2022-2026 para esta línea.",
+      "parrafo_pendientes": "Hacia el cierre del ciclo, quedan 1 proyecto(s) en planeación o en pausa (Sistema de medición de resultados de aprendizaje); 2 indicador(es) en zona de alerta o peligro (Productos de investigación, innovación y creación; Relación Estudiante-Docente Tiempo completo); 4 indicador(es) catalogados sin medición aún (Valor académico agregado; Aporte relativo; N° Programas con nuevo modelo evaluativo implementado; Programas en modalidad virtual y hibrida en 2025). Estos elementos son el insumo directo para la formulación del PDI 2026-2030 en Calidad: requieren decisión explícita sobre continuidad, redefinición de alcance o cierre, y asignación de recursos antes del inicio del siguiente ciclo.",
+      "proyectos_pendientes": [
+        "Sistema de medición de resultados de aprendizaje"
+      ],
+      "indicadores_pendientes": [
+        "Valor académico agregado",
+        "Aporte relativo",
+        "N° Programas con nuevo modelo evaluativo implementado",
+        "Programas en modalidad virtual y hibrida en 2025"
+      ],
+      "indicadores_criticos": [
+        "Productos de investigación, innovación y creación",
+        "Relación Estudiante-Docente Tiempo completo"
+      ]
+    },
+    "experiencia": {
+      "nombre": "Experiencia",
+      "tagline": "Experiencia en el POLI es dar lo mejor de nosotros cada día, basados en principios de excelencia, solidaridad, empatía y sencillez, para brindar momentos significativos a toda la comunidad.",
+      "objetivos_oficiales": [
+        {
+          "numero": 6,
+          "titulo": "Garantizar una experiencia significativa y de valor agregado a la comunidad POLI",
+          "descripcion": "El POLI confía en el potencial de las nuevas tecnologías para crear experiencias educativas muy potentes y 'personalizar' las ofertas y rutas de formación, de manera que se acomoden a sus expectativas iniciales y a los cambios que experimenten a lo largo de sus carreras y trayectorias laborales. Se apalanca en tres ejes: el diseño e implementación del modelo de experiencia institucional, la satisfacción en el servicio y la permanencia de la comunidad POLI, y la innovación en el modelo de Bienestar Universitario.",
+          "metas": [
+            "Diseñar e implementar el Modelo de Experiencia Institucional que defina los principios, valores, cualidades, indicadores y variables.",
+            "Alcanzar una satisfacción del servicio superior al 85%.",
+            "Alcanzar una tasa de permanencia intersemestral superior al 90%.",
+            "Innovar en el modelo de bienestar universitario para velar por la calidad de vida de todos los actores del POLI."
+          ]
+        }
+      ],
+      "parrafo_logros": "La línea Experiencia registra un desempeño satisfactorio (98.1% de cumplimiento acumulado) frente a su objetivo estratégico de garantizar una experiencia significativa y de valor agregado a la comunidad poli. Los proyectos cerrados en el ciclo (Centro Gastronómico; Experiencia Institucional fase I; Experiencia Institucional Fase II; Experiencia Institucional fase III - Hub de Experiencia y agilismo (+2 más)) materializaron entregables concretos —entre ellos • Diseño arquitectónico y estructural bloque C aprobado\n• Aprobación ambiental CAR y SDA obtenida\n• Proceso constructivo bloque C en ejecución (20% avance)\n• Remodelación de auditorios y salas adicionales (2025); • Infraestructura instalada y operativa (2 cocinas, comedores, vestier, economato, cuarto frío)\n• Equipamiento de alta tecnología (horno combi, freidora industrial, Thermomix, etc.)\n• Manuales y documentación operativa implementada\n• Clases prácticas iniciadas con más de 150 estudiantes en 7 asignaturas; • Documento con orientaciones del Modelo de Experiencia POLI\n• Análisis del contexto institucional y sensibilización\n• Resultados de 28 focus groups con stakeholders; • Modelo de Experiencia Institucional\n• Modelo de Liderazgo POLI\n• Informe de aplicación del plan de cultura organizacional\n• Journey Maps: estudiantes, profesores, colaboradores, egresados, EPLV\n• Informe de resultados de iniciativas de mejora por Journey Map— que consolidan avances de madurez institucional más allá de la ejecución operativa, en línea con lo trazado en el PDI 2022-2026 para esta línea.",
+      "parrafo_pendientes": "Hacia el cierre del ciclo, quedan 3 proyecto(s) en planeación o en pausa (Modelo Predictivo de deserción basado en Scoring; Voice IA - Recupero; Whatsapp IA); 2 indicador(es) catalogados sin medición aún (Índice de Permanencia Docente (NPS); Índice de Permanencia Administrativos (NPS)). Estos elementos son el insumo directo para la formulación del PDI 2026-2030 en Experiencia: requieren decisión explícita sobre continuidad, redefinición de alcance o cierre, y asignación de recursos antes del inicio del siguiente ciclo.",
+      "proyectos_pendientes": [
+        "Modelo Predictivo de deserción basado en Scoring",
+        "Voice IA - Recupero",
+        "Whatsapp IA"
+      ],
+      "indicadores_pendientes": [
+        "Índice de Permanencia Docente (NPS)",
+        "Índice de Permanencia Administrativos (NPS)"
+      ],
+      "indicadores_criticos": []
+    },
+    "sostenibilidad": {
+      "nombre": "Sostenibilidad",
+      "tagline": "Sostenibilidad significa que contribuimos a la inclusión, al medio ambiente y al impacto positivo de nuestros graduados y de la sociedad, optimizando nuestros recursos.",
+      "objetivos_oficiales": [
+        {
+          "numero": 10,
+          "titulo": "Promover una cultura de optimización de recursos financieros como apalancador de la estrategia",
+          "descripcion": "Desde el punto de vista de sostenibilidad financiera, hace referencia a la consecución de recursos de diferentes fuentes y al uso racional de los mismos, de tal manera que permita contar con presupuesto para inversión en pro del cumplimiento de las metas establecidas por línea estratégica, y al desarrollo misional de la Institución.",
+          "metas": [
+            "Incrementar los ingresos y el presupuesto de inversión en proyectos institucionales."
+          ]
+        },
+        {
+          "numero": 11,
+          "titulo": "Contribuir a la inclusión, la proyección social y el cuidado del medio ambiente",
+          "descripcion": "Vela para que las actividades que desarrolle la Institución tengan como fin principal la promoción del bienestar social de la comunidad y protección de los recursos naturales, aportando a la solución de los problemas sociales y ambientales por medio de procesos permanentes de interacción e integración con agentes y sectores sociales e institucionales, implementando alternativas respetuosas con el medio ambiente y contribuyendo a los Objetivos de Desarrollo Sostenible.",
+          "metas": [
+            "Mejorar la empleabilidad de nuestros graduados.",
+            "Creación de la asociación de graduados.",
+            "Incrementar el índice de inclusión institucional.",
+            "Propiciar espacios de interacción con la comunidad del entorno.",
+            "Mantener hasta el 5% de estudiantes becados, sobre el total de estudiantes.",
+            "Promover una cultura de protección y cuidado del medio ambiente, apalancados en estándares internacionales."
+          ]
+        }
+      ],
+      "parrafo_logros": "La línea Sostenibilidad registra un desempeño satisfactorio (97.9% de cumplimiento acumulado) frente a su objetivo estratégico de promover una cultura de optimización de recursos financieros como apalancador de la estrategia. Los proyectos cerrados en el ciclo (Certificación SGA sede los Colores; Ecosistema E3; Equidad de Género) materializaron entregables concretos —entre ellos • Informe de auditoría interna SGA\n• Planes de acción basados en auditoría interna\n• Evidencia de implementación de planes de acción\n• Informe de auditoría de tercera parte (certificación ISO 14001:2015 sede Los Colores); • Articulación con unidades y centros del Poli\n• Plataforma de networking y relacionamiento del graduado\n• Sitio del ecosistema E3 en el portal digital\n• Activación del espacio Coworking; • Informe de indicadores por área con temporalidad definida\n• Evidencias y soportes de implementación de planes de trabajo\n• Política estrategia institucional para el fomento de la equidad de género y diversidad (aprobada y publicada)— que consolidan avances de madurez institucional más allá de la ejecución operativa, en línea con lo trazado en el PDI 2022-2026 para esta línea.",
+      "parrafo_pendientes": "Hacia el cierre del ciclo, 4 indicador(es) en zona de alerta o peligro (Nivel de Cumplimiento Opex; CAPEX; Impacto de actividades de Responsabilidad y proyección; Participación de POLI- voluntariados (Estudiantes- Colaboradores)). Estos elementos son el insumo directo para la formulación del PDI 2026-2030 en Sostenibilidad: requieren decisión explícita sobre continuidad, redefinición de alcance o cierre, y asignación de recursos antes del inicio del siguiente ciclo.",
+      "proyectos_pendientes": [],
+      "indicadores_pendientes": [],
+      "indicadores_criticos": [
+        "Nivel de Cumplimiento Opex",
+        "CAPEX",
+        "Impacto de actividades de Responsabilidad y proyección",
+        "Participación de POLI- voluntariados (Estudiantes- Colaboradores)"
+      ]
+    },
+    "educacion para toda la vida": {
+      "nombre": "Educación para toda la vida",
+      "tagline": "Educación para toda la vida en el POLI es impulsar permanentemente soluciones integrales para la formación y el desarrollo humano, personal y profesional.",
+      "objetivos_oficiales": [
+        {
+          "numero": 4,
+          "titulo": "Incursionar en los niveles de Educación Media y de Educación para el Trabajo y el Desarrollo Humano",
+          "descripcion": "Este objetivo busca ampliar el alcance del POLI y pasar de ser una Institución enfocada en Educación Superior a contar con una nueva oferta de educación para el trabajo y el desarrollo humano y de educación media con la creación de un colegio para grados décimo y once. Este objetivo apoyará tanto los propósitos de expansión, como los de impacto social del POLI.",
+          "metas": [
+            "Creación del Instituto para la Educación para el Trabajo y el Desarrollo Humano, con 10 programas de ETDH y 750 estudiantes por programa al año 2026.",
+            "Creación del colegio virtual para tener una matrícula de 100 estudiantes en los niveles décimo y once de educación media al año 2026."
+          ]
+        },
+        {
+          "numero": 5,
+          "titulo": "Impulsar y potenciar la educación continua",
+          "descripcion": "Con este objetivo se espera que el POLI, como Institución Universitaria al servicio de la sociedad, sea vanguardista en satisfacer las necesidades del sector empresarial, así como en adoptar las microcertificaciones como una manera de acercar la Institución al mundo laboral y a los sectores productivos con el acelerado cambio que se da hoy fuera de sus campus.",
+          "metas": [
+            "Incrementar en más del 50% los ingresos de B2B y B2G para el año 2026.",
+            "Ofrecer 250 microcertificaciones con 1.000 estudiantes al año 2026."
+          ]
+        }
+      ],
+      "parrafo_logros": "La línea Educación para toda la vida registra un desempeño en consolidación (94.7% de cumplimiento acumulado) frente a su objetivo estratégico de incursionar en los niveles de educación media y de educación para el trabajo y el desarrollo humano. Los proyectos cerrados en el ciclo (ninguno registrado) materializaron entregables concretos —entre ellos • Diagnóstico de necesidades del Centro de Idiomas\n• Propuesta de modelo operativo (en revisión); • Estudio de factibilidad del Colegio Virtual\n• Análisis regulatorio MEN para educación media\n• Propuesta de modelo pedagógico virtual; • Estudio de viabilidad IETDH\n• Análisis de marco regulatorio para educación para el trabajo\n• Propuesta preliminar de portafolio de programas ETDH— que consolidan avances de madurez institucional más allá de la ejecución operativa, en línea con lo trazado en el PDI 2022-2026 para esta línea.",
+      "parrafo_pendientes": "Hacia el cierre del ciclo, quedan 3 proyecto(s) en planeación o en pausa (Centro de Idiomas POLI; Colegio Virtual; Institución de educación para el trabajo y desarrollo humano IETDH); 2 indicador(es) en zona de alerta o peligro (Total Ingresos B2G; Otros ingresos (Cursos -Opciones de grado)); 2 indicador(es) catalogados sin medición aún (Número de cursos  con microcertificación; Número de estudiantes matriculados  IEDTH). Estos elementos son el insumo directo para la formulación del PDI 2026-2030 en Educación para toda la vida: requieren decisión explícita sobre continuidad, redefinición de alcance o cierre, y asignación de recursos antes del inicio del siguiente ciclo.",
+      "proyectos_pendientes": [
+        "Centro de Idiomas POLI",
+        "Colegio Virtual",
+        "Institución de educación para el trabajo y desarrollo humano IETDH"
+      ],
+      "indicadores_pendientes": [
+        "Número de cursos  con microcertificación",
+        "Número de estudiantes matriculados  IEDTH"
+      ],
+      "indicadores_criticos": [
+        "Total Ingresos B2G",
+        "Otros ingresos (Cursos -Opciones de grado)"
+      ]
+    }
+  }
+}
