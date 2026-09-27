@@ -8,7 +8,7 @@ import {
   Shield,
   BarChart3,
 } from "lucide-react";
-import { Line, LineChart, ResponsiveContainer, Tooltip } from "recharts";
+import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis } from "recharts";
 
 const ICON_MAP: Record<string, ({ size, style, className, strokeWidth }: { size: number; style?: React.CSSProperties; className?: string; strokeWidth?: number }) => ReactNode> = {
   rocket: TrendingUp,
@@ -80,6 +80,7 @@ export function StrategyCard({ card }: StrategyCardProps) {
         <div className="h-10 w-full">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={card.historico}>
+              <XAxis dataKey="anio" hide />
               <Tooltip
                 formatter={((value: number) => [`${Number(value ?? 0).toFixed(1)}%`, "Cumplimiento"]) as never}
                 labelFormatter={(anio) => `Año ${anio}`}

@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { BarChart3, CalendarClock, CheckCircle2, Clock, FolderKanban } from "lucide-react";
+import { AlertTriangle, BarChart3, CalendarClock, CheckCircle2, Clock, FolderKanban, OctagonAlert, TrendingUp } from "lucide-react";
 
 export interface ChipItem {
   value: number | string;
@@ -14,8 +14,11 @@ interface ChipRowProps {
 /** Icono según el estado del chip (vista Proyectos); null si no aplica. */
 function iconForLabel(label: string): LucideIcon | null {
   const l = label.toLowerCase();
+  if (l.includes("sobrecumplimiento")) return TrendingUp;
+  if (l.includes("alerta")) return AlertTriangle;
+  if (l.includes("peligro")) return OctagonAlert;
   if (l.includes("total proyectos")) return FolderKanban;
-  if (l.includes("cerrado")) return CheckCircle2;
+  if (l.includes("cerrado") || l.startsWith("cumplimiento")) return CheckCircle2;
   if (l.includes("ejecuci")) return Clock;
   if (l.includes("planeaci")) return CalendarClock;
   return null;
