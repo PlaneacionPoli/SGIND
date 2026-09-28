@@ -215,6 +215,18 @@ body {
 .linea-tagline { color: rgba(255,255,255,.85); font-size: 9px; font-style: italic; margin: 2px 0 0; max-width: 110mm; }
 .balance-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px; }
 
+/* ── Las tres perspectivas por línea (resumen ejecutivo) ───────────────── */
+.perspectivas-table { width: 100%; border-collapse: collapse; margin: 6px 0 4px; }
+.perspectivas-table th {
+  font-size: 7.5px; text-transform: uppercase; color: #64748B; text-align: left;
+  padding: 5px 8px; border-bottom: 2px solid #E2E8F0;
+}
+.perspectivas-table td { padding: 6px 8px; border-bottom: 1px solid #F1F5F9; }
+.pt-pill {
+  display: inline-flex; align-items: center; gap: 3px; font-size: 8.3px; font-weight: 800;
+  border: 1px solid; border-radius: 10px; padding: 2px 8px;
+}
+
 /* ── Desempeño consolidado (por línea) ────────────────────────────────── */
 .consolidado-summary { display: grid; grid-template-columns: 1fr 2.1fr; gap: 14px; margin-bottom: 14px; }
 .consolidado-card {

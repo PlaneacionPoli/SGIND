@@ -168,18 +168,25 @@
       {% endfor %}
     </div>
 
-    <h3 class="section-title">Portafolio institucional</h3>
-    <div class="mini-grid">
-      {% for li in data.lineas %}
-      <div class="mini-card" style="border-left-color:{{ li.color }}">
-        <span class="mini-linea">{{ li.linea }}</span>
-        <div class="mini-row"><span>{{ li.cumplimiento_consolidado }}%</span> consolidado</div>
-        <div class="mini-row"><span>{{ li.retos.cumplimiento }}%</span> retos</div>
-        <div class="mini-row"><span>{{ li.proyectos | length }}</span> proyecto{{ "" if li.proyectos | length == 1 else "s" }}</div>
-        <div class="mini-row"><span>{{ li.objetivos | map(attribute="indicadores") | map("length") | sum }}</span> indicadores</div>
-      </div>
-      {% endfor %}
-    </div>
+    <h3 class="section-title">Las tres perspectivas por línea</h3>
+    <table class="perspectivas-table">
+      <thead><tr><th>Línea</th><th>Retos</th><th>Proyectos</th><th>Indicadores</th><th>Consolidado</th></tr></thead>
+      <tbody>
+        {% for li in data.lineas %}
+        {% set e_r = estado_de(li.retos.cumplimiento) %}
+        {% set e_p = estado_de(li.proyectos_cumplimiento_promedio) if li.proyectos_cumplimiento_promedio is not none else {"label":"N/A","color":"#94A3B8","icon":"⊘"} %}
+        {% set e_i = estado_de(li.indicadores_cumplimiento_promedio) %}
+        {% set e_c = estado_de(li.cumplimiento_consolidado) %}
+        <tr>
+          <td style="font-weight:800;color:{{ li.color }}">{{ li.linea }}</td>
+          <td><span class="pt-pill" style="color:{{ e_r.color }};border-color:{{ e_r.color }}">{{ e_r.icon }} {{ li.retos.cumplimiento }}</span></td>
+          <td><span class="pt-pill" style="color:{{ e_p.color }};border-color:{{ e_p.color }}">{{ e_p.icon }} {{ li.proyectos_cumplimiento_promedio if li.proyectos_cumplimiento_promedio is not none else "N/A" }}</span></td>
+          <td><span class="pt-pill" style="color:{{ e_i.color }};border-color:{{ e_i.color }}">{{ e_i.icon }} {{ li.indicadores_cumplimiento_promedio }}</span></td>
+          <td><span class="pt-pill" style="color:{{ e_c.color }};border-color:{{ e_c.color }}">{{ e_c.icon }} {{ li.cumplimiento_consolidado }}</span></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
   </section>
 
   <!-- ── Estado de los indicadores ─────────────────────────────────────── -->
