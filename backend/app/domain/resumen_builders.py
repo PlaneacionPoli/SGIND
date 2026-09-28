@@ -1427,6 +1427,13 @@ _ESTADO_PROYECTO_COLORS_PDF = {
     "Stand by": "#94A3B8",
 }
 
+# Indicadores excluidos del Informe Ejecutivo (CMI y Hoja de Ruta) por
+# decisión de negocio — Id 465 "% de depuración histórico SNIES" fue
+# CANCELADO (no cerrado/completado) en Transformación Organizacional,
+# confirmado 2026-09-29: ya no debe aparecer como indicador vigente en el
+# PDF, aunque el dato siga cargado en el CMI general de la app.
+_INDICADORES_EXCLUIDOS_PDF = {"465"}
+
 # STRATEGIC_LINE_DEFS["label"] está en ASCII (clave de emparejamiento);
 # para el informe se usa el nombre con tildes que ya se muestra en el resto
 # de la app (ChipRow / StrategyCard).
@@ -1575,9 +1582,11 @@ def build_informe_ejecutivo_lineas(
                 obj_sub = sub[sub["Objetivo"] == objetivo_nombre]
                 indicadores = []
                 for _, row in obj_sub.iterrows():
+                    id_str = str(row.get("Id", ""))
+                    if id_str in _INDICADORES_EXCLUIDOS_PDF:
+                        continue
                     cumpl = row.get("cumplimiento_pct")
                     nivel = str(row.get("Nivel de cumplimiento") or "Pendiente de reporte")
-                    id_str = str(row.get("Id", ""))
                     signo = signo_lookup.get(id_str, {})
                     cumpl_val = round(float(cumpl), 1) if pd.notna(cumpl) else None
                     indicadores.append(

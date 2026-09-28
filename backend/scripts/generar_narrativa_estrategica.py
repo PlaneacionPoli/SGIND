@@ -96,7 +96,7 @@ TEXTOS_LINEAS = {
                 "momento."
             ),
             "proyectos": (
-                "En proyectos, la línea alcanza un avance promedio de 88,5% sobre 15 "
+                "En proyectos, la línea alcanza un avance promedio de 98,2% sobre 15 "
                 "iniciativas, con el hito central del ciclo ya materializado: la acreditación "
                 "institucional en alta calidad de la Sede Bogotá fue otorgada por el CNA en "
                 "mayo de 2026 por 6 años, tras el informe de autoevaluación radicado, la visita "
@@ -118,7 +118,7 @@ TEXTOS_LINEAS = {
             "consolidado": (
                 "En conjunto, Calidad consolida su objetivo estratégico central —asegurar la "
                 "acreditación institucional en alta calidad— con un desempeño equilibrado en "
-                "las tres dimensiones (retos 97,8%, proyectos 88,5%, indicadores 106,4%): la "
+                "las tres dimensiones (retos 97,8%, proyectos 98,2%, indicadores 106,4%): la "
                 "ejecución operativa fue estable, la acreditación fue efectivamente otorgada "
                 "por el CNA, y los indicadores estructurales (planta docente, resultados de "
                 "aprendizaje) confirman que el resultado es una maduración real de los procesos "
@@ -148,13 +148,13 @@ TEXTOS_LINEAS = {
                 "crecimiento planeado de matrícula a lo largo de los cuatro años del ciclo."
             ),
             "proyectos": (
-                "En proyectos, la línea registra un avance promedio de 89,0% sobre 3 "
+                "En proyectos, la línea registra un avance promedio de 95,2% sobre 3 "
                 "iniciativas. Dos ya cerraron al 100%: Pricing, que construyó una estrategia de "
                 "precios institucional basada en el análisis de elasticidad de demanda por "
                 "programa y en la diferenciación de descuentos como política comercial; y "
                 "Proyecto Silver, que estructuró una línea de negocio dirigida a población mayor "
                 "de 50 años, ampliando el mercado más allá del segmento tradicional. La tercera, "
-                "implementación de HubSpot Eduvida, sigue en ejecución (67%) y es la base "
+                "implementación de HubSpot Eduvida, sigue en ejecución (86%) y es la base "
                 "tecnológica del crecimiento futuro en captación."
             ),
             "indicadores": (
@@ -165,7 +165,7 @@ TEXTOS_LINEAS = {
                 "todos sus segmentos (presencial, virtual, pregrado y posgrado)."
             ),
             "consolidado": (
-                "El resultado consolidado de Expansión (retos 98,9%, proyectos 89,0%, "
+                "El resultado consolidado de Expansión (retos 98,9%, proyectos 95,2%, "
                 "indicadores 107,5%) muestra una línea que ya no depende solo del crecimiento "
                 "vegetativo de matrícula: los proyectos cerrados (Pricing, Proyecto Silver) "
                 "instalan mecanismos deliberados de diferenciación comercial y diversificación "
@@ -193,7 +193,7 @@ TEXTOS_LINEAS = {
             ),
             "proyectos": (
                 "Con 16 proyectos activos en el rango 2021-2025, es la línea con mayor densidad "
-                "de iniciativas del ciclo, y su avance promedio (81,4%) refleja tanto la "
+                "de iniciativas del ciclo, y su avance promedio (91,7%) refleja tanto la "
                 "magnitud del esfuerzo como el hecho de que 11 de ellos ya cerraron. En el "
                 "frente tecnológico: la migración "
                 "del ecosistema académico Banner a su versión más reciente sobre Oracle Cloud, "
@@ -204,9 +204,11 @@ TEXTOS_LINEAS = {
                 "Talento y el nuevo Portal Web Universitario completan el cierre."
             ),
             "indicadores": (
-                "El CMI promedia 101,6% de cumplimiento, con logros en los tres objetivos de la "
-                "línea. En el frente humano, el indicador más visible del cambio cultural es el "
-                "Great Place to Work, con una ejecución de 81,0 puntos frente a una meta de 68,7 "
+                "El CMI promedia 106,6% de cumplimiento (9 indicadores vigentes — la depuración "
+                "del histórico SNIES fue cancelada en el ciclo y se retira del conteo), con "
+                "logros en los tres objetivos de la línea. En el frente humano, el indicador más "
+                "visible del cambio cultural es el Great Place to Work, con una ejecución de "
+                "81,0 puntos frente a una meta de 68,7 "
                 "(117,9% de cumplimiento), acompañado de una satisfacción con los servicios "
                 "prestados de 85% y una reducción del índice de rotación a 0,89 frente a una "
                 "meta de 1,2 — evidencia de que la transformación cultural fue medible, no solo "
@@ -217,8 +219,8 @@ TEXTOS_LINEAS = {
                 "construirá el Centro de Excelencia Analítica del próximo ciclo."
             ),
             "consolidado": (
-                "El balance consolidado (retos 97,5%, proyectos 81,4% sobre 16 iniciativas, "
-                "indicadores 101,6%) confirma que la transformación organizacional del ciclo "
+                "El balance consolidado (retos 97,5%, proyectos 91,7% sobre 16 iniciativas, "
+                "indicadores 106,6%) confirma que la transformación organizacional del ciclo "
                 "operó en dos frentes simultáneos y complementarios: una arquitectura "
                 "tecnológica y de datos que pasó de fragmentada a gobernada, y una cultura "
                 "organizacional con mejoras medibles en clima laboral. Es la combinación de "
@@ -227,13 +229,15 @@ TEXTOS_LINEAS = {
             ),
         },
         "pendientes": (
-            "Tres iniciativas —automatización del proceso contractual, homologaciones con IA "
-            "en Ilumno y la reforma curricular tecnológica— ya iniciaron ejecución en el ciclo "
-            "y continúan en desarrollo. Para el PDI 2026-2030 el foco de esta línea es doble: "
-            "implementar el proyecto de Gobierno de Datos, hoy apenas en 5% de avance, como "
-            "base de calidad de dato para el Centro de Excelencia Analítica, y llevar a cierre "
-            "las tres iniciativas en desarrollo antes de comprometer presupuesto del siguiente "
-            "ciclo."
+            "El proyecto de Gobierno de Datos cerró el ciclo prácticamente completo, dejando "
+            "lista la base de calidad de dato para el Centro de Excelencia Analítica del "
+            "próximo PDI. Persisten dos frentes: la automatización del proceso contractual "
+            "sigue en planeación, sin ejecución iniciada, mientras las homologaciones con IA en "
+            "Ilumno y la reforma curricular tecnológica ya avanzan en desarrollo. Para el PDI "
+            "2026-2030 el foco de esta línea es doble: consolidar institucionalmente el Centro "
+            "de Excelencia Analítica sobre la base de datos ya gobernada, y decidir si la "
+            "automatización contractual se ejecuta, se rediseña o se descontinúa antes de "
+            "comprometer presupuesto del siguiente ciclo."
         ),
     },
     "experiencia": {
@@ -243,7 +247,7 @@ TEXTOS_LINEAS = {
                 "sostenida a lo largo del ciclo."
             ),
             "proyectos": (
-                "El avance promedio en proyectos es de 94,7% sobre 7 iniciativas, 6 de ellas ya "
+                "El avance promedio en proyectos es de 99,6% sobre 7 iniciativas, 6 de ellas ya "
                 "cerradas al 100%. El hito central es la implementación en tres fases del Hub de "
                 "Experiencia y Agilismo (HEYA), que rediseñó la gestión de la experiencia "
                 "institucional a partir de journey maps y metodologías ágiles. En paralelo, el "
@@ -252,7 +256,7 @@ TEXTOS_LINEAS = {
                 "Permanencia Institucional desplegó el modelo KITUS de acompañamiento "
                 "segmentado con resultados diferenciados en los grupos de mayor riesgo de "
                 "deserción. La única iniciativa aún en ejecución es la remodelación de los "
-                "bloques I y C (63%)."
+                "bloques I y C, ya casi completa (98%)."
             ),
             "indicadores": (
                 "El CMI promedia 103,4% de cumplimiento, con las cuatro dimensiones de la "
@@ -264,7 +268,7 @@ TEXTOS_LINEAS = {
                 "la mejora en percepción vino acompañada de una gestión operativa consistente."
             ),
             "consolidado": (
-                "El resultado consolidado (retos 98,1%, proyectos 94,7%, indicadores 103,4%) "
+                "El resultado consolidado (retos 98,1%, proyectos 99,6%, indicadores 103,4%) "
                 "muestra una línea que migró de una gestión reactiva de la experiencia a una "
                 "arquitectura de journey maps y agilismo institucionalizados, con resultados ya "
                 "visibles en satisfacción y permanencia estudiantil, y con la mayoría de sus "
@@ -289,8 +293,8 @@ TEXTOS_LINEAS = {
                 "estable en el ciclo."
             ),
             "proyectos": (
-                "Es la línea con mejor ejecución de proyectos del portafolio: 100% de avance "
-                "promedio, con los 3 proyectos de la línea cerrados por completo. La "
+                "Es la línea con mejor ejecución de proyectos del portafolio: 99,3% de avance "
+                "promedio, con los 3 proyectos de la línea cerrados o prácticamente cerrados. La "
                 "certificación ISO 14001:2015 se amplió a la sede Los Colores en Medellín, con "
                 "reducciones verificadas de 18,9% en consumo eléctrico y 26% en consumo de "
                 "agua per cápita; el Ecosistema E3 dio a los graduados una plataforma formal "
@@ -306,7 +310,7 @@ TEXTOS_LINEAS = {
                 "86,8%."
             ),
             "consolidado": (
-                "El balance consolidado (retos 97,9%, proyectos 100%, indicadores 112,6%) "
+                "El balance consolidado (retos 97,9%, proyectos 99,3%, indicadores 112,6%) "
                 "confirma que Sostenibilidad es, junto con Expansión, la línea de mejor "
                 "desempeño integral del ciclo, con una ejecución de proyectos ejemplar y una "
                 "gestión financiera sólida — con la salvedad de que el componente de "

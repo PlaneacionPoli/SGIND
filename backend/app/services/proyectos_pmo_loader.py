@@ -6,13 +6,33 @@ cierre cargado. Confirmado con negocio, 2026-09-27.
 
 Produce las columnas que build_proyectos_pmo_gantt (resumen_builders.py)
 espera: Id, Indicador, Linea, anio_inicio, anio_fin, cumplimiento_pct,
-estado."""
+estado.
+
+cumplimiento_pct evalúa avance real frente a avance ESPERADO a la fecha
+(igual que Retos), no el avance ejecutado a secas — confirmado con negocio,
+2026-09-28. Prioridad por proyecto (ver _cumplimiento_consolidado_por_nombre):
+  1. Resultados Consolidados (Meta/Ejecución del cierre oficial más
+     reciente, vía StrategicLoaders.load_cierres filtrado a Ids PRY-*)
+     cuando el proyecto tiene cierre cargado ahí — es la cifra auditada.
+  2. "Ind. cumplimiento PWA" del propio Centro de Proyectos (% completado /
+     % Esperado centro de proyectos) cuando el proyecto no tiene cierre en
+     Resultados Consolidados — cubre a los que solo viven en el PMO (ej.
+     PRICING, Proyecto Silver).
+  3. "% completado" crudo si ninguna de las dos anteriores viene poblada.
+Confirmado con negocio, 2026-09-28: Resultados Consolidados no cubre todo
+el maestro PMO (por eso PMO es la fuente oficial de QUÉ proyectos y sus
+fechas), pero cuando SÍ trae un proyecto, su Cumplimiento (Ejecución/Meta)
+es la cifra oficial, no el "% completado" ni el PWA calculados aparte."""
 
 from __future__ import annotations
+
+import re
+import unicodedata
 
 import pandas as pd
 
 from app.services.excel_reader import ExcelReaderService
+from app.services.strategic_loaders import StrategicLoaders
 
 PMO_PATH = "raw/Proyectos/centroDeProyectos_PMO_2026.xlsx"
 PMO_SHEET = "centroDeProyectos"
@@ -20,11 +40,30 @@ PMO_SHEET = "centroDeProyectos"
 _COLS = {
     "Nombre del proyecto": "Indicador",
     "0. Estado del proyecto": "estado",
-    "% completado": "cumplimiento_pct",
+    "% completado": "_pct_completado",
+    "Ind. cumplimiento PWA": "cumplimiento_pct",
     "4. Líneas estratégicas": "Linea",
     "Comienzo": "_fecha_inicio",
     "Fin": "_fecha_fin",
 }
+
+_SUFIJOS_NOMBRE = (" stand by", " - stand by")
+
+
+def _norm_nombre(value) -> str:
+    if value is None or (isinstance(value, float) and pd.isna(value)):
+        return ""
+    text = str(value).strip().lower()
+    text = unicodedata.normalize("NFD", text)
+    text = "".join(ch for ch in text if unicodedata.category(ch) != "Mn")
+    text = re.sub(r"[^0-9a-z]+", " ", text)
+    text = re.sub(r"\s+", " ", text).strip()
+    for sufijo in _SUFIJOS_NOMBRE:
+        sufijo_norm = re.sub(r"[^0-9a-z]+", " ", sufijo).strip()
+        if text.endswith(sufijo_norm):
+            text = text[: -len(sufijo_norm)].strip()
+    return text
+
 
 _OUT_COLS = ["Id", "Indicador", "Linea", "anio_inicio", "anio_fin", "cumplimiento_pct", "estado"]
 
@@ -57,9 +96,44 @@ def _parse_fecha(value) -> pd.Timestamp | None:
 class ProyectosPmoLoader:
     def __init__(self, excel: ExcelReaderService) -> None:
         self._excel = excel
+        self._strategic_loaders = StrategicLoaders(excel)
 
     def _exists(self) -> bool:
         return (self._excel.data_root / PMO_PATH).exists()
+
+    def _cumplimiento_consolidado_por_nombre(self) -> dict[str, float]:
+        """nombre normalizado -> cumplimiento_pct (Ejecución/Meta) del cierre
+        MÁS RECIENTE en Resultados Consolidados, solo para Ids de proyecto
+        (PRY-*). Ausente para proyectos que solo viven en el PMO."""
+        # load_proyectos() reescribe Indicador con el nombre del catálogo CMI
+        # (p.ej. PRY-36 -> "Hubspot CRM"), que ya no calza con el nombre del
+        # PMO ("Implementación de Hubspot Eduvida"). load_cierres() trae el
+        # Indicador tal como viene en la hoja "Consolidado Cierres" — se
+        # filtra aquí a Ids de proyecto (PRY-*) en vez de usar
+        # load_proyectos_consolidados(), que hoy no encuentra esa hoja en
+        # raw/Resultados_Consolidados_Fuente.xlsx (solo tiene "Catalogo
+        # Indicadores") y devuelve vacío.
+        consolidado = self._strategic_loaders.load_cierres()
+        if (
+            consolidado.empty
+            or "Id" not in consolidado.columns
+            or "Indicador" not in consolidado.columns
+            or "cumplimiento_pct" not in consolidado.columns
+        ):
+            return {}
+        consolidado = consolidado[consolidado["Id"].astype(str).str.startswith("PRY-")]
+        work = consolidado.dropna(subset=["cumplimiento_pct"]).copy()
+        if work.empty:
+            return {}
+        work["_nombre_norm"] = work["Indicador"].apply(_norm_nombre)
+        work = work[work["_nombre_norm"] != ""]
+        if "Fecha" in work.columns:
+            work = work.sort_values("Fecha", na_position="first")
+        return (
+            work.drop_duplicates(subset=["_nombre_norm"], keep="last")
+            .set_index("_nombre_norm")["cumplimiento_pct"]
+            .to_dict()
+        )
 
     def load(self) -> pd.DataFrame:
         """Id, Indicador, Linea, anio_inicio, anio_fin, cumplimiento_pct,
@@ -86,7 +160,27 @@ class ProyectosPmoLoader:
         out["Indicador"] = out["Indicador"].astype(str).str.strip()
         out["Linea"] = out["Linea"].apply(lambda v: str(v).strip() if pd.notna(v) else "")
         out["estado"] = out["estado"].apply(lambda v: str(v).strip() if pd.notna(v) else "")
-        out["cumplimiento_pct"] = out["cumplimiento_pct"].apply(_parse_pct)
+
+        # cumplimiento_pct: Resultados Consolidados (Ejecución/Meta del
+        # cierre oficial) > "Ind. cumplimiento PWA" del PMO > "% completado"
+        # crudo — ver docstring del módulo.
+        pwa_pct = (
+            out["cumplimiento_pct"].apply(_parse_pct)
+            if "cumplimiento_pct" in out.columns
+            else pd.Series([None] * len(out), index=out.index)
+        )
+        pct_completado = (
+            out["_pct_completado"].apply(_parse_pct)
+            if "_pct_completado" in out.columns
+            else pd.Series([None] * len(out), index=out.index)
+        )
+        cumplimiento_consolidado = self._cumplimiento_consolidado_por_nombre()
+        consolidado_pct = out["Indicador"].apply(
+            lambda nombre: cumplimiento_consolidado.get(_norm_nombre(nombre))
+        )
+        out["cumplimiento_pct"] = consolidado_pct.combine_first(pwa_pct).combine_first(
+            pct_completado
+        )
 
         fecha_inicio = out["_fecha_inicio"].apply(_parse_fecha)
         fecha_fin = out["_fecha_fin"].apply(_parse_fecha)

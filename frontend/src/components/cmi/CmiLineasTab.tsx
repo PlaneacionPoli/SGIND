@@ -142,13 +142,7 @@ function LineaResumen({ linea }: { linea: CMILineaDetalle }) {
 }
 
 function AllIndicadoresTable({ linea }: { linea: CMILineaDetalle }) {
-  const indicadores = linea.objetivos
-    .flatMap((obj) => obj.metas.flatMap((m) => m.indicadores))
-    .sort((a, b) => {
-      const pa = ((a as Record<string, unknown>).cumplimiento_pct as number) ?? -1;
-      const pb = ((b as Record<string, unknown>).cumplimiento_pct as number) ?? -1;
-      return pb - pa;
-    });
+  const indicadores = linea.objetivos.flatMap((obj) => obj.metas.flatMap((m) => m.indicadores));
   if (!indicadores.length) return null;
 
   return (

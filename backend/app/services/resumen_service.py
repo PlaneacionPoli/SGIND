@@ -16,6 +16,7 @@ from app.domain.calculos import (
 from app.domain.cmi_filters import CMIFilterService
 from app.domain.linea_order import linea_sort_key
 from app.domain.resumen_builders import (
+    _INDICADORES_EXCLUIDOS_PDF,
     STRATEGIC_LINE_DEFS,
     build_informe_ejecutivo_lineas,
     build_linea_summary,
@@ -881,6 +882,8 @@ class ResumenService:
         CMI (objetivo → indicador), sobre el mismo rango fijo que usa la
         vista Consolidado (ANIOS_RANGO)."""
         pdi_df = ensure_nivel_cumplimiento(self._strategic.preparar_pdi_cierre_final())
+        if not pdi_df.empty and "Id" in pdi_df.columns:
+            pdi_df = pdi_df[~pdi_df["Id"].astype(str).isin(_INDICADORES_EXCLUIDOS_PDF)]
         # Proyectos PMO: Centro de Proyectos (raw/Proyectos/centroDeProyectos_
         # PMO_2026.xlsx) es la fuente OFICIAL de proyectos — no Cierres/
         # Consolidado (build_proyectos_gantt), que solo cubre los que ya
