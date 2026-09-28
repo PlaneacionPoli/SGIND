@@ -1,10 +1,68 @@
 {
   "fuente": "claude",
-  "cumplimiento_global": 98.8,
+  "cumplimiento_global": 100.0,
   "consolidado": {
     "resumen_ejecutivo": "El Politécnico Grancolombiano cierra el ciclo del PDI 2022-2026 con su logro más significativo del periodo: la acreditación institucional en alta calidad por 6 años, otorgada por el CNA en mayo de 2026, que reconoce una formación que va más allá de lo académico e incluye acompañamiento, innovación y oportunidades reales para su comunidad. Ese reconocimiento externo confirma una transformación que ya se sentía puertas adentro, con una experiencia estudiantil que mejoró de forma sostenida (NPS +25,4 puntos) y una cultura organizacional que avanzó por encima de lo esperado, certificada por Great Place to Work. Esa transformación se apalancó en una arquitectura tecnológica y de datos consolidada (Banner, Data Lake, HubSpot, POLISIGS certificado ISO 9001:2015), que hoy permite decisiones más ágiles y basadas en evidencia en toda la institución. La ejecución estratégica respalda estos logros: las seis líneas del PDI cerraron el ciclo con un desempeño sólido y equilibrado entre sí. Sostenibilidad se destacó con una ejecución de proyectos ejemplar y una gestión financiera responsable. El principal pendiente del ciclo está en Educación para toda la vida: sus proyectos de incursión en Educación Media y ETDH ya ejecutaron su Fase I, pero están a la espera de las definiciones necesarias para continuar. Resolver esas definiciones es la tarea prioritaria para completar la apuesta de acceso y cobertura del PDI en el próximo ciclo.",
     "logros": "Los logros transformacionales del ciclo, ordenados según las líneas estratégicas, parten de Calidad, con la acreditación institucional en alta calidad que el CNA otorgó a la Sede Bogotá por seis años. En Expansión, la institución lanzó 26 nuevos programas entre presenciales y virtuales, y la población estudiantil aumentó 13,1% frente a 2022, al pasar de 50.241 a 56.807 estudiantes, por encima de la meta en los cuatro segmentos: presencial, virtual, pregrado y posgrado. En Experiencia, la comunidad POLI percibió una mejora medible en su relación con la institución, reflejo del trabajo hecho sobre el servicio y el acompañamiento a estudiantes. En Transformación Organizacional, se consolidó la arquitectura tecnológica y de datos institucional, se registró una mejora medible en la cultura del talento humano, y la gestión financiera se mantuvo sólida, con EBITDA y utilidad neta muy por encima de sus metas. Y en Sostenibilidad, la certificación ISO 14001:2015 se extendió a la sede de Medellín, el Ecosistema E3 abrió una ruta formal de empleabilidad y emprendimiento para los graduados, y la proporción de estudiantes becados superó lo proyectado.",
     "retos_priorizados": "Los retos priorizados para el PDI 2026-2030 se concentran en tres frentes: consolidar el Centro de Excelencia Analítica y la madurez analítica institucional —gobierno de TI, arquitectura de microservicios y modelos de inteligencia artificial— como palanca de decisiones basadas en datos para toda la institución; sostener el ritmo de expansión que definió este ciclo, llevando a escala los mecanismos de diferenciación comercial y diversificación de mercado validados en Pricing y Proyecto Silver; y definir el camino a seguir para los programas de Eduvida, cuya Fase I ya fue ejecutada y hoy está a la espera de las definiciones necesarias para continuar. En conjunto, esta es la agenda de continuidad estratégica que el cierre 2022-2025 deja formulada para el siguiente ciclo de planeación."
+  },
+  "tarjetas_consolidado": {
+    "balance": {
+      "logros_destacados": [
+        {
+          "label": "Acreditación CNA",
+          "valor": "Otorgada 6 Años"
+        },
+        {
+          "label": "Expansión Matrícula",
+          "valor": "+13,1% vs. 2022"
+        },
+        {
+          "label": "Sostenibilidad ISO",
+          "valor": "Norma 14001:2015"
+        }
+      ],
+      "auditoria": "Auditoría Interna OK"
+    },
+    "cifras": [
+      {
+        "titulo": "Estudiantes POLI",
+        "valor": "56.807",
+        "detalle": "+13,1% vs. 2022"
+      },
+      {
+        "titulo": "Satisfacción NPS",
+        "valor": "+25,4 pts",
+        "detalle": "Mejora sostenida"
+      },
+      {
+        "titulo": "Nuevos Programas",
+        "valor": "26",
+        "detalle": "Presenciales y virtuales"
+      },
+      {
+        "titulo": "Clima Laboral",
+        "valor": "GPTW",
+        "detalle": "Certificado"
+      }
+    ],
+    "retos_priorizados": [
+      {
+        "codigo": "P1",
+        "titulo": "Centro de Excelencia Analítica",
+        "detalle": "Gobierno de TI, arquitectura de microservicios y modelos de IA como palanca de decisiones basadas en datos"
+      },
+      {
+        "codigo": "P2",
+        "titulo": "Sostener el ritmo de expansión",
+        "detalle": "Escalar los mecanismos de diferenciación comercial y diversificación de mercado validados en Pricing y Proyecto Silver"
+      },
+      {
+        "codigo": "P3",
+        "titulo": "Definir el camino de Eduvida",
+        "detalle": "Fase I ya ejecutada; a la espera de las definiciones necesarias para continuar"
+      }
+    ]
   },
   "lineas": {
     "expansion": {
@@ -242,7 +300,7 @@
       "parrafo_logros": {
         "retos": "Los retos de Educación para toda la vida cierran en 94,7% de cumplimiento, el más bajo del portafolio.",
         "proyectos": "En proyectos, la línea completó la Fase I de sus tres iniciativas: el Instituto de Educación para el Trabajo y el Desarrollo Humano (IETDH), el Colegio Virtual y el Centro de Idiomas POLI. Los dos primeros avanzan de la mano de CAFAM como aliado estratégico, con la etapa legal ya resuelta: los análisis de viabilidad quedaron listos en ambos casos, y en IETDH también se cerró el análisis del contexto regulatorio. El siguiente paso es definir el modelo pedagógico y regulatorio del Colegio Virtual, y el portafolio de programas y el modelo de operación de IETDH, dejando a los tres proyectos listos para escalar a su siguiente fase en el próximo ciclo del PDI.",
-        "indicadores": "El CMI promedia 107,8% de cumplimiento, resultado impulsado principalmente por el frente de educación continua: los ingresos B2B crecieron muy por encima de la meta, con un cumplimiento de 130%, lo que confirma que el relacionamiento con el sector empresarial logró tracción comercial real en el ciclo. El segundo objetivo de la línea aún no arrancó y será foco de atención en el próximo ciclo.",
+        "indicadores": "El CMI promedia 107,8% de cumplimiento, resultado impulsado principalmente por el frente de educación continua: los ingresos B2B crecieron muy por encima de la meta, con un cumplimiento de 130%, lo que confirma que el relacionamiento con el sector empresarial logró tracción comercial real en el ciclo. El indicador agregado de ingresos totales de educación para la vida cerró 2025 en 108,9% (meta $17.058, ejecución $18.570), consistente con el buen desempeño de sus componentes B2B, B2G y otros ingresos. El segundo objetivo de la línea aún no arrancó y será foco de atención en el próximo ciclo.",
         "consolidado": "El balance consolidado (retos 94,7%, indicadores 107,8%; proyectos N/A) promedia 101,2%, revela dos velocidades marcadamente distintas. El frente de educación continua (B2B/B2G) funciona y genera resultados comerciales reales, mientras la incursión en Educación Media y ETDH —comprometida en el PDI 2022-2026 con metas explícitas— ejecutó su Fase I pero sus 3 proyectos están en stand by a la espera de definiciones para continuar. Es la línea que más requiere una decisión estratégica explícita antes de iniciar el PDI 2026-2030."
       },
       "parrafo_pendientes": "El principal foco estratégico de la línea es la incursión en Educación Media y ETDH, comprometida en el PDI 2022-2026 con metas explícitas: 10 programas ETDH con 750 estudiantes cada uno, y un colegio virtual de 100 estudiantes al 2026. La Fase I ya se completó, pero los tres proyectos siguen en pausa a la espera de las definiciones necesarias para continuar. Resolver esas definiciones es la decisión estratégica central para el PDI 2026-2030: avanzar a la siguiente fase con el caso de negocio ya validado, redefinir su alcance, o descontinuar formalmente esta apuesta en favor de profundizar el frente de educación continua B2B/B2G, que sí demostró tracción. A esto se suman dos indicadores por seguir de cerca: ingresos B2G (97,4%) y otros ingresos por cursos y opciones de grado (96%), ambos levemente por debajo de meta.",

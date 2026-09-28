@@ -348,9 +348,11 @@ TEXTOS_LINEAS = {
                 "El CMI promedia 107,8% de cumplimiento, resultado impulsado principalmente por "
                 "el frente de educación continua: los ingresos B2B crecieron muy por encima de "
                 "la meta, con un cumplimiento de 130%, lo que confirma que el relacionamiento "
-                "con el sector empresarial logró tracción comercial real en el ciclo. El segundo "
-                "objetivo de la línea aún no arrancó y será foco de atención en el próximo "
-                "ciclo."
+                "con el sector empresarial logró tracción comercial real en el ciclo. El "
+                "indicador agregado de ingresos totales de educación para la vida cerró 2025 en "
+                "108,9% (meta $17.058, ejecución $18.570), consistente con el buen desempeño de "
+                "sus componentes B2B, B2G y otros ingresos. El segundo objetivo de la línea aún "
+                "no arrancó y será foco de atención en el próximo ciclo."
             ),
             "consolidado": (
                 "El balance consolidado (retos 94,7%, indicadores 107,8%; proyectos N/A) "
