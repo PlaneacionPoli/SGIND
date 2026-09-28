@@ -215,6 +215,85 @@ body {
 .linea-tagline { color: rgba(255,255,255,.85); font-size: 9px; font-style: italic; margin: 2px 0 0; max-width: 110mm; }
 .balance-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px; }
 
+/* ── Desempeño consolidado (por línea) ────────────────────────────────── */
+.consolidado-summary { display: grid; grid-template-columns: 1fr 2.1fr; gap: 14px; margin-bottom: 14px; }
+.consolidado-card {
+  background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 12px;
+  display: flex; flex-direction: column; align-items: flex-start;
+}
+.consolidado-card .estado-chip { margin-bottom: 6px; }
+.consolidado-card .v { font-size: 30px; font-weight: 800; color: #0B2A5B; line-height: 1; }
+.consolidado-card .l { font-size: 9px; font-weight: 700; color: #334155; margin-top: 3px; }
+.consolidado-card .formula { font-size: 8px; color: #64748B; margin-top: 5px; }
+.consolidado-card .formula-note { font-size: 7.3px; color: #94A3B8; margin-top: 1px; }
+
+.perspectiva-rows { display: flex; flex-direction: column; justify-content: space-between; gap: 8px; }
+.perspectiva-row { }
+.perspectiva-row-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 3px; }
+.perspectiva-row-label { font-size: 9px; font-weight: 700; color: #334155; }
+.perspectiva-row-value { font-size: 10.5px; font-weight: 800; color: #0B2A5B; }
+.perspectiva-row-sub { font-size: 7.3px; color: #94A3B8; margin-top: 2px; }
+
+/* Barra en escala común 0-130, meta en 100 */
+.escala-bar-track { position: relative; height: 9px; background: #E2E8F0; border-radius: 5px; }
+.escala-bar-fill { height: 100%; border-radius: 5px; }
+.escala-bar-fill.is-empty { background: repeating-linear-gradient(45deg,#E2E8F0,#E2E8F0 4px,#F1F5F9 4px,#F1F5F9 8px); }
+.escala-bar-meta { position: absolute; top: -2px; bottom: -2px; width: 2px; background: #1FB2DE; }
+
+/* ── 1 · Retos (stat cards + barra) ────────────────────────────────────── */
+.stat-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 8px; }
+.stat-card {
+  background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 8px 10px;
+  text-align: center; display: flex; flex-direction: column; align-items: center; gap: 2px;
+}
+.stat-card .v { font-size: 17px; font-weight: 800; color: #0B2A5B; }
+.stat-card .l { font-size: 7.3px; color: #64748B; text-transform: uppercase; }
+
+/* ── 2 · Proyectos (lista con barra de avance) ─────────────────────────── */
+.proy-avance-table { width: 100%; border-collapse: collapse; margin-bottom: 8px; }
+.proy-avance-table th {
+  font-size: 7.3px; text-transform: uppercase; color: #64748B; text-align: left;
+  padding: 4px 6px; border-bottom: 1px solid #E2E8F0;
+}
+.proy-avance-table th:last-child { text-align: right; }
+.proy-avance-table td { padding: 5px 6px; border-bottom: 1px solid #F1F5F9; vertical-align: middle; }
+.proy-avance-name { font-size: 8.3px; color: #1E293B; font-weight: 600; }
+.proy-avance-bar-cell { width: 46%; }
+.proy-avance-track { height: 9px; background: #E2E8F0; border-radius: 5px; overflow: hidden; }
+.proy-avance-fill { height: 100%; border-radius: 5px; background: #0B2A5B; }
+.proy-avance-value { text-align: right; font-size: 8.3px; font-weight: 800; color: #0B2A5B; white-space: nowrap; }
+.standby-box {
+  background: #F8FAFC; border: 1px dashed #CBD5E1; border-radius: 8px; padding: 6px 10px;
+  margin-bottom: 6px;
+}
+.standby-box-head { font-size: 7.5px; font-weight: 800; color: #64748B; text-transform: uppercase; margin: 0 0 4px; }
+.standby-item { display: flex; justify-content: space-between; font-size: 8.3px; color: #475569; padding: 2px 0; }
+
+/* ── 3 · Indicadores CMI con barra 0-130 ───────────────────────────────── */
+.cmi-table2 { width: 100%; border-collapse: collapse; margin-bottom: 6px; }
+.cmi-table2 th {
+  font-size: 7.3px; text-transform: uppercase; color: #64748B; text-align: left;
+  padding: 4px 6px; border-bottom: 1px solid #E2E8F0;
+}
+.cmi-table2 td { font-size: 8px; padding: 5px 6px; border-bottom: 1px solid #F1F5F9; color: #1E293B; vertical-align: middle; }
+.cmi-table2 td.num { text-align: right; white-space: nowrap; }
+.cmi-table2 .bar-cell { width: 32%; }
+.cmi-tope { font-size: 8px; color: #64748B; }
+
+/* ── Análisis de logros (tabla) ────────────────────────────────────────── */
+.logros-table { width: 100%; border-collapse: collapse; margin: 6px 0 10px; }
+.logros-table td { padding: 7px 8px; border-bottom: 1px solid #F1F5F9; vertical-align: top; }
+.logros-table td:first-child { width: 78px; font-size: 8.3px; font-weight: 800; color: #0B2A5B; }
+.logros-table td:last-child { font-size: 8.3px; color: #334155; line-height: 1.5; text-align: justify; }
+.logros-table tr:last-child td { border-bottom: none; }
+
+/* ── Estado de los indicadores (página independiente) ──────────────────── */
+.stacked-bar { display: flex; height: 26px; border-radius: 6px; overflow: hidden; margin: 10px 0 8px; }
+.stacked-seg { display: flex; align-items: center; justify-content: center; color: #fff; font-size: 11px; font-weight: 800; }
+.stacked-legend { display: flex; gap: 16px; margin-bottom: 8px; }
+.stacked-legend-item { display: flex; align-items: center; gap: 5px; font-size: 8.5px; color: #334155; }
+.stacked-legend-dot { width: 9px; height: 9px; border-radius: 2px; display: inline-block; }
+
 /* ── Cómo leer este informe / Anexo metodológico ──────────────────────── */
 .metodo-flow { display: flex; align-items: stretch; gap: 6px; margin: 10px 0 16px; }
 .metodo-step {

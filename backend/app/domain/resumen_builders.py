@@ -12,6 +12,7 @@ import pandas as pd
 
 from app.domain.categorization import categorizar_cumplimiento
 from app.domain.constants import (
+    IDS_NEGATIVO_PCT,
     UMBRAL_ALERTA_PA,
     UMBRAL_PELIGRO,
     UMBRAL_SOBRECUMPLIMIENTO_PA,
@@ -1577,7 +1578,9 @@ def build_informe_ejecutivo_lineas(
                 for _, row in obj_sub.iterrows():
                     cumpl = row.get("cumplimiento_pct")
                     nivel = str(row.get("Nivel de cumplimiento") or "Pendiente de reporte")
-                    signo = signo_lookup.get(str(row.get("Id", "")), {})
+                    id_str = str(row.get("Id", ""))
+                    signo = signo_lookup.get(id_str, {})
+                    cumpl_val = round(float(cumpl), 1) if pd.notna(cumpl) else None
                     indicadores.append(
                         {
                             "indicador": str(row.get("Indicador", "")),
@@ -1587,9 +1590,15 @@ def build_informe_ejecutivo_lineas(
                             "ejecucion": _fmt_valor_signo(
                                 row.get("Ejecucion"), signo.get("ejec_signo"), signo.get("dec_ejec")
                             ),
-                            "cumplimiento": round(float(cumpl), 1) if pd.notna(cumpl) else None,
+                            "cumplimiento": cumpl_val,
                             "nivel": nivel,
                             "nivel_color": _NIVEL_COLORS_PDF.get(nivel, "#6B7280"),
+                            # menor_mejor: régimen Negativo-Porcentual (ver constants.py) —
+                            # un valor de ejecución MENOR a la meta es el buen resultado
+                            # (GreenMetric, rotación, etc.). tope_aplicado: la cifra ya
+                            # viene topada a 130% aguas arriba (RANGO_CUMPLIMIENTO_MAX).
+                            "menor_mejor": id_str in IDS_NEGATIVO_PCT,
+                            "tope_aplicado": cumpl_val is not None and cumpl_val >= 130,
                         }
                     )
                 if indicadores:

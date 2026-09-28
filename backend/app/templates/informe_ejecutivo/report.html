@@ -182,6 +182,31 @@
     </div>
   </section>
 
+  <!-- ── Estado de los indicadores ─────────────────────────────────────── -->
+  <section class="page">
+    <header class="page-head">
+      <h2>Estado de los indicadores</h2>
+      <span class="page-head-sub">Cierre PDI 2022–2025</span>
+    </header>
+    {% set total_ind = data.total_indicadores %}
+    <div class="stacked-bar">
+      {% if data.cumplidos %}<div class="stacked-seg" style="width:{{ data.cumplidos / total_ind * 100 }}%; background:#16A34A;">{{ data.cumplidos }}</div>{% endif %}
+      {% if data.en_progreso %}<div class="stacked-seg" style="width:{{ data.en_progreso / total_ind * 100 }}%; background:#D97706;">{{ data.en_progreso }}</div>{% endif %}
+      {% if data.atencion %}<div class="stacked-seg" style="width:{{ data.atencion / total_ind * 100 }}%; background:#DC2626;">{{ data.atencion }}</div>{% endif %}
+      {% if data.sin_medicion %}<div class="stacked-seg" style="width:{{ data.sin_medicion / total_ind * 100 }}%; background:#94A3B8;">{{ data.sin_medicion }}</div>{% endif %}
+    </div>
+    <div class="stacked-legend">
+      <span class="stacked-legend-item"><span class="stacked-legend-dot" style="background:#16A34A"></span>Cumplidos {{ data.cumplidos }}</span>
+      <span class="stacked-legend-item"><span class="stacked-legend-dot" style="background:#D97706"></span>En progreso {{ data.en_progreso }}</span>
+      <span class="stacked-legend-item"><span class="stacked-legend-dot" style="background:#DC2626"></span>Atención {{ data.atencion }}</span>
+      <span class="stacked-legend-item"><span class="stacked-legend-dot" style="background:#94A3B8"></span>Sin medición {{ data.sin_medicion }}</span>
+    </div>
+    <p class="anexo-note" style="margin-top:0;">
+      <strong>{{ data.total_medidos }} medidos + {{ data.sin_medicion }} sin medición = {{ total_ind }} indicadores.</strong>
+      Portafolio: {% for li in data.lineas %}{{ li.linea }} {{ li.n_ind_total }}{{ " · " if not loop.last }}{% endfor %}.
+    </p>
+  </section>
+
   <!-- ── Una página por línea estratégica ─────────────────────────────── -->
   {% for li in data.lineas %}
   <section class="page linea-page">
@@ -194,113 +219,158 @@
       </div>
     </header>
 
-    <div class="linea-top">
-      <!-- Retos -->
-      <div class="retos-col">
-        <p class="col-title">RETOS</p>
-        <div class="retos-pills">
-          <div class="retos-pill">
-            <span class="pill-icon" style="background:{{ li.color }}">↗</span>
-            <span class="pill-value">{{ li.retos.avance_real }}%<small>AVANCE REAL</small></span>
-          </div>
-          <div class="retos-pill">
-            <span class="pill-icon" style="background:{{ li.color }}">◎</span>
-            <span class="pill-value">{{ li.retos.avance_esperado | round(0, 'floor') | int }}%<small>AVANCE ESPERADO</small></span>
-          </div>
-          <div class="retos-pill">
-            <span class="pill-icon" style="background:{{ li.color }}">✓</span>
-            <span class="pill-value">{{ li.retos.cumplimiento }}%<small>CUMPLIMIENTO</small></span>
-          </div>
-        </div>
+    <!-- Desempeño consolidado -->
+    <h3 class="section-title" style="margin-top:0;">Desempeño consolidado</h3>
+    <div class="consolidado-summary">
+      <div class="consolidado-card">
+        {% set estado_c = estado_de(li.cumplimiento_consolidado) %}
+        <span class="estado-chip" style="color:{{ estado_c.color }}">{{ estado_c.icon }} {{ estado_c.label }}</span>
+        <span class="v">{{ li.cumplimiento_consolidado }}%</span>
+        <span class="l">Consolidado</span>
+        <span class="formula">{{ li.formula_texto }}</span>
+        <span class="formula-note">Promedio simple de {{ li.formula_partes | length }} perspectiva{{ "" if li.formula_partes | length == 1 else "s" }}</span>
       </div>
-
-      <!-- Proyectos PMO -->
-      <div class="proy-col">
-        <p class="col-title">PROYECTOS PMO</p>
-        {% if li.proyectos %}
-        <div class="proy-legend">
-          {% for anio in [2022, 2023, 2024, 2025, 2026] %}
-          <span class="legend-item"><span class="legend-dot" style="background:{{ anio_colors[anio] }}"></span>{{ anio }}</span>
-          {% endfor %}
-        </div>
-        <div class="proy-axis">
-          {% for anio in [2022, 2023, 2024, 2025, 2026] %}<span>{{ anio }}</span>{% endfor %}
-        </div>
-        <div class="proy-list">
-          {% for p in li.proyectos[:8] %}
-          <div class="proy-row">
-            <span class="proy-name">{{ p.nombre[:52] }}</span>
-            <div class="proy-track">
-              <div class="proy-fill" style="left:{{ ((p.anio_inicio_gantt - 2022) / 5 * 100) | round(1) }}%; width:{{ (((p.anio_fin_gantt - p.anio_inicio_gantt + 1) / 5) * 100) | round(1) }}%; background:{{ p.anio_color }}">
-                {% if p.stand_by %}<span class="proy-standby">Stand by</span>{% else %}{{ p.cumplimiento | round(0, 'floor') | int }}%{% endif %}
-              </div>
-            </div>
+      <div class="perspectiva-rows">
+        <div class="perspectiva-row">
+          <div class="perspectiva-row-head">
+            <span class="perspectiva-row-label">Retos</span>
+            <span class="perspectiva-row-value">{{ li.retos.cumplimiento }}%</span>
           </div>
-          {% endfor %}
+          <div class="escala-bar-track">
+            <div class="escala-bar-fill" style="width:{{ [(li.retos.cumplimiento / 130 * 100), 100] | min }}%; background:{{ li.color }}"></div>
+            <div class="escala-bar-meta" style="left:{{ (100 / 130 * 100) | round(1) }}%"></div>
+          </div>
+          <p class="perspectiva-row-sub">Avance real frente a avance esperado (100%)</p>
         </div>
-        {% if li.proyectos | length > 8 %}
-        <p class="proy-more">+ {{ li.proyectos | length - 8 }} proyecto(s) adicional(es) — ver Detalle de Indicadores.</p>
-        {% endif %}
-        {% else %}
-        <p class="empty-note">Sin proyectos registrados para esta línea en el ciclo.</p>
-        {% endif %}
+        <div class="perspectiva-row">
+          <div class="perspectiva-row-head">
+            <span class="perspectiva-row-label">Proyectos</span>
+            <span class="perspectiva-row-value">{{ (li.proyectos_cumplimiento_promedio ~ "%") if li.proyectos_cumplimiento_promedio is not none else "N/A" }}</span>
+          </div>
+          <div class="escala-bar-track">
+            {% if li.proyectos_cumplimiento_promedio is not none %}
+            <div class="escala-bar-fill" style="width:{{ [(li.proyectos_cumplimiento_promedio / 130 * 100), 100] | min }}%; background:{{ li.color }}"></div>
+            {% else %}
+            <div class="escala-bar-fill is-empty" style="width:100%"></div>
+            {% endif %}
+            <div class="escala-bar-meta" style="left:{{ (100 / 130 * 100) | round(1) }}%"></div>
+          </div>
+          <p class="perspectiva-row-sub">{{ li.proyectos | length }} proyecto{{ "" if li.proyectos | length == 1 else "s" }} · tope por proyecto 100%</p>
+        </div>
+        <div class="perspectiva-row">
+          <div class="perspectiva-row-head">
+            <span class="perspectiva-row-label">Indicadores</span>
+            <span class="perspectiva-row-value">{{ (li.indicadores_cumplimiento_promedio ~ "%") if li.indicadores_cumplimiento_promedio is not none else "—" }}</span>
+          </div>
+          <div class="escala-bar-track">
+            {% if li.indicadores_cumplimiento_promedio is not none %}
+            <div class="escala-bar-fill" style="width:{{ [(li.indicadores_cumplimiento_promedio / 130 * 100), 100] | min }}%; background:{{ li.color }}"></div>
+            {% else %}
+            <div class="escala-bar-fill is-empty" style="width:100%"></div>
+            {% endif %}
+            <div class="escala-bar-meta" style="left:{{ (100 / 130 * 100) | round(1) }}%"></div>
+          </div>
+          <p class="perspectiva-row-sub">{{ li.n_ind_medidos }} medidos de {{ li.n_ind_total }} indicadores{{ "" if li.n_ind_medidos == li.n_ind_total else " · el resto sin medición" }}</p>
+        </div>
       </div>
     </div>
 
-    {% if li.narrativa and li.narrativa.parrafo_logros %}
-    <div class="narrativa-block" style="border-left-color:{{ li.color }}">
-      <p class="narrativa-kicker" style="color:{{ li.color }}">ANÁLISIS DE LOGROS</p>
-      <div class="logros-grid">
-        <div class="logros-item">
-          <p class="logros-item-label" style="color:{{ li.color }}">Retos</p>
-          <p class="narrativa-text">{{ li.narrativa.parrafo_logros.retos }}</p>
-        </div>
-        <div class="logros-item">
-          <p class="logros-item-label" style="color:{{ li.color }}">Proyectos</p>
-          <p class="narrativa-text">{{ li.narrativa.parrafo_logros.proyectos }}</p>
-        </div>
-        <div class="logros-item">
-          <p class="logros-item-label" style="color:{{ li.color }}">Indicadores</p>
-          <p class="narrativa-text">{{ li.narrativa.parrafo_logros.indicadores }}</p>
-        </div>
-      </div>
-      <p class="logros-item-label" style="color:{{ li.color }}">Consolidado</p>
-      <p class="narrativa-text narrativa-text-consolidado">{{ li.narrativa.parrafo_logros.consolidado }}</p>
+    <!-- 1 · Retos -->
+    <h3 class="section-title">1 · Retos</h3>
+    <div class="stat-cards">
+      <div class="stat-card"><span class="v">{{ li.retos.avance_real }}%</span><span class="l">Avance real</span></div>
+      <div class="stat-card"><span class="v">{{ li.retos.avance_esperado | round(0, 'floor') | int }}%</span><span class="l">Avance esperado</span></div>
+      <div class="stat-card"><span class="v" style="color:{{ li.color }}">{{ li.retos.cumplimiento }}%</span><span class="l">Cumplimiento de retos</span></div>
+    </div>
+    <div class="escala-bar-track" style="margin-bottom:10px;">
+      <div class="escala-bar-fill" style="width:{{ [(li.retos.cumplimiento / 130 * 100), 100] | min }}%; background:{{ li.color }}"></div>
+      <div class="escala-bar-meta" style="left:{{ (100 / 130 * 100) | round(1) }}%"></div>
+    </div>
+
+    <!-- 2 · Proyectos -->
+    <h3 class="section-title">2 · Proyectos</h3>
+    {% if li.proy_activos %}
+    <table class="proy-avance-table">
+      <thead><tr><th>Proyectos activos que entran al promedio</th><th>Avance</th></tr></thead>
+      <tbody>
+        {% for p in li.proy_activos[:8] %}
+        <tr>
+          <td>
+            <span class="proy-avance-name">{{ p.nombre[:60] }}</span>
+            <div class="proy-avance-track"><div class="proy-avance-fill" style="width:{{ [p.cumplimiento, 100] | min }}%; background:{{ li.color }}"></div></div>
+          </td>
+          <td class="proy-avance-value">{{ p.cumplimiento | round(0, 'floor') | int }}%{% if p.cumplimiento > 100 %} †{% endif %}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% if li.proy_activos | length > 8 %}
+    <p class="proy-more">Se muestran 8 de los {{ li.proy_activos | length }} proyectos activos; el detalle de los otros {{ li.proy_activos | length - 8 }} no viene en la fuente entregada.</p>
+    {% endif %}
+    {% elif not li.proy_standby %}
+    <p class="empty-note">Sin proyectos registrados para esta línea en el ciclo.</p>
+    {% endif %}
+    {% if li.proy_standby %}
+    <div class="standby-box">
+      <p class="standby-box-head">◎ {{ li.proy_standby | length }} proyecto{{ "" if li.proy_standby | length == 1 else "s" }} en stand by · no incluido{{ "" if li.proy_standby | length == 1 else "s" }} en el promedio</p>
+      {% for p in li.proy_standby %}
+      <div class="standby-item"><span>{{ p.nombre }}</span><span>Stand by</span></div>
+      {% endfor %}
     </div>
     {% endif %}
 
-    <!-- CMI Estratégico -->
-    <div class="cmi-band" style="background:{{ li.color }}">CMI ESTRATÉGICO</div>
+    <!-- 3 · Indicadores estratégicos (CMI) -->
+    <h3 class="section-title">3 · Indicadores estratégicos (CMI)</h3>
     {% if li.objetivos %}
-    <div class="cmi-grid">
-      {% for obj in li.objetivos %}
-      <div class="cmi-obj">
-        <div class="cmi-obj-head" style="background:{{ li.color }}1F; color:{{ li.color }}">{{ obj.objetivo | upper }}</div>
-        <table class="cmi-table">
-          <thead>
-            <tr><th>Indicador</th><th>Meta</th><th>Ejecución</th><th>Cumplimiento</th></tr>
-          </thead>
-          <tbody>
-            {% for ind in obj.indicadores %}
-            <tr>
-              <td>{{ ind.indicador }}</td>
-              <td class="num">{{ ind.meta if ind.meta is not none else "—" }}</td>
-              <td class="num">{{ ind.ejecucion if ind.ejecucion is not none else "—" }}</td>
-              <td class="num"><span class="cumpl-tag" style="color:{{ ind.nivel_color }}">{{ (ind.cumplimiento ~ "%") if ind.cumplimiento is not none else "—" }}</span></td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-      {% endfor %}
-    </div>
+    {% for obj in li.objetivos %}
+    <div class="cmi-band" style="background:{{ li.color }}">{{ obj.objetivo | upper }}</div>
+    <table class="cmi-table2">
+      <thead>
+        <tr><th>Indicador</th><th>Meta</th><th>Ejecución</th><th class="bar-cell">Escala 0 – 130%</th><th>Cumpl.</th><th>Estado</th></tr>
+      </thead>
+      <tbody>
+        {% for ind in obj.indicadores %}
+        {% set estado_i = estado_de(ind.cumplimiento) %}
+        <tr>
+          <td>{{ "↓ " if ind.menor_mejor }}{{ ind.indicador }}</td>
+          <td class="num">{{ ind.meta if ind.meta is not none else "—" }}</td>
+          <td class="num">{{ ind.ejecucion if ind.ejecucion is not none else "—" }}</td>
+          <td class="bar-cell">
+            {% if ind.cumplimiento is not none %}
+            <div class="escala-bar-track">
+              <div class="escala-bar-fill" style="width:{{ [(ind.cumplimiento / 130 * 100), 100] | min }}%; background:{{ estado_i.color }}"></div>
+              <div class="escala-bar-meta" style="left:{{ (100 / 130 * 100) | round(1) }}%"></div>
+            </div>
+            {% else %}
+            <div class="escala-bar-track"><div class="escala-bar-fill is-empty" style="width:100%"></div></div>
+            {% endif %}
+          </td>
+          <td class="num">{{ (ind.cumplimiento ~ "%") if ind.cumplimiento is not none else "—" }}{{ " †" if ind.tope_aplicado }}</td>
+          <td class="num"><span class="anexo-badge" style="background:{{ estado_i.color }}1F; color:{{ estado_i.color }}">{{ estado_i.label }}</span></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% endfor %}
     {% else %}
     <p class="empty-note">Sin indicadores CMI registrados para esta línea en el ciclo.</p>
     {% endif %}
 
+    {% if li.narrativa and li.narrativa.parrafo_logros %}
+    <h3 class="section-title">Análisis de logros</h3>
+    <table class="logros-table">
+      <tbody>
+        <tr><td>Retos</td><td>{{ li.narrativa.parrafo_logros.retos }}</td></tr>
+        <tr><td>Proyectos</td><td>{{ li.narrativa.parrafo_logros.proyectos }}</td></tr>
+        <tr><td>Indicadores</td><td>{{ li.narrativa.parrafo_logros.indicadores }}</td></tr>
+        <tr><td>Consolidado</td><td>{{ li.narrativa.parrafo_logros.consolidado }}</td></tr>
+      </tbody>
+    </table>
+    {% endif %}
+
     {% if li.narrativa and li.narrativa.parrafo_pendientes %}
     <div class="narrativa-block narrativa-pendientes">
-      <p class="narrativa-kicker narrativa-kicker-amber">PENDIENTES Y PRIORIDADES — PDI 2026-2030</p>
+      <p class="narrativa-kicker narrativa-kicker-amber">PENDIENTES Y PRIORIDADES · PDI 2026-2030</p>
       <p class="narrativa-text">{{ li.narrativa.parrafo_pendientes }}</p>
     </div>
     {% endif %}

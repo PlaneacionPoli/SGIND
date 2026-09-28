@@ -82,6 +82,30 @@ def _estado_de(cumplimiento: float | None, *, stand_by: bool = False) -> dict[st
     return {"label": "Atención", "color": "#DC2626", "icon": "⚠"}
 
 
+def _enrich_lineas(data: dict[str, Any]) -> None:
+    """Agrega campos derivados a cada línea (mutando data) para simplificar
+    la plantilla: conteos de proyectos activos/stand-by e indicadores
+    medidos/totales, y la fórmula del consolidado ya armada."""
+    for li in data.get("lineas", []):
+        proyectos = li.get("proyectos", [])
+        li["proy_activos"] = [p for p in proyectos if not p.get("stand_by")]
+        li["proy_standby"] = [p for p in proyectos if p.get("stand_by")]
+        indicadores = [ind for obj in li.get("objetivos", []) for ind in obj.get("indicadores", [])]
+        li["n_ind_total"] = len(indicadores)
+        li["n_ind_medidos"] = len([i for i in indicadores if i.get("cumplimiento") is not None])
+        partes = [
+            v
+            for v in (
+                li["retos"]["cumplimiento"],
+                li.get("proyectos_cumplimiento_promedio"),
+                li.get("indicadores_cumplimiento_promedio"),
+            )
+            if v is not None
+        ]
+        li["formula_partes"] = partes
+        li["formula_texto"] = f"({' + '.join(f'{v:g}' for v in partes)}) / {len(partes)}" if partes else "N/A"
+
+
 def _build_verificacion(data: dict[str, Any]) -> list[dict[str, Any]]:
     """Recalcula el consolidado de cada línea desde sus tres perspectivas ya
     guardadas (retos.cumplimiento, proyectos_cumplimiento_promedio,
@@ -169,6 +193,7 @@ def generar_informe_ejecutivo(data: dict[str, Any]) -> bytes:
     Returns:
         Bytes del PDF generado (A4, sin márgenes de navegador).
     """
+    _enrich_lineas(data)
     css = (_TEMPLATE_DIR / "report.css").read_text(encoding="utf-8")
     template = _env.get_template("report.html")
     html = template.render(
