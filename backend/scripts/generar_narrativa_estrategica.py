@@ -223,15 +223,14 @@ TEXTOS_LINEAS = {
             ),
         },
         "pendientes": (
-            "Quedan tres iniciativas en fase de planeación —automatización del proceso "
-            "contractual, homologaciones con IA en Ilumno y la reforma curricular tecnológica— "
-            "que no alcanzaron a iniciar ejecución en el ciclo. El indicador de depuración del "
-            "histórico SNIES fue cancelado en el ciclo, por lo que deja de ser un riesgo activo "
-            "de calidad de dato. Para el PDI 2026-2030 el foco de esta línea es doble: "
-            "consolidar el Centro de Excelencia Analítica con una estrategia propia de calidad "
-            "de dato que no dependa de esa iniciativa cancelada, y decidir explícitamente si las "
-            "tres iniciativas en planeación se ejecutan, se rediseñan o se descontinúan antes de "
-            "comprometer presupuesto del siguiente ciclo."
+            "Tres iniciativas —automatización del proceso contractual, homologaciones con IA "
+            "en Ilumno y la reforma curricular tecnológica— ya iniciaron ejecución en el ciclo "
+            "y continúan en desarrollo. El indicador de depuración del histórico SNIES fue "
+            "cancelado en el ciclo. Para el PDI 2026-2030 el foco de esta línea es doble: "
+            "implementar el proyecto de Gobierno de Datos, hoy apenas en 5% de avance, como "
+            "base de calidad de dato para el Centro de Excelencia Analítica, y llevar a cierre "
+            "las tres iniciativas en desarrollo antes de comprometer presupuesto del siguiente "
+            "ciclo."
         ),
     },
     "experiencia": {
