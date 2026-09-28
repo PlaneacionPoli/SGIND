@@ -209,8 +209,8 @@ TEXTOS_LINEAS = {
                 "declarada. En arquitectura tecnológica, la disponibilidad de servicios "
                 "tecnológicos llegó a 97,7%, por encima de la meta. Y en gestión por procesos y "
                 "datos, la cobertura de recolección de variables para analítica (ADA) alcanzó "
-                "100%, la base sobre la que se construirá el Centro de Excelencia Analítica del "
-                "próximo ciclo."
+                "100% de la información solicitada por el SNIES, la base sobre la que se "
+                "construirá el Centro de Excelencia Analítica del próximo ciclo."
             ),
             "consolidado": (
                 "El balance consolidado (retos 97,5%, proyectos 81,4% sobre 16 iniciativas, "
@@ -225,8 +225,7 @@ TEXTOS_LINEAS = {
         "pendientes": (
             "Tres iniciativas —automatización del proceso contractual, homologaciones con IA "
             "en Ilumno y la reforma curricular tecnológica— ya iniciaron ejecución en el ciclo "
-            "y continúan en desarrollo. El indicador de depuración del histórico SNIES fue "
-            "cancelado en el ciclo. Para el PDI 2026-2030 el foco de esta línea es doble: "
+            "y continúan en desarrollo. Para el PDI 2026-2030 el foco de esta línea es doble: "
             "implementar el proyecto de Gobierno de Datos, hoy apenas en 5% de avance, como "
             "base de calidad de dato para el Centro de Excelencia Analítica, y llevar a cierre "
             "las tres iniciativas en desarrollo antes de comprometer presupuesto del siguiente "
