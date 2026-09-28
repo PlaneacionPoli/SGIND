@@ -35,6 +35,88 @@
     </div>
   </section>
 
+  <!-- ── Cómo leer este informe ───────────────────────────────────────── -->
+  <section class="page">
+    <header class="page-head">
+      <h2>Cómo leer este informe</h2>
+      <span class="page-head-sub">Cierre PDI 2022–2025</span>
+    </header>
+    <p class="narrativa-text" style="margin-bottom:8px;">
+      El desempeño se mide desde tres perspectivas. Cada línea estratégica se lee siempre en el
+      mismo orden y con la misma escala.
+    </p>
+    <div class="metodo-flow">
+      <div class="metodo-step">
+        <p class="metodo-step-title">Retos</p>
+        <p class="metodo-step-desc">Avance real frente al avance esperado</p>
+      </div>
+      <div class="metodo-arrow">+</div>
+      <div class="metodo-step">
+        <p class="metodo-step-title">Proyectos</p>
+        <p class="metodo-step-desc">Avance promedio de los proyectos activos</p>
+      </div>
+      <div class="metodo-arrow">+</div>
+      <div class="metodo-step">
+        <p class="metodo-step-title">Indicadores</p>
+        <p class="metodo-step-desc">Cumplimiento de meta en el CMI</p>
+      </div>
+      <div class="metodo-arrow">→</div>
+      <div class="metodo-step is-main">
+        <p class="metodo-step-title">Consolidado</p>
+        <p class="metodo-step-desc">Promedio simple de las perspectivas válidas</p>
+      </div>
+      <div class="metodo-arrow">→</div>
+      <div class="metodo-step">
+        <p class="metodo-step-title">Global</p>
+        <p class="metodo-step-desc">Promedio de los consolidados de las 6 líneas</p>
+      </div>
+    </div>
+
+    <h3 class="section-title" style="margin-top:4px;">Reglas de cálculo</h3>
+    <table class="reglas-table">
+      <thead><tr><th>Regla</th><th>Cómo se aplica</th></tr></thead>
+      <tbody>
+        <tr><td>Consolidado por línea</td><td>Promedio simple de las perspectivas válidas: (retos + proyectos + indicadores) / 3.</td></tr>
+        <tr><td>Proyectos en stand by</td><td>No se cuentan: salen del numerador y del denominador. Si una línea no tiene proyectos activos, esa perspectiva es N/A y el consolidado usa las dos restantes.</td></tr>
+        <tr><td>Tope por proyecto</td><td>El avance de cada proyecto se limita a 100% antes de promediar.</td></tr>
+        <tr><td>Tope por indicador</td><td>El cumplimiento de cada indicador se limita a 130%. Se marca con †.</td></tr>
+        <tr><td>Retos</td><td>Sin tope declarado.</td></tr>
+        <tr><td>Indicadores sin medición</td><td>Quedan fuera del promedio y se cuentan aparte ({{ data.total_medidos }} medidos + {{ data.sin_medicion }} sin medición = {{ data.total_indicadores }}).</td></tr>
+        <tr><td>Menor es mejor ↓</td><td>En indicadores como rotación y GreenMetric, un valor menor a la meta es un buen resultado.</td></tr>
+      </tbody>
+    </table>
+
+    <h3 class="section-title">Estados</h3>
+    <div class="estado-legend">
+      <span class="estado-chip" style="color:#16A34A">✓ Cumplido · 100% o más</span>
+      <span class="estado-chip" style="color:#D97706">◐ En progreso · 90% a 99,9%</span>
+      <span class="estado-chip" style="color:#DC2626">⚠ Atención · menos de 90%</span>
+      <span class="estado-chip" style="color:#6B7280">◎ Stand by · fuera del cálculo</span>
+      <span class="estado-chip" style="color:#94A3B8">⊝ Sin medición · sin dato de cierre</span>
+    </div>
+    <p class="estado-legend-note">Los umbrales del semáforo son los usados en este documento; están pendientes de validación institucional.</p>
+
+    <h3 class="section-title">Ejemplo resuelto: Educación para toda la vida</h3>
+    <div class="ejemplo-box">
+      <p>Retos 94,7% e indicadores 107,8%. Los 3 proyectos están en stand by, así que la perspectiva de proyectos es N/A.</p>
+      <p><strong>Consolidado = (94,7 + 107,8) / 2 = 101,2%</strong>, promedio de 2 perspectivas.</p>
+    </div>
+
+    <h3 class="section-title">Escala común de las barras</h3>
+    <p class="narrativa-text" style="margin-bottom:6px;">
+      Todas las barras usan el mismo eje de 0 a 130%. La línea azul marca la meta en 100%; la zona
+      sombreada es sobrecumplimiento.
+    </p>
+    <div class="escala-demo">
+      <div class="escala-demo-track">
+        <div class="escala-demo-fill" style="width:86.6%"></div>
+        <div class="escala-demo-meta" style="left:76.9%"></div>
+      </div>
+      <span style="font-size:9.5px;font-weight:800;color:#0B2A5B;">112,6%</span>
+    </div>
+    <div class="escala-demo-labels"><span>0</span><span>100 · Meta</span><span>130 · Tope</span></div>
+  </section>
+
   <!-- ── Resumen ejecutivo ─────────────────────────────────────────────── -->
   <section class="page">
     <header class="page-head">
@@ -310,6 +392,81 @@
     </table>
   </section>
   {% endif %}
+
+  <!-- ── Anexo metodológico y calidad de datos ──────────────────────────── -->
+  <section class="page">
+    <header class="page-head">
+      <h2>Anexo metodológico y calidad de datos</h2>
+      <span class="page-head-sub">Cierre PDI 2022–2025</span>
+    </header>
+
+    <h3 class="section-title" style="margin-top:0;">A. Verificación de cifras</h3>
+    <table class="anexo-table">
+      <thead><tr><th>Línea</th><th>Fórmula</th><th>Recalculado</th><th>Informe</th><th>Resultado</th></tr></thead>
+      <tbody>
+        {% for v in verificacion %}
+        <tr>
+          <td style="font-weight:700;color:{{ v.color }}">{{ v.linea }}</td>
+          <td>{{ v.formula }}</td>
+          <td class="num">{{ v.recalculado if v.recalculado is not none else "—" }}</td>
+          <td class="num">{{ v.informe if v.informe is not none else "—" }}</td>
+          <td class="num">
+            {% if v.coincide %}<span class="anexo-badge ok">Coincide</span>
+            {% else %}<span class="anexo-badge warn">Revisar</span>{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <p class="anexo-note">
+      Los valores de "Recalculado" se derivan directamente de las mismas cifras de perspectiva
+      (retos, proyectos, indicadores) que muestra el resto del informe — mismo chequeo de la capa
+      de validación interna (V1), aplicado sobre el documento final para detectar cualquier
+      discrepancia antes de publicar.
+    </p>
+
+    <h3 class="section-title">B. Conciliaciones</h3>
+    <table class="anexo-table">
+      <thead><tr><th>Tema</th><th>Resultado</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>Indicadores</td>
+          <td>
+            {{ conciliaciones.indicadores_por_linea | join(" + ") }}
+            = {{ conciliaciones.indicadores_total_calc }}. Medidos {{ data.total_medidos }}
+            ({{ data.cumplidos }} + {{ data.en_progreso }} + {{ data.atencion }}); sin medición
+            {{ data.sin_medicion }}{% if conciliaciones.sin_medicion_nombres %}: {{ conciliaciones.sin_medicion_nombres | join(", ") }}{% endif %}.
+          </td>
+        </tr>
+        <tr>
+          <td>Proyectos</td>
+          <td>
+            {{ conciliaciones.proyectos_por_linea | join(" + ") }}
+            = {{ conciliaciones.proyectos_total_calc }} en el detalle por línea (Centro de
+            Proyectos PMO). La portada muestra {{ conciliaciones.proyectos_total_portada }},
+            el total oficial de "Resultados Consolidados" — son dos fuentes distintas y
+            ambas vigentes, confirmado con negocio: el catálogo de Resultados Consolidados
+            para la cifra institucional de portada, y el Centro de Proyectos PMO para el
+            detalle de avance por línea.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3 class="section-title">C. Notas de calidad de dato</h3>
+    <ul class="anexo-obs-list">
+      <li>Los promedios de proyectos e indicadores no incluyen los ítems marcados "Sin medición" ni
+      los proyectos en stand by — quedan fuera del cálculo por definición metodológica, no por
+      omisión de dato.</li>
+      <li>Los umbrales de estado (Cumplido / En progreso / Atención) usados en este documento son
+      una escala simplificada (100% / 90%) para lectura ejecutiva; el régimen interno de
+      cumplimiento por tipo de indicador (ver Nivel de cumplimiento en el CMI detallado del
+      dashboard) puede diferir según el indicador.</li>
+      <li>Unidad monetaria de los indicadores financieros (Caja, Utilidad Neta, EBITDA, CAPEX,
+      Cumplimiento de Ingresos) no declarada en la fuente — pendiente de confirmar con el área
+      financiera.</li>
+    </ul>
+  </section>
 
 </body>
 </html>

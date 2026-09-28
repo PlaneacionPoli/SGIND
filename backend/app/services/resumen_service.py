@@ -937,6 +937,12 @@ class ResumenService:
             sum(consolidados_linea) / len(consolidados_linea) if consolidados_linea else 0.0
         )
 
+        # Confirmado con negocio 2026-09-28: la portada usa el total de
+        # "Resultados Consolidados" (catálogo Id, 44) — es intencional, no un
+        # dato desactualizado. Distinto del total del Centro de Proyectos PMO
+        # (proy_gantt, 47) que alimenta el detalle por línea; el anexo
+        # metodológico documenta ambas fuentes en vez de forzarlas a
+        # coincidir.
         proy_count = self._count_proyectos_ciclo_vigente()
         # Total global de áreas (hoja "Areas" — sin desglose por línea en el
         # dato fuente, ver build_informe_ejecutivo_lineas). Mismo criterio
