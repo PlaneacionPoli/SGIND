@@ -33,15 +33,19 @@ from app.services.resumen_service import ResumenService  # noqa: E402
 TEXTOS_CONSOLIDADO = {
     "resumen_ejecutivo": (
         "El Politécnico Grancolombiano cierra el corte 2022-2025 del PDI 2022-2026 con un "
-        "cumplimiento institucional acumulado del 106,9%, resultado que combina un desempeño "
-        "uniformemente sólido en cinco de las seis líneas estratégicas (97,5%-98,9%) con una "
-        "ejecución más rezagada en Educación para toda la vida (94,7%). Más allá del indicador "
-        "agregado, el ciclo deja evidencia de transformación estructural: acreditación "
-        "institucional en trámite avanzado ante el CNA, una arquitectura tecnológica y de datos "
-        "consolidada (Banner, Data Lake, HubSpot, POLISIGS certificado ISO 9001:2015) y mejoras "
-        "medibles en cultura organizacional (Great Place to Work al 172% de la meta) y "
-        "experiencia estudiantil (NPS +25,4 puntos). El principal desbalance del ciclo es la "
-        "incursión en Educación Media y ETDH, comprometida en el plan original y aún sin activar."
+        "cumplimiento institucional del 98,8% (promedio de los consolidados de Retos, Proyectos "
+        "e Indicadores de las 6 líneas estratégicas). El resultado agregado es homogéneo: cinco "
+        "líneas se ubican entre 93,5% y 98,7%, y Sostenibilidad lidera con 103,5%. Educación "
+        "para toda la vida muestra un consolidado de 101,2%, pero esa cifra es una lectura "
+        "parcial: sus 3 proyectos (IETDH, Colegio Virtual, Centro de Idiomas) siguen en stand by "
+        "desde su formulación y por eso no participan del promedio, que descansa solo en Retos "
+        "(94,7%) e Indicadores (107,8%). Más allá de los agregados, el ciclo deja evidencia de "
+        "transformación estructural: acreditación institucional en trámite avanzado ante el CNA, "
+        "una arquitectura tecnológica y de datos consolidada (Banner, Data Lake, HubSpot, "
+        "POLISIGS certificado ISO 9001:2015) y mejoras medibles en cultura organizacional (Great "
+        "Place to Work en 117,9% de su meta) y experiencia estudiantil (NPS +25,4 puntos). El "
+        "principal desbalance del ciclo sigue siendo la incursión en Educación Media y ETDH, "
+        "comprometida en el plan original y aún sin activar."
     ),
     "logros": (
         "Los logros transformacionales del ciclo se concentran en tres frentes: la consolidación "
@@ -85,13 +89,12 @@ TEXTOS_LINEAS = {
                 "calidad académica más allá del hito puntual de acreditación."
             ),
             "indicadores": (
-                "El CMI de la línea promedia 106,4% de cumplimiento. El indicador más "
-                "representativo de la transformación de fondo es la relación estudiante-docente "
-                "de tiempo completo equivalente, que mejoró 33,6% en el ciclo (de 103 a 68,4 "
-                "estudiantes por docente), evidencia de una inversión real en planta docente y "
-                "no solo de un ajuste administrativo. A esto se suma que el 100% de los "
-                "programas académicos ya cuenta con resultados de aprendizaje implementados, "
-                "la base técnica que sostiene la acreditación."
+                "El CMI de la línea promedia 106,4% de cumplimiento. La relación "
+                "estudiante-docente de tiempo completo se ubica en 83 estudiantes por docente "
+                "frente a una meta de 81 (97,8% de cumplimiento), una tensión leve pero real "
+                "entre el crecimiento de matrícula y la capacidad de la planta docente. A esto "
+                "se suma que el 100% de los programas académicos ya cuenta con resultados de "
+                "aprendizaje implementados, la base técnica que sostiene la acreditación."
             ),
             "consolidado": (
                 "En conjunto, Calidad consolida su objetivo estratégico central —asegurar la "
@@ -127,15 +130,14 @@ TEXTOS_LINEAS = {
                 "crecimiento planeado de matrícula a lo largo de los cuatro años del ciclo."
             ),
             "proyectos": (
-                "En proyectos, la línea registra un avance promedio de 72,0% sobre 4 "
-                "iniciativas. Dos de ellas ya cerraron al 100%: Pricing, que construyó una "
-                "estrategia de precios institucional basada en el análisis de elasticidad de "
-                "demanda por programa y en la diferenciación de descuentos como política "
-                "comercial; y Proyecto Silver, que estructuró una línea de negocio dirigida a "
-                "población mayor de 50 años, ampliando el mercado más allá del segmento "
-                "tradicional. Las otras dos —implementación de HubSpot Eduvida y optimización "
-                "SEO/AEO de captación— siguen en ejecución y son la base tecnológica y digital "
-                "del crecimiento futuro."
+                "En proyectos, la línea registra un avance promedio de 89,0% sobre 3 "
+                "iniciativas. Dos ya cerraron al 100%: Pricing, que construyó una estrategia de "
+                "precios institucional basada en el análisis de elasticidad de demanda por "
+                "programa y en la diferenciación de descuentos como política comercial; y "
+                "Proyecto Silver, que estructuró una línea de negocio dirigida a población mayor "
+                "de 50 años, ampliando el mercado más allá del segmento tradicional. La tercera, "
+                "implementación de HubSpot Eduvida, sigue en ejecución (67%) y es la base "
+                "tecnológica del crecimiento futuro en captación."
             ),
             "indicadores": (
                 "El CMI promedia 107,5% de cumplimiento, con sobrecumplimiento marcado en los "
@@ -145,13 +147,13 @@ TEXTOS_LINEAS = {
                 "todos sus segmentos (presencial, virtual, pregrado y posgrado)."
             ),
             "consolidado": (
-                "El resultado consolidado de Expansión (retos 98,9%, proyectos 72,0%, "
+                "El resultado consolidado de Expansión (retos 98,9%, proyectos 89,0%, "
                 "indicadores 107,5%) muestra una línea que ya no depende solo del crecimiento "
                 "vegetativo de matrícula: los proyectos cerrados (Pricing, Proyecto Silver) "
                 "instalan mecanismos deliberados de diferenciación comercial y diversificación "
                 "de mercado, mientras los indicadores confirman que el posicionamiento de "
-                "marca se fortaleció en paralelo al crecimiento. Es, junto con Sostenibilidad, "
-                "la línea más equilibrada del ciclo."
+                "marca se fortaleció en paralelo al crecimiento. Es la línea con mejor "
+                "desempeño equilibrado entre las tres dimensiones del ciclo."
             ),
         },
         "pendientes": (
@@ -172,9 +174,10 @@ TEXTOS_LINEAS = {
                 "más densa del portafolio."
             ),
             "proyectos": (
-                "Con 18 proyectos, es la línea con mayor densidad de iniciativas del ciclo, y "
-                "su avance promedio (72,3%) refleja tanto la magnitud del esfuerzo como el "
-                "hecho de que 15 de ellos ya cerraron. En el frente tecnológico: la migración "
+                "Con 16 proyectos activos en el rango 2021-2025, es la línea con mayor densidad "
+                "de iniciativas del ciclo, y su avance promedio (81,4%) refleja tanto la "
+                "magnitud del esfuerzo como el hecho de que 11 de ellos ya cerraron. En el "
+                "frente tecnológico: la migración "
                 "del ecosistema académico Banner a su versión más reciente sobre Oracle Cloud, "
                 "la centralización de datos institucionales en un Data Lake bajo metodología "
                 "Data Vault, la integración Banner-HubSpot-FDI para la gestión de aspirantes y "
@@ -184,18 +187,18 @@ TEXTOS_LINEAS = {
             ),
             "indicadores": (
                 "El CMI promedia 101,6% de cumplimiento. El indicador más visible del cambio "
-                "cultural es el Great Place to Work, que subió de 76 a 89 puntos (172% de la "
-                "meta), acompañado de un incremento de 13 puntos en el eNPS — evidencia de que "
-                "la transformación cultural fue medible, no solo declarada."
+                "cultural es el Great Place to Work, con una ejecución de 81,0 puntos frente a "
+                "una meta de 68,7 (117,9% de cumplimiento) — evidencia de que la transformación "
+                "cultural fue medible, no solo declarada."
             ),
             "consolidado": (
-                "El balance consolidado (retos 97,5%, proyectos 72,3%, indicadores 101,6%) "
-                "confirma que la transformación organizacional del ciclo operó en dos frentes "
-                "simultáneos y complementarios: una arquitectura tecnológica y de datos que "
-                "pasó de fragmentada a gobernada, y una cultura organizacional con mejoras "
-                "medibles en clima laboral. Es la combinación de ambos frentes la que "
-                "constituye la transformación de fondo que el PDI 2022-2026 se propuso para "
-                "esta línea."
+                "El balance consolidado (retos 97,5%, proyectos 81,4% sobre 16 iniciativas, "
+                "indicadores 101,6%) confirma que la transformación organizacional del ciclo "
+                "operó en dos frentes simultáneos y complementarios: una arquitectura "
+                "tecnológica y de datos que pasó de fragmentada a gobernada, y una cultura "
+                "organizacional con mejoras medibles en clima laboral. Es la combinación de "
+                "ambos frentes la que constituye la transformación de fondo que el PDI "
+                "2022-2026 se propuso para esta línea."
             ),
         },
         "pendientes": (
@@ -217,15 +220,16 @@ TEXTOS_LINEAS = {
                 "sostenida a lo largo del ciclo."
             ),
             "proyectos": (
-                "El avance promedio en proyectos es de 66,3% sobre 10 iniciativas. El hito "
-                "central es la implementación en tres fases del Hub de Experiencia y Agilismo "
-                "(HEYA), que rediseñó la gestión de la experiencia institucional a partir de "
-                "journey maps y metodologías ágiles. En paralelo, el Centro Gastronómico "
-                "redujo en 80% el costo anual de prácticas del programa de Hotelería y "
-                "Gastronomía al eliminar la dependencia de terceros, y el Proyecto de "
+                "El avance promedio en proyectos es de 94,7% sobre 7 iniciativas, 6 de ellas ya "
+                "cerradas al 100%. El hito central es la implementación en tres fases del Hub de "
+                "Experiencia y Agilismo (HEYA), que rediseñó la gestión de la experiencia "
+                "institucional a partir de journey maps y metodologías ágiles. En paralelo, el "
+                "Centro Gastronómico redujo en 80% el costo anual de prácticas del programa de "
+                "Hotelería y Gastronomía al eliminar la dependencia de terceros, y el Proyecto de "
                 "Permanencia Institucional desplegó el modelo KITUS de acompañamiento "
                 "segmentado con resultados diferenciados en los grupos de mayor riesgo de "
-                "deserción."
+                "deserción. La única iniciativa aún en ejecución es la remodelación de los "
+                "bloques I y C (63%)."
             ),
             "indicadores": (
                 "El CMI promedia 103,4% de cumplimiento. El NPS de estudiantes subió 25,4 "
@@ -234,11 +238,11 @@ TEXTOS_LINEAS = {
                 "encima de sus metas respectivas."
             ),
             "consolidado": (
-                "El resultado consolidado (retos 98,1%, proyectos 66,3%, indicadores 103,4%) "
+                "El resultado consolidado (retos 98,1%, proyectos 94,7%, indicadores 103,4%) "
                 "muestra una línea que migró de una gestión reactiva de la experiencia a una "
-                "arquitectura de journey maps, analítica predictiva y agilismo "
-                "institucionalizados, con resultados ya visibles en satisfacción y permanencia "
-                "estudiantil."
+                "arquitectura de journey maps y agilismo institucionalizados, con resultados ya "
+                "visibles en satisfacción y permanencia estudiantil, y con la mayoría de sus "
+                "proyectos estructurales ya cerrados."
             ),
         },
         "pendientes": (
@@ -304,12 +308,13 @@ TEXTOS_LINEAS = {
                 "más bajo del portafolio."
             ),
             "proyectos": (
-                "El avance promedio en proyectos es de 0%: los 3 proyectos de la línea "
+                "La perspectiva de proyectos es N/A para esta línea: los 3 proyectos "
                 "—Instituto de Educación para el Trabajo y el Desarrollo Humano (IETDH), "
                 "Colegio Virtual y Centro de Idiomas POLI— permanecen en pausa (stand by) "
-                "desde su formulación, sin ejecución registrada en ningún momento del ciclo. "
-                "Es la única línea del portafolio sin un solo proyecto cerrado o en ejecución "
-                "activa."
+                "desde su formulación, sin ejecución registrada en ningún momento del ciclo, y "
+                "por eso no se promedian (metodología del informe: un proyecto en stand by no "
+                "resta ni suma). Es la única línea del portafolio sin un solo proyecto cerrado "
+                "o en ejecución activa."
             ),
             "indicadores": (
                 "El CMI, en cambio, promedia 107,8% de cumplimiento, apalancado casi "
@@ -319,13 +324,14 @@ TEXTOS_LINEAS = {
                 "en el ciclo, aun cuando el segundo objetivo de la línea no avanzó."
             ),
             "consolidado": (
-                "El balance consolidado (retos 94,7%, proyectos 0%, indicadores 107,8%) "
-                "revela una línea con dos velocidades marcadamente distintas: el frente de "
-                "educación continua (B2B/B2G) funciona y genera resultados comerciales "
-                "reales, mientras la incursión en Educación Media y ETDH —comprometida en el "
-                "PDI 2022-2026 con metas explícitas— nunca se activó. Es la línea que más "
-                "requiere una decisión estratégica explícita antes de iniciar el PDI "
-                "2026-2030."
+                "El balance consolidado (retos 94,7%, indicadores 107,8%; proyectos N/A) "
+                "promedia 101,2%, pero esa cifra descansa en solo dos de las tres dimensiones y "
+                "no debe leerse como una línea sólida: revela dos velocidades marcadamente "
+                "distintas. El frente de educación continua (B2B/B2G) funciona y genera "
+                "resultados comerciales reales, mientras la incursión en Educación Media y "
+                "ETDH —comprometida en el PDI 2022-2026 con metas explícitas— nunca se activó y "
+                "sus 3 proyectos siguen en stand by. Es la línea que más requiere una decisión "
+                "estratégica explícita antes de iniciar el PDI 2026-2030."
             ),
         },
         "pendientes": (

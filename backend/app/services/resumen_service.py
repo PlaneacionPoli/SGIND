@@ -901,10 +901,25 @@ class ResumenService:
         cumplidos = int((nivel.isin(["Cumplimiento", "Sobrecumplimiento"])).sum())
         en_progreso = int((nivel == "Alerta").sum())
         atencion = int((nivel == "Peligro").sum())
+        # Auditoría 2026-09-27 (V3): cumplidos+en_progreso+atencion NO sumaba
+        # el total de indicadores (36+8+2=46 de 49) porque 3 indicadores sin
+        # cierre cargado caían en "Pendiente de reporte" y se perdían sin
+        # contar aparte — se exponen explícitamente para que el resumen
+        # reconcilie (medidos + sin_medicion = total).
+        sin_medicion = int((nivel == "Pendiente de reporte").sum())
+        medidos = cumplidos + en_progreso + atencion
+        # Auditoría 2026-09-27 (confirmado con negocio, decisión "PROMEDIO"):
+        # el dato hero de portada es el promedio de los consolidados de línea
+        # (Retos+Proyectos+Indicadores ya blendeados por línea), NO el
+        # promedio de indicadores solos — evita que portada divierja del
+        # detalle por línea (V2). Ver app/domain/pdi_measurement.py.
+        consolidados_linea = [
+            li["cumplimiento_consolidado"]
+            for li in lineas
+            if li.get("cumplimiento_consolidado") is not None
+        ]
         cumpl_global = (
-            float(pdi_df.drop_duplicates("Id")["cumplimiento_pct"].mean())
-            if not pdi_df.empty and "cumplimiento_pct" in pdi_df.columns
-            else 0.0
+            sum(consolidados_linea) / len(consolidados_linea) if consolidados_linea else 0.0
         )
 
         proy_count = self._count_proyectos_ciclo_vigente()
@@ -931,6 +946,8 @@ class ResumenService:
             "cumplidos": cumplidos,
             "en_progreso": en_progreso,
             "atencion": atencion,
+            "sin_medicion": sin_medicion,
+            "total_medidos": medidos,
             "total_proyectos": proy_count,
             "total_areas": areas_count,
             "lineas": lineas,

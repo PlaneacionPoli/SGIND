@@ -67,6 +67,10 @@
         <span class="v" style="color:#D32F2F">{{ data.atencion }}</span>
         <span class="l">Atención</span>
       </div>
+      <div class="kpi-card" style="border-top-color:#6B7280">
+        <span class="v" style="color:#6B7280">{{ data.sin_medicion }}</span>
+        <span class="l">Sin medición</span>
+      </div>
     </div>
 
     <h3 class="section-title">Cumplimiento por línea estratégica</h3>
@@ -236,11 +240,15 @@
       <div class="kpi-card" style="border-top-color:#16A34A"><span class="v" style="color:#16A34A">{{ data.cumplidos }}</span><span class="l">Cumplidos</span></div>
       <div class="kpi-card" style="border-top-color:#D97706"><span class="v" style="color:#D97706">{{ data.en_progreso }}</span><span class="l">Progreso</span></div>
       <div class="kpi-card" style="border-top-color:#D32F2F"><span class="v" style="color:#D32F2F">{{ data.atencion }}</span><span class="l">Atención</span></div>
+      <div class="kpi-card" style="border-top-color:#6B7280"><span class="v" style="color:#6B7280">{{ data.sin_medicion }}</span><span class="l">Sin medición</span></div>
     </div>
     <p class="conclusion-text">
-      El PDI 2022–2026 registra un cumplimiento global del <strong>{{ data.cumplimiento_global }}%</strong>.
-      De {{ data.total_indicadores }} indicadores, {{ data.cumplidos }} alcanzaron o superaron su meta,
-      {{ data.en_progreso }} están en progreso y {{ data.atencion }} requieren atención inmediata.
+      El PDI 2022–2026 registra un cumplimiento global del <strong>{{ data.cumplimiento_global }}%</strong>
+      (promedio de los consolidados de las 6 líneas estratégicas).
+      De {{ data.total_indicadores }} indicadores del CMI, {{ data.total_medidos }} cuentan con medición en
+      este corte: {{ data.cumplidos }} alcanzaron o superaron su meta, {{ data.en_progreso }} están en progreso
+      y {{ data.atencion }} requieren atención inmediata. Los {{ data.sin_medicion }} indicadores restantes
+      aún no tienen cierre cargado en este corte.
     </p>
 
     {% if data.narrativa_consolidada %}

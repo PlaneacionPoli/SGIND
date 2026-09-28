@@ -106,6 +106,12 @@ class ProyectosPmoLoader:
         out["anio_inicio"] = out["anio_inicio"].astype(int)
         out["anio_fin"] = out["anio_fin"].astype(int)
 
+        # Confirmado con negocio 2026-09-27: el Informe Ejecutivo solo debe
+        # contar proyectos del Centro de Proyectos que INICIARON dentro del
+        # horizonte 2021-2025 (excluye proyectos formulados antes del ciclo
+        # PDI actual o que arrancan ya en el siguiente ciclo, 2026+).
+        out = out[out["anio_inicio"].between(2021, 2025)]
+
         return out[_OUT_COLS].reset_index(drop=True)
 
     def load_cualitativo(self) -> pd.DataFrame:

@@ -18,6 +18,11 @@ from app.domain.constants import (
     CategoriaCumplimiento,
 )
 from app.domain.linea_order import linea_sort_key
+from app.domain.pdi_measurement import (
+    ESTADOS_EXCLUIDOS_PROMEDIO,
+    TOPE_INDICADOR,
+    TOPE_PROYECTO,
+)
 
 # Umbrales narrativos de Retos, alineados al régimen Plan Anual (95/100) que
 # aplica a Retos por tipo (ver _retos_category) — Oleada 2. El umbral de
@@ -1596,14 +1601,24 @@ def build_informe_ejecutivo_lineas(
         # (hallazgo 2026-09-27). Promedio simple de las 3 dimensiones que sí
         # tengan dato (cada dimensión pesa igual, sin importar cuántos
         # elementos tenga).
+        # Auditoría 2026-09-27 (confirmado con negocio): los proyectos en
+        # Stand by NO entran ni al numerador ni al denominador del promedio
+        # (antes sí se incluían), y cada proyecto se topa a 100% ANTES de
+        # promediar — mismo umbral/tope que Retos (régimen Plan Anual, tope
+        # 100%). Ver app/domain/pdi_measurement.py (fuente única de estas
+        # reglas).
         proy_cumpl_vals = [
-            p["cumplimiento"] for p in proyectos_items if p.get("cumplimiento") is not None
+            min(p["cumplimiento"], TOPE_PROYECTO)
+            for p in proyectos_items
+            if p.get("cumplimiento") is not None and p.get("estado") not in ESTADOS_EXCLUIDOS_PROMEDIO
         ]
         proyectos_cumplimiento_promedio = (
             round(sum(proy_cumpl_vals) / len(proy_cumpl_vals), 1) if proy_cumpl_vals else None
         )
+        # Indicadores: tope 130% por indicador antes de promediar (mismo
+        # techo que RANGO_CUMPLIMIENTO_MAX en constants.py).
         ind_cumpl_vals = [
-            ind["cumplimiento"]
+            min(ind["cumplimiento"], TOPE_INDICADOR)
             for obj in objetivos
             for ind in obj["indicadores"]
             if ind.get("cumplimiento") is not None
