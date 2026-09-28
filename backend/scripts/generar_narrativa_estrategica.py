@@ -52,12 +52,20 @@ TEXTOS_CONSOLIDADO = {
         "cobertura del PDI en el próximo ciclo."
     ),
     "logros": (
-        "Los logros transformacionales del ciclo se concentran en tres frentes: el otorgamiento "
-        "de la acreditación institucional en alta calidad de la Sede Bogotá por parte del CNA, "
-        "la consolidación de la arquitectura tecnológica y de datos institucional como "
-        "habilitador transversal de la estrategia, y una mejora cultural medible en el talento "
-        "humano y la experiencia de la comunidad POLI, evidenciada en indicadores de clima "
-        "organizacional y de satisfacción estudiantil que superaron ampliamente sus metas."
+        "Los logros transformacionales del ciclo se despliegan en múltiples frentes. El más "
+        "visible es el otorgamiento de la acreditación institucional en alta calidad de la Sede "
+        "Bogotá por parte del CNA, acompañado de la consolidación de la arquitectura tecnológica "
+        "y de datos institucional como habilitador transversal de la estrategia, y de una mejora "
+        "cultural medible en el talento humano y la experiencia de la comunidad POLI. A esto se "
+        "suma una gestión financiera sólida, con una ejecución de caja y utilidad neta que "
+        "superó ampliamente sus metas, y avances concretos en sostenibilidad social y ambiental: "
+        "la certificación ISO 14001:2015 se amplió a la sede de Medellín, el Ecosistema E3 abrió "
+        "una ruta formal de empleabilidad y emprendimiento para los graduados, y la proporción "
+        "de estudiantes con becas superó su meta. El crecimiento institucional fue de la mano de "
+        "la oferta académica: se lanzaron 26 nuevos programas entre presenciales y virtuales, y "
+        "la población estudiantil creció por encima de lo proyectado en todos sus segmentos "
+        "—presencial, virtual, pregrado y posgrado—, evidencia de que la expansión se dio sin "
+        "sacrificar calidad ni sostenibilidad financiera."
     ),
     "retos_priorizados": (
         "Los retos priorizados para el PDI 2026-2030 son: decidir explícitamente el futuro de la "
