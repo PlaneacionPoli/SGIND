@@ -1,22 +1,33 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { PdiMindmap } from "@/components/charts/PdiMindmap";
 import { ProyectosGanttChart } from "@/components/charts/ProyectosGanttChart";
 import { DataFreshnessFooter } from "@/components/layout/DataFreshnessFooter";
 import { DetailTables } from "@/components/tables/DetailTables";
 import { TrendVariationTables } from "@/components/tables/TrendVariationTables";
+import { ALERTA_UMBRAL } from "@/components/charts/PdiMindmap";
+import { BalanceConsolidadoCards, type PeorObjetivo } from "@/components/ui/BalanceConsolidadoCards";
 import { ChipRow } from "@/components/ui/ChipRow";
 import { ExecutiveNarrative } from "@/components/ui/ExecutiveNarrative";
 import { InformeEstrategicoConsolidado } from "@/components/ui/InformeEstrategicoConsolidado";
+import { LineaFichaGeneral } from "@/components/ui/LineaFichaGeneral";
 import { StrategyCardGrid } from "@/components/ui/StrategyCard";
 import { VistaSelector } from "@/components/ui/VistaSelector";
 import { YearSegmentedControl } from "@/components/ui/YearSegmentedControl";
 import { downloadInformeEjecutivoPdf, fetchDashboardFiltros, fetchHealth, fetchResumenCompleto } from "@/lib/api";
 import { isDevLoginEnabled, useDevLogin } from "@/hooks/use-dev-login";
 import { useAuthReady } from "@/stores/auth-store";
+
+// El mindmap mide texto real con Canvas para dimensionar sus tarjetas (ver
+// PdiMindmap.tsx), algo que no existe en el render de servidor — se carga
+// solo en cliente para evitar un mismatch de hidratación.
+const PdiMindmap = dynamic(() => import("@/components/charts/PdiMindmap").then((m) => m.PdiMindmap), {
+  ssr: false,
+  loading: () => <div className="flex h-80 items-center justify-center text-sm text-slate-500">Cargando…</div>,
+});
 
 export default function ResumenGeneralPage() {
   const router = useRouter();
@@ -27,6 +38,7 @@ export default function ResumenGeneralPage() {
   const [vista, setVista] = useState("consolidado");
   const [rango, setRango] = useState(true);
   const [subTab, setSubTab] = useState<"listado" | "gantt">("listado");
+  const [selectedLinea, setSelectedLinea] = useState<string | null>(null);
 
   const filtrosQuery = useQuery({
     queryKey: ["dashboard-filtros"],
@@ -57,6 +69,29 @@ export default function ResumenGeneralPage() {
   const showLoading = !ready || (isAuthenticated && resumenQuery.isFetching && !resumenQuery.data);
   const years = filtrosQuery.data?.anios ?? [2022, 2023, 2024, 2025];
   const [pdfLoading, setPdfLoading] = useState(false);
+
+  // Peor sub-línea vigente (mismo umbral que el mindmap) para la alerta en
+  // vivo de la tarjeta "Foco y Retos Priorizados" — no es texto autoral.
+  const peorObjetivo: PeorObjetivo | null = (() => {
+    let peor: PeorObjetivo | null = null;
+    for (const linea of resumenQuery.data?.mindmap.lineas ?? []) {
+      for (const sub of linea.sublineas) {
+        if (sub.cumplimiento < ALERTA_UMBRAL && (!peor || sub.cumplimiento < peor.cumplimiento)) {
+          peor = {
+            slug: linea.slug,
+            linea: linea.label,
+            color: linea.color,
+            codigo: sub.codigo,
+            label: sub.label,
+            cumplimiento: sub.cumplimiento,
+          };
+        }
+      }
+    }
+    return peor;
+  })();
+
+  const selectedLineaMeta = resumenQuery.data?.mindmap.lineas.find((l) => l.slug === selectedLinea);
 
   async function handleDownloadPdf() {
     setPdfLoading(true);
@@ -172,16 +207,39 @@ export default function ResumenGeneralPage() {
           <ChipRow chips={resumenQuery.data.chips} />
           <StrategyCardGrid cards={resumenQuery.data.fichas} />
 
-          <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-            <h3 className="mb-3 text-sm font-semibold text-slate-800">
-              Alineación de Objetivos Estratégicos
-            </h3>
-            <PdiMindmap data={resumenQuery.data.mindmap} />
+          <div className={`grid gap-4 ${selectedLinea ? "lg:grid-cols-[1fr_360px]" : ""}`}>
+            <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+              <h3 className="mb-3 text-sm font-semibold text-slate-800">
+                Alineación de Objetivos Estratégicos
+              </h3>
+              <PdiMindmap
+                data={resumenQuery.data.mindmap}
+                selectedSlug={selectedLinea}
+                onSelectLinea={setSelectedLinea}
+              />
+            </div>
+            {selectedLinea && selectedLineaMeta && (
+              <LineaFichaGeneral
+                slug={selectedLinea}
+                color={selectedLineaMeta.color}
+                icon={selectedLineaMeta.icon}
+                onClose={() => setSelectedLinea(null)}
+              />
+            )}
           </div>
 
           <ExecutiveNarrative data={resumenQuery.data.narrativa} />
 
-          {vista === "consolidado" && rango && (
+          {vista === "consolidado" && rango && resumenQuery.data.tarjetas_consolidado && (
+            <BalanceConsolidadoCards
+              data={resumenQuery.data.tarjetas_consolidado}
+              alcanceGlobal={resumenQuery.data.mindmap.alcance_global}
+              lineas={resumenQuery.data.mindmap.lineas}
+              peorObjetivo={peorObjetivo}
+              onVerLinea={setSelectedLinea}
+            />
+          )}
+          {vista === "consolidado" && rango && !resumenQuery.data.tarjetas_consolidado && (
             <InformeEstrategicoConsolidado data={resumenQuery.data.narrativa_estrategica} />
           )}
 

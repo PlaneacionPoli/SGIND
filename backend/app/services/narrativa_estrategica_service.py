@@ -98,7 +98,10 @@ def _proyectos_de_linea_pendientes(proy_cualitativo, key: str) -> list[str]:
 
 
 def ensamblar_narrativa(
-    resumen_service: Any, textos_lineas: dict[str, dict[str, str]], textos_consolidado: dict[str, str]
+    resumen_service: Any,
+    textos_lineas: dict[str, dict[str, str]],
+    textos_consolidado: dict[str, str],
+    tarjetas_consolidado: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Combina el texto de autoría humana (`textos_lineas`/`textos_consolidado`,
     ver scripts/generar_narrativa_estrategica.py) con los datos estructurados
@@ -141,6 +144,7 @@ def ensamblar_narrativa(
         "fuente": "claude",
         "cumplimiento_global": informe["cumplimiento_global"],
         "consolidado": textos_consolidado,
+        "tarjetas_consolidado": tarjetas_consolidado,
         "lineas": lineas_out,
     }
 

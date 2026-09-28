@@ -6,6 +6,12 @@ import type { ResumenMindmap, ResumenMindmapLinea, ResumenMindmapSublinea } from
 
 interface PdiMindmapProps {
   data: ResumenMindmap;
+  /** Slug de la línea resaltada/seleccionada (controlado por el padre, ver
+   * resumen-general/page.tsx, para poder mostrar la ficha general de la
+   * línea al lado del mindmap y dejar que otros elementos —p.ej. la alerta
+   * de "Foco y Retos Priorizados"— también la seleccionen). */
+  selectedSlug?: string | null;
+  onSelectLinea?: (slug: string | null) => void;
 }
 
 // Orden oficial del PDI 2022-2026 (docs/PDI/Plan_de_Desarrollo_Institucional_PDI_2022-2026.docx:
@@ -27,34 +33,78 @@ const OFFICIAL_LINE_ORDER = [
 // mismatch entre el tamaño lógico y el tamaño físico renderizado.
 const CENTER_R = 100;
 const LINE_R = 72;
-const LINE_ORBIT = 190;
+const LINE_ORBIT = 200;
 const SUB_W = 280;
-// El alto de cada caja se calcula según el largo de su texto (ver
-// estimateSubHeight) para que la etiqueta nunca se corte con "..." — por eso
-// no hay un SUB_H fijo.
-const SUB_MIN_H = 72;
-// Cada objetivo cuelga directamente de su línea (no en cadena): se distribuyen
-// en abanico alrededor del nodo de la línea. El radio de cada ítem se acumula
-// a partir del alto real del anterior (no un paso fijo, y con un margen
-// pequeño) para que el abanico se apoye más en el ángulo que en el radio —
-// evita que los ejes con varios objetivos se disparen desproporcionadamente
-// hacia las esquinas — validado numéricamente contra los 11 objetivos
-// oficiales del PDI con >=30px de margen en cualquier par.
-const SUB_LOCAL_R_BASE = 260;
-const SUB_LOCAL_R_STEP_MARGIN = 8;
-const SUB_ANGLE_GAP = 24;
+// El alto de cada caja se calcula midiendo el texto real (ver
+// estimateSubHeight/countWrappedLines) para que ningún dato quede cortado por
+// el recorte duro que aplica <foreignObject> a su contenido — por eso no hay
+// un SUB_H fijo.
+const SUB_MIN_H = 76;
+const SUB_LABEL_FONT = "600 13px Inter, ui-sans-serif, system-ui, sans-serif";
+// Cada objetivo cuelga directamente de su línea (no en cadena) y todos los
+// objetivos de un mismo eje se ubican al MISMO radio (un abanico parejo, no
+// una espiral) para que se vean alineados entre sí — el radio de cada eje se
+// calcula para que sus propios ítems no choquen entre sí dado el ángulo
+// disponible, con un mínimo común (SUB_LOCAL_R_BASE) para los ejes de un solo
+// objetivo. Validado numéricamente contra los 11 objetivos oficiales del PDI
+// con >=30px de margen en cualquier par (eje-eje, eje-centro, eje-línea).
+const SUB_LOCAL_R_BASE = 240;
+const SUB_LOCAL_R_MARGIN = 20;
+const SUB_LOCAL_R_SAFETY = 1.05;
+const SUB_ANGLE_GAP = 32;
 const PADDING = 60;
 
+let measureCanvasCtx: CanvasRenderingContext2D | null | undefined;
+
+function getTextWidth(text: string, font: string): number {
+  if (measureCanvasCtx === undefined) {
+    measureCanvasCtx = typeof document === "undefined" ? null : document.createElement("canvas").getContext("2d");
+  }
+  if (!measureCanvasCtx) return text.length * 7.2; // fallback aproximado (SSR o canvas no disponible)
+  measureCanvasCtx.font = font;
+  return measureCanvasCtx.measureText(text).width;
+}
+
+function countWrappedLines(text: string, maxWidth: number, font: string): number {
+  const words = text.split(" ");
+  let lines = 1;
+  let current = "";
+  for (const word of words) {
+    const candidate = current ? `${current} ${word}` : word;
+    if (current && getTextWidth(candidate, font) > maxWidth) {
+      lines += 1;
+      current = word;
+    } else {
+      current = candidate;
+    }
+  }
+  return lines;
+}
+
 function estimateSubHeight(label: string): number {
-  const usableWidth = SUB_W - 56;
-  const avgCharWidth = 6.5;
-  const charsPerLine = Math.max(10, Math.floor(usableWidth / avgCharWidth));
-  const lines = Math.max(1, Math.ceil(label.length / charsPerLine));
-  return Math.max(SUB_MIN_H, lines * 16 + 26 + 16);
+  const usableWidth = SUB_W - 56; // padding interno + columna del badge de código
+  const lines = countWrappedLines(label, usableWidth, SUB_LABEL_FONT);
+  return Math.max(SUB_MIN_H, lines * 18 + 30 + 18);
 }
 
 function halfDiagonal(width: number, height: number): number {
   return Math.sqrt((width / 2) ** 2 + (height / 2) ** 2);
+}
+
+// Radio común para todos los objetivos de un mismo eje: el mínimo que evita
+// que dos objetivos consecutivos (al ángulo disponible) se solapen.
+function computeAxisRadius(heights: number[]): number {
+  let needed = SUB_LOCAL_R_BASE;
+  if (heights.length > 1) {
+    const gapRad = toRad(SUB_ANGLE_GAP);
+    for (let j = 0; j < heights.length - 1; j++) {
+      const pairNeed =
+        (halfDiagonal(SUB_W, heights[j]) + halfDiagonal(SUB_W, heights[j + 1]) + SUB_LOCAL_R_MARGIN) /
+        (2 * Math.sin(gapRad / 2));
+      needed = Math.max(needed, pairNeed);
+    }
+  }
+  return needed * SUB_LOCAL_R_SAFETY;
 }
 
 // Curva Bézier cuadrática que arquea el conector hacia afuera del centro
@@ -82,7 +132,7 @@ function curvePath(x1: number, y1: number, x2: number, y2: number): string {
 // Umbral de alerta pedido para este mindmap: por debajo de 98% de
 // cumplimiento se marca "En Alerta" (independiente del semáforo institucional
 // que usa el resto del tablero).
-const ALERTA_UMBRAL = 98;
+export const ALERTA_UMBRAL = 98;
 
 function getAlertaDisplay(cumplimiento: number): { bg: string; text: string; label: string | null } {
   if (cumplimiento < ALERTA_UMBRAL) {
@@ -128,10 +178,11 @@ function orderLineas(lineas: ResumenMindmapLinea[]): ResumenMindmapLinea[] {
   return [...ordered, ...rest];
 }
 
-export function PdiMindmap({ data }: PdiMindmapProps) {
+export function PdiMindmap({ data, selectedSlug = null, onSelectLinea }: PdiMindmapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [hovered, setHovered] = useState<string | null>(null);
-  const [focused, setFocused] = useState<string | null>(null);
+  const focused = selectedSlug;
+  const setFocused = (next: string | null) => onSelectLinea?.(next);
   const [tooltip, setTooltip] = useState<TooltipState | null>(null);
 
   const layout = useMemo(() => {
@@ -146,11 +197,8 @@ export function PdiMindmap({ data }: PdiMindmapProps) {
 
       const items = linea.sublineas ?? [];
       const heights = items.map((sub) => estimateSubHeight(sub.label));
-      let radius = SUB_LOCAL_R_BASE;
+      const radius = computeAxisRadius(heights);
       const subs: SubNode[] = items.map((sub, j) => {
-        if (j > 0) {
-          radius += halfDiagonal(SUB_W, heights[j - 1]) + halfDiagonal(SUB_W, heights[j]) + SUB_LOCAL_R_STEP_MARGIN;
-        }
         const offsetDeg = (j - (items.length - 1) / 2) * SUB_ANGLE_GAP;
         const a = toRad(angleDeg + offsetDeg);
         return {
@@ -165,28 +213,24 @@ export function PdiMindmap({ data }: PdiMindmapProps) {
       return { linea, x, y, subs };
     });
 
-    let minX = -CENTER_R;
-    let maxX = CENTER_R;
-    let minY = -CENTER_R;
-    let maxY = CENTER_R;
+    // El radio máximo se mide en valor absoluto y el viewBox se arma simétrico
+    // alrededor del origen (0,0): así el nodo central PDI queda siempre
+    // centrado en el lienzo, sin importar que un eje tenga más/mayores
+    // objetivos que el resto y "jale" el bounding box hacia un lado.
+    let maxReachX = CENTER_R;
+    let maxReachY = CENTER_R;
     for (const node of nodes) {
-      minX = Math.min(minX, node.x - LINE_R);
-      maxX = Math.max(maxX, node.x + LINE_R);
-      minY = Math.min(minY, node.y - LINE_R);
-      maxY = Math.max(maxY, node.y + LINE_R);
+      maxReachX = Math.max(maxReachX, Math.abs(node.x) + LINE_R);
+      maxReachY = Math.max(maxReachY, Math.abs(node.y) + LINE_R);
       for (const s of node.subs) {
-        minX = Math.min(minX, s.x - SUB_W / 2);
-        maxX = Math.max(maxX, s.x + SUB_W / 2);
-        minY = Math.min(minY, s.y - s.height / 2);
-        maxY = Math.max(maxY, s.y + s.height / 2);
+        maxReachX = Math.max(maxReachX, Math.abs(s.x) + SUB_W / 2);
+        maxReachY = Math.max(maxReachY, Math.abs(s.y) + s.height / 2);
       }
     }
-    minX -= PADDING;
-    minY -= PADDING;
-    maxX += PADDING;
-    maxY += PADDING;
+    const halfWidth = maxReachX + PADDING;
+    const halfHeight = maxReachY + PADDING;
 
-    return { nodes, minX, minY, width: maxX - minX, height: maxY - minY };
+    return { nodes, minX: -halfWidth, minY: -halfHeight, width: halfWidth * 2, height: halfHeight * 2 };
   }, [data?.lineas]);
 
   if (!layout.nodes.length) {
@@ -234,12 +278,10 @@ export function PdiMindmap({ data }: PdiMindmapProps) {
       <p className="mb-2 text-center text-xs text-slate-400">
         Pasa el cursor sobre un nodo para ver el detalle · Haz clic en una línea para resaltarla
       </p>
-      <div ref={containerRef} className="relative overflow-x-auto">
+      <div ref={containerRef} className="relative">
         <svg
           viewBox={`${layout.minX} ${layout.minY} ${layout.width} ${layout.height}`}
-          width={layout.width}
-          height={layout.height}
-          style={{ display: "block", margin: "0 auto", maxWidth: "100%", height: "auto" }}
+          style={{ display: "block", margin: "0 auto", width: "100%", height: "auto" }}
           onMouseLeave={() => setTooltip(null)}
         >
           <circle cx={0} cy={0} r={LINE_ORBIT - 30} fill="none" stroke="#E2E8F0" strokeWidth={1.5} />
@@ -280,7 +322,7 @@ export function PdiMindmap({ data }: PdiMindmapProps) {
                     setHovered(null);
                     setTooltip(null);
                   }}
-                  onClick={() => setFocused((prev) => (prev === node.linea.slug ? null : node.linea.slug))}
+                  onClick={() => setFocused(focused === node.linea.slug ? null : node.linea.slug)}
                 >
                   <circle cx={0} cy={0} r={LINE_R} fill={node.linea.color} stroke="#fff" strokeWidth={isFocused ? 5 : 3} />
                   <foreignObject x={-LINE_R + 6} y={-LINE_R + 6} width={(LINE_R - 6) * 2} height={(LINE_R - 6) * 2}>

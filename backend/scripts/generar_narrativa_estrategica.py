@@ -81,6 +81,62 @@ TEXTOS_CONSOLIDADO = {
     ),
 }
 
+TARJETAS_CONSOLIDADO = {
+    "balance": {
+        "logros_destacados": [
+            {"label": "Acreditación CNA", "valor": "Otorgada 6 Años"},
+            {"label": "Expansión Matrícula", "valor": "+13,1% vs. 2022"},
+            {"label": "Sostenibilidad ISO", "valor": "Norma 14001:2015"},
+        ],
+        "auditoria": "Auditoría Interna OK",
+    },
+    "cifras": [
+        {
+            "titulo": "Estudiantes POLI",
+            "valor": "56.807",
+            "detalle": "+13,1% vs. 2022",
+        },
+        {
+            "titulo": "Satisfacción NPS",
+            "valor": "+25,4 pts",
+            "detalle": "Mejora sostenida",
+        },
+        {
+            "titulo": "Nuevos Programas",
+            "valor": "26",
+            "detalle": "Presenciales y virtuales",
+        },
+        {
+            "titulo": "Clima Laboral",
+            "valor": "GPTW",
+            "detalle": "Certificado",
+        },
+    ],
+    "retos_priorizados": [
+        {
+            "codigo": "P1",
+            "titulo": "Centro de Excelencia Analítica",
+            "detalle": (
+                "Gobierno de TI, arquitectura de microservicios y modelos de IA "
+                "como palanca de decisiones basadas en datos"
+            ),
+        },
+        {
+            "codigo": "P2",
+            "titulo": "Sostener el ritmo de expansión",
+            "detalle": (
+                "Escalar los mecanismos de diferenciación comercial y "
+                "diversificación de mercado validados en Pricing y Proyecto Silver"
+            ),
+        },
+        {
+            "codigo": "P3",
+            "titulo": "Definir el camino de Eduvida",
+            "detalle": "Fase I ya ejecutada; a la espera de las definiciones necesarias para continuar",
+        },
+    ],
+}
+
 TEXTOS_LINEAS = {
     "calidad": {
         "logros": {
@@ -379,7 +435,7 @@ def main() -> None:
     settings = get_settings()
     excel = ExcelReaderService(settings)
     svc = ResumenService(excel)
-    data = ensamblar_narrativa(svc, TEXTOS_LINEAS, TEXTOS_CONSOLIDADO)
+    data = ensamblar_narrativa(svc, TEXTOS_LINEAS, TEXTOS_CONSOLIDADO, TARJETAS_CONSOLIDADO)
     path = guardar(data)
     print(f"Narrativa estratégica guardada en: {path}")
 

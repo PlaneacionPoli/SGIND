@@ -658,6 +658,32 @@ export interface ProyectosGanttData {
   items: ProyectoGanttItem[];
 }
 
+export interface ResumenTarjetaBalanceLogro {
+  label: string;
+  valor: string;
+}
+
+export interface ResumenTarjetaCifra {
+  titulo: string;
+  valor: string;
+  detalle: string;
+}
+
+export interface ResumenTarjetaReto {
+  codigo: string;
+  titulo: string;
+  detalle: string;
+}
+
+export interface ResumenTarjetasConsolidado {
+  balance: {
+    logros_destacados: ResumenTarjetaBalanceLogro[];
+    auditoria: string;
+  };
+  cifras: ResumenTarjetaCifra[];
+  retos_priorizados: ResumenTarjetaReto[];
+}
+
 export interface ResumenCompletoResponse {
   anio: number;
   vista: string;
@@ -671,6 +697,8 @@ export interface ResumenCompletoResponse {
     logros: string;
     retos_priorizados: string;
   } | null;
+  /** Igual disponibilidad que narrativa_estrategica (solo Cierre PDI 2022-2025). */
+  tarjetas_consolidado?: ResumenTarjetasConsolidado | null;
   mejoraron: ResumenTrendItem[];
   en_riesgo: ResumenTrendItem[];
   periodo_comparacion: string;
@@ -713,6 +741,18 @@ export interface ResumenLineaRetos {
   n_areas: number;
 }
 
+export interface ResumenLineaNarrativa {
+  nombre: string;
+  tagline: string;
+  parrafo_logros: {
+    retos: string;
+    proyectos: string;
+    indicadores: string;
+    consolidado: string;
+  };
+  parrafo_pendientes: string;
+}
+
 export interface ResumenLineaResponse {
   linea: string;
   color: string;
@@ -720,6 +760,10 @@ export interface ResumenLineaResponse {
   retos: ResumenLineaRetos;
   proyectos: ResumenLineaProyectoItem[];
   objetivos: ResumenLineaObjetivo[];
+  cumplimiento_consolidado: number;
+  /** Solo cuando `anio` es undefined (Cierre PDI 2022-2025); null si aún no
+   * se ha corrido scripts/generar_narrativa_estrategica.py. */
+  narrativa?: ResumenLineaNarrativa | null;
 }
 
 export interface SeguimientoDashboardResponse {

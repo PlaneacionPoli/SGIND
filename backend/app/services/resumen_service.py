@@ -751,6 +751,9 @@ class ResumenService:
             narrativa_estrategica = (
                 narrativa_estrategica_data.get("consolidado") if narrativa_estrategica_data else None
             )
+            tarjetas_consolidado = (
+                narrativa_estrategica_data.get("tarjetas_consolidado") if narrativa_estrategica_data else None
+            )
 
             return {
                 "anio": anio,
@@ -760,6 +763,7 @@ class ResumenService:
                 "mindmap": mindmap,
                 "narrativa": narrativa,
                 "narrativa_estrategica": narrativa_estrategica,
+                "tarjetas_consolidado": tarjetas_consolidado,
                 "mejoraron": [],
                 "en_riesgo": [],
                 "periodo_comparacion": "",
@@ -820,7 +824,18 @@ class ResumenService:
         lineas = build_informe_ejecutivo_lineas(
             pdi_df, proy_gantt, ret_linea_df, ret_obj_df, ret_planes_df, signo_lookup
         )
-        return next((li for li in lineas if norm_key(li["linea"]) == target), None)
+        linea = next((li for li in lineas if norm_key(li["linea"]) == target), None)
+        if linea is None:
+            return None
+
+        # Narrativa cualitativa (autoría directa, ver
+        # scripts/generar_narrativa_estrategica.py): solo aplica al rango fijo
+        # "Cierre PDI 2022-2025" sobre el que se redactó — igual criterio que
+        # get_informe_ejecutivo/vista consolidado.
+        if anio is None:
+            narrativa_data = leer_narrativa_estrategica()
+            linea["narrativa"] = narrativa_data.get("lineas", {}).get(target) if narrativa_data else None
+        return linea
 
     def _build_signo_lookup(self) -> dict[str, dict[str, Any]]:
         """Meta_Signo/Ejecucion_s/Decimales_* por Id — no viven en
