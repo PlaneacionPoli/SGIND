@@ -44,12 +44,12 @@ TEXTOS_CONSOLIDADO = {
         "(Banner, Data Lake, HubSpot, POLISIGS certificado ISO 9001:2015), que hoy permite "
         "decisiones más ágiles y basadas en evidencia en toda la institución. La ejecución "
         "estratégica respalda estos logros: las seis líneas del PDI cerraron el ciclo con un "
-        "desempeño cercano y equilibrado entre sí, liderado por Sostenibilidad —que combinó una "
-        "ejecución de proyectos ejemplar con una gestión financiera sólida—, mientras Educación "
-        "para toda la vida concentra el principal punto de atención del ciclo: sus tres proyectos "
-        "de incursión en Educación Media y ETDH permanecen en pausa desde su formulación. Activar "
-        "esa apuesta, comprometida desde el plan original, es la pieza pendiente para completar "
-        "el propósito de acceso y cobertura del PDI en el próximo ciclo."
+        "desempeño sólido y equilibrado entre sí. Sostenibilidad se destacó con una ejecución de "
+        "proyectos ejemplar y una gestión financiera responsable. El principal pendiente del "
+        "ciclo está en Educación para toda la vida: sus tres proyectos de incursión en Educación "
+        "Media y ETDH, comprometidos desde el plan original, siguen en pausa desde su "
+        "formulación. Activarlos es la tarea prioritaria para completar la apuesta de acceso y "
+        "cobertura del PDI en el próximo ciclo."
     ),
     "logros": (
         "Los logros transformacionales del ciclo se concentran en tres frentes: el otorgamiento "
