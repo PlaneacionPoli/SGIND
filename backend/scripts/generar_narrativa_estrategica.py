@@ -122,19 +122,18 @@ TEXTOS_LINEAS = {
             ),
         },
         "pendientes": (
-            "El principal pendiente de la línea es el Sistema de Medición de Resultados de "
-            "Aprendizaje, aún en fase de planeación, cuya puesta en marcha es condición para "
-            "sostener la mejora continua curricular lograda en el ciclo. Persisten además dos "
-            "indicadores en zona de alerta —productos de investigación, innovación y creación "
-            "(94,2%) y relación estudiante-docente de tiempo completo (97,8%)— que, aunque "
-            "cercanos a meta, evidencian una tensión estructural entre el crecimiento de la "
-            "oferta académica y la capacidad de la planta docente e investigativa para "
-            "sostenerlo. Para el PDI 2026-2030 esto se traduce en tres prioridades: cerrar el "
-            "sistema de medición de aprendizajes como habilitador de la siguiente etapa de "
-            "calidad, implementar la reforma curricular de los programas académicos que "
-            "sostenga la acreditación recién obtenida, y definir una estrategia diferenciada de "
-            "fortalecimiento de investigación y planta docente que no dependa exclusivamente "
-            "del crecimiento vegetativo alcanzado en este ciclo."
+            "La prioridad inmediata de la línea es poner en marcha el Sistema de Medición de "
+            "Resultados de Aprendizaje, hoy en fase de planeación y pieza clave para sostener la "
+            "mejora continua curricular lograda en este ciclo. Dos indicadores requieren "
+            "seguimiento cercano: productos de investigación, innovación y creación (94,2%) y "
+            "relación estudiante-docente de tiempo completo (97,8%). Aunque ambos están cerca de "
+            "la meta, señalan la tensión entre el crecimiento de la oferta académica y la "
+            "capacidad de la planta docente e investigativa para sostenerlo. Para el PDI "
+            "2026-2030 la línea se enfoca en tres frentes: implementar el Sistema de Medición de "
+            "Resultados de Aprendizaje como habilitador de la siguiente etapa de calidad, "
+            "ejecutar la reforma curricular de los programas académicos que sostenga la "
+            "acreditación recién obtenida, y diseñar una estrategia propia de fortalecimiento de "
+            "investigación y planta docente, que crezca al mismo ritmo que la oferta académica."
         ),
     },
     "expansion": {
@@ -172,13 +171,13 @@ TEXTOS_LINEAS = {
             ),
         },
         "pendientes": (
-            "Expansión cierra el ciclo sin proyectos pendientes ni indicadores en zona crítica "
-            "identificados, lo que la posiciona como la línea de mayor estabilidad del "
-            "portafolio. La prioridad para el PDI 2026-2030 no es de contención sino de "
-            "escalamiento: llevar a implementación plena las hipótesis validadas por Pricing y "
-            "Proyecto Silver —hoy en fase de diseño estratégico— y evaluar nuevos segmentos de "
-            "crecimiento (relacionamiento empresa-Estado, internacionalización) que sostengan "
-            "el ritmo alcanzado una vez se agote el margen de crecimiento del modelo actual."
+            "Expansión cierra el ciclo sin proyectos por cerrar ni indicadores en zona crítica, "
+            "lo que la posiciona como la línea de mayor estabilidad del portafolio. La "
+            "prioridad para el PDI 2026-2030 no es de contención sino de escalamiento: llevar a "
+            "implementación plena las hipótesis validadas por Pricing y Proyecto Silver, hoy en "
+            "fase de diseño estratégico, y evaluar nuevos segmentos de crecimiento, como el "
+            "relacionamiento empresa-Estado y la internacionalización, que sostengan el ritmo "
+            "alcanzado una vez se agote el margen de crecimiento del modelo actual."
         ),
     },
     "transformacion organizacional": {
@@ -201,10 +200,17 @@ TEXTOS_LINEAS = {
                 "Talento y el nuevo Portal Web Universitario completan el cierre."
             ),
             "indicadores": (
-                "El CMI promedia 101,6% de cumplimiento. El indicador más visible del cambio "
-                "cultural es el Great Place to Work, con una ejecución de 81,0 puntos frente a "
-                "una meta de 68,7 (117,9% de cumplimiento) — evidencia de que la transformación "
-                "cultural fue medible, no solo declarada."
+                "El CMI promedia 101,6% de cumplimiento, con logros en los tres objetivos de la "
+                "línea. En el frente humano, el indicador más visible del cambio cultural es el "
+                "Great Place to Work, con una ejecución de 81,0 puntos frente a una meta de 68,7 "
+                "(117,9% de cumplimiento), acompañado de una satisfacción con los servicios "
+                "prestados de 85% y una reducción del índice de rotación a 0,89 frente a una "
+                "meta de 1,2 — evidencia de que la transformación cultural fue medible, no solo "
+                "declarada. En arquitectura tecnológica, la disponibilidad de servicios "
+                "tecnológicos llegó a 97,7%, por encima de la meta. Y en gestión por procesos y "
+                "datos, la cobertura de recolección de variables para analítica (ADA) alcanzó "
+                "100%, la base sobre la que se construirá el Centro de Excelencia Analítica del "
+                "próximo ciclo."
             ),
             "consolidado": (
                 "El balance consolidado (retos 97,5%, proyectos 81,4% sobre 16 iniciativas, "
@@ -219,12 +225,12 @@ TEXTOS_LINEAS = {
         "pendientes": (
             "Quedan tres iniciativas en fase de planeación —automatización del proceso "
             "contractual, homologaciones con IA en Ilumno y la reforma curricular tecnológica— "
-            "que no alcanzaron a iniciar ejecución en el ciclo. La depuración del histórico "
-            "SNIES, en cambio, ya se cerró en el ciclo, un habilitador de calidad de dato clave "
-            "para cualquier estrategia de analítica avanzada del siguiente PDI. Para el PDI "
-            "2026-2030 el foco de esta línea es doble: consolidar el Centro de Excelencia "
-            "Analítica sobre esa base de datos ya depurada, y decidir explícitamente si las tres "
-            "iniciativas en planeación se ejecutan, se rediseñan o se descontinúan antes de "
+            "que no alcanzaron a iniciar ejecución en el ciclo. El indicador de depuración del "
+            "histórico SNIES fue cancelado en el ciclo, por lo que deja de ser un riesgo activo "
+            "de calidad de dato. Para el PDI 2026-2030 el foco de esta línea es doble: "
+            "consolidar el Centro de Excelencia Analítica con una estrategia propia de calidad "
+            "de dato que no dependa de esa iniciativa cancelada, y decidir explícitamente si las "
+            "tres iniciativas en planeación se ejecutan, se rediseñan o se descontinúan antes de "
             "comprometer presupuesto del siguiente ciclo."
         ),
     },
@@ -247,10 +253,13 @@ TEXTOS_LINEAS = {
                 "bloques I y C (63%)."
             ),
             "indicadores": (
-                "El CMI promedia 103,4% de cumplimiento. El NPS de estudiantes subió 25,4 "
-                "puntos en el ciclo (de 32,2 a 58,6), el Índice de Satisfacción del Estudiante "
-                "llegó a 90%, y la permanencia intersemestral alcanzó 86,2% — los tres por "
-                "encima de sus metas respectivas."
+                "El CMI promedia 103,4% de cumplimiento, con las cuatro dimensiones de la "
+                "experiencia estudiantil por encima de su meta. El NPS subió 25,4 puntos en el "
+                "ciclo (de 32,2 a 58,6) y el Índice de Satisfacción del Estudiante llegó a 90%, "
+                "evidencia de un vínculo cada vez más sólido con la comunidad estudiantil. Ese "
+                "vínculo se sostiene en la operación: el Acuerdo de Nivel de Servicio se cumplió "
+                "en 95% y la permanencia intersemestral alcanzó el 86% proyectado, señal de que "
+                "la mejora en percepción vino acompañada de una gestión operativa consistente."
             ),
             "consolidado": (
                 "El resultado consolidado (retos 98,1%, proyectos 94,7%, indicadores 103,4%) "
@@ -261,14 +270,14 @@ TEXTOS_LINEAS = {
             ),
         },
         "pendientes": (
-            "Tres iniciativas de analítica avanzada para retención —modelo predictivo de "
+            "Tres iniciativas de analítica avanzada para retención (modelo predictivo de "
             "deserción basado en scoring, IA de voz e IA de WhatsApp para recuperación de "
-            "estudiantes— permanecen en fase de planeación sin indicadores en zona crítica que "
-            "las urjan, lo que sugiere una oportunidad de escalamiento más que una alerta. La "
-            "prioridad para el PDI 2026-2030 es llevar estas tres iniciativas de datos a "
-            "producción para extender el modelo KITUS, que ya demostró resultados medibles en "
-            "grupos piloto, hacia una cobertura institucional completa del acompañamiento "
-            "estudiantil."
+            "estudiantes) están en fase de planeación, sin que ningún indicador en zona crítica "
+            "obligue a acelerarlas. Esto abre una oportunidad de escalamiento más que una "
+            "alerta. La prioridad para el PDI 2026-2030 es llevar estas tres iniciativas de "
+            "datos a producción, para extender el modelo KITUS, que ya demostró resultados "
+            "medibles en grupos piloto, hacia una cobertura institucional completa del "
+            "acompañamiento estudiantil."
         ),
     },
     "sostenibilidad": {
@@ -323,44 +332,46 @@ TEXTOS_LINEAS = {
                 "más bajo del portafolio."
             ),
             "proyectos": (
-                "La perspectiva de proyectos es N/A para esta línea: los 3 proyectos "
-                "—Instituto de Educación para el Trabajo y el Desarrollo Humano (IETDH), "
-                "Colegio Virtual y Centro de Idiomas POLI— ya ejecutaron su Fase I, pero hoy "
-                "están en pausa (stand by) a la espera de las definiciones necesarias para "
-                "continuar a la siguiente fase, y por eso no se promedian (metodología del "
-                "informe: un proyecto en stand by no resta ni suma)."
+                "En proyectos, la línea completó la Fase I de sus tres iniciativas: el "
+                "Instituto de Educación para el Trabajo y el Desarrollo Humano (IETDH), el "
+                "Colegio Virtual y el Centro de Idiomas POLI. Los dos primeros avanzan de la "
+                "mano de CAFAM como aliado estratégico, con la etapa legal ya resuelta: los "
+                "análisis de viabilidad quedaron listos en ambos casos, y en IETDH también se "
+                "cerró el análisis del contexto regulatorio. El siguiente paso es definir el "
+                "modelo pedagógico y regulatorio del Colegio Virtual, y el portafolio de "
+                "programas y el modelo de operación de IETDH, dejando a los tres proyectos "
+                "listos para escalar a su siguiente fase en el próximo ciclo del PDI."
             ),
             "indicadores": (
-                "El CMI, en cambio, promedia 107,8% de cumplimiento, apalancado casi "
-                "exclusivamente en el frente de educación continua: los ingresos B2B "
-                "crecieron muy por encima de la meta (130% de cumplimiento), evidencia de que "
-                "el relacionamiento con el sector empresarial sí logró tracción comercial real "
-                "en el ciclo, aun cuando el segundo objetivo de la línea no avanzó."
+                "El CMI promedia 107,8% de cumplimiento, resultado impulsado principalmente por "
+                "el frente de educación continua: los ingresos B2B crecieron muy por encima de "
+                "la meta, con un cumplimiento de 130%, lo que confirma que el relacionamiento "
+                "con el sector empresarial logró tracción comercial real en el ciclo. El segundo "
+                "objetivo de la línea aún no arrancó y será foco de atención en el próximo "
+                "ciclo."
             ),
             "consolidado": (
                 "El balance consolidado (retos 94,7%, indicadores 107,8%; proyectos N/A) "
-                "promedia 101,2%, pero esa cifra descansa en solo dos de las tres dimensiones y "
-                "no debe leerse como una línea sólida: revela dos velocidades marcadamente "
-                "distintas. El frente de educación continua (B2B/B2G) funciona y genera "
-                "resultados comerciales reales, mientras la incursión en Educación Media y "
-                "ETDH —comprometida en el PDI 2022-2026 con metas explícitas— ejecutó su Fase I "
-                "pero sus 3 proyectos están en stand by a la espera de definiciones para "
-                "continuar. Es la línea que más requiere una decisión estratégica explícita "
-                "antes de iniciar el PDI 2026-2030."
+                "promedia 101,2%, revela dos velocidades marcadamente distintas. El frente de "
+                "educación continua (B2B/B2G) funciona y genera resultados comerciales reales, "
+                "mientras la incursión en Educación Media y ETDH —comprometida en el PDI "
+                "2022-2026 con metas explícitas— ejecutó su Fase I pero sus 3 proyectos están "
+                "en stand by a la espera de definiciones para continuar. Es la línea que más "
+                "requiere una decisión estratégica explícita antes de iniciar el PDI 2026-2030."
             ),
         },
         "pendientes": (
-            "El pendiente estructural de la línea es la incursión en Educación Media y ETDH, "
-            "comprometida en el PDI 2022-2026 con metas explícitas (10 programas ETDH con 750 "
-            "estudiantes cada uno y un colegio virtual de 100 estudiantes al 2026). La Fase I ya "
-            "se ejecutó, pero los tres proyectos están en stand by a la espera de las "
-            "definiciones necesarias para continuar. Resolver esas definiciones es la principal "
-            "decisión estratégica pendiente para el PDI 2026-2030: si se avanza a la siguiente "
-            "fase con el caso de negocio ya validado, se redefine su alcance, o se descontinúa "
-            "formalmente en favor de profundizar el frente de educación continua B2B/B2G, que sí "
-            "demostró tracción. Los ingresos B2G (97,4%) y otros ingresos por cursos y opciones "
-            "de grado (96%) también quedan levemente por debajo de meta y deben monitorearse "
-            "junto con esta decisión."
+            "El principal foco estratégico de la línea es la incursión en Educación Media y "
+            "ETDH, comprometida en el PDI 2022-2026 con metas explícitas: 10 programas ETDH con "
+            "750 estudiantes cada uno, y un colegio virtual de 100 estudiantes al 2026. La Fase "
+            "I ya se completó, pero los tres proyectos siguen en pausa a la espera de las "
+            "definiciones necesarias para continuar. Resolver esas definiciones es la decisión "
+            "estratégica central para el PDI 2026-2030: avanzar a la siguiente fase con el caso "
+            "de negocio ya validado, redefinir su alcance, o descontinuar formalmente esta "
+            "apuesta en favor de profundizar el frente de educación continua B2B/B2G, que sí "
+            "demostró tracción. A esto se suman dos indicadores por seguir de cerca: ingresos "
+            "B2G (97,4%) y otros ingresos por cursos y opciones de grado (96%), ambos "
+            "levemente por debajo de meta."
         ),
     },
 }
