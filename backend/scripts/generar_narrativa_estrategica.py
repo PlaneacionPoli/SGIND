@@ -284,9 +284,9 @@ TEXTOS_LINEAS = {
             ),
             "indicadores": (
                 "El CMI promedia 112,6% de cumplimiento, el más alto del portafolio, "
-                "apalancado en la ejecución financiera: Caja, Utilidad Neta y CAPEX "
-                "sobrecumplieron meta (130%, 130% y 107,1% respectivamente). El componente "
-                "social, en cambio, avanza más lento: el impacto de actividades de "
+                "apalancado en la ejecución financiera: EBITDA, Utilidad Neta y Cumplimiento de "
+                "Ingresos sobrecumplieron meta (117,5%, 130% y 111,3% respectivamente). El "
+                "componente social, en cambio, avanza más lento: el impacto de actividades de "
                 "responsabilidad social llegó a 84,4% y la participación en voluntariados a "
                 "86,8%."
             ),
