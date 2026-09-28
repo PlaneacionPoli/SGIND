@@ -82,7 +82,13 @@ class RetosLoaders:
 
     def load_avance_global(self, anios: list[int]) -> float | None:
         """Cumplimiento global de Retos (hoja 'Areas', columna Cumplimiento) en %.
-        Con varios años devuelve el promedio de los años con dato."""
+        Con varios años, se pondera por N° de áreas de cada año (columna 'N°')
+        en vez de promediar los años con el mismo peso — el N° de áreas
+        participantes creció fuertemente en el ciclo (33 en 2022 a 84 en
+        2025), así que un promedio simple entre años subrepresenta el
+        desempeño de los años con más áreas reportando (hallazgo 2026-09-27,
+        confirmado con negocio: 'el total por año está en la hoja de
+        Areas')."""
         if not self._exists():
             return None
         try:
@@ -90,11 +96,20 @@ class RetosLoaders:
             df.columns = [str(c).strip() for c in df.columns]
             year_col = next((c for c in df.columns if _norm_key(c) in ("ano", "anio")), None)
             cumpl_col = next((c for c in df.columns if _norm_key(c) == "cumplimiento"), None)
+            n_col = next((c for c in df.columns if _norm_key(c) in ("n", "no", "num")), None)
             if not year_col or not cumpl_col:
                 return None
-            sub = df[df[year_col].isin(anios)]
-            vals = pd.to_numeric(sub[cumpl_col], errors="coerce").dropna()
-            return float(vals.mean() * 100) if not vals.empty else None
+            sub = df[df[year_col].isin(anios)].copy()
+            sub["_cumpl"] = pd.to_numeric(sub[cumpl_col], errors="coerce")
+            sub = sub.dropna(subset=["_cumpl"])
+            if sub.empty:
+                return None
+            if n_col:
+                sub["_n"] = pd.to_numeric(sub[n_col], errors="coerce")
+                sub = sub.dropna(subset=["_n"])
+                if not sub.empty and sub["_n"].sum() > 0:
+                    return float((sub["_cumpl"] * sub["_n"]).sum() / sub["_n"].sum() * 100)
+            return float(sub["_cumpl"].mean() * 100)
         except Exception:
             return None
 
