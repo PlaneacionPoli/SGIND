@@ -380,7 +380,7 @@ def build_strategy_cards(
         unit_label = ""  # la ficha de Retos solo muestra cumplimiento (ver get_chip_config_retos)
         count_col = "N_Indicadores"
     elif vista == "consolidado":
-        unit_label = "elementos"
+        unit_label = ""  # el total mezcla indicadores+proyectos; el detalle ya va aparte
         count_col = "N_Total"
     cards = []
     for line_def in STRATEGIC_LINE_DEFS:
@@ -1190,7 +1190,6 @@ def generate_narrative_consolidado(
     anio: int,
 ) -> dict[str, Any]:
     cumpl_pdi = float(linea_summary["Cumpl_Promedio"].mean()) if not linea_summary.empty else 0.0
-    total_elementos = ind_count + proy_count
     estado, color, icon = _narrative_estado_por_cumplimiento(cumpl_pdi)
 
     mejor_linea = brecha_linea = distribucion = ""
@@ -1217,8 +1216,8 @@ def generate_narrative_consolidado(
         f"La visión consolidada del PDI <strong>{anio}</strong> muestra un desempeño institucional "
         f'<strong style="color:{color};">{estado}</strong>, con un cumplimiento promedio integrado de '
         f"<strong>{cumpl_pdi:.1f}%</strong>. El portafolio reúne "
-        f"<strong>{ind_count}</strong> indicadores estratégicos y <strong>{proy_count}</strong> proyectos "
-        f"(<strong>{total_elementos}</strong> elementos), además de "
+        f"<strong>{ind_count}</strong> indicadores estratégicos y <strong>{proy_count}</strong> proyectos, "
+        f"además de "
         f"<strong>{area_count}</strong> áreas con retos. "
         f"{mejor_linea}{brecha_linea}{distribucion}"
     )

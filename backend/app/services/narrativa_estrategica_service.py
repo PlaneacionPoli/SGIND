@@ -41,6 +41,66 @@ def _output_path() -> Path:
     # derivado vive junto a raw/ dentro de esa misma carpeta.
     return data_root / "derived" / "narrativa_estrategica_2022_2025.json"
 
+# Tarjetas del Consolidado (Balance / Logros en cifras / Retos priorizados):
+# mismos hechos de TEXTOS_CONSOLIDADO re-presentados como datos estructurados.
+# Viven aquí (no solo en el JSON generado) para que el dashboard las muestre
+# sin depender de volver a correr scripts/generar_narrativa_estrategica.py.
+TARJETAS_CONSOLIDADO = {
+    "balance": {
+        "logros_destacados": [
+            {"label": "Acreditación CNA", "valor": "Otorgada 6 Años"},
+            {"label": "Expansión Matrícula", "valor": "+13,1% vs. 2022"},
+            {"label": "Sostenibilidad ISO", "valor": "Norma 14001:2015"},
+        ],
+        "auditoria": "Auditoría Interna OK",
+    },
+    "cifras": [
+        {
+            "titulo": "Estudiantes POLI",
+            "valor": "56.807",
+            "detalle": "+13,1% vs. 2022",
+        },
+        {
+            "titulo": "Satisfacción NPS",
+            "valor": "+25,4 pts",
+            "detalle": "Mejora sostenida",
+        },
+        {
+            "titulo": "Nuevos Programas",
+            "valor": "26",
+            "detalle": "Presenciales y virtuales",
+        },
+        {
+            "titulo": "Clima Laboral",
+            "valor": "GPTW",
+            "detalle": "Certificado",
+        },
+    ],
+    "retos_priorizados": [
+        {
+            "codigo": "P1",
+            "titulo": "Centro de Excelencia Analítica",
+            "detalle": (
+                "Gobierno de TI, arquitectura de microservicios y modelos de IA "
+                "como palanca de decisiones basadas en datos"
+            ),
+        },
+        {
+            "codigo": "P2",
+            "titulo": "Sostener el ritmo de expansión",
+            "detalle": (
+                "Escalar los mecanismos de diferenciación comercial y "
+                "diversificación de mercado validados en Pricing y Proyecto Silver"
+            ),
+        },
+        {
+            "codigo": "P3",
+            "titulo": "Definir el camino de Eduvida",
+            "detalle": "Fase I ya ejecutada; a la espera de las definiciones necesarias para continuar",
+        },
+    ],
+}
+
 _LINEA_LABELS = {
     "expansion": "Expansión",
     "transformacion organizacional": "Transformación Organizacional",

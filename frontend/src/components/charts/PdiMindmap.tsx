@@ -261,10 +261,7 @@ export function PdiMindmap({ data, selectedSlug = null, onSelectLinea }: PdiMind
   function showSubTooltip(e: ReactMouseEvent, linea: ResumenMindmapLinea, s: SubNode) {
     const { x, y } = svgPointFromEvent(e);
     const alertStyle = getAlertaDisplay(s.sub.cumplimiento);
-    const detail = [
-      `Cumplimiento: ${s.sub.cumplimiento.toFixed(1)}%`,
-      `${s.sub.n_items} ${s.sub.n_items === 1 ? "elemento" : "elementos"}`,
-    ];
+    const detail = [`Cumplimiento: ${s.sub.cumplimiento.toFixed(1)}%`];
     if (alertStyle.label) detail.push(alertStyle.label);
     setTooltip({ x, y, title: `${s.codigo} · ${s.sub.label}`, lines: detail, color: linea.color });
   }
@@ -382,11 +379,6 @@ export function PdiMindmap({ data, selectedSlug = null, onSelectLinea }: PdiMind
                           <span className="text-lg font-black" style={{ color: node.linea.color }}>
                             {s.sub.cumplimiento.toFixed(0)}%
                           </span>
-                          {s.sub.n_items > 0 && (
-                            <span className="text-[11px] text-slate-500">
-                              {s.sub.n_items} {s.sub.n_items === 1 ? "elemento" : "elementos"}
-                            </span>
-                          )}
                           {alertStyle.label && (
                             <span
                               className="rounded px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide"

@@ -43,7 +43,10 @@ from app.domain.resumen_builders import (
 from app.domain.strategic_processors import StrategicProcessors
 from app.services.etl_pipeline import ETLPipelineService
 from app.services.excel_reader import ExcelReaderService
-from app.services.narrativa_estrategica_service import leer_narrativa_estrategica
+from app.services.narrativa_estrategica_service import (
+    TARJETAS_CONSOLIDADO,
+    leer_narrativa_estrategica,
+)
 from app.services.proyectos_pmo_loader import ProyectosPmoLoader
 from app.services.retos_loaders import RetosLoaders
 
@@ -751,9 +754,7 @@ class ResumenService:
             narrativa_estrategica = (
                 narrativa_estrategica_data.get("consolidado") if narrativa_estrategica_data else None
             )
-            tarjetas_consolidado = (
-                narrativa_estrategica_data.get("tarjetas_consolidado") if narrativa_estrategica_data else None
-            )
+            tarjetas_consolidado = TARJETAS_CONSOLIDADO if rango else None
 
             return {
                 "anio": anio,

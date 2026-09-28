@@ -27,7 +27,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from app.core.config import get_settings  # noqa: E402
 from app.services.excel_reader import ExcelReaderService  # noqa: E402
-from app.services.narrativa_estrategica_service import ensamblar_narrativa, guardar  # noqa: E402
+from app.services.narrativa_estrategica_service import (  # noqa: E402
+    TARJETAS_CONSOLIDADO,
+    ensamblar_narrativa,
+    guardar,
+)
 from app.services.resumen_service import ResumenService  # noqa: E402
 
 TEXTOS_CONSOLIDADO = {
@@ -79,62 +83,6 @@ TEXTOS_CONSOLIDADO = {
         "continuidad estratégica que el cierre 2022-2025 deja formulada para el siguiente ciclo "
         "de planeación."
     ),
-}
-
-TARJETAS_CONSOLIDADO = {
-    "balance": {
-        "logros_destacados": [
-            {"label": "Acreditación CNA", "valor": "Otorgada 6 Años"},
-            {"label": "Expansión Matrícula", "valor": "+13,1% vs. 2022"},
-            {"label": "Sostenibilidad ISO", "valor": "Norma 14001:2015"},
-        ],
-        "auditoria": "Auditoría Interna OK",
-    },
-    "cifras": [
-        {
-            "titulo": "Estudiantes POLI",
-            "valor": "56.807",
-            "detalle": "+13,1% vs. 2022",
-        },
-        {
-            "titulo": "Satisfacción NPS",
-            "valor": "+25,4 pts",
-            "detalle": "Mejora sostenida",
-        },
-        {
-            "titulo": "Nuevos Programas",
-            "valor": "26",
-            "detalle": "Presenciales y virtuales",
-        },
-        {
-            "titulo": "Clima Laboral",
-            "valor": "GPTW",
-            "detalle": "Certificado",
-        },
-    ],
-    "retos_priorizados": [
-        {
-            "codigo": "P1",
-            "titulo": "Centro de Excelencia Analítica",
-            "detalle": (
-                "Gobierno de TI, arquitectura de microservicios y modelos de IA "
-                "como palanca de decisiones basadas en datos"
-            ),
-        },
-        {
-            "codigo": "P2",
-            "titulo": "Sostener el ritmo de expansión",
-            "detalle": (
-                "Escalar los mecanismos de diferenciación comercial y "
-                "diversificación de mercado validados en Pricing y Proyecto Silver"
-            ),
-        },
-        {
-            "codigo": "P3",
-            "titulo": "Definir el camino de Eduvida",
-            "detalle": "Fase I ya ejecutada; a la espera de las definiciones necesarias para continuar",
-        },
-    ],
 }
 
 TEXTOS_LINEAS = {
