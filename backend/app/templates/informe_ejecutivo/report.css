@@ -385,3 +385,48 @@ body {
   display: inline-block; font-size: 8px; font-weight: 800;
   border-radius: 5px; padding: 3px 8px; white-space: nowrap;
 }
+
+/* ── Páginas de línea: más aire entre secciones y tipografía mayor ─────── */
+.linea-page .section-title { font-size: 14px; margin: 26px 0 12px; }
+.linea-page .linea-head { margin-bottom: 18px; padding: 16px 20px; }
+.linea-page .linea-head h2 { font-size: 20px; }
+.linea-page .linea-tagline { font-size: 10.5px; }
+.consolidado-summary { gap: 18px; margin-bottom: 22px; }
+.consolidado-card { padding: 16px; }
+.consolidado-card .v { font-size: 36px; }
+.consolidado-card .l { font-size: 10.5px; }
+.consolidado-card .formula { font-size: 9.5px; }
+.consolidado-card .formula-note { font-size: 8.5px; }
+.perspectiva-rows { gap: 14px; }
+.perspectiva-row-label { font-size: 10.5px; }
+.perspectiva-row-value { font-size: 12.5px; }
+.perspectiva-row-sub { font-size: 8.5px; }
+.escala-bar-track { height: 11px; }
+.stat-cards { gap: 12px; margin-bottom: 12px; }
+.stat-card { padding: 12px 10px; }
+.stat-card .v { font-size: 20px; }
+.stat-card .l { font-size: 8.5px; }
+.proy-avance-table th, .cmi-table2 th { font-size: 8.5px; padding: 6px 8px; }
+.proy-avance-table td { padding: 8px; }
+.proy-avance-name { font-size: 9.8px; }
+.proy-avance-value { font-size: 9.8px; }
+.proy-avance-track { height: 11px; margin-top: 3px; }
+.standby-box { padding: 10px 14px; margin: 10px 0 8px; }
+.standby-box-head { font-size: 8.8px; }
+.standby-item { font-size: 9.5px; padding: 3px 0; }
+.linea-page .cmi-band { font-size: 10.5px; padding: 8px; margin: 14px 0 8px; }
+.cmi-table2 td { font-size: 9.3px; padding: 7px 8px; }
+.linea-page .anexo-badge { font-size: 8.3px; padding: 3px 8px; }
+.logros-table td { padding: 10px 10px; }
+.logros-table td:first-child { width: 90px; font-size: 10px; }
+.logros-table td:last-child { font-size: 10px; line-height: 1.6; }
+.linea-page .narrativa-block { padding: 14px 18px; margin: 20px 0 10px; }
+.linea-page .narrativa-kicker { font-size: 9.5px; }
+.linea-page .narrativa-text { font-size: 10.3px; line-height: 1.65; }
+.linea-page .empty-note, .linea-page .proy-more { font-size: 9px; }
+.linea-page .escala-bar-track { margin-bottom: 4px; }
+.linea-page .section-title { break-after: avoid; }
+.linea-page .consolidado-summary, .linea-page .stat-cards, .linea-page .standby-box,
+.linea-page .narrativa-block, .linea-page .cmi-band { break-inside: avoid; }
+.linea-page tr { break-inside: avoid; }
+.linea-page .cmi-band { break-after: avoid; }

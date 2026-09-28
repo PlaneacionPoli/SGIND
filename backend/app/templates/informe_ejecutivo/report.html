@@ -187,14 +187,8 @@
         {% endfor %}
       </tbody>
     </table>
-  </section>
 
-  <!-- ── Estado de los indicadores ─────────────────────────────────────── -->
-  <section class="page">
-    <header class="page-head">
-      <h2>Estado de los indicadores</h2>
-      <span class="page-head-sub">Cierre PDI 2022–2025</span>
-    </header>
+    <h3 class="section-title">Estado de los indicadores</h3>
     {% set total_ind = data.total_indicadores %}
     <div class="stacked-bar">
       {% if data.cumplidos %}<div class="stacked-seg" style="width:{{ data.cumplidos / total_ind * 100 }}%; background:#16A34A;">{{ data.cumplidos }}</div>{% endif %}
