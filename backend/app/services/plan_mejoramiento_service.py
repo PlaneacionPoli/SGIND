@@ -10,6 +10,7 @@ import pandas as pd
 from app.domain.plan_mejoramiento_builders import (
     CORTE_SEMESTRAL,
     TENDENCIA_METRICAS_FILTRO_OPTIONS,
+    TIPO_ORDEN,
     apply_cna_filters,
     apply_metricas_filters,
     apply_plan_indicadores_filters,
@@ -125,8 +126,6 @@ class PlanMejoramientoService:
         nombre: str | None = None,
     ) -> dict[str, Any]:
         df = load_plan_indicadores(self._excel)
-        if "Tipo" in df.columns:
-            df = df[df["Tipo"] != "Metrica"]
         if df.empty:
             return {
                 "kpis": {
@@ -152,7 +151,11 @@ class PlanMejoramientoService:
         )
         factores = sort_factores(df["Factor"].dropna().unique().tolist()) if "Factor" in df.columns else []
         caracteristicas = build_caracteristicas_cascade(df, factor)
-        tipos = sorted(df["Tipo"].dropna().unique().tolist()) if "Tipo" in df.columns else []
+        tipos = (
+            sorted(df["Tipo"].dropna().unique().tolist(), key=lambda t: TIPO_ORDEN.get(t, len(TIPO_ORDEN)))
+            if "Tipo" in df.columns
+            else []
+        )
 
         return {
             "kpis": kpis,
@@ -174,8 +177,6 @@ class PlanMejoramientoService:
         pages/plan_mejoramiento.py::_render_export_button (valores numéricos
         crudos, no el texto formateado de la tabla en pantalla)."""
         df = load_plan_indicadores(self._excel)
-        if "Tipo" in df.columns:
-            df = df[df["Tipo"] != "Metrica"]
         rows = apply_plan_indicadores_filters(
             df, factor=factor, caracteristica=caracteristica, tipo=tipo, nombre=nombre
         )

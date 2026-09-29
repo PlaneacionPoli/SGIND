@@ -887,12 +887,15 @@ def _tiene_meta_definida(row: pd.Series, years: tuple[str, ...]) -> bool:
     return False
 
 
+TIPO_ORDEN = {"Indicador": 0, "Metrica": 1, "Pendiente": 2}
+
+
 def sort_plan_indicadores(
     df: pd.DataFrame, *, years: tuple[str, ...] = _SORT_YEARS_METAS
 ) -> pd.DataFrame:
     """Orden de la tabla: Factor, Característica y, dentro de cada característica,
-    primero los indicadores con meta definida en `years` y al final los de Tipo
-    "Pendiente" (sin importar si tienen meta o no), luego nombre.
+    por Tipo (Indicador, luego Métrica, luego Pendiente) y, dentro del mismo
+    Tipo, primero los indicadores con meta definida en `years`, luego nombre.
 
     `years` debe coincidir con los años que la tabla llamante muestra ("Metas
     2026-2030" vs "Cumplimiento histórico" 2025-2026) para que "tiene meta"
@@ -900,15 +903,15 @@ def sort_plan_indicadores(
     if df.empty:
         return df
     out = df.assign(
-        _pendiente_al_final=(df["Tipo"] == "Pendiente").astype(int)
+        _tipo_orden=df["Tipo"].map(TIPO_ORDEN).fillna(len(TIPO_ORDEN))
         if "Tipo" in df.columns
         else 0,
         _sin_meta=(~df.apply(lambda row: _tiene_meta_definida(row, years), axis=1)).astype(int),
     )
     sort_cols = [c for c in ("Factor_num", "Caracteristica_num") if c in df.columns]
-    sort_cols += ["_pendiente_al_final", "_sin_meta"]
+    sort_cols += ["_tipo_orden", "_sin_meta"]
     sort_cols += ["Indicador"] if "Indicador" in df.columns else []
-    return out.sort_values(sort_cols).drop(columns=["_pendiente_al_final", "_sin_meta"]).reset_index(
+    return out.sort_values(sort_cols).drop(columns=["_tipo_orden", "_sin_meta"]).reset_index(
         drop=True
     )
 
