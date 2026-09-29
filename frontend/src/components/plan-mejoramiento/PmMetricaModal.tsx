@@ -159,11 +159,13 @@ export function PmMetricaModal({ seleccion, onClose }: PmMetricaModalProps) {
   const hayTendencia = ajustes.some((aj) => aj.some((v) => v != null));
   const hayMeta = chartData.some((p) => p.Meta != null);
   const anios = Array.from(new Set(desglose.flatMap((c) => c.serie.map((p) => p.anio)))).sort();
+  const prefijoEjeX = d?.eje_x_prefijo ?? null;
+  const fmtAnio = (a: number | null | undefined) => (a == null ? "—" : `${prefijoEjeX ?? ""}${a}`);
   const periodoFicha =
     d?.anio_inicio != null && d.anio_fin != null
       ? d.anio_inicio === d.anio_fin
-        ? String(d.anio_inicio)
-        : `${d.anio_inicio} – ${d.anio_fin}`
+        ? fmtAnio(d.anio_inicio)
+        : `${fmtAnio(d.anio_inicio)} – ${fmtAnio(d.anio_fin)}`
       : (d?.periodo_texto ?? "—");
   const etiquetaResultado = activo ? activo.nombre : d?.consolidado && d.agregacion ? d.agregacion : "Resultado";
   const fichaValorFmt = activo ? activo.valor_fmt : (d?.valor_fmt ?? "—");
@@ -243,7 +245,7 @@ export function PmMetricaModal({ seleccion, onClose }: PmMetricaModalProps) {
                 <Ficha label="Periodo">
                   <span className="text-base">{periodoFicha}</span>
                 </Ficha>
-                <Ficha label={`${etiquetaResultado}${fichaUltimoAnio ? ` ${fichaUltimoAnio}` : ""}`}>
+                <Ficha label={`${etiquetaResultado}${fichaUltimoAnio ? ` ${fmtAnio(fichaUltimoAnio)}` : ""}`}>
                   {fichaValorFmt}
                 </Ficha>
                 <Ficha label="Variación último año" className={variacionClass(fichaVariacionUltima)}>
@@ -301,7 +303,11 @@ export function PmMetricaModal({ seleccion, onClose }: PmMetricaModalProps) {
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={chartData} margin={{ top: 22, right: 24, left: 4, bottom: 8 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                      <XAxis dataKey="anio" tick={{ fontSize: 11 }} />
+                      <XAxis
+                        dataKey="anio"
+                        tick={{ fontSize: 11 }}
+                        tickFormatter={(a: number) => fmtAnio(a)}
+                      />
                       <YAxis
                         tick={{ fontSize: 11 }}
                         domain={[0, "auto"]}
@@ -368,10 +374,10 @@ export function PmMetricaModal({ seleccion, onClose }: PmMetricaModalProps) {
                   <table className="min-w-full text-right text-xs tabular-nums">
                     <thead className="bg-slate-50 font-semibold text-slate-500">
                       <tr>
-                        <th className="px-3 py-2 text-left">Año</th>
+                        <th className="px-3 py-2 text-left">{prefijoEjeX ? "Periodo" : "Año"}</th>
                         {chartData.map((p) => (
                           <th key={p.anio} className="px-3 py-2">
-                            {p.anio}
+                            {fmtAnio(p.anio)}
                           </th>
                         ))}
                       </tr>
@@ -427,7 +433,7 @@ export function PmMetricaModal({ seleccion, onClose }: PmMetricaModalProps) {
                           <th className="px-3 py-2 text-left">Categoría</th>
                           {anios.map((a) => (
                             <th key={a} className="px-3 py-2">
-                              {a}
+                              {fmtAnio(a)}
                             </th>
                           ))}
                           <th className="px-3 py-2 text-left">Tendencia</th>

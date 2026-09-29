@@ -291,6 +291,7 @@ class PlanMetricaDetalleResponse(BaseModel):
     periodicidad: str | None = None
     consolidado: bool = False
     agregacion: str | None = None
+    eje_x_prefijo: str | None = None
     signo: str | None = None
     decimales: int | None = None
     anio_inicio: int | None = None

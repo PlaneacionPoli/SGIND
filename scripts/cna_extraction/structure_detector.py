@@ -19,6 +19,7 @@ que el reporte de diagnóstico quede completo.
 from __future__ import annotations
 
 import re
+from math import isclose
 from typing import Any
 
 from scripts.cna_extraction.models import HeaderBlock, PeriodColumn, SheetStructure
@@ -26,8 +27,9 @@ from scripts.cna_extraction.models import HeaderBlock, PeriodColumn, SheetStruct
 NA_STRINGS = {"-", "", "\xa0", " ", " ", "n/a", "na", "nd"}
 
 _YEAR_RE = re.compile(r"^(19|20)\d{2}$")
-_SEMESTER_RE = re.compile(r"^(19|20)\d{2}-[12]$")
+_SEMESTER_RE = re.compile(r"^(19|20)\d{2}-0?[12]$")  # Tabla 135: mezcla "2019-02" (con cero) y "2025-1" (sin)
 _SEMESTER_DOT_RE = re.compile(r"^(19|20)\d{2}\.[12]$")  # typo frecuente en el Anexo: "2024.1"
+_SEMESTER_COMPACT_RE = re.compile(r"^(19|20)\d{2}([12])$")  # Tabla 190: "20201" en vez de "2020-1"
 _HEADER_LABEL_RE = re.compile(r"^(tabla\s*n[oº°]?\.?|gr[aá]fico\s*n[oº°]?\.?|\*)$", re.IGNORECASE)
 _NUM_RE = re.compile(r"(\d+)")
 
@@ -55,10 +57,17 @@ def is_period_label(label: Any) -> str | None:
     # ("2026 -1", "2026- 1"): sin esto la columna entera se pierde en
     # silencio (Tabla 105 no mostraba su último semestre parcial).
     text_compacto = re.sub(r"\s*-\s*", "-", text)
-    if _SEMESTER_RE.match(text_compacto):
-        return text_compacto
+    m_sem = _SEMESTER_RE.match(text_compacto)
+    if m_sem:
+        # "2019-02" -> "2019-2": sin quitar el cero, la misma fecha aparecería
+        # como dos periodos distintos frente a un "2019-2" sin ceros más
+        # adelante en la misma hoja (Tabla 135).
+        return f"{text_compacto[:4]}-{text_compacto[-1]}"
     if isinstance(label, str) and _SEMESTER_DOT_RE.match(text):
         return text.replace(".", "-")
+    m = _SEMESTER_COMPACT_RE.match(text)
+    if m:
+        return f"{text[:4]}-{text[4]}"
     if _YEAR_RE.match(text):
         return text
     return None
@@ -197,6 +206,115 @@ def _bloques_de_datos(raw_rows: list[list[Any]], data_row_start: int) -> list[li
     return [b for b in bloques if b]
 
 
+def _es_fila_de_reencabezado(
+    row: list[Any], category_columns: list[int], category_headers: dict[int, Any] | None
+) -> bool:
+    """Tabla 224/135: el encabezado de periodos se repite a mitad de la hoja,
+    sin fila en blanco, con OTRO rango de años (cada cohorte M0/M1/M5... trae
+    el suyo desplazado). Se reconoce porque las columnas de categoría
+    repiten el mismo texto del encabezado ORIGINAL y el resto de la fila
+    vuelve a ser periodos."""
+    for c in category_columns:
+        v = normalize_missing(row[c]) if c < len(row) else None
+        esperado = category_headers.get(c) if category_headers else None
+        if v != esperado:
+            return False
+    resto = [row[c] for c in range(len(row)) if c not in category_columns and c < len(row) and row[c] is not None]
+    return len(resto) >= 2 and all(is_period_label(v) is not None for v in resto)
+
+
+def _detecta_periodos_en_fila(row: list[Any], category_columns: list[int]) -> list[PeriodColumn]:
+    """Vuelve a construir las columnas de periodo a partir de una fila de
+    reencabezado local (Tabla 224/135): mismas columnas físicas, rango de
+    años nuevo."""
+    columnas: list[PeriodColumn] = []
+    for c in range(len(row)):
+        if c in category_columns:
+            continue
+        periodo = is_period_label(row[c])
+        if periodo is not None:
+            columnas.append(PeriodColumn(col_index=c, label=row[c], period=periodo))
+    return columnas
+
+
+def _valores_periodo_item(it: dict[str, Any]) -> dict[int, float | None]:
+    row = it["row"]
+    resultado: dict[int, float | None] = {}
+    for pc in it["period_columns"]:
+        valor = normalize_missing(row[pc.col_index]) if pc.col_index < len(row) else None
+        # Solo números reales entran a la suma: texto o booleanos (filas de
+        # nota/validación sin fila en blanco que las separe, Tabla 135) no
+        # son un valor comparable.
+        resultado[pc.col_index] = valor if isinstance(valor, (int, float)) and not isinstance(valor, bool) else None
+    return resultado
+
+
+def _detecta_pivotes_por_suma(items: list[dict[str, Any]]) -> None:
+    """Tabla 135: "VIRTUAL" no es una categoría más, es el PIVOTE de un grupo
+    — su propio valor coincide con la suma de las filas que le siguen
+    (BOGOTA agrupa igual las 8 filas que la preceden a VIRTUAL). La suma
+    sola NO basta como evidencia (listas de países con muchos ceros/unos
+    coinciden por azar con facilidad, ver regresión en Tabla 144/157/49): se
+    exige ADEMÁS que al menos una de las filas del posible grupo comparta su
+    nombre con OTRA fila en cualquier punto de la hoja (frecuencia global >=
+    2) — la señal real de "el bloque se duplica" (Tabla 7/214/6 usan la
+    misma pista), y no antes/después del pivote nada más: el primer grupo de
+    la hoja (BOGOTA) solo tiene sus hijas repetidas MÁS ADELANTE, bajo
+    VIRTUAL, así que exigir la repetición "antes del pivote" fallaba en
+    asimetría con el segundo grupo. Además un mínimo de 2 filas agrupadas,
+    para no aparear con una sola coincidencia suelta.
+
+    Modifica `items` en el sitio: al pivote le da el path ["Grupo","Grupo"]
+    (mismo patrón "Virtual - Virtual" que _excluye_subtotales_de_grupo ya
+    sabe validar y descartar en el backend, reconstruyendo el grupo desde
+    sus hijas vía _detecta_grupos_intermedios) y a sus hijas les antepone el
+    nombre del grupo."""
+    n = len(items)
+    nombres_originales = [str(it["path"][-1]) if it["path"] else None for it in items]
+
+    def normaliza(texto: str | None) -> str | None:
+        return " ".join(texto.split()).casefold() if texto else None
+
+    frecuencia: dict[str | None, int] = {}
+    for nombre in nombres_originales:
+        clave = normaliza(nombre)
+        frecuencia[clave] = frecuencia.get(clave, 0) + 1
+    repetidos = {clave for clave, n_ in frecuencia.items() if clave is not None and n_ >= 2}
+
+    i = 0
+    while i < n:
+        if items[i]["kind"] == "total_explicito" or not items[i]["path"]:
+            i += 1
+            continue
+        candidato = {k: v for k, v in _valores_periodo_item(items[i]).items() if v is not None}
+        if len(candidato) < 2 or all(v == 0 for v in candidato.values()):
+            i += 1
+            continue
+        acumulado = dict.fromkeys(candidato, 0.0)
+        j = i + 1
+        while j < n and items[j]["kind"] != "total_explicito":
+            valores_j = _valores_periodo_item(items[j])
+            excede = False
+            for k, v in candidato.items():
+                acumulado[k] += valores_j.get(k) or 0.0
+                if acumulado[k] > v + max(abs(v) * 1e-6, 1e-6):
+                    excede = True
+            if excede:
+                break
+            coincide = all(isclose(acumulado[k], v, rel_tol=1e-6, abs_tol=1e-6) for k, v in candidato.items())
+            largo = j - i
+            hay_repetido = any(normaliza(n_) in repetidos for n_ in nombres_originales[i + 1 : j + 1])
+            if coincide and largo >= 2 and hay_repetido:
+                nombre = items[i]["path"][-1]
+                items[i]["path"] = [nombre, nombre]
+                for m in range(i + 1, j + 1):
+                    items[m]["path"] = [nombre, *items[m]["path"]]
+                i = j
+                break
+            j += 1
+        i += 1
+
+
 def _extract_rows(
     raw_rows: list[list[Any]],
     data_row_start: int,
@@ -208,6 +326,7 @@ def _extract_rows(
     has_explicit_total = False
     state: dict[int, Any] = {}
     ambiguous_seen: dict[tuple[Any, ...], int] = {}
+    period_columns_iniciales = period_columns
 
     bloques = _bloques_de_datos(raw_rows, data_row_start)
 
@@ -228,8 +347,14 @@ def _extract_rows(
     indices = [(n, i) for n, b in enumerate(bloques) for i in b] if multibloque else [(0, i) for i in bloques[:1][0]] if bloques else []
 
     items: list[dict[str, Any]] = []
+    period_columns_actuales = period_columns
     for n_bloque, idx in indices:
         row = raw_rows[idx]
+        if not multibloque and _es_fila_de_reencabezado(row, category_columns, category_headers):
+            nuevos = _detecta_periodos_en_fila(row, category_columns)
+            if nuevos:
+                period_columns_actuales = nuevos
+                continue
         category_path: list[Any] = []
         row_has_raw_category = False
         for col in category_columns:
@@ -269,6 +394,7 @@ def _extract_rows(
                 "kind": row_kind,
                 "ambiguous": category_ambiguous,
                 "bloque": n_bloque,
+                "period_columns": period_columns_actuales,
             }
         )
 
@@ -288,14 +414,16 @@ def _extract_rows(
                 es_subtotal = it is total
                 it["path"] = [grupo, grupo] if (es_subtotal or len(del_bloque) == 1) else [grupo, *it["path"]]
                 it["kind"] = "detalle"
+    elif len(category_columns) == 1:
+        _detecta_pivotes_por_suma(items)
 
     grupos_de_columna = {
         str(pc.group_label).strip()
-        for pc in period_columns
+        for pc in period_columns_iniciales
         if pc.group_label is not None and is_period_label(pc.group_label) is None
     }
     for it in items:
-        for pc in period_columns:
+        for pc in it["period_columns"]:
             value = normalize_missing(it["row"][pc.col_index]) if pc.col_index < len(it["row"]) else None
             # Encabezado de 2 niveles con la categoría ARRIBA de los periodos
             # (Ilustración 20: medio de comunicación sobre 2022|2023|2024): la
@@ -342,10 +470,19 @@ def _es_numerico(valor: Any) -> bool:
 
 def _columna_de_periodo(raw_rows: list[list[Any]], header_row_idx: int) -> int | None:
     """Columna (0-2) cuyos valores, hacia abajo, son periodos: la 0 en lo habitual;
-    la 1 cuando la 0 va vacía (Gráficos 6 y 8: años en la segunda columna)."""
+    la 1 cuando la 0 va vacía (Gráficos 6 y 8: años en la segunda columna).
+
+    Exige que la MAYORÍA de los valores no vacíos de la columna sean periodos,
+    no solo 2 en términos absolutos: una columna numérica cualquiera (conteos,
+    Tabla 40) puede tener por azar un valor dentro del rango de año (1984,
+    2025) sin ser en absoluto un eje de periodos — eso hacía que toda la hoja
+    se leyera como una sola fila con un periodo inventado."""
     for col in range(3):
-        n = sum(1 for r in raw_rows[header_row_idx + 1 :] if col < len(r) and is_period_label(r[col]))
-        if n >= 2:
+        valores = [r[col] for r in raw_rows[header_row_idx + 1 :] if col < len(r) and r[col] is not None]
+        if len(valores) < 2:
+            continue
+        aciertos = sum(1 for v in valores if is_period_label(v) is not None)
+        if aciertos >= 2 and aciertos / len(valores) >= 0.6:
             return col
     return None
 

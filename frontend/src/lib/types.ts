@@ -959,6 +959,9 @@ export interface PlanMetricaDetalleResponse {
   consolidado: boolean;
   /** "Total" o "Promedio" cuando es un consolidado con desglose homogéneo. */
   agregacion: "Total" | "Promedio" | null;
+  /** Cuando el eje X no es un año calendario (Tabla 217: "S1".."S12" = semestre
+   * desde el ingreso a la cohorte), este prefijo se antepone al número. */
+  eje_x_prefijo: string | null;
   /** Año de inicio y fin de la serie; periodo_texto es el que traía el nombre si no hay serie anual. */
   /** Unidad (ENT, DEC, %, %FRAC) y decimales para formatear la serie. */
   signo: string | null;

@@ -25,7 +25,7 @@ import openpyxl
 
 from core.config import DATA_RAW
 from scripts.cna_extraction.catalog import build_factor_caracteristica_rows, load_catalog
-from scripts.cna_extraction.normalize import build_metricas_rows, make_id
+from scripts.cna_extraction.normalize import IDS_EJE_COHORTE_SEMESTRAL, build_metricas_rows, extract_tabla_217, make_id
 from scripts.cna_extraction.sheet_resolver import resolve_sheets
 from scripts.cna_extraction.structure_detector import detect_structure
 from scripts.cna_extraction.writer import OUTPUT_FILE, backfill_fuente, replace_ids, write_full, write_incremental
@@ -75,6 +75,9 @@ def build_records(
                 continue
             ws = wb[item.sheet_name]
             raw_rows = [list(row) for row in ws.iter_rows(values_only=True)]
+            if make_id(item.catalog_record) in IDS_EJE_COHORTE_SEMESTRAL:
+                all_records.extend(extract_tabla_217(raw_rows, item.catalog_record))
+                continue
             structure = detect_structure(raw_rows, item.catalog_record.numero)
             all_records.extend(build_metricas_rows(structure, item.catalog_record, stats))
 

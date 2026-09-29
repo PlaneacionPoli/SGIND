@@ -51,6 +51,8 @@ IDS_TOTAL_NO_APLICA: frozenset[str] = frozenset(
         "T58",  # Infraestructura tecnológica
         "G6",  # Liquidez y capital de trabajo (pesos vs índice)
         "G8",  # Ingresos por extensión vs costos y gestión
+        "T224",  # Seguimiento OLE por cohorte (M0/M1/M5...): % Cumplimiento no es sumable entre cohortes.
+        "T217",  # Deserción cohorte SPADIES (Virtual/Presencial/Poli): son tasas, no partes de un total.
     }
 )
 
@@ -58,3 +60,15 @@ IDS_TOTAL_NO_APLICA: frozenset[str] = frozenset(
 # de comunicación con sus opciones de respuesta): se muestran los grupos, pero la
 # fila principal no suma un grupo con otro y dice "No aplica".
 IDS_GRUPOS_SIN_TOTAL: frozenset[str] = frozenset({"I20"})
+
+# Tabla 224 (Seguimiento OLE): cada cohorte trae Graduados/Encuestas/%
+# Cumplimiento en la misma hoja, pero Graduados y Encuestas son el insumo del
+# % Cumplimiento (numerador/denominador), no una categoría comparable — se
+# omiten en la extracción y solo queda el % Cumplimiento por cohorte
+# (decisión de negocio 2026-09-29, ver scripts/cna_extraction/normalize.py).
+IDS_SOLO_CUMPLIMIENTO: frozenset[str] = frozenset({"T224"})
+
+# Tabla 217 (deserción cohorte SPADIES): el eje real es "semestre desde el
+# ingreso" (S1..S12), no un año calendario — el prefijo se antepone al
+# número en la ficha/gráfica en vez de mostrarlo como año.
+EJE_X_PREFIJO: dict[str, str] = {"T217": "S"}

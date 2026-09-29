@@ -19,6 +19,7 @@ from typing import Any
 import pandas as pd
 
 from app.domain.agregacion_anual import (
+    EJE_X_PREFIJO,
     IDS_GRUPOS_SIN_TOTAL,
     IDS_SIN_TOTAL_GLOBAL,
     IDS_SUMA_SEMESTRAL,
@@ -865,22 +866,51 @@ def _load_plan_indicadores_uncached(excel) -> pd.DataFrame:
     return sort_plan_indicadores(df)
 
 
-_TIPO_ORDEN = {"Indicador": 0, "Pendiente": 1}
+_SORT_YEARS_METAS = _METAS_ALL_YEARS  # "Metas 2026-2030": lo que esa tabla muestra
+_SORT_YEARS_HISTORICO = ("2025", "2026")  # "Cumplimiento histórico": lo que esa tabla muestra
 
 
-def sort_plan_indicadores(df: pd.DataFrame) -> pd.DataFrame:
+def _tiene_meta_definida(row: pd.Series, years: tuple[str, ...]) -> bool:
+    """True si el indicador tiene meta (numérica o de texto, p. ej. "Línea
+    base") en alguno de `years` — los mismos años que la tabla que llama
+    muestra, para que el orden coincida con lo que se ve en pantalla."""
+    for year in years:
+        val = row.get(f"Meta_num_{year}")
+        if val is not None and pd.notna(val):
+            return True
+        texto = row.get(f"Meta_txt_{year}")
+        # Una columna Meta_txt_* sin ningún texto queda toda en None y pandas la
+        # convierte a NaN (float) — NaN es "truthy" en Python, así que se valida
+        # el tipo explícitamente en vez de solo el valor.
+        if isinstance(texto, str) and texto:
+            return True
+    return False
+
+
+def sort_plan_indicadores(
+    df: pd.DataFrame, *, years: tuple[str, ...] = _SORT_YEARS_METAS
+) -> pd.DataFrame:
     """Orden de la tabla: Factor, Característica y, dentro de cada característica,
-    Tipo (Indicador, luego Pendiente, luego el resto) y nombre del indicador."""
+    primero los indicadores con meta definida en `years` y al final los de Tipo
+    "Pendiente" (sin importar si tienen meta o no), luego nombre.
+
+    `years` debe coincidir con los años que la tabla llamante muestra ("Metas
+    2026-2030" vs "Cumplimiento histórico" 2025-2026) para que "tiene meta"
+    refleje lo visible en pantalla, no una meta de un año no mostrado."""
     if df.empty:
         return df
     out = df.assign(
-        _tipo_orden=df["Tipo"].map(_TIPO_ORDEN).fillna(len(_TIPO_ORDEN))
+        _pendiente_al_final=(df["Tipo"] == "Pendiente").astype(int)
         if "Tipo" in df.columns
-        else 0
+        else 0,
+        _sin_meta=(~df.apply(lambda row: _tiene_meta_definida(row, years), axis=1)).astype(int),
     )
     sort_cols = [c for c in ("Factor_num", "Caracteristica_num") if c in df.columns]
-    sort_cols += ["_tipo_orden"] + (["Indicador"] if "Indicador" in df.columns else [])
-    return out.sort_values(sort_cols).drop(columns="_tipo_orden").reset_index(drop=True)
+    sort_cols += ["_pendiente_al_final", "_sin_meta"]
+    sort_cols += ["Indicador"] if "Indicador" in df.columns else []
+    return out.sort_values(sort_cols).drop(columns=["_pendiente_al_final", "_sin_meta"]).reset_index(
+        drop=True
+    )
 
 
 def apply_plan_indicadores_filters(
@@ -964,7 +994,7 @@ def build_plan_indicadores_tabla_metas(df: pd.DataFrame) -> list[dict[str, Any]]
 def build_plan_indicadores_tabla_historico(df: pd.DataFrame) -> list[dict[str, Any]]:
     """Filas de la sub-vista 'Cumplimiento histórico' — todos los indicadores
     del filtro, incluidos los pendientes de dato real (celdas en "—")."""
-    rows_sorted = sort_plan_indicadores(df)
+    rows_sorted = sort_plan_indicadores(df, years=_SORT_YEARS_HISTORICO)
 
     def _valor(row, col, signo, decimales) -> dict[str, Any]:
         v = row.get(col)
@@ -1145,10 +1175,22 @@ def _parse_ejecucion_metrica(value, unidad: str) -> float | None:
         return None
 
 
+_COHORTE_SEM_RE = re.compile(r"^[Ss](\d{1,2})$")
+
+
 def _split_periodo(periodo) -> tuple[int, int]:
-    """'2019-1' -> (2019, 1). Valores inválidos ordenan al final."""
+    """'2019-1' -> (2019, 1). Valores inválidos ordenan al final.
+
+    'S1'..'S12' (Tabla 217: semestre desde el ingreso a la cohorte, no un año
+    calendario) -> (1, 1)..(12, 1): el ordinal hace de "año" para que el
+    resto del pipeline (agrupar, ordenar, graficar) funcione igual; ver
+    EJE_X_PREFIJO para mostrarlo como "S{n}" en vez de un año."""
+    texto = str(periodo)
+    m = _COHORTE_SEM_RE.match(texto)
+    if m:
+        return int(m.group(1)), 1
     try:
-        anio_str, sem_str = str(periodo).split("-")
+        anio_str, sem_str = texto.split("-")
         return int(anio_str), int(sem_str)
     except (ValueError, AttributeError):
         return 9999, 9
@@ -2108,6 +2150,7 @@ def build_metrica_detalle(
         "fuente": _or_default(first.get("Fuente")),
         "sentido": _or_default(first.get("Sentido")),
         "periodicidad": _or_default(first.get("Periodicidad")),
+        "eje_x_prefijo": EJE_X_PREFIJO.get(str(first.get("Id"))),
     }
 
     if not consolidado:

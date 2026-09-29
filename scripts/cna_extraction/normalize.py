@@ -153,6 +153,29 @@ def infer_decimales(ejecucion: float | None, unidad: str | None) -> tuple[int, i
 
 _INVERSION_RE = re.compile(r"^\s*inversi", re.IGNORECASE)
 
+# Tabla 224 (Seguimiento OLE por cohorte M0/M1/M5...): Graduados y Encuestas
+# son el insumo del % Cumplimiento (numerador/denominador), no una categoría
+# comparable entre cohortes — se omiten y solo queda el indicador real
+# (decisión de negocio 2026-09-29). Espejo de IDS_SOLO_CUMPLIMIENTO en
+# backend/app/domain/agregacion_anual.py (pipelines independientes).
+_IDS_SOLO_CUMPLIMIENTO = {"T224"}
+
+
+def _filtra_solo_cumplimiento(
+    detector_rows: list[dict[str, Any]], catalog_record: CatalogRecord
+) -> list[dict[str, Any]]:
+    if make_id(catalog_record) not in _IDS_SOLO_CUMPLIMIENTO:
+        return detector_rows
+    filtradas = [
+        r for r in detector_rows if r["category_path"] and "cumplimiento" in str(r["category_path"][-1]).casefold()
+    ]
+    # Cada cohorte (M0/M1/M5...) queda con una sola categoría — sin esta
+    # marca, _build_from_generic_rows sintetiza un "total" sumando las 3
+    # tasas de cohortes distintas, que no son sumables entre sí.
+    for r in filtradas:
+        r["sin_total_global"] = True
+    return filtradas
+
 
 def _es_fila_de_resumen(path: list[Any]) -> bool:
     """"%Part/Ingreso", "Part% sobre Ingreso" o "Subtotal Bienestar"."""
@@ -370,6 +393,23 @@ def _omite_totales_multiples(detector_rows: list[dict[str, Any]], stats: dict[st
     return resultado
 
 
+def _omite_filas_duplicadas_exactas(detector_rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Fila repetida al pie de la hoja, sin blanco que la separe del resto
+    (Tabla 135: una fila de verificación con los mismos valores del Total,
+    seguida de una fila de booleanos) — mismo category_path, mismo periodo,
+    mismo valor exacto que una fila ya vista: es un artefacto de la fuente,
+    no un dato nuevo."""
+    vistas: set[tuple[Any, ...]] = set()
+    resultado = []
+    for r in detector_rows:
+        clave = (tuple(map(str, r["category_path"])), r.get("variable"), r["period"], r["value"])
+        if clave in vistas:
+            continue
+        vistas.add(clave)
+        resultado.append(r)
+    return resultado
+
+
 def _build_from_generic_rows(
     detector_rows: list[dict[str, Any]],
     catalog_record: CatalogRecord,
@@ -377,7 +417,9 @@ def _build_from_generic_rows(
 ) -> list[dict[str, Any]]:
     id_ = make_id(catalog_record)
     indicador = catalog_record.nombre
+    detector_rows = _omite_filas_duplicadas_exactas(detector_rows)
     detector_rows = _ajusta_tabla_de_inversion(detector_rows, catalog_record, stats)
+    detector_rows = _filtra_solo_cumplimiento(detector_rows, catalog_record)
     detector_rows = _corrige_separador_de_miles(detector_rows, stats)
     detector_rows = _reclasifica_totales_sin_etiqueta(detector_rows, stats)
     detector_rows = _omite_totales_multiples(detector_rows, stats)
@@ -509,3 +551,65 @@ def build_metricas_rows(
         return []
 
     return _build_from_generic_rows(structure.rows, catalog_record, stats)
+
+
+# Tabla 217 (deserción cohorte SPADIES): el eje real es "semestre desde el
+# ingreso" S1..S12, no una fecha calendario, y la hoja repite el mismo
+# bloque más abajo con una columna de nota adicional — no encaja en el
+# detector genérico de periodos calendario. Extracción dedicada, filtrada a
+# las 3 categorías principales (decisión de negocio 2026-09-29: filas 6, 7 y
+# 8 de Excel = Virtual/Pregrado Poli, Presencial/Pregrado Poli, Poli; se
+# excluyen los desgloses geográficos adicionales de las filas siguientes).
+IDS_EJE_COHORTE_SEMESTRAL = {"T217"}
+_FILAS_TABLA_217 = (5, 6, 7)  # índices 0-based: Virtual, Presencial, Poli
+
+
+def extract_tabla_217(raw_rows: list[list[Any]], catalog_record: CatalogRecord) -> list[dict[str, Any]]:
+    id_ = make_id(catalog_record)
+    indicador = catalog_record.nombre
+    header = raw_rows[4] if len(raw_rows) > 4 else []
+    columnas_s = [
+        (c, str(header[c]).strip())
+        for c in range(2, len(header))
+        if header[c] is not None and str(header[c]).strip()
+    ]
+    records: list[dict[str, Any]] = []
+    for idx in _FILAS_TABLA_217:
+        if idx >= len(raw_rows):
+            continue
+        row = raw_rows[idx]
+        modalidad = row[0] if row else None
+        if modalidad is None:
+            continue
+        for col, etiqueta_s in columnas_s:
+            valor = row[col] if col < len(row) else None
+            ejecucion, unidad, es_cualitativo = infer_ejecucion(valor)
+            if ejecucion is None or es_cualitativo:
+                continue
+            decimales, decimales_eje = infer_decimales(ejecucion, unidad)
+            records.append(
+                {
+                    "Id": id_,
+                    "Indicador": indicador,
+                    "Subindicador": str(modalidad).strip(),
+                    "Factor": catalog_record.factor_raw,
+                    "Caracteristica": catalog_record.caracteristica,
+                    "Proceso": None,
+                    "Periodicidad": None,
+                    "Sentido": None,
+                    "Fecha": None,
+                    "Año": None,
+                    "Mes": None,
+                    "Periodo": etiqueta_s,
+                    "Meta": None,
+                    "Ejecución": ejecucion,
+                    "Ejecución s": unidad,
+                    "Decimales": decimales,
+                    "DecimalesEje": decimales_eje,
+                    "Proyecto": None,
+                    "Llave": make_llave(id_, str(modalidad).strip(), etiqueta_s),
+                    "Fuente": catalog_record.fuente.strip() or None,
+                    "Variable": None,
+                }
+            )
+    return records
