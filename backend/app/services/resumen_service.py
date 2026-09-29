@@ -22,7 +22,6 @@ from app.domain.resumen_builders import (
     build_linea_summary,
     build_linea_summary_retos,
     build_pdi_mindmap,
-    build_proyectos_gantt,
     build_proyectos_pmo_gantt,
     build_proyectos_tabla,
     build_retos_tabla,
@@ -36,7 +35,6 @@ from app.domain.resumen_builders import (
     generate_narrative_retos,
     get_chip_config_consolidado,
     get_chip_config_indicadores,
-    get_chip_config_proyectos,
     get_chip_config_retos,
     merge_consolidado_summaries,
     norm_key,
@@ -100,6 +98,28 @@ class ResumenService:
         if not df.empty and "Id" in df.columns:
             df = df.drop_duplicates(subset=["Id"], keep="last")
         return df
+
+    def _pmo_items_to_df(self, items: list[dict[str, Any]]) -> pd.DataFrame:
+        """Adapta los items de build_proyectos_pmo_gantt (id/nombre/linea/
+        cumplimiento/estado) al shape que esperan build_linea_summary /
+        get_chip_config_proyectos / build_proyectos_tabla (Id/Indicador/
+        Linea/cumplimiento_pct/Nivel de cumplimiento) — permite reusar esos
+        builders con la fuente oficial del Centro de Proyectos en vez de la
+        de Cierres (que no tiene todas las líneas, ver hallazgo 2026-09-29:
+        Expansión aparecía en 0% porque no tenía proyectos con cierre
+        cargado en esa fuente antigua)."""
+        if not items:
+            return pd.DataFrame(columns=["Id", "Indicador", "Linea", "cumplimiento_pct"])
+        df = pd.DataFrame(
+            {
+                "Id": [it["id"] for it in items],
+                "Indicador": [it["nombre"] for it in items],
+                "Linea": [it["linea"] for it in items],
+                "cumplimiento_pct": [it.get("cumplimiento") for it in items],
+                "estado_pmo": [it.get("estado") for it in items],
+            }
+        )
+        return ensure_nivel_cumplimiento(df, regimen="plan_anual")
 
     def _retos_multi_anio(
         self, anios: list[int]
@@ -605,48 +625,43 @@ class ResumenService:
             }
 
         if vista_norm == "proyectos":
-            proy_all = self._strategic.load_proyectos()
-            proy_df = (
-                self._proyectos_multi_anio(ANIOS_RANGO)
-                if rango
-                else ensure_nivel_cumplimiento(
-                    self._strategic.preparar_proyectos_con_cierre(anio, 12), regimen="plan_anual"
-                )
-            )
-            chips = get_chip_config_proyectos(proy_df)
-            if rango:
-                vigente_total = self._count_proyectos_ciclo_vigente()
-                con_cierre = (
-                    int(proy_df["Id"].nunique())
-                    if not proy_df.empty and "Id" in proy_df.columns
-                    else 0
-                )
-                chips[0]["value"] = vigente_total
-                # Proyectos del ciclo sin cierres cargados aun: se cuentan como Planeacion.
-                chips[3]["value"] = chips[3]["value"] + max(vigente_total - con_cierre, 0)
+            # Fuente oficial: Centro de Proyectos PMO (raw/Proyectos/
+            # centroDeProyectos_PMO_2026.xlsx) — la de Cierres (build_
+            # proyectos_gantt) solo cubre proyectos con cierre cargado (18
+            # en total) y no tiene NINGUNO de Expansión, entre otras líneas
+            # incompletas (hallazgo 2026-09-29, confirmado con negocio).
+            pmo_anios = ANIOS_RANGO if rango else [anio]
+            pmo_gantt = build_proyectos_pmo_gantt(self._proyectos_pmo.load(), anios=pmo_anios)
+            proy_df = self._pmo_items_to_df(pmo_gantt["items"])
+
+            estados = proy_df["estado_pmo"] if "estado_pmo" in proy_df.columns else pd.Series(dtype=str)
+            chips = [
+                {"value": len(proy_df), "label": "Total Proyectos", "color": "#0B5FFF"},
+                {
+                    "value": int((estados == "Cerrado").sum()),
+                    "label": "Cerrados (100%)",
+                    "color": "#16A34A",
+                },
+                {
+                    "value": int((estados == "En ejecución").sum()),
+                    "label": "En Ejecución",
+                    "color": "#F59E0B",
+                },
+                {
+                    "value": int(estados.isin(["Planeación", "Stand by"]).sum()),
+                    "label": "Planeación",
+                    "color": "#6B7280",
+                },
+            ]
             linea_summary = build_linea_summary(
                 proy_df, unique_count_col="Id", count_col_name="N_Proyectos"
             )
-            historico_df = proy_df
-            cards = build_strategy_cards(linea_summary, historico_df, vista=vista_norm)
-            objetivo_cols = [
-                c for c in ["Linea", "Objetivo", "cumplimiento_pct"] if c in proy_df.columns
-            ]
-            objetivo_df = proy_df[objetivo_cols].copy() if objetivo_cols else pd.DataFrame()
-            mindmap = build_pdi_mindmap(objetivo_df, cards, regimen="plan_anual")
+            # El PMO no trae snapshots por año (solo inicio/fin + avance
+            # actual), así que las tarjetas no muestran tendencia histórica
+            # para esta vista — antes venía de la fuente de Cierres.
+            cards = build_strategy_cards(linea_summary, None, vista=vista_norm)
+            mindmap = build_pdi_mindmap(pd.DataFrame(), cards, regimen="plan_anual", solo_lineas=True)
             narrativa = generate_narrative_proyectos(proy_df, linea_summary)
-            gantt = build_proyectos_gantt(proy_all)
-
-            prev_month_p = self._strategic.latest_month_for_year(anio - 1)
-            best_p, worst_p = [], []
-            periodo_txt_p = f"Solo datos de {anio} — sin período anterior disponible"
-            if prev_month_p:
-                prev_proy_df = ensure_nivel_cumplimiento(
-                    self._strategic.preparar_proyectos_con_cierre(anio - 1, prev_month_p),
-                    regimen="plan_anual",
-                )
-                best_p, worst_p = compute_trends(proy_df, prev_proy_df)
-                periodo_txt_p = f"Comparando {anio} (cierre anual) vs {anio - 1} ({meses.get(prev_month_p, prev_month_p)})"
 
             return {
                 "anio": anio,
@@ -655,10 +670,12 @@ class ResumenService:
                 "fichas": cards,
                 "mindmap": mindmap,
                 "narrativa": narrativa,
-                "mejoraron": best_p,
-                "en_riesgo": worst_p,
-                "periodo_comparacion": periodo_txt_p,
-                "gantt_proyectos": gantt,
+                "mejoraron": [],
+                "en_riesgo": [],
+                "periodo_comparacion": (
+                    "Centro de Proyectos PMO — avance actual por proyecto, sin comparación histórica por año"
+                ),
+                "gantt_proyectos": pmo_gantt,
                 "total_indicadores": chips[0]["value"] if chips else 0,
                 "tabla_detalle": build_proyectos_tabla(proy_df),
             }
