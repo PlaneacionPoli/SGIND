@@ -30,6 +30,7 @@ _YEAR_RE = re.compile(r"^(19|20)\d{2}$")
 _SEMESTER_RE = re.compile(r"^(19|20)\d{2}-0?[12]$")  # Tabla 135: mezcla "2019-02" (con cero) y "2025-1" (sin)
 _SEMESTER_DOT_RE = re.compile(r"^(19|20)\d{2}\.[12]$")  # typo frecuente en el Anexo: "2024.1"
 _SEMESTER_COMPACT_RE = re.compile(r"^(19|20)\d{2}([12])$")  # Tabla 190: "20201" en vez de "2020-1"
+_TOTAL_ANIO_RE = re.compile(r"^total\s+((?:19|20)\d{2}(?:-0?[12])?)$", re.IGNORECASE)  # Tabla 47: "Total 2019"
 _HEADER_LABEL_RE = re.compile(r"^(tabla\s*n[oº°]?\.?|gr[aá]fico\s*n[oº°]?\.?|\*)$", re.IGNORECASE)
 _NUM_RE = re.compile(r"(\d+)")
 
@@ -70,6 +71,14 @@ def is_period_label(label: Any) -> str | None:
         return f"{text[:4]}-{text[4]}"
     if _YEAR_RE.match(text):
         return text
+    m_total = _TOTAL_ANIO_RE.match(text_compacto)
+    if m_total:
+        # Tabla 47: encabezados "Total 2019".."Total 2026-1" — es el periodo
+        # (total ANUAL de ese año), no una fila de total genérica; sin esto
+        # is_total_label() se adelantaba y la columna entera se excluía,
+        # dejando el indicador sin ningún dato.
+        periodo = m_total.group(1)
+        return f"{periodo[:4]}-{periodo[-1]}" if "-" in periodo else periodo
     return None
 
 
@@ -366,6 +375,17 @@ def _extract_rows(
                 row_has_raw_category = True
             if state.get(col) is not None:
                 category_path.append(state[col])
+
+        if not category_path and len(category_columns) > 1:
+            # Fila sin ninguna etiqueta y sin ninguna categoría previa a la
+            # que adosarse (Tabla 47: un "2024" suelto tecleado en la fila
+            # separadora entre el encabezado y los datos) — no es un dato
+            # utilizable, se descarta en vez de convertirse en un
+            # Subindicador=None que se confunde con el total real. Con una
+            # sola columna de categoría (Tabla 139: un único indicador sin
+            # desglose, la columna de categoría viene en blanco a propósito
+            # en su única fila de datos) NO se descarta.
+            continue
 
         row_is_total = any(is_total_label(v) for v in category_path)
         has_explicit_total = has_explicit_total or row_is_total
