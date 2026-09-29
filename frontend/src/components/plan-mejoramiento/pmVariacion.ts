@@ -36,6 +36,18 @@ export function variacionClass(v: number | null | undefined): string {
  * backend/app/domain/plan_mejoramiento_builders.py. */
 export const ANIO_CIERRE_METRICAS = 2025;
 
+/** Variación promedio anual de una serie (media de la variación punto a punto
+ * en los años cerrados) — misma ventana que lineaTendencia, para poder
+ * mostrar esta métrica también en un desglose/grupo filtrado en el modal
+ * (el backend solo la trae precalculada para el consolidado). */
+export function variacionPromedio(serie: Array<{ anio: number; variacion_pct: number | null }>): number | null {
+  const valores = serie
+    .filter((p) => p.anio <= ANIO_CIERRE_METRICAS && p.variacion_pct != null)
+    .map((p) => p.variacion_pct as number);
+  if (!valores.length) return null;
+  return valores.reduce((a, b) => a + b, 0) / valores.length;
+}
+
 /** Recta de tendencia (mínimos cuadrados) sobre los puntos con dato de años
  * cerrados; todo null si hay menos de dos. Devuelve el valor ajustado por
  * posición de la serie (null en los años posteriores al último cerrado). */

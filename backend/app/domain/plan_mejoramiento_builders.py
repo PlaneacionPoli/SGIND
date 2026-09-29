@@ -1266,12 +1266,13 @@ def _cerrados(serie: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
 
 def _anota_variaciones(serie: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    """Agrega a cada punto `variacion_pct` respecto al dato anterior con valor.
-    Los años posteriores al último cerrado quedan en None: su dato es parcial."""
+    """Agrega a cada punto `variacion_pct` respecto al dato anterior con valor
+    (2026, parcial, se mide contra el último año cerrado, 2025 — se muestra en
+    la tabla/gráfica de la ficha aunque no entre al cálculo de tendencia ni de
+    variación promedio, ver _cerrados/MAX_ANIO_FILTROS)."""
     previo = None
     for p in serie:
-        cerrado = p["anio"] <= MAX_ANIO_FILTROS
-        p["variacion_pct"] = _variacion_pct(previo, p["ejecucion"]) if cerrado else None
+        p["variacion_pct"] = _variacion_pct(previo, p["ejecucion"])
         if p["ejecucion"] is not None:
             previo = p["ejecucion"]
     return serie

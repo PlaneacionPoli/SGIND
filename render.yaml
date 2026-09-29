@@ -22,7 +22,7 @@ services:
       - key: CORS_ORIGINS
         sync: false
       - key: CORS_ORIGIN_REGEX
-        value: "https://sgind.*-planeacion-poli\\.vercel\\.app"
+        value: "^(https://sgind(-[a-z0-9-]+)?-planeacion-poli\\.vercel\\.app|https://sgind\\.vercel\\.app)$"
       - key: SGIND_DATA_PATH
         value: /app/data
       - key: EXCEL_CACHE_TTL_SECONDS

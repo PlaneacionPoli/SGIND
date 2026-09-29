@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   CartesianGrid,
@@ -15,7 +16,7 @@ import {
 import { fetchPlanMetricaDetalle } from "@/lib/api";
 import { PmFactorBadge } from "./PmFactorBadge";
 import { getFactorColor, parseFactorNum } from "./pmFactorTheme";
-import { fmtValor, fmtVariacion, lineaTendencia, variacionClass } from "./pmVariacion";
+import { fmtValor, fmtVariacion, lineaTendencia, variacionClass, variacionPromedio } from "./pmVariacion";
 
 interface PmMetricaSeleccion {
   factor: string;
@@ -76,6 +77,11 @@ export function PmMetricaModal({ seleccion, onClose }: PmMetricaModalProps) {
     enabled: !!seleccion,
   });
 
+  const [desgloseSel, setDesgloseSel] = useState<number | null>(null);
+  useEffect(() => {
+    setDesgloseSel(null);
+  }, [seleccion?.factor, seleccion?.indicador, seleccion?.subindicador, seleccion?.grupo]);
+
   if (!seleccion) return null;
   const d = query.data;
   const color = getFactorColor(parseFactorNum(d?.factor ?? seleccion.factor));
@@ -83,9 +89,54 @@ export function PmMetricaModal({ seleccion, onClose }: PmMetricaModalProps) {
   const variables = d?.variables ?? [];
   const TENDENCIA_COLORES = ["#7C3AED", "#DB2777", "#059669"];
   const PALETA = [color, "#0EA5E9", "#F59E0B"];
-  const lineas = variables.length
-    ? variables.map((v, i) => ({ clave: v.nombre, serie: v.serie, color: PALETA[i % PALETA.length] }))
-    : [{ clave: "Resultado", serie: d?.serie ?? [], color }];
+  const desglose = d?.desglose ?? [];
+  const filasDesglose: Array<{
+    grupo: boolean;
+    nombre: string;
+    serie: Array<{ anio: number; ejecucion: number | null; variacion_pct: number | null; meta?: number | null }>;
+    tendencia: string;
+    valor_fmt: string;
+    ultimo_anio: number | null;
+    variacion_ultima_pct: number | null;
+  }> = d?.grupos
+    ? d.grupos.flatMap((g) => [
+        {
+          grupo: true,
+          nombre: g.nombre,
+          serie: g.serie,
+          tendencia: g.tendencia,
+          valor_fmt: g.valor_fmt,
+          ultimo_anio: g.serie.filter((p) => p.ejecucion != null).at(-1)?.anio ?? null,
+          variacion_ultima_pct: g.variacion_ultima_pct,
+        },
+        ...desglose
+          .filter((c) => c.grupo === g.nombre)
+          .map((c) => ({
+            grupo: false,
+            nombre: c.nombre ?? c.subindicador ?? "—",
+            serie: c.serie,
+            tendencia: c.tendencia,
+            valor_fmt: c.valor_fmt,
+            ultimo_anio: c.ultimo_anio,
+            variacion_ultima_pct: c.variacion_ultima_pct,
+          })),
+      ])
+    : desglose.map((c) => ({
+        grupo: false,
+        nombre: c.nombre ?? c.subindicador ?? "—",
+        serie: c.serie,
+        tendencia: c.tendencia,
+        valor_fmt: c.valor_fmt,
+        ultimo_anio: c.ultimo_anio,
+        variacion_ultima_pct: c.variacion_ultima_pct,
+      }));
+  const puedeFiltrarDesglose = filasDesglose.length > 0 && variables.length === 0;
+  const activo = desgloseSel != null ? filasDesglose[desgloseSel] : null;
+  const lineas = activo
+    ? [{ clave: activo.nombre, serie: activo.serie, color }]
+    : variables.length
+      ? variables.map((v, i) => ({ clave: v.nombre, serie: v.serie, color: PALETA[i % PALETA.length] }))
+      : [{ clave: "Resultado", serie: d?.serie ?? [], color }];
   const aniosSerie = Array.from(new Set(lineas.flatMap((l) => l.serie.map((p) => p.anio)))).sort((x, y) => x - y);
   const ajustes = lineas.map((l) =>
     lineaTendencia(
@@ -107,25 +158,6 @@ export function PmMetricaModal({ seleccion, onClose }: PmMetricaModalProps) {
   });
   const hayTendencia = ajustes.some((aj) => aj.some((v) => v != null));
   const hayMeta = chartData.some((p) => p.Meta != null);
-  const desglose = d?.desglose ?? [];
-  const filasDesglose: Array<{
-    grupo: boolean;
-    nombre: string;
-    serie: Array<{ anio: number; ejecucion: number | null }>;
-    tendencia: string;
-  }> = d?.grupos
-    ? d.grupos.flatMap((g) => [
-        { grupo: true, nombre: g.nombre, serie: g.serie, tendencia: g.tendencia },
-        ...desglose
-          .filter((c) => c.grupo === g.nombre)
-          .map((c) => ({ grupo: false, nombre: c.nombre ?? c.subindicador ?? "—", serie: c.serie, tendencia: c.tendencia })),
-      ])
-    : desglose.map((c) => ({
-        grupo: false,
-        nombre: c.nombre ?? c.subindicador ?? "—",
-        serie: c.serie,
-        tendencia: c.tendencia,
-      }));
   const anios = Array.from(new Set(desglose.flatMap((c) => c.serie.map((p) => p.anio)))).sort();
   const periodoFicha =
     d?.anio_inicio != null && d.anio_fin != null
@@ -133,7 +165,12 @@ export function PmMetricaModal({ seleccion, onClose }: PmMetricaModalProps) {
         ? String(d.anio_inicio)
         : `${d.anio_inicio} – ${d.anio_fin}`
       : (d?.periodo_texto ?? "—");
-  const etiquetaResultado = d?.consolidado && d.agregacion ? d.agregacion : "Resultado";
+  const etiquetaResultado = activo ? activo.nombre : d?.consolidado && d.agregacion ? d.agregacion : "Resultado";
+  const fichaValorFmt = activo ? activo.valor_fmt : (d?.valor_fmt ?? "—");
+  const fichaUltimoAnio = activo ? activo.ultimo_anio : (d?.ultimo_anio ?? null);
+  const fichaVariacionUltima = activo ? activo.variacion_ultima_pct : (d?.variacion_ultima_pct ?? null);
+  const fichaVariacionPromedio = activo ? variacionPromedio(activo.serie) : (d?.variacion_promedio_pct ?? null);
+  const fichaTendencia = activo ? activo.tendencia : (d?.tendencia ?? "—");
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={onClose}>
@@ -144,7 +181,11 @@ export function PmMetricaModal({ seleccion, onClose }: PmMetricaModalProps) {
         <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-white px-6 py-4">
           <div>
             <h3 className="text-lg font-bold text-poli-navy">{seleccion.indicador}</h3>
-            {seleccion.grupo ? (
+            {activo ? (
+              <p className="text-xs text-slate-500">
+                {activo.grupo ? "Grupo" : "Categoría"} · {activo.nombre}
+              </p>
+            ) : seleccion.grupo ? (
               <p className="text-xs text-slate-500">Subtotal · {seleccion.grupo}</p>
             ) : seleccion.subindicador && seleccion.subindicador !== seleccion.indicador ? (
               <p className="text-xs text-slate-500">{seleccion.subindicador}</p>
@@ -202,26 +243,58 @@ export function PmMetricaModal({ seleccion, onClose }: PmMetricaModalProps) {
                 <Ficha label="Periodo">
                   <span className="text-base">{periodoFicha}</span>
                 </Ficha>
-                <Ficha label={`${etiquetaResultado}${d.ultimo_anio ? ` ${d.ultimo_anio}` : ""}`}>
-                  {d.valor_fmt}
+                <Ficha label={`${etiquetaResultado}${fichaUltimoAnio ? ` ${fichaUltimoAnio}` : ""}`}>
+                  {fichaValorFmt}
                 </Ficha>
-                <Ficha label="Variación último año" className={variacionClass(d.variacion_ultima_pct)}>
-                  {fmtVariacion(d.variacion_ultima_pct)}
+                <Ficha label="Variación último año" className={variacionClass(fichaVariacionUltima)}>
+                  {fmtVariacion(fichaVariacionUltima)}
                 </Ficha>
-                <Ficha label="Variación promedio anual" className={variacionClass(d.variacion_promedio_pct)}>
-                  {fmtVariacion(d.variacion_promedio_pct)}
+                <Ficha label="Variación promedio anual" className={variacionClass(fichaVariacionPromedio)}>
+                  {fmtVariacion(fichaVariacionPromedio)}
                 </Ficha>
                 <Ficha label="Tendencia">
                   <span
                     className={`rounded-full px-2 py-0.5 text-sm font-semibold ${
-                      TENDENCIA_BADGE[d.tendencia] ?? TENDENCIA_BADGE["—"]
+                      TENDENCIA_BADGE[fichaTendencia] ?? TENDENCIA_BADGE["—"]
                     }`}
                   >
-                    {d.tendencia}
+                    {fichaTendencia}
                   </span>
                 </Ficha>
               </div>
               )}
+
+              {puedeFiltrarDesglose ? (
+                <div className="flex flex-wrap items-center gap-2">
+                  <label htmlFor="pm-desglose-filtro" className="text-xs font-semibold text-slate-500">
+                    Ver en el gráfico:
+                  </label>
+                  <select
+                    id="pm-desglose-filtro"
+                    value={desgloseSel ?? ""}
+                    onChange={(e) => setDesgloseSel(e.target.value === "" ? null : Number(e.target.value))}
+                    className="rounded-lg border border-slate-200 px-2 py-1 text-xs font-medium text-slate-700"
+                  >
+                    <option value="">
+                      {d.consolidado && d.agregacion ? d.agregacion : "Resultado"} (todas las categorías)
+                    </option>
+                    {filasDesglose.map((f, i) => (
+                      <option key={`${f.nombre}|${i}`} value={i}>
+                        {f.grupo ? `${f.nombre} (grupo)` : f.nombre}
+                      </option>
+                    ))}
+                  </select>
+                  {activo ? (
+                    <button
+                      type="button"
+                      onClick={() => setDesgloseSel(null)}
+                      className="rounded-lg px-2 py-1 text-xs font-semibold text-slate-500 hover:bg-slate-100"
+                    >
+                      Quitar filtro
+                    </button>
+                  ) : null}
+                </div>
+              ) : null}
 
               {chartData.length ? (
                 <div className="h-72">
@@ -362,7 +435,13 @@ export function PmMetricaModal({ seleccion, onClose }: PmMetricaModalProps) {
                       </thead>
                       <tbody className="divide-y divide-slate-100 text-slate-700">
                         {filasDesglose.map((c, i) => (
-                          <tr key={`${c.nombre}|${i}`} className={c.grupo ? "bg-slate-50 font-semibold" : ""}>
+                          <tr
+                            key={`${c.nombre}|${i}`}
+                            onClick={() => setDesgloseSel(desgloseSel === i ? null : i)}
+                            className={`cursor-pointer hover:bg-poli-blue/5 ${
+                              desgloseSel === i ? "bg-poli-blue/10" : c.grupo ? "bg-slate-50 font-semibold" : ""
+                            }`}
+                          >
                             <td
                               className={`whitespace-normal px-3 py-2 text-left ${
                                 c.grupo ? "font-semibold" : d?.grupos ? "pl-7 font-medium" : "font-medium"
