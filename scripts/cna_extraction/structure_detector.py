@@ -51,8 +51,12 @@ def is_period_label(label: Any) -> str | None:
     if label is None:
         return None
     text = str(label).strip()
-    if _SEMESTER_RE.match(text):
-        return text
+    # Espacios sueltos alrededor del guion, typo frecuente en el Anexo
+    # ("2026 -1", "2026- 1"): sin esto la columna entera se pierde en
+    # silencio (Tabla 105 no mostraba su último semestre parcial).
+    text_compacto = re.sub(r"\s*-\s*", "-", text)
+    if _SEMESTER_RE.match(text_compacto):
+        return text_compacto
     if isinstance(label, str) and _SEMESTER_DOT_RE.match(text):
         return text.replace(".", "-")
     if _YEAR_RE.match(text):
