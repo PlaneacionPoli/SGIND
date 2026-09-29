@@ -329,6 +329,47 @@ def _reclasifica_totales_sin_etiqueta(
     return resultado
 
 
+def _omite_totales_multiples(detector_rows: list[dict[str, Any]], stats: dict[str, int]) -> list[dict[str, Any]]:
+    """Varios "Total X" nombrados y distintos (Tabla 6: Total Presencial/Total
+    Virtual/Total Sede Bogotá) sin separación en bloques ni columna de grupo no
+    los reconoce `_extract_rows` como jerarquía: los deja a todos con
+    Subindicador vacío (`row_kind == "total_explicito"`), colapsando 3 valores
+    distintos en la misma fila del periodo (ver validación de negocio
+    2026-09-29 — Tabla 6 solo conservaba uno de los tres, el último escrito).
+
+    Se omiten: el total general y el subtotal de cada grupo (Presencial,
+    Virtual) ya se recalculan solos por suma de las filas de detalle
+    ("Presencial - X", "Virtual - X") vía _detecta_grupos_intermedios y el
+    total-por-suma de _build_from_generic_rows — un "Total" único (mismo
+    texto en todos los periodos) no se toca. Solo cuentan como "Total" filas
+    con valor numérico real: una fila de encabezado mal detectada como total
+    (valor cualitativo, Tabla 205) no debe hacer que se descarte también el
+    total genuino.
+
+    Solo aplica con eje de periodos (`period` presente): la síntesis por suma
+    de la que depende esta omisión (_build_from_generic_rows) no corre para
+    hojas snapshot sin periodo (Tabla 2: FACULTAD × PREGRADO/POSGRADO/TOTAL es
+    una matriz 2D genuina, no subtotales redundantes — omitir ahí dejaba el
+    indicador sin ningún valor)."""
+
+    def es_total_numerico(r: dict[str, Any]) -> bool:
+        if r["row_kind"] != "total_explicito" or r.get("sin_total_global") or not r.get("period"):
+            return False
+        _, _, cualitativo = infer_ejecucion(r["value"])
+        return not cualitativo
+
+    etiquetas = {tuple(map(str, r["category_path"])) for r in detector_rows if es_total_numerico(r)}
+    if len(etiquetas) < 2:
+        return detector_rows
+    resultado = []
+    for row in detector_rows:
+        if es_total_numerico(row):
+            stats["totales_multiples_omitidos"] = stats.get("totales_multiples_omitidos", 0) + 1
+            continue
+        resultado.append(row)
+    return resultado
+
+
 def _build_from_generic_rows(
     detector_rows: list[dict[str, Any]],
     catalog_record: CatalogRecord,
@@ -339,6 +380,7 @@ def _build_from_generic_rows(
     detector_rows = _ajusta_tabla_de_inversion(detector_rows, catalog_record, stats)
     detector_rows = _corrige_separador_de_miles(detector_rows, stats)
     detector_rows = _reclasifica_totales_sin_etiqueta(detector_rows, stats)
+    detector_rows = _omite_totales_multiples(detector_rows, stats)
 
     detalle_by_period: dict[str, list[tuple[list[Any], float]]] = {}
     total_periods_present: set[str] = set()

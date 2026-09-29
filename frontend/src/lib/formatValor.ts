@@ -28,10 +28,14 @@ export function fmtValorSigno(
   }
 
   if (s === "$") {
-    const formatted = dec > 0 ? num.toFixed(dec) : Math.round(num).toString();
+    // Cifras monetarias siempre en millones de pesos en todo el tablero.
+    const enPesosCompletos = Math.abs(num) >= 1_000_000;
+    const millones = enPesosCompletos ? num / 1_000_000 : num;
+    const decMillones = dec > 0 ? dec : enPesosCompletos ? 1 : 0;
+    const formatted = decMillones > 0 ? millones.toFixed(decMillones) : Math.round(millones).toString();
     const parts = formatted.split(".");
     parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-    return `$${parts.join(",")}`;
+    return `$${parts.join(",")} M`;
   }
 
   if (s === "DEC") {

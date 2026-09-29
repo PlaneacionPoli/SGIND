@@ -557,7 +557,19 @@ def detect_structure(raw_rows: list[list[Any]], catalog_numero: int | None) -> S
         if period is not None:
             seen_first_period = True
             group_label = group_labels[col_idx] if group_labels else None
-            period_columns.append(PeriodColumn(col_index=col_idx, label=label, period=period, group_label=group_label))
+            # Columna de periodo repetida sin agrupador (Tabla 72: "2019" dos
+            # veces en el encabezado, error de captura en la fuente): sumar
+            # ambas duplicaría el valor. Con agrupador (Ilustración 20: mismo
+            # año bajo cada medio) el periodo sí se repite legítimamente.
+            es_duplicada = group_label is None and any(
+                pc.period == period and pc.group_label is None for pc in period_columns
+            )
+            if es_duplicada:
+                excluded_columns.append(col_idx)
+            else:
+                period_columns.append(
+                    PeriodColumn(col_index=col_idx, label=label, period=period, group_label=group_label)
+                )
         elif is_total_label(label):
             excluded_columns.append(col_idx)
         elif label is None:
