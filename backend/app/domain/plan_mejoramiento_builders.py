@@ -1984,10 +1984,13 @@ def build_metricas_tabla_agrupada(df: pd.DataFrame) -> list[dict[str, Any]]:
     for (factor, indicador), grupo in df.groupby(["Factor", "Indicador"], dropna=False):
         grupo = grupo.sort_values("orden")  # orden del archivo fuente
         fnum = grupo["Factor_num"].iloc[0]
+        numero_tabla = _numero_de_tabla(grupo["Id"].iloc[0] if "Id" in grupo.columns else None)
 
         desglose = [_fila_desglose(row) for _, row in grupo.iterrows()]
         if _es_tabla_de_variables(grupo):
-            records.append(_fila_variables(factor, fnum, indicador, grupo, desglose))
+            fila = _fila_variables(factor, fnum, indicador, grupo, desglose)
+            fila["_numero_tabla"] = numero_tabla
+            records.append(fila)
             continue
 
         unidades = grupo[["signo", "decimales"]].drop_duplicates()
@@ -2052,11 +2055,25 @@ def build_metricas_tabla_agrupada(df: pd.DataFrame) -> list[dict[str, Any]]:
                 "n_desglose": len(desglose),
                 "desglose": desglose,
                 "grupos": grupos_intermedios,
+                "_numero_tabla": numero_tabla,
             }
         )
 
-    records.sort(key=lambda r: (r["ultimo_anio"] is None, -(r["ultimo_anio"] or 0)))
+    records.sort(key=lambda r: (r["_numero_tabla"] is None, r["_numero_tabla"] or 0))
+    for r in records:
+        del r["_numero_tabla"]
     return records
+
+
+_ID_NUM_RE = re.compile(r"\d+")
+
+
+def _numero_de_tabla(id_valor: Any) -> int | None:
+    """Número de tabla/gráfica a partir del Id (p.ej. 'T47' -> 47, 'I21' -> 21)."""
+    if id_valor is None or (isinstance(id_valor, float) and pd.isna(id_valor)):
+        return None
+    m = _ID_NUM_RE.search(str(id_valor))
+    return int(m.group()) if m else None
 
 
 def _ultimo_texto(serie: pd.Series | None) -> str | None:
