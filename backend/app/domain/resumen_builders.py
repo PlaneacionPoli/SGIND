@@ -1364,6 +1364,64 @@ def build_proyectos_pmo_gantt(
     return {"anio_min": anio_min, "anio_max": anio_max, "items": items}
 
 
+def build_proyectos_oficiales_gantt(
+    df: pd.DataFrame,
+    *,
+    anios: list[int] | None = None,
+    anio_min: int = 2022,
+    anio_max: int = 2025,
+) -> dict[str, Any]:
+    """Cronograma de los 44 proyectos oficiales del ciclo (ver
+    ProyectosOficialesService: cifras de Resultados Consolidados, fechas y
+    estado ya resueltos del Centro de Proyectos PMO) — mismo shape de
+    salida que build_proyectos_pmo_gantt para reusar el resto del
+    pipeline sin cambios."""
+    empty = {"anio_min": anio_min, "anio_max": anio_max, "items": []}
+    required = {"Id", "Indicador", "Linea", "anio_inicio", "anio_fin"}
+    if df.empty or not required.issubset(df.columns):
+        return empty
+
+    work = df.copy()
+    if anios:
+        lo, hi = min(anios), max(anios)
+        work = work[
+            work["anio_inicio"].notna()
+            & work["anio_fin"].notna()
+            & (work["anio_inicio"] <= hi)
+            & (work["anio_fin"] >= lo)
+        ]
+    if work.empty:
+        return empty
+
+    items: list[dict[str, Any]] = []
+    for _, row in work.iterrows():
+        linea_raw = str(row.get("Linea") or "Sin línea").strip()
+        linea_key = norm_key(linea_raw)
+        linea = _PMO_LINEA_ALIASES.get(linea_key, linea_raw)
+        linea_key = norm_key(linea)
+        anio_inicio_v = row.get("anio_inicio")
+        anio_fin_v = row.get("anio_fin")
+        anio_inicio = int(anio_inicio_v) if pd.notna(anio_inicio_v) else anio_min
+        anio_fin = int(anio_fin_v) if pd.notna(anio_fin_v) else anio_inicio
+        items.append(
+            {
+                "id": str(row.get("Id")),
+                "nombre": str(row.get("Indicador") or row.get("Id")).strip(),
+                "linea": linea,
+                "linea_color": LINEA_COLORS_BADGE.get(linea_key, "#64748B"),
+                "anio_inicio": anio_inicio,
+                "anio_fin": anio_fin,
+                "duracion_anios": anio_fin - anio_inicio + 1,
+                "anios_activos": list(range(anio_inicio, anio_fin + 1)),
+                "cumplimiento": _safe_pct(row.get("cumplimiento_pct"), default=0.0) or 0.0,
+                "estado": str(row.get("estado") or "Planeación"),
+            }
+        )
+
+    items.sort(key=lambda x: (linea_sort_key(x["linea"]), x["nombre"].lower()))
+    return {"anio_min": anio_min, "anio_max": anio_max, "items": items}
+
+
 def build_proyectos_tabla(proy_df: pd.DataFrame) -> list[dict]:
     """Nota: 'estado' (Cerrado/En ejecución/Planeación) es un estado
     administrativo de ciclo de vida, no un semáforo de desempeño — se

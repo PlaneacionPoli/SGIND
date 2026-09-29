@@ -96,7 +96,7 @@ TEXTOS_LINEAS = {
                 "momento."
             ),
             "proyectos": (
-                "En proyectos, la línea alcanza un avance promedio de 98,2% sobre 15 "
+                "En proyectos, la línea alcanza un avance promedio de 86,3% sobre 15 "
                 "iniciativas, con el hito central del ciclo ya materializado: la acreditación "
                 "institucional en alta calidad de la Sede Bogotá fue otorgada por el CNA en "
                 "mayo de 2026 por 6 años, tras el informe de autoevaluación radicado, la visita "
@@ -105,7 +105,9 @@ TEXTOS_LINEAS = {
                 "paralelo cerraron proyectos de transformación curricular y de experiencia "
                 "formativa —Innovación Curricular, Cultura de una Buena Docencia, CREA y el "
                 "Catálogo de Recursos Virtuales—, que sostienen la calidad académica más allá "
-                "del hito puntual de acreditación."
+                "del hito puntual de acreditación. Dos iniciativas siguen en fase de planeación "
+                "sin ejecución iniciada: el Sistema de Medición de Resultados de Aprendizaje y "
+                "el Fortalecimiento del proceso de visibilidad nacional e internacional."
             ),
             "indicadores": (
                 "El CMI de la línea promedia 106,4% de cumplimiento. La relación "
@@ -118,7 +120,7 @@ TEXTOS_LINEAS = {
             "consolidado": (
                 "En conjunto, Calidad consolida su objetivo estratégico central —asegurar la "
                 "acreditación institucional en alta calidad— con un desempeño equilibrado en "
-                "las tres dimensiones (retos 97,8%, proyectos 98,2%, indicadores 106,4%): la "
+                "las tres dimensiones (retos 97,8%, proyectos 86,3%, indicadores 106,4%): la "
                 "ejecución operativa fue estable, la acreditación fue efectivamente otorgada "
                 "por el CNA, y los indicadores estructurales (planta docente, resultados de "
                 "aprendizaje) confirman que el resultado es una maduración real de los procesos "
@@ -126,9 +128,10 @@ TEXTOS_LINEAS = {
             ),
         },
         "pendientes": (
-            "La prioridad inmediata de la línea es poner en marcha el Sistema de Medición de "
-            "Resultados de Aprendizaje, hoy en fase de planeación y pieza clave para sostener la "
-            "mejora continua curricular lograda en este ciclo. Dos indicadores requieren "
+            "La prioridad inmediata de la línea es poner en marcha dos proyectos que siguen en "
+            "fase de planeación: el Sistema de Medición de Resultados de Aprendizaje, pieza "
+            "clave para sostener la mejora continua curricular lograda en este ciclo, y el "
+            "Fortalecimiento del proceso de visibilidad nacional e internacional. Dos indicadores requieren "
             "seguimiento cercano: productos de investigación, innovación y creación (94,2%) y "
             "relación estudiante-docente de tiempo completo (97,8%). Aunque ambos están cerca de "
             "la meta, señalan la tensión entre el crecimiento de la oferta académica y la "
@@ -148,14 +151,12 @@ TEXTOS_LINEAS = {
                 "crecimiento planeado de matrícula a lo largo de los cuatro años del ciclo."
             ),
             "proyectos": (
-                "En proyectos, la línea registra un avance promedio de 95,2% sobre 3 "
-                "iniciativas. Dos ya cerraron al 100%: Pricing, que construyó una estrategia de "
-                "precios institucional basada en el análisis de elasticidad de demanda por "
-                "programa y en la diferenciación de descuentos como política comercial; y "
-                "Proyecto Silver, que estructuró una línea de negocio dirigida a población mayor "
-                "de 50 años, ampliando el mercado más allá del segmento tradicional. La tercera, "
-                "implementación de HubSpot Eduvida, sigue en ejecución (86%) y es la base "
-                "tecnológica del crecimiento futuro en captación."
+                "En proyectos, la línea cierra sus 2 iniciativas al 100%: Pricing, que "
+                "construyó una estrategia de precios institucional basada en el análisis de "
+                "elasticidad de demanda por programa y en la diferenciación de descuentos como "
+                "política comercial; y Proyecto Silver, que estructuró una línea de negocio "
+                "dirigida a población mayor de 50 años, ampliando el mercado más allá del "
+                "segmento tradicional."
             ),
             "indicadores": (
                 "El CMI promedia 107,5% de cumplimiento, con sobrecumplimiento marcado en los "
@@ -165,9 +166,10 @@ TEXTOS_LINEAS = {
                 "todos sus segmentos (presencial, virtual, pregrado y posgrado)."
             ),
             "consolidado": (
-                "El resultado consolidado de Expansión (retos 98,9%, proyectos 95,2%, "
+                "El resultado consolidado de Expansión (retos 98,9%, proyectos 100%, "
                 "indicadores 107,5%) muestra una línea que ya no depende solo del crecimiento "
-                "vegetativo de matrícula: los proyectos cerrados (Pricing, Proyecto Silver) "
+                "vegetativo de matrícula: sus dos proyectos, ya cerrados (Pricing, Proyecto "
+                "Silver), "
                 "instalan mecanismos deliberados de diferenciación comercial y diversificación "
                 "de mercado, mientras los indicadores confirman que el posicionamiento de "
                 "marca se fortaleció en paralelo al crecimiento. Es la línea con mejor "
@@ -192,9 +194,9 @@ TEXTOS_LINEAS = {
                 "más densa del portafolio."
             ),
             "proyectos": (
-                "Con 16 proyectos activos en el rango 2021-2025, es la línea con mayor densidad "
-                "de iniciativas del ciclo, y su avance promedio (91,7%) refleja tanto la "
-                "magnitud del esfuerzo como el hecho de que 11 de ellos ya cerraron. En el "
+                "Con 15 proyectos, es la línea con mayor densidad de iniciativas del ciclo, y "
+                "su avance promedio (98,7%) refleja una ejecución consistente: 11 de ellos ya "
+                "cerraron. En el "
                 "frente tecnológico: la migración "
                 "del ecosistema académico Banner a su versión más reciente sobre Oracle Cloud, "
                 "la centralización de datos institucionales en un Data Lake bajo metodología "
@@ -219,7 +221,7 @@ TEXTOS_LINEAS = {
                 "construirá el Centro de Excelencia Analítica del próximo ciclo."
             ),
             "consolidado": (
-                "El balance consolidado (retos 97,5%, proyectos 91,7% sobre 16 iniciativas, "
+                "El balance consolidado (retos 97,5%, proyectos 98,7% sobre 15 iniciativas, "
                 "indicadores 106,6%) confirma que la transformación organizacional del ciclo "
                 "operó en dos frentes simultáneos y complementarios: una arquitectura "
                 "tecnológica y de datos que pasó de fragmentada a gobernada, y una cultura "
@@ -247,16 +249,15 @@ TEXTOS_LINEAS = {
                 "sostenida a lo largo del ciclo."
             ),
             "proyectos": (
-                "El avance promedio en proyectos es de 99,6% sobre 7 iniciativas, 6 de ellas ya "
-                "cerradas al 100%. El hito central es la implementación en tres fases del Hub de "
+                "El avance promedio en proyectos es de 98,8% sobre 6 iniciativas, todas ya "
+                "cerradas. El hito central es la implementación en tres fases del Hub de "
                 "Experiencia y Agilismo (HEYA), que rediseñó la gestión de la experiencia "
                 "institucional a partir de journey maps y metodologías ágiles. En paralelo, el "
                 "Centro Gastronómico redujo en 80% el costo anual de prácticas del programa de "
                 "Hotelería y Gastronomía al eliminar la dependencia de terceros, y el Proyecto de "
                 "Permanencia Institucional desplegó el modelo KITUS de acompañamiento "
                 "segmentado con resultados diferenciados en los grupos de mayor riesgo de "
-                "deserción. La única iniciativa aún en ejecución es la remodelación de los "
-                "bloques I y C, ya casi completa (98%)."
+                "deserción."
             ),
             "indicadores": (
                 "El CMI promedia 103,4% de cumplimiento, con las cuatro dimensiones de la "
@@ -268,7 +269,7 @@ TEXTOS_LINEAS = {
                 "la mejora en percepción vino acompañada de una gestión operativa consistente."
             ),
             "consolidado": (
-                "El resultado consolidado (retos 98,1%, proyectos 99,6%, indicadores 103,4%) "
+                "El resultado consolidado (retos 98,1%, proyectos 98,8%, indicadores 103,4%) "
                 "muestra una línea que migró de una gestión reactiva de la experiencia a una "
                 "arquitectura de journey maps y agilismo institucionalizados, con resultados ya "
                 "visibles en satisfacción y permanencia estudiantil, y con la mayoría de sus "

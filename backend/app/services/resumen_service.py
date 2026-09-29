@@ -22,6 +22,7 @@ from app.domain.resumen_builders import (
     build_linea_summary,
     build_linea_summary_retos,
     build_pdi_mindmap,
+    build_proyectos_oficiales_gantt,
     build_proyectos_pmo_gantt,
     build_proyectos_tabla,
     build_retos_tabla,
@@ -46,6 +47,7 @@ from app.services.narrativa_estrategica_service import (
     TARJETAS_CONSOLIDADO,
     leer_narrativa_estrategica,
 )
+from app.services.proyectos_oficiales_service import ProyectosOficialesService
 from app.services.proyectos_pmo_loader import ProyectosPmoLoader
 from app.services.retos_loaders import RetosLoaders
 
@@ -82,6 +84,7 @@ class ResumenService:
         self._strategic = StrategicProcessors(excel)
         self._retos = RetosLoaders(excel)
         self._proyectos_pmo = ProyectosPmoLoader(excel)
+        self._proyectos_oficiales = ProyectosOficialesService(excel)
 
     def _load_cierres(self) -> pd.DataFrame:
         return self._etl.leer_cierres()
@@ -625,13 +628,18 @@ class ResumenService:
             }
 
         if vista_norm == "proyectos":
-            # Fuente oficial: Centro de Proyectos PMO (raw/Proyectos/
-            # centroDeProyectos_PMO_2026.xlsx) — la de Cierres (build_
-            # proyectos_gantt) solo cubre proyectos con cierre cargado (18
-            # en total) y no tiene NINGUNO de Expansión, entre otras líneas
-            # incompletas (hallazgo 2026-09-29, confirmado con negocio).
+            # Fuente oficial 2026-09-30 (confirmado con negocio): los 44
+            # proyectos del catálogo (Id PRY-1..44), con CIFRAS de
+            # Resultados Consolidados (nunca del PMO) y fechas/estado del
+            # Centro de Proyectos PMO — ver ProyectosOficialesService. La
+            # fuente de Cierres antigua (build_proyectos_gantt) no tiene
+            # NINGÚN proyecto de Expansión con cierre bajo el Id actual del
+            # catálogo (hallazgo 2026-09-29); el PMO solo (fix anterior,
+            # commit 8e37fe8) traía cifras que no eran las oficiales.
             pmo_anios = ANIOS_RANGO if rango else [anio]
-            pmo_gantt = build_proyectos_pmo_gantt(self._proyectos_pmo.load(), anios=pmo_anios)
+            pmo_gantt = build_proyectos_oficiales_gantt(
+                self._proyectos_oficiales.load(), anios=pmo_anios
+            )
             proy_df = self._pmo_items_to_df(pmo_gantt["items"])
 
             estados = proy_df["estado_pmo"] if "estado_pmo" in proy_df.columns else pd.Series(dtype=str)
@@ -901,11 +909,13 @@ class ResumenService:
         pdi_df = ensure_nivel_cumplimiento(self._strategic.preparar_pdi_cierre_final())
         if not pdi_df.empty and "Id" in pdi_df.columns:
             pdi_df = pdi_df[~pdi_df["Id"].astype(str).isin(_INDICADORES_EXCLUIDOS_PDF)]
-        # Proyectos PMO: Centro de Proyectos (raw/Proyectos/centroDeProyectos_
-        # PMO_2026.xlsx) es la fuente OFICIAL de proyectos — no Cierres/
-        # Consolidado (build_proyectos_gantt), que solo cubre los que ya
-        # tienen cierre cargado. Confirmado con negocio, 2026-09-27.
-        proy_gantt = build_proyectos_pmo_gantt(self._proyectos_pmo.load())
+        # Proyectos: 44 oficiales del catálogo (Id PRY-1..44), cifras de
+        # Resultados Consolidados (nunca del PMO) + fechas/estado del
+        # Centro de Proyectos PMO — ver ProyectosOficialesService. Revierte
+        # la decisión anterior (2026-09-27) de usar el PMO como fuente de
+        # cifras; confirmado con negocio 2026-09-30 que Resultados
+        # Consolidados es siempre la fuente de las cifras.
+        proy_gantt = build_proyectos_oficiales_gantt(self._proyectos_oficiales.load())
         ret_linea_df, ret_obj_df, ret_planes_df = self._retos_multi_anio(ANIOS_RANGO)
         signo_lookup = self._build_signo_lookup()
 

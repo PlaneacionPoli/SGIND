@@ -3,7 +3,11 @@
 > Fuente: `backend/scripts/generar_narrativa_estrategica.py` (autoría directa, no LLM).
 > Todas las cifras entre paréntesis ya están corregidas con el fix de topes/exclusión Stand-by/rango de fechas 2021-2025 (commit `ae7a20c`).
 
-> **Actualización 2026-09-29 — refresco de datos del Centro de Proyectos PMO:** el archivo fuente `centroDeProyectos_PMO_2026.xlsx` cambió (los % de avance subieron en casi todas las líneas) mientras se trabajaba en este documento. Se regeneraron todas las cifras de "Proyectos" y "Consolidado" de las 6 líneas con los datos nuevos. Sumado a la eliminación de SNIES (ver más abajo), el global pasó de **98,8% a 100,8%**. Detalle por línea en la tabla de cambios al final del documento.
+> **Actualización 2026-09-29 — refresco de datos del Centro de Proyectos PMO:** el archivo fuente `centroDeProyectos_PMO_2026.xlsx` cambió (los % de avance subieron en casi todas las líneas) mientras se trabajaba en este documento. Se regeneraron todas las cifras de "Proyectos" y "Consolidado" de las 6 líneas con los datos nuevos. Sumado a la eliminación de SNIES (ver más abajo), el global pasó de **98,8% a 100,8%**.
+
+> **Cambio de arquitectura 2026-09-30 (confirmado con negocio, revierte la decisión del 2026-09-27):** las CIFRAS de proyectos (Meta/Ejecución/Cumplimiento) SIEMPRE deben venir de **Resultados Consolidados**, nunca del Centro de Proyectos PMO — el PMO solo aporta **fechas** (para el Gantt) y **cualitativo** (objetivo/entregables/impactos). Se detectó que una migración renombró los proyectos a Ids "PRY-XX" en el catálogo sin propagar el cambio a las hojas de cierre, por lo que el cruce anterior por Id fallaba en silencio (ej. Expansión aparecía con 0 proyectos). Se reconstruyó el cruce por **nombre** entre catálogo (Id PRY-1..44, el universo oficial de **44 proyectos**), "Cierre PDI", "Consolidado Cierres" y el PMO — ver `ProyectosOficialesService`. 5 nombres no coincidían textualmente y se resolvieron a mano con el usuario (Id 10.1 para PRY-11, Id 901 para PRY-17 confirmado Stand by sin cifra, y overrides confirmados para PRY-33/43/44). Cobertura final: **43 de 44 proyectos con cifra real** (antes: 0 en Expansión). El global vuelve a moverse: de 100,8% a **100,7%**.
+
+> ⚠️ **Nota importante:** con este cambio, **Expansión ahora tiene solo 2 proyectos oficiales** (Pricing, Proyecto Silver) — "Implementación de HubSpot Eduvida" no es parte de los 44 oficiales (Id > PRY-44). De igual forma, Experiencia pasa de 7 a **6** proyectos (sale "Remodelaciones bloque I y C") y Transformación Organizacional de 16 a **15** (sale "Automatización y Optimización proceso contractual"). Estos proyectos "extra" existen en el PMO pero no en el catálogo oficial del ciclo 2022-2025 — quedan fuera de las tablas y promedios del PDF, aunque el texto de "Pendientes" puede seguir mencionándolos como iniciativas emergentes de cara al PDI 2026-2030.
 
 ---
 
@@ -43,42 +47,42 @@ Los retos priorizados para el PDI 2026-2030 se concentran en tres frentes: conso
 
 ## 1. Calidad
 
-**Cifras:** Retos 97,8% · Proyectos 98,2% (n=15) · Indicadores 106,4% · **Consolidado 100,8%**
+**Cifras:** Retos 97,8% · Proyectos 86,3% (n=15) · Indicadores 106,4% · **Consolidado 96,8%**
 
 ### Logros — Retos
 El desempeño de los retos institucionales asociados a Calidad cierra en 97,8% de cumplimiento, con una ejecución sostenida y sin sobresaltos a lo largo del ciclo 2022-2025 — evidencia de que el despliegue operativo de la línea estuvo alineado con la meta desde el inicio, sin picos de recuperación de último momento.
 
 ### Logros — Proyectos
-En proyectos, la línea alcanza un avance promedio de 98,2% sobre 15 iniciativas, con el hito central del ciclo ya materializado: la acreditación institucional en alta calidad de la Sede Bogotá fue otorgada por el CNA en mayo de 2026 por 6 años, tras el informe de autoevaluación radicado, la visita de pares académicos de octubre de 2025 con concepto altamente positivo, y el Plan de Mejoramiento Institucional aprobado por el Consejo Directivo. En paralelo cerraron proyectos de transformación curricular y de experiencia formativa —Innovación Curricular, Cultura de una Buena Docencia, CREA y el Catálogo de Recursos Virtuales—, que sostienen la calidad académica más allá del hito puntual de acreditación.
+En proyectos, la línea alcanza un avance promedio de 86,3% sobre 15 iniciativas, con el hito central del ciclo ya materializado: la acreditación institucional en alta calidad de la Sede Bogotá fue otorgada por el CNA en mayo de 2026 por 6 años, tras el informe de autoevaluación radicado, la visita de pares académicos de octubre de 2025 con concepto altamente positivo, y el Plan de Mejoramiento Institucional aprobado por el Consejo Directivo. En paralelo cerraron proyectos de transformación curricular y de experiencia formativa —Innovación Curricular, Cultura de una Buena Docencia, CREA y el Catálogo de Recursos Virtuales—, que sostienen la calidad académica más allá del hito puntual de acreditación. Dos iniciativas siguen en fase de planeación sin ejecución iniciada: el Sistema de Medición de Resultados de Aprendizaje y el Fortalecimiento del proceso de visibilidad nacional e internacional.
 
 ### Logros — Indicadores
 El CMI de la línea promedia 106,4% de cumplimiento. La relación estudiante-docente de tiempo completo se ubica en 83 estudiantes por docente frente a una meta de 81 (97,8% de cumplimiento), una tensión leve pero real entre el crecimiento de matrícula y la capacidad de la planta docente. A esto se suma que el 100% de los programas académicos ya cuenta con resultados de aprendizaje implementados, la base técnica que sostiene la acreditación.
 
 ### Logros — Consolidado
-En conjunto, Calidad consolida su objetivo estratégico central —asegurar la acreditación institucional en alta calidad— con un desempeño equilibrado en las tres dimensiones (retos 97,8%, proyectos 98,2%, indicadores 106,4%): la ejecución operativa fue estable, la acreditación fue efectivamente otorgada por el CNA, y los indicadores estructurales (planta docente, resultados de aprendizaje) confirman que el resultado es una maduración real de los procesos académicos institucionales, no solo el cumplimiento de un hito puntual.
+En conjunto, Calidad consolida su objetivo estratégico central —asegurar la acreditación institucional en alta calidad— con un desempeño equilibrado en las tres dimensiones (retos 97,8%, proyectos 86,3%, indicadores 106,4%): la ejecución operativa fue estable, la acreditación fue efectivamente otorgada por el CNA, y los indicadores estructurales (planta docente, resultados de aprendizaje) confirman que el resultado es una maduración real de los procesos académicos institucionales, no solo el cumplimiento de un hito puntual.
 
 ### Pendientes y prioridades
 *(Ampliado 2026-09-28 a pedido explícito: se agrega la implementación de la reforma curricular de programas académicos como tercera prioridad.)*
 
-La prioridad inmediata de la línea es poner en marcha el Sistema de Medición de Resultados de Aprendizaje, hoy en fase de planeación y pieza clave para sostener la mejora continua curricular lograda en este ciclo. Dos indicadores requieren seguimiento cercano: productos de investigación, innovación y creación (94,2%) y relación estudiante-docente de tiempo completo (97,8%). Aunque ambos están cerca de la meta, señalan la tensión entre el crecimiento de la oferta académica y la capacidad de la planta docente e investigativa para sostenerlo. Para el PDI 2026-2030 la línea se enfoca en tres frentes: implementar el Sistema de Medición de Resultados de Aprendizaje como habilitador de la siguiente etapa de calidad, ejecutar la reforma curricular de los programas académicos que sostenga la acreditación recién obtenida, y diseñar una estrategia propia de fortalecimiento de investigación y planta docente, que crezca al mismo ritmo que la oferta académica.
+La prioridad inmediata de la línea es poner en marcha dos proyectos que siguen en fase de planeación: el Sistema de Medición de Resultados de Aprendizaje, pieza clave para sostener la mejora continua curricular lograda en este ciclo, y el Fortalecimiento del proceso de visibilidad nacional e internacional. Dos indicadores requieren seguimiento cercano: productos de investigación, innovación y creación (94,2%) y relación estudiante-docente de tiempo completo (97,8%). Aunque ambos están cerca de la meta, señalan la tensión entre el crecimiento de la oferta académica y la capacidad de la planta docente e investigativa para sostenerlo. Para el PDI 2026-2030 la línea se enfoca en tres frentes: implementar el Sistema de Medición de Resultados de Aprendizaje como habilitador de la siguiente etapa de calidad, ejecutar la reforma curricular de los programas académicos que sostenga la acreditación recién obtenida, y diseñar una estrategia propia de fortalecimiento de investigación y planta docente, que crezca al mismo ritmo que la oferta académica.
 
 ---
 
 ## 2. Expansión
 
-**Cifras:** Retos 98,9% · Proyectos 95,2% (n=3) · Indicadores 107,5% · **Consolidado 100,5%**
+**Cifras:** Retos 98,9% · Proyectos 100,0% (n=2) · Indicadores 107,5% · **Consolidado 102,1%**
 
 ### Logros — Retos
 Los retos de Expansión cierran en 98,9% de cumplimiento, el más alto del portafolio en esta dimensión, reflejo de una ejecución consistente del crecimiento planeado de matrícula a lo largo de los cuatro años del ciclo.
 
 ### Logros — Proyectos
-En proyectos, la línea registra un avance promedio de 95,2% sobre 3 iniciativas. Dos ya cerraron al 100%: Pricing, que construyó una estrategia de precios institucional basada en el análisis de elasticidad de demanda por programa y en la diferenciación de descuentos como política comercial; y Proyecto Silver, que estructuró una línea de negocio dirigida a población mayor de 50 años, ampliando el mercado más allá del segmento tradicional. La tercera, implementación de HubSpot Eduvida, sigue en ejecución (86%) y es la base tecnológica del crecimiento futuro en captación.
+En proyectos, la línea cierra sus 2 iniciativas al 100%: Pricing, que construyó una estrategia de precios institucional basada en el análisis de elasticidad de demanda por programa y en la diferenciación de descuentos como política comercial; y Proyecto Silver, que estructuró una línea de negocio dirigida a población mayor de 50 años, ampliando el mercado más allá del segmento tradicional.
 
 ### Logros — Indicadores
 El CMI promedia 107,5% de cumplimiento, con sobrecumplimiento marcado en los indicadores de posicionamiento de marca: brand equity llegó a 125,8% de la meta y el conocimiento espontáneo de la institución a 122,2%. Estos resultados acompañan el crecimiento de población estudiantil, que superó la meta en todos sus segmentos (presencial, virtual, pregrado y posgrado).
 
 ### Logros — Consolidado
-El resultado consolidado de Expansión (retos 98,9%, proyectos 95,2%, indicadores 107,5%) muestra una línea que ya no depende solo del crecimiento vegetativo de matrícula: los proyectos cerrados (Pricing, Proyecto Silver) instalan mecanismos deliberados de diferenciación comercial y diversificación de mercado, mientras los indicadores confirman que el posicionamiento de marca se fortaleció en paralelo al crecimiento. Es la línea con mejor desempeño equilibrado entre las tres dimensiones del ciclo.
+El resultado consolidado de Expansión (retos 98,9%, proyectos 100%, indicadores 107,5%) muestra una línea que ya no depende solo del crecimiento vegetativo de matrícula: sus dos proyectos, ya cerrados (Pricing, Proyecto Silver), instalan mecanismos deliberados de diferenciación comercial y diversificación de mercado, mientras los indicadores confirman que el posicionamiento de marca se fortaleció en paralelo al crecimiento. Es la línea con mejor desempeño equilibrado entre las tres dimensiones del ciclo.
 
 ### Prioridades para el próximo ciclo
 Expansión cierra el ciclo sin proyectos por cerrar ni indicadores en zona crítica, lo que la posiciona como la línea de mayor estabilidad del portafolio. La prioridad para el PDI 2026-2030 no es de contención sino de escalamiento: llevar a implementación plena las hipótesis validadas por Pricing y Proyecto Silver, hoy en fase de diseño estratégico, y evaluar nuevos segmentos de crecimiento, como el relacionamiento empresa-Estado y la internacionalización, que sostengan el ritmo alcanzado una vez se agote el margen de crecimiento del modelo actual.
@@ -113,13 +117,13 @@ El principal foco estratégico de la línea es la incursión en Educación Media
 
 ## 4. Experiencia
 
-**Cifras:** Retos 98,1% · Proyectos 99,6% (n=7) · Indicadores 103,4% · **Consolidado 100,4%**
+**Cifras:** Retos 98,1% · Proyectos 98,8% (n=6) · Indicadores 103,4% · **Consolidado 100,1%**
 
 ### Logros — Retos
 Los retos de Experiencia cierran en 98,1% de cumplimiento, con una ejecución sostenida a lo largo del ciclo.
 
 ### Logros — Proyectos
-El avance promedio en proyectos es de 99,6% sobre 7 iniciativas, 6 de ellas ya cerradas al 100%. El hito central es la implementación en tres fases del Hub de Experiencia y Agilismo (HEYA), que rediseñó la gestión de la experiencia institucional a partir de journey maps y metodologías ágiles. En paralelo, el Centro Gastronómico redujo en 80% el costo anual de prácticas del programa de Hotelería y Gastronomía al eliminar la dependencia de terceros, y el Proyecto de Permanencia Institucional desplegó el modelo KITUS de acompañamiento segmentado con resultados diferenciados en los grupos de mayor riesgo de deserción. La única iniciativa aún en ejecución es la remodelación de los bloques I y C, ya casi completa (98%).
+El avance promedio en proyectos es de 98,8% sobre 6 iniciativas, todas ya cerradas. El hito central es la implementación en tres fases del Hub de Experiencia y Agilismo (HEYA), que rediseñó la gestión de la experiencia institucional a partir de journey maps y metodologías ágiles. En paralelo, el Centro Gastronómico redujo en 80% el costo anual de prácticas del programa de Hotelería y Gastronomía al eliminar la dependencia de terceros, y el Proyecto de Permanencia Institucional desplegó el modelo KITUS de acompañamiento segmentado con resultados diferenciados en los grupos de mayor riesgo de deserción.
 
 ### Logros — Indicadores
 *(Reescrito 2026-09-28 a pedido explícito: mejor redacción, se agrega el 4º indicador que faltaba (ANS) y se corrige permanencia intersemestral a la cifra exacta del CMI — 86% ejec./meta, no 86,2%.)*
@@ -127,7 +131,7 @@ El avance promedio en proyectos es de 99,6% sobre 7 iniciativas, 6 de ellas ya c
 El CMI promedia 103,4% de cumplimiento, con las cuatro dimensiones de la experiencia estudiantil por encima de su meta. El NPS subió 25,4 puntos en el ciclo (de 32,2 a 58,6) y el Índice de Satisfacción del Estudiante llegó a 90%, evidencia de un vínculo cada vez más sólido con la comunidad estudiantil. Ese vínculo se sostiene en la operación: el Acuerdo de Nivel de Servicio se cumplió en 95% y la permanencia intersemestral alcanzó el 86% proyectado, señal de que la mejora en percepción vino acompañada de una gestión operativa consistente.
 
 ### Logros — Consolidado
-El resultado consolidado (retos 98,1%, proyectos 99,6%, indicadores 103,4%) muestra una línea que migró de una gestión reactiva de la experiencia a una arquitectura de journey maps y agilismo institucionalizados, con resultados ya visibles en satisfacción y permanencia estudiantil, y con la mayoría de sus proyectos estructurales ya cerrados.
+El resultado consolidado (retos 98,1%, proyectos 98,8%, indicadores 103,4%) muestra una línea que migró de una gestión reactiva de la experiencia a una arquitectura de journey maps y agilismo institucionalizados, con resultados ya visibles en satisfacción y permanencia estudiantil, y con la mayoría de sus proyectos estructurales ya cerrados.
 
 ### Pendientes y prioridades
 Tres iniciativas de analítica avanzada para retención (modelo predictivo de deserción basado en scoring, IA de voz e IA de WhatsApp para recuperación de estudiantes) están en fase de planeación, sin que ningún indicador en zona crítica obligue a acelerarlas. Esto abre una oportunidad de escalamiento más que una alerta. La prioridad para el PDI 2026-2030 es llevar estas tres iniciativas de datos a producción, para extender el modelo KITUS, que ya demostró resultados medibles en grupos piloto, hacia una cobertura institucional completa del acompañamiento estudiantil.
@@ -136,7 +140,7 @@ Tres iniciativas de analítica avanzada para retención (modelo predictivo de de
 
 ## 5. Transformación Organizacional
 
-**Cifras:** Retos 97,5% · Proyectos 91,7% (n=16) · Indicadores 106,6% (n=9) · **Consolidado 98,6%**
+**Cifras:** Retos 97,5% · Proyectos 98,7% (n=15) · Indicadores 106,6% (n=9) · **Consolidado 100,9%**
 
 *(Actualizado 2026-09-29: se elimina "% de depuración histórico SNIES" del PDF (indicador cancelado, a pedido explícito) — n indicadores pasa de 10 a 9, indicadores 101,6%→106,6%. Además el Centro de Proyectos PMO se actualizó: proyectos 81,4%→91,7% (Gobierno de Datos pasó de 5% a prácticamente 100%). Consolidado final 93,5%→98,6%. Impacto en cascada: total de indicadores del informe 49→48, atención 2→1, global 98,8%→100,8%.)*
 
@@ -144,7 +148,7 @@ Tres iniciativas de analítica avanzada para retención (modelo predictivo de de
 Los retos de Transformación Organizacional cierran en 97,5% de cumplimiento, estable durante todo el ciclo, pese a ser la línea con la agenda de ejecución más densa del portafolio.
 
 ### Logros — Proyectos
-Con 16 proyectos activos en el rango 2021-2025, es la línea con mayor densidad de iniciativas del ciclo, y su avance promedio (91,7%) refleja tanto la magnitud del esfuerzo como el hecho de que 11 de ellos ya cerraron. En el frente tecnológico: la migración del ecosistema académico Banner a su versión más reciente sobre Oracle Cloud, la centralización de datos institucionales en un Data Lake bajo metodología Data Vault, la integración Banner-HubSpot-FDI para la gestión de aspirantes y estudiantes, y la certificación ISO 9001:2015 del nuevo POLISIGS (con ampliación de alcance auditada por ICONTEC). En el frente humano, el Plan Talento y el nuevo Portal Web Universitario completan el cierre.
+Con 15 proyectos, es la línea con mayor densidad de iniciativas del ciclo, y su avance promedio (98,7%) refleja una ejecución consistente: 11 de ellos ya cerraron. En el frente tecnológico: la migración del ecosistema académico Banner a su versión más reciente sobre Oracle Cloud, la centralización de datos institucionales en un Data Lake bajo metodología Data Vault, la integración Banner-HubSpot-FDI para la gestión de aspirantes y estudiantes, y la certificación ISO 9001:2015 del nuevo POLISIGS (con ampliación de alcance auditada por ICONTEC). En el frente humano, el Plan Talento y el nuevo Portal Web Universitario completan el cierre.
 
 ### Logros — Indicadores
 *(Complementado 2026-09-28 a pedido explícito: la línea tiene 3 objetivos y el texto solo cubría el humano/cultural — se agregan indicadores de arquitectura tecnológica y de gestión por procesos/datos.)*
@@ -152,7 +156,7 @@ Con 16 proyectos activos en el rango 2021-2025, es la línea con mayor densidad 
 El CMI promedia 106,6% de cumplimiento (9 indicadores vigentes — la depuración del histórico SNIES fue cancelada en el ciclo y se retira del conteo), con logros en los tres objetivos de la línea. En el frente humano, el indicador más visible del cambio cultural es el Great Place to Work, con una ejecución de 81,0 puntos frente a una meta de 68,7 (117,9% de cumplimiento), acompañado de una satisfacción con los servicios prestados de 85% y una reducción del índice de rotación a 0,89 frente a una meta de 1,2 — evidencia de que la transformación cultural fue medible, no solo declarada. En arquitectura tecnológica, la disponibilidad de servicios tecnológicos llegó a 97,7%, por encima de la meta. Y en gestión por procesos y datos, la cobertura de recolección de variables para analítica (ADA) alcanzó 100% de la información solicitada por el SNIES, la base sobre la que se construirá el Centro de Excelencia Analítica del próximo ciclo.
 
 ### Logros — Consolidado
-El balance consolidado (retos 97,5%, proyectos 91,7% sobre 16 iniciativas, indicadores 106,6%) confirma que la transformación organizacional del ciclo operó en dos frentes simultáneos y complementarios: una arquitectura tecnológica y de datos que pasó de fragmentada a gobernada, y una cultura organizacional con mejoras medibles en clima laboral. Es la combinación de ambos frentes la que constituye la transformación de fondo que el PDI 2022-2026 se propuso para esta línea.
+El balance consolidado (retos 97,5%, proyectos 98,7% sobre 15 iniciativas, indicadores 106,6%) confirma que la transformación organizacional del ciclo operó en dos frentes simultáneos y complementarios: una arquitectura tecnológica y de datos que pasó de fragmentada a gobernada, y una cultura organizacional con mejoras medibles en clima laboral. Es la combinación de ambos frentes la que constituye la transformación de fondo que el PDI 2022-2026 se propuso para esta línea.
 
 ### Pendientes y prioridades
 *(Corregido 2026-09-28: SNIES es un indicador cancelado, no cerrado/completado — ver nota en "Retos priorizados" sobre el desfase con el CMI vigente, que aún muestra 56,8%/Peligro.)*
@@ -227,3 +231,25 @@ El chip "Cumplimiento general" de Retos (vista Retos y Consolidado del dashboard
 | Indicadores en atención | 2 | **1** | SNIES era uno de los 2 en Peligro |
 
 Todas las cifras se recalculan automáticamente desde los datos (topes ya aplicados: 100% por proyecto, 130% por indicador) — no se editaron a mano.
+
+## Actualización 2026-09-30 — cifras de proyectos vuelven a Resultados Consolidados (ProyectosOficialesService)
+
+Revierte el uso del PMO como fuente de cifras (decisión del 2026-09-27). Universo fijo de **44 proyectos oficiales** (catálogo, Id PRY-1..44), cifras de Resultados Consolidados, fechas/estado del PMO — ver nota de arquitectura al inicio del documento.
+
+| Línea | Antes (PMO como cifra) | Ahora (Resultados Consolidados) | Motivo |
+|---|---|---|---|
+| Consolidado global | 100,8% | **100,7%** | Cambio de fuente de cifras |
+| Calidad | proy. 98,2% (n=15) → cons. 100,8% | proy. **86,3%** (n=15) → cons. **96,8%** | Cifra real de Resultados Consolidados, no el % completado del PMO |
+| Expansión | proy. 95,2% (n=3) → cons. 100,5% | proy. **100,0%** (n=2) → cons. **102,1%** | HubSpot Eduvida no es parte de los 44 oficiales (Id > PRY-44); Pricing y Proyecto Silver, ambos 100% |
+| Educación para toda la vida | cons. 101,2% | cons. **101,2%** | Sin cambio (proyectos siguen N/A, stand by) |
+| Experiencia | proy. 99,6% (n=7) → cons. 100,4% | proy. **98,8%** (n=6) → cons. **100,1%** | Remodelaciones bloque I y C no es parte de los 44 oficiales |
+| Transformación Organizacional | proy. 91,7% (n=16) → cons. 98,6% | proy. **98,7%** (n=15) → cons. **100,9%** | Automatización proceso contractual no es parte de los 44 oficiales; cifras reales de Resultados Consolidados |
+| Sostenibilidad | proy. 99,3% → cons. 103,3% | proy. **99,3%** → cons. **103,3%** | Sin cambio (coincide por casualidad) |
+| Total proyectos (portada y detalle) | 44 (portada) / 47 (detalle PMO) — dos cifras distintas | **44 en ambos** | Universo único: el catálogo oficial |
+| Cobertura de cifra real | — | **43 de 44 (98%)** | Solo PRY-17 (Centro de Idiomas Fase I) queda "Sin medición" — confirmado Stand by sin cierre cargado |
+
+Casos resueltos a mano con el usuario (nombres que no coincidían entre hojas por una migración de Ids no propagada):
+- **PRY-11** "Acreditación Institucional - Fase I": el dato real está en Cierre PDI bajo el Id **10.1** ("...Sede Bogotá - Fase I"), no bajo PRY-11.
+- **PRY-17** "Centro de Idiomas Fase I": existe en Cierre PDI (Id 901) pero sin Meta/Ejecución — confirmado Stand by real, no un vacío de carga.
+- **PRY-33** "Ilumno Self Service S&P": sin cierre en ninguna hoja — confirmado Meta 100 / Ejecución 100.
+- **PRY-43/PRY-44**: sin cierre en ninguna hoja — confirmado que a cierre de 2025 estaban en Planeación (0% de avance).
