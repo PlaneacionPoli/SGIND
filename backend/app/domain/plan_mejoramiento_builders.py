@@ -21,6 +21,7 @@ import pandas as pd
 from app.domain.agregacion_anual import (
     EJE_X_PREFIJO,
     IDS_GRUPOS_SIN_TOTAL,
+    IDS_PROMEDIO,
     IDS_SIN_TOTAL_GLOBAL,
     IDS_SUMA_SEMESTRAL,
     IDS_TOTAL_NO_APLICA,
@@ -1733,10 +1734,13 @@ def _fila_desglose(row: pd.Series) -> dict[str, Any]:
     }
 
 
-def _agrega_filas(filas: list[dict[str, Any]], signo: str | None, decimales) -> dict[str, Any]:
+def _agrega_filas(
+    filas: list[dict[str, Any]], signo: str | None, decimales, forzar_promedio: bool = False
+) -> dict[str, Any]:
     """Agrega un conjunto de filas homogéneas (mismo signo/decimales):
-    promedio para tasas (%/%FRAC, no son sumables sin ponderar), suma para
-    magnitudes aditivas (ENT/DEC, p.ej. conteos de estudiantes/profesores
+    promedio para tasas (%/%FRAC, no son sumables sin ponderar) o para
+    calificaciones de escala fija (forzar_promedio, ver IDS_PROMEDIO), suma
+    para magnitudes aditivas (ENT/DEC, p.ej. conteos de estudiantes/profesores
     que se descomponen por categoría) — ver validación de negocio
     2026-09-18 ("Matrícula de estudiantes" debía sumar ~58.398, no
     promediar)."""
@@ -1745,7 +1749,7 @@ def _agrega_filas(filas: list[dict[str, Any]], signo: str | None, decimales) -> 
     if valores:
         valor = (
             float(pd.Series(valores).mean())
-            if signo in _TASA_SIGNOS
+            if forzar_promedio or signo in _TASA_SIGNOS
             else float(pd.Series(valores).sum())
         )
     anios = [f["ultimo_anio"] for f in filas if f["ultimo_anio"] is not None]
@@ -1762,11 +1766,14 @@ def _agrega_filas(filas: list[dict[str, Any]], signo: str | None, decimales) -> 
     }
 
 
-def _agrega_series(filas: pd.DataFrame, signo: str | None) -> list[dict[str, Any]]:
+def _agrega_series(
+    filas: pd.DataFrame, signo: str | None, forzar_promedio: bool = False
+) -> list[dict[str, Any]]:
     """Serie anual del consolidado: por cada año, suma (magnitudes) o
-    promedio (tasas) de las series de todas las categorías del desglose —
-    misma regla de agregación que _agrega_filas, pero año a año, para poder
-    graficar el consolidado y calcular su variación y tendencia."""
+    promedio (tasas o forzar_promedio, ver IDS_PROMEDIO) de las series de
+    todas las categorías del desglose — misma regla de agregación que
+    _agrega_filas, pero año a año, para poder graficar el consolidado y
+    calcular su variación y tendencia."""
     por_anio: dict[int, dict[str, list[float]]] = {}
     for serie in filas["serie"]:
         for p in serie:
@@ -1778,7 +1785,11 @@ def _agrega_series(filas: pd.DataFrame, signo: str | None) -> list[dict[str, Any
     def combina(valores: list[float]) -> float | None:
         if not valores:
             return None
-        return sum(valores) / len(valores) if signo in _TASA_SIGNOS else float(sum(valores))
+        return (
+            sum(valores) / len(valores)
+            if forzar_promedio or signo in _TASA_SIGNOS
+            else float(sum(valores))
+        )
 
     return _anota_variaciones(
         [
@@ -1849,6 +1860,12 @@ def _agregado_serie(serie: list[dict[str, Any]], signo: str | None, decimales) -
 def _id_no_aplica(df: pd.DataFrame) -> bool:
     """Ítems de naturaleza distinta: el total no se suma y se muestra "No aplica"."""
     return "Id" in df.columns and bool(df["Id"].astype(str).isin(IDS_TOTAL_NO_APLICA).any())
+
+
+def _id_promedio(df: pd.DataFrame) -> bool:
+    """Calificaciones de escala fija (p.ej. 1-5): el total promedia sus
+    categorías en vez de sumarlas, aunque el signo sea DEC/ENT."""
+    return "Id" in df.columns and bool(df["Id"].astype(str).isin(IDS_PROMEDIO).any())
 
 
 def _id_grupos_sin_total(df: pd.DataFrame) -> bool:
@@ -2015,10 +2032,11 @@ def build_metricas_tabla_agrupada(df: pd.DataFrame) -> list[dict[str, Any]]:
             serie = principal["serie"]
         elif homogeneo:
             signo, decimales = grupo["signo"].iloc[0], grupo["decimales"].iloc[0]
-            serie_agregada = _agrega_series(grupo, signo)
+            forzar_promedio = _id_promedio(grupo)
+            serie_agregada = _agrega_series(grupo, signo, forzar_promedio)
             # Sin serie anual (Periodo vacío en el Excel): último dato de cada categoría.
             agregado = _agregado_serie(serie_agregada, signo, decimales) or _agrega_filas(
-                desglose, signo, decimales
+                desglose, signo, decimales, forzar_promedio
             )
             serie = [p["ejecucion"] for p in serie_agregada if p["ejecucion"] is not None]
             grupos_intermedios = _detecta_grupos_intermedios(grupo, desglose)
@@ -2216,8 +2234,9 @@ def build_metrica_detalle(
     serie: list[dict[str, Any]] = []
     est: dict[str, Any] = {}
     grupos: list[dict[str, Any]] | None = None
+    forzar_promedio = _id_promedio(match)
     if len(unidades) <= 1 and not _id_no_aplica(match):
-        serie = _agrega_series(match, signo)
+        serie = _agrega_series(match, signo, forzar_promedio)
         est = _estadisticas_serie(serie)
         if _id_grupos_sin_total(match):
             serie, est = [], {}  # se muestran los grupos, no un total entre ellos
@@ -2226,7 +2245,7 @@ def build_metrica_detalle(
             grupos = []
             for prefijo in dict.fromkeys(p for _, p, _ in partes):
                 posiciones = [i for i, p, _ in partes if p == prefijo]
-                serie_g = _agrega_series(match.iloc[posiciones], signo)
+                serie_g = _agrega_series(match.iloc[posiciones], signo, forzar_promedio)
                 est_g = _estadisticas_serie(serie_g)
                 grupos.append(
                     {
@@ -2293,7 +2312,7 @@ def build_metrica_detalle(
         "consolidado": True,
         "signo": _clean(signo),
         "decimales": _int_o_none(decimales),
-        "agregacion": None if not serie else ("Promedio" if signo in _TASA_SIGNOS else "Total"),
+        "agregacion": None if not serie else ("Promedio" if forzar_promedio or signo in _TASA_SIGNOS else "Total"),
         "ultimo_anio": est.get("ultimo_anio"),
         "ultimo_valor": est.get("ultimo_valor"),
         "valor_fmt": fmt_valor_plan(est.get("ultimo_valor"), signo, decimales) if serie else "No aplica",

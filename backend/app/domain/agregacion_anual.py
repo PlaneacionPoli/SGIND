@@ -72,3 +72,14 @@ IDS_SOLO_CUMPLIMIENTO: frozenset[str] = frozenset({"T224"})
 # ingreso" (S1..S12), no un año calendario — el prefijo se antepone al
 # número en la ficha/gráfica en vez de mostrarlo como año.
 EJE_X_PREFIJO: dict[str, str] = {"T217": "S"}
+
+# Indicadores tipo DEC/ENT que son calificaciones o promedios (escala fija,
+# p.ej. 1-5), no magnitudes aditivas: la fila principal debe promediar sus
+# categorías, no sumarlas (validación de negocio 2026-09-29: "Resultados de
+# la evaluación de profesores" sumaba Cátedra + Planta dando ~9.2 sobre una
+# escala de 5).
+IDS_PROMEDIO: frozenset[str] = frozenset(
+    {
+        "G9",  # Resultados de la evaluación de profesores
+    }
+)
