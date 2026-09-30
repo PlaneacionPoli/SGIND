@@ -308,6 +308,25 @@ export interface CMICalidadDashboard {
     pct_calidad: number;
   }>;
   alertas_dim: Array<{ dimension: string; score: number; color: string }>;
+  alertas: Array<{
+    tipo: "critica" | "fortaleza";
+    titulo: string;
+    detalle: string;
+    indicadores: string[];
+    indicadores_extra: number;
+  }>;
+  recomendaciones: Array<{
+    prioridad: "Alta" | "Media" | "Baja";
+    titulo: string;
+    items: string[];
+  }>;
+  detalle_indicadores: Array<{
+    indicador: string;
+    proceso: string;
+    subproceso: string;
+    dimensiones: Record<string, number | null>;
+    score_total: number | null;
+  }>;
   registros: Array<{
     proceso: string;
     subproceso: string;

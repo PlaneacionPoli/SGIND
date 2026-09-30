@@ -38,8 +38,20 @@ def test_build_calidad_dashboard():
     )
     dash = build_calidad_dashboard(df)
     assert dash["disponible"] is True
-    assert dash["score_global"] == 87.5
+    # score_global replica la fórmula del Streamlit legacy: media de las 4
+    # dimensiones de la pestaña (Completitud 75, Consistencia 100,
+    # Oportunidad 100, Exactitud 50) -> (75+100+100+50)/4 = 81.25
+    assert dash["score_global"] == 81.2
+    assert dash["dim_scores"] == {
+        "Completitud": 75.0,
+        "Consistencia": 100.0,
+        "Oportunidad": 100.0,
+        "Exactitud": 50.0,
+    }
     assert len(dash["por_proceso"]) == 1
+    assert len(dash["detalle_indicadores"]) == 2
+    assert any(a["tipo"] == "critica" for a in dash["alertas"])
+    assert {r["prioridad"] for r in dash["recomendaciones"]} == {"Alta", "Media", "Baja"}
 
 
 def test_filter_calidad_proceso():

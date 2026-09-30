@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import dynamic from "next/dynamic";
 import type { Data, Layout } from "plotly.js";
 import type { CMICalidadDashboard } from "@/lib/types";
@@ -12,27 +12,25 @@ interface CmiProcesosCalidadSectionProps {
 }
 
 const PRIORIDAD_STYLE = {
-  Alta: { bg: "#fde0e0", border: "#e63535", text: "#7a0000" },
-  Media: { bg: "#fff3cd", border: "#e6a800", text: "#7a5000" },
-  Baja: { bg: "#dbeeff", border: "#1a6fdb", text: "#003d8f" },
+  Alta: { bg: "#ffebee", border: "#ef5350", text: "#b71c1c" },
+  Media: { bg: "#fff8e1", border: "#ffa726", text: "#e65100" },
+  Baja: { bg: "#e8f5e9", border: "#66bb6a", text: "#1b5e20" },
 } as const;
+
+const ALERTA_STYLE = {
+  critica: { bg: "#fff8e1", border: "#ffa726", text: "#e65100", sub: "#78350f" },
+  fortaleza: { bg: "#e8f5e9", border: "#66bb6a", text: "#1b5e20", sub: "#1b5e20" },
+} as const;
+
+function scoreColor(score: number): { bg: string; fg: string } {
+  if (score >= 90) return { bg: "#e8f5e9", fg: "#1b5e20" };
+  if (score >= 70) return { bg: "#fff8e1", fg: "#e65100" };
+  return { bg: "#ffebee", fg: "#b71c1c" };
+}
 
 export function CmiProcesosCalidadSection({ calidad }: CmiProcesosCalidadSectionProps) {
   const [subprocesoOpen, setSubprocesoOpen] = useState(false);
-  const [detalleOpen, setDetalleOpen] = useState(false);
-
-  const recomendaciones = useMemo(() => {
-    const dims = [...calidad.alertas_dim].sort((a, b) => a.score - b.score);
-    return dims.slice(0, 3).map((d) => {
-      const prioridad = d.score < 70 ? "Alta" : d.score < 90 ? "Media" : "Baja";
-      const afectados = calidad.registros
-        .filter((r) => (r.criterios[d.dimension] ?? "").toUpperCase().includes("NO"))
-        .map((r) => r.tematica)
-        .filter((v, i, arr) => v && arr.indexOf(v) === i)
-        .slice(0, 5);
-      return { dimension: d.dimension, score: d.score, prioridad, afectados };
-    });
-  }, [calidad.alertas_dim, calidad.registros]);
+  const [indicadoresOpen, setIndicadoresOpen] = useState(true);
 
   if (!calidad.disponible) {
     return (
@@ -46,9 +44,11 @@ export function CmiProcesosCalidadSection({ calidad }: CmiProcesosCalidadSection
   const gaugeColor = score >= 90 ? "#22c55e" : score >= 70 ? "#f59e0b" : "#ef4444";
   const dims = Object.keys(calidad.dim_scores);
 
+  const alertCount = calidad.alertas.length + calidad.recomendaciones.length;
+
   return (
     <section className="space-y-6">
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid gap-4 lg:grid-cols-3">
         <div className="rounded-xl border border-slate-200 bg-white p-4">
           <h4 className="mb-2 text-sm font-bold text-slate-800">Score global</h4>
           <Plot
@@ -83,7 +83,33 @@ export function CmiProcesosCalidadSection({ calidad }: CmiProcesosCalidadSection
 
         {dims.length > 0 && (
           <div className="rounded-xl border border-slate-200 bg-white p-4">
-            <h4 className="mb-2 text-sm font-bold text-slate-800">Dimensiones de calidad</h4>
+            <h4 className="mb-3 text-sm font-bold text-slate-800">Dimensiones de calidad</h4>
+            <div className="space-y-3">
+              {dims.map((dim) => {
+                const value = calidad.dim_scores[dim];
+                const color = calidad.dim_colors[dim] ?? "#1A3A5C";
+                return (
+                  <div key={dim}>
+                    <div className="mb-1 flex items-center justify-between text-xs font-semibold text-slate-600">
+                      <span>{dim}</span>
+                      <span style={{ color }}>{value.toFixed(0)}%</span>
+                    </div>
+                    <div className="h-2 rounded-full bg-slate-200">
+                      <div
+                        className="h-2 rounded-full"
+                        style={{ width: `${Math.max(0, Math.min(100, value))}%`, backgroundColor: color }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {dims.length > 0 && (
+          <div className="rounded-xl border border-slate-200 bg-white p-4">
+            <h4 className="mb-2 text-sm font-bold text-slate-800">Análisis por dimensión</h4>
             <Plot
               data={[
                 {
@@ -111,35 +137,117 @@ export function CmiProcesosCalidadSection({ calidad }: CmiProcesosCalidadSection
         )}
       </div>
 
-      {recomendaciones.length > 0 && (
+      {alertCount > 0 && (
         <div>
-          <h4 className="mb-3 text-sm font-bold text-slate-800">Recomendaciones priorizadas</h4>
-          <div className="grid gap-3 sm:grid-cols-3">
-            {recomendaciones.map((r) => {
-              const style = PRIORIDAD_STYLE[r.prioridad as keyof typeof PRIORIDAD_STYLE];
+          <h4 className="mb-3 text-sm font-bold text-slate-800">
+            ⚠️ Alertas &nbsp;&nbsp;&nbsp; 💡 Recomendaciones priorizadas
+          </h4>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+            {calidad.alertas.map((a) => {
+              const style = ALERTA_STYLE[a.tipo];
               return (
                 <div
-                  key={r.dimension}
-                  className="rounded-xl border-2 p-4"
-                  style={{ backgroundColor: style.bg, borderColor: style.border }}
+                  key={a.titulo}
+                  className="rounded-lg border-l-4 p-3"
+                  style={{ backgroundColor: style.bg, borderLeftColor: style.border }}
                 >
                   <p className="text-xs font-bold" style={{ color: style.text }}>
-                    Prioridad {r.prioridad} · {r.dimension} ({r.score}%)
+                    {a.tipo === "critica" ? "⏱ " : "✓ "}
+                    {a.titulo}
                   </p>
-                  {r.afectados.length > 0 ? (
-                    <ul className="mt-2 space-y-1 text-xs text-slate-700">
-                      {r.afectados.map((a) => (
-                        <li key={a}>• {a}</li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className="mt-2 text-xs text-slate-500">Sin indicadores puntuales identificados.</p>
+                  <p className="mt-1 text-[11px]" style={{ color: style.sub }}>
+                    {a.detalle}
+                  </p>
+                  {a.indicadores.length > 0 && (
+                    <p className="mt-1 text-[11px] italic" style={{ color: style.sub }}>
+                      {a.indicadores.join(", ")}
+                      {a.indicadores_extra > 0 ? ` +${a.indicadores_extra}` : ""}
+                    </p>
                   )}
+                </div>
+              );
+            })}
+            {calidad.recomendaciones.map((r) => {
+              const style = PRIORIDAD_STYLE[r.prioridad];
+              return (
+                <div
+                  key={r.titulo}
+                  className="rounded-lg border-l-4 p-3"
+                  style={{ backgroundColor: style.bg, borderLeftColor: style.border }}
+                >
+                  <p className="text-xs font-bold" style={{ color: style.text }}>
+                    {r.prioridad}: {r.titulo}
+                  </p>
+                  <ul className="mt-1 space-y-0.5 text-[11px] text-slate-700">
+                    {r.items.map((item, i) => (
+                      <li key={i}>{item}</li>
+                    ))}
+                  </ul>
                 </div>
               );
             })}
           </div>
         </div>
+      )}
+
+      {calidad.detalle_indicadores.length > 0 && (
+        <details open={indicadoresOpen} onToggle={(e) => setIndicadoresOpen(e.currentTarget.open)}>
+          <summary className="cursor-pointer text-sm font-bold text-slate-800">
+            Detalle por indicador ({calidad.detalle_indicadores.length})
+          </summary>
+          <div className="mt-3 overflow-x-auto rounded-xl border border-slate-200 bg-white">
+            <table className="min-w-full text-left text-sm">
+              <thead className="bg-slate-50 text-xs uppercase text-slate-500">
+                <tr>
+                  <th className="px-4 py-3">Indicador</th>
+                  {dims.map((d) => (
+                    <th key={d} className="px-3 py-3 text-center">
+                      {d}
+                    </th>
+                  ))}
+                  <th className="px-4 py-3 text-center">Score total</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {calidad.detalle_indicadores.map((row, i) => (
+                  <tr key={`${row.indicador}-${i}`}>
+                    <td className="px-4 py-3 font-medium">{row.indicador}</td>
+                    {dims.map((d) => {
+                      const v = row.dimensiones[d];
+                      if (v == null) {
+                        return (
+                          <td key={d} className="px-3 py-3 text-center text-slate-400">
+                            —
+                          </td>
+                        );
+                      }
+                      const { bg, fg } = scoreColor(v);
+                      return (
+                        <td key={d} className="px-3 py-3 text-center">
+                          <span
+                            className="rounded-full px-2 py-0.5 text-xs font-semibold"
+                            style={{ backgroundColor: bg, color: fg }}
+                          >
+                            {v.toFixed(0)}%
+                          </span>
+                        </td>
+                      );
+                    })}
+                    <td className="px-4 py-3 text-center font-bold">
+                      {row.score_total == null ? (
+                        "—"
+                      ) : (
+                        <span style={{ color: scoreColor(row.score_total).fg }}>
+                          {row.score_total.toFixed(0)}%
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </details>
       )}
 
       {calidad.por_proceso.length > 0 && (
@@ -199,51 +307,6 @@ export function CmiProcesosCalidadSection({ calidad }: CmiProcesosCalidadSection
         </details>
       )}
 
-      {calidad.registros.length > 0 && (
-        <details open={detalleOpen} onToggle={(e) => setDetalleOpen(e.currentTarget.open)}>
-          <summary className="cursor-pointer text-sm font-bold text-slate-800">
-            Detalle por indicador ({calidad.registros.length})
-          </summary>
-          <div className="mt-3 overflow-x-auto rounded-xl border border-slate-200 bg-white">
-            <table className="min-w-full text-left text-sm">
-              <thead className="bg-slate-50 text-xs uppercase text-slate-500">
-                <tr>
-                  <th className="px-4 py-3">Temática</th>
-                  <th className="px-4 py-3">Proceso</th>
-                  <th className="px-4 py-3">Subproceso</th>
-                  {dims.map((d) => (
-                    <th key={d} className="px-3 py-3 text-center">
-                      {d}
-                    </th>
-                  ))}
-                  <th className="px-4 py-3 text-right">% Calidad</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {calidad.registros.map((r, i) => (
-                  <tr key={`${r.tematica}-${i}`}>
-                    <td className="px-4 py-3 font-medium">{r.tematica}</td>
-                    <td className="px-4 py-3 text-slate-600">{r.proceso}</td>
-                    <td className="px-4 py-3 text-slate-600">{r.subproceso}</td>
-                    {dims.map((d) => {
-                      const v = (r.criterios[d] ?? "").toUpperCase();
-                      const ok = v.includes("NO") ? false : v.length > 0;
-                      return (
-                        <td key={d} className="px-3 py-3 text-center">
-                          {v ? (ok ? "✅" : "⚠️") : "—"}
-                        </td>
-                      );
-                    })}
-                    <td className="px-4 py-3 text-right font-semibold">
-                      {r.pct_calidad != null ? `${r.pct_calidad}%` : "—"}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </details>
-      )}
     </section>
   );
 }

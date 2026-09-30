@@ -35,6 +35,11 @@ _DIM_COLORS = {
     "Protocolo": "#1A3A5C",
 }
 
+# La pestaña "Calidad de Datos" replica el módulo original de Streamlit
+# (informe_por_procesos.py::_DIM_MAP), que solo visualiza estas 4 dimensiones
+# — "V. PROTOCOLO" se carga desde el Excel pero nunca se muestra en esa pestaña.
+_TAB_DIMS = ["Completitud", "Consistencia", "Oportunidad", "Exactitud"]
+
 _CALIDAD_PATHS = [
     "raw/Monitoreo/Monitoreo_Informacion_Procesos 2025.xlsx",
     "raw/Monitoreo/Monitoreo_Informacion_Procesos.xlsx",
@@ -192,15 +197,147 @@ def filter_calidad(
     return out
 
 
-def build_dim_scores(df: pd.DataFrame) -> dict[str, float]:
-    scores: dict[str, float] = {}
-    for crit, label in _DIM_LABELS.items():
-        if crit not in df.columns:
-            scores[label] = 0.0
-            continue
-        vals = df[crit].apply(_score_calidad).dropna() * 100
-        scores[label] = round(float(vals.mean()), 1) if not vals.empty else 0.0
-    return scores
+_LABEL_TO_CRIT = {label: crit for crit, label in _DIM_LABELS.items()}
+
+
+def _compute_scored_rows(df: pd.DataFrame) -> pd.DataFrame:
+    """Una fila por indicador (Temática) con las 4 dimensiones de la pestaña en escala 0-100."""
+    work = pd.DataFrame(index=df.index)
+    work["Indicador"] = df.get("Temática", pd.Series("", index=df.index)).astype(str).str.strip()
+    work["Proceso"] = df.get("Proceso", pd.Series("", index=df.index)).astype(str).str.strip()
+    work["Subproceso"] = df.get("Subproceso", pd.Series("", index=df.index)).astype(str).str.strip()
+    for dim in _TAB_DIMS:
+        crit = _LABEL_TO_CRIT[dim]
+        if crit in df.columns:
+            work[dim] = df[crit].apply(_score_calidad).apply(
+                lambda v: None if v is None else v * 100
+            )
+        else:
+            work[dim] = None
+    dim_frame = work[_TAB_DIMS].apply(pd.to_numeric, errors="coerce")
+    work["Score Total"] = dim_frame.mean(axis=1, skipna=True).round(0)
+    return work
+
+
+def _dim_scores_global(scored: pd.DataFrame) -> dict[str, float]:
+    out: dict[str, float] = {}
+    for dim in _TAB_DIMS:
+        vals = pd.to_numeric(scored.get(dim), errors="coerce").dropna()
+        out[dim] = round(float(vals.mean()), 1) if not vals.empty else 0.0
+    return out
+
+
+def _build_alertas(scored: pd.DataFrame, dim_scores: dict[str, float]) -> list[dict[str, Any]]:
+    if not dim_scores:
+        return []
+    worst_dim = min(dim_scores, key=dim_scores.get)
+    best_dim = max(dim_scores, key=dim_scores.get)
+    worst_score = dim_scores[worst_dim]
+    best_score = dim_scores[best_dim]
+    alertas: list[dict[str, Any]] = []
+
+    if worst_score < 90:
+        col = pd.to_numeric(scored.get(worst_dim), errors="coerce")
+        n_total = int(col.notna().sum())
+        n_no_cumple = int((col == 0).sum())
+        n_parcial = int((col == 50).sum())
+        indicadores = [
+            str(v)
+            for v in scored.loc[col == 0, "Indicador"].tolist()
+            if str(v) not in ("nan", "")
+        ]
+        detalle = f"{n_no_cumple} NO CUMPLE"
+        if n_parcial:
+            detalle += f" · {n_parcial} PARCIAL"
+        if n_total:
+            detalle += f" / {n_total}"
+        alertas.append(
+            {
+                "tipo": "critica",
+                "titulo": f"Crítica: {worst_dim} · {worst_score:.0f}/100",
+                "detalle": detalle,
+                "indicadores": indicadores[:3],
+                "indicadores_extra": max(0, len(indicadores) - 3),
+            }
+        )
+
+    if best_score >= 90:
+        col = pd.to_numeric(scored.get(best_dim), errors="coerce")
+        n_total = int(col.notna().sum())
+        n_cumple = int((col == 100).sum())
+        alertas.append(
+            {
+                "tipo": "fortaleza",
+                "titulo": f"Fortaleza: {best_dim} · {best_score:.0f}/100",
+                "detalle": f"{n_cumple}/{n_total} indicadores CUMPLEN al 100%." if n_total else "—",
+                "indicadores": [],
+                "indicadores_extra": 0,
+            }
+        )
+    return alertas
+
+
+def _build_recomendaciones(scored: pd.DataFrame, dim_scores: dict[str, float]) -> list[dict[str, Any]]:
+    recs: list[dict[str, Any]] = []
+
+    peores = scored.dropna(subset=["Score Total"]).copy()
+    if not peores.empty:
+        peores["Score Total"] = pd.to_numeric(peores["Score Total"], errors="coerce")
+        peores = peores.sort_values("Score Total")
+        worst_row = peores.iloc[0]
+        ws_score = float(worst_row["Score Total"])
+        dims_fallando = [
+            f"{d} ({float(worst_row[d]):.0f}%)"
+            for d in _TAB_DIMS
+            if pd.notna(worst_row.get(d)) and float(worst_row[d]) < 100
+        ]
+        items = [f"Score: {ws_score:.0f}/100"]
+        if dims_fallando:
+            items.append(", ".join(dims_fallando))
+        items.append("Convocar responsable para corregir NO CUMPLE.")
+        recs.append(
+            {
+                "prioridad": "Alta",
+                "titulo": f"«{worst_row['Indicador']}»",
+                "items": items,
+            }
+        )
+
+    if dim_scores:
+        wdim = min(dim_scores, key=dim_scores.get)
+        wdim_score = dim_scores[wdim]
+        if wdim_score < 90:
+            col = pd.to_numeric(scored.get(wdim), errors="coerce")
+            ind_nc = [
+                str(v)
+                for v in scored.loc[col < 100, "Indicador"].tolist()
+                if str(v) not in ("nan", "")
+            ]
+            listado = ", ".join(f"«{i}»" for i in ind_nc[:2])
+            if len(ind_nc) > 2:
+                listado += f" +{len(ind_nc) - 2}"
+            items_m = [f"{wdim}: {wdim_score:.0f}/100 — {len(ind_nc)} sin cumplimiento."]
+            if listado:
+                items_m.append(listado)
+            items_m.append("Meta: ≥ 90% antes del próximo corte.")
+            recs.append({"prioridad": "Media", "titulo": f"Fortalecer: {wdim}", "items": items_m})
+
+        bdim = max(dim_scores, key=dim_scores.get)
+        bscore = dim_scores[bdim]
+        col = pd.to_numeric(scored.get(bdim), errors="coerce")
+        n_ok = int((col == 100).sum())
+        n_tot = int(col.notna().sum())
+        recs.append(
+            {
+                "prioridad": "Baja",
+                "titulo": f"Mantener: {bdim}",
+                "items": [
+                    f"{n_ok}/{n_tot} CUMPLEN al 100% (score: {bscore:.0f}/100).",
+                    "Documentar prácticas y auditar trimestralmente.",
+                ],
+            }
+        )
+    return recs
 
 
 def build_calidad_dashboard(
@@ -219,6 +356,9 @@ def build_calidad_dashboard(
             "por_proceso": [],
             "por_subproceso": [],
             "alertas_dim": [],
+            "alertas": [],
+            "recomendaciones": [],
+            "detalle_indicadores": [],
             "registros": [],
         }
 
@@ -226,17 +366,35 @@ def build_calidad_dashboard(
     if "Subproceso" not in work.columns:
         work["Subproceso"] = "Sin subproceso"
     work["pct_calidad"] = pd.to_numeric(work.get("pct_calidad"), errors="coerce")
-    score_global = (
-        round(float(work["pct_calidad"].mean()), 1) if work["pct_calidad"].notna().any() else None
-    )
-    dim_scores = build_dim_scores(work)
 
-    alertas = [
+    scored = _compute_scored_rows(work)
+    dim_scores = _dim_scores_global(scored)
+    score_global = (
+        round(float(pd.Series(list(dim_scores.values())).mean()), 1) if dim_scores else None
+    )
+    alertas = _build_alertas(scored, dim_scores)
+    recomendaciones = _build_recomendaciones(scored, dim_scores)
+
+    detalle_indicadores = []
+    for _, row in scored.iterrows():
+        detalle_indicadores.append(
+            {
+                "indicador": row["Indicador"],
+                "proceso": row["Proceso"],
+                "subproceso": row["Subproceso"],
+                "dimensiones": {
+                    dim: (None if pd.isna(row.get(dim)) else float(row[dim])) for dim in _TAB_DIMS
+                },
+                "score_total": None if pd.isna(row.get("Score Total")) else float(row["Score Total"]),
+            }
+        )
+
+    alertas_dim = [
         {"dimension": dim, "score": score, "color": _DIM_COLORS.get(dim, "#1A3A5C")}
         for dim, score in dim_scores.items()
         if score < 90
     ]
-    alertas.sort(key=lambda x: x["score"])
+    alertas_dim.sort(key=lambda x: x["score"])
 
     por_proceso = (
         work.groupby("Proceso", dropna=False)
@@ -293,6 +451,9 @@ def build_calidad_dashboard(
         },
         "por_proceso": por_proceso_list,
         "por_subproceso": por_sub_list,
-        "alertas_dim": alertas,
+        "alertas_dim": alertas_dim,
+        "alertas": alertas,
+        "recomendaciones": recomendaciones,
+        "detalle_indicadores": detalle_indicadores,
         "registros": registros,
     }
