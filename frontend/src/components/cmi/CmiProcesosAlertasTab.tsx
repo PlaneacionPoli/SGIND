@@ -1,9 +1,13 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import dynamic from "next/dynamic";
+import type { Data, Layout } from "plotly.js";
 import type { CMIAlertaCritica, Indicator } from "@/lib/types";
 import { fmtPct, NivelBadge } from "@/components/cmi/nivelUtils";
 import { fmtMeta, fmtEjecucion } from "@/lib/formatValor";
+
+const Plot = dynamic(() => import("react-plotly.js"), { ssr: false });
 
 interface CmiProcesosAlertasTabProps {
   peligro: number;
@@ -30,6 +34,23 @@ export function CmiProcesosAlertasTab({
         .filter(Boolean) as string[]
     );
     return ["Todos", ...Array.from(set).sort()];
+  }, [items]);
+
+  const porProceso = useMemo(() => {
+    const map = new Map<string, { peligro: number; alerta: number }>();
+    for (const ind of items) {
+      const proc = ((ind as Record<string, unknown>).Proceso_padre as string | undefined) ?? "Sin proceso";
+      const nivel = ind["Nivel de cumplimiento"] as string | undefined;
+      const entry = map.get(proc) ?? { peligro: 0, alerta: 0 };
+      if (nivel === "Peligro") entry.peligro += 1;
+      else if (nivel === "Alerta") entry.alerta += 1;
+      map.set(proc, entry);
+    }
+    return Array.from(map.entries())
+      .map(([proc, v]) => ({ proceso: proc, ...v, total: v.peligro + v.alerta }))
+      .sort((a, b) => b.total - a.total)
+      .slice(0, 10)
+      .reverse();
   }, [items]);
 
   const filtered = useMemo(() => {
@@ -106,6 +127,54 @@ export function CmiProcesosAlertasTab({
           </div>
         ) : (
           <>
+            {porProceso.length > 0 && (
+              <div className="mb-4 rounded-xl border border-slate-200 bg-white p-4">
+                <h4 className="mb-2 text-sm font-bold text-slate-800">
+                  Top procesos por número de alertas
+                </h4>
+                <Plot
+                  data={
+                    [
+                      {
+                        type: "bar",
+                        orientation: "h",
+                        name: "Peligro",
+                        y: porProceso.map((p) =>
+                          p.proceso.length > 36 ? `${p.proceso.slice(0, 34)}…` : p.proceso
+                        ),
+                        x: porProceso.map((p) => p.peligro),
+                        marker: { color: "#C62828" },
+                      },
+                      {
+                        type: "bar",
+                        orientation: "h",
+                        name: "Alerta",
+                        y: porProceso.map((p) =>
+                          p.proceso.length > 36 ? `${p.proceso.slice(0, 34)}…` : p.proceso
+                        ),
+                        x: porProceso.map((p) => p.alerta),
+                        marker: { color: "#F9A825" },
+                      },
+                    ] as Data[]
+                  }
+                  layout={
+                    {
+                      barmode: "stack",
+                      margin: { l: 220, r: 24, t: 10, b: 30 },
+                      height: Math.max(180, porProceso.length * 32),
+                      paper_bgcolor: "rgba(0,0,0,0)",
+                      plot_bgcolor: "rgba(0,0,0,0)",
+                      legend: { orientation: "h", y: 1.1 },
+                      xaxis: { gridcolor: "#E2E8F0", dtick: 1 },
+                      font: { family: "inherit", size: 10 },
+                    } as Partial<Layout>
+                  }
+                  config={{ displayModeBar: false, responsive: true }}
+                  style={{ width: "100%" }}
+                  useResizeHandler
+                />
+              </div>
+            )}
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="rounded-lg p-5 text-center" style={{ backgroundColor: "#FFCDD2" }}>
                 <p className="text-3xl font-bold" style={{ color: "#C62828" }}>

@@ -526,11 +526,31 @@ class CMIService:
             if mes_eff > 1
             else pd.DataFrame()
         )
+        # Filtrados con los mismos criterios de UI que df_current: build_analisis_avanzado
+        # compara "filtrado vs filtrado" (Análisis Avanzado respeta los filtros del panel).
+        # Sin este filtro, se comparaba el proceso seleccionado contra TODOS los procesos
+        # del año/mes base, produciendo insights sin sentido (ver informe-procesos bugfix).
+        df_prev_month = apply_ui_filters(
+            df_prev_month,
+            unidad=unidad,
+            proceso=proceso,
+            subproceso=subproceso,
+            clasificacion=clasificacion,
+            frecuencia=frecuencia,
+        )
 
         df_base_year = (
             self._slice_by_mes(year_prep_base, anio=base_year, mes=base_mes)
             if base_mes is not None
             else pd.DataFrame()
+        )
+        df_base_year = apply_ui_filters(
+            df_base_year,
+            unidad=unidad,
+            proceso=proceso,
+            subproceso=subproceso,
+            clasificacion=clasificacion,
+            frecuencia=frecuencia,
         )
 
         mes_global = get_prev_month_for_year(tracking, anio_eff) or mes_eff

@@ -1,6 +1,7 @@
 # Comparativo funcional y visual: Streamlit (legacy) vs. SGIND-v2
 
 **Fecha del análisis:** 2026-07-11
+**Revalidación parcial:** 2026-09-29 — sección **Seguimiento Operativo** (§2.6) re-verificada contra el código actual de `backend/app/domain/seguimiento_builders.py`, `backend/app/services/seguimiento_service.py`, `backend/app/api/v1/endpoints/seguimiento.py` y `frontend/.../seguimiento-operativo/page.tsx`; el resto del documento conserva el análisis original de julio sin revalidar.
 **Alcance:** revisión de código fuente completa de `streamlit_app/` (+ `app.py`, `core/`, `services/` raíz) vs. `sgind-v2/frontend/` (Next.js 14) y `sgind-v2/backend/` (FastAPI), más documentación de migración en `sgind-v2/docs/`.
 **Metodología:** exploración de código por tres agentes independientes (uno por sistema), sin ejecutar las apps en navegador. Toda observación cita archivo:línea de origen.
 
@@ -31,7 +32,7 @@ SGIND-v2 replica con **alta fidelidad funcional** los 7 módulos activos del men
 | 3 | CMI por Procesos (`resumen_por_proceso.py`, 4207 líneas) | Activo, enrutado | CMI por Procesos (`/cmi-procesos`) | Activo | **Existe en ambos** — ver §2.3 |
 | 4 | Informe por Procesos (`informe_por_procesos.py`) | Activo, enrutado | Informe por Procesos (`/informe-procesos`) | Activo | **Existe en ambos, mejorado** — ver §2.4 |
 | 5 | Plan de Mejoramiento / CNA (`plan_mejoramiento.py`) | Activo, enrutado | Plan de Mejoramiento (`/plan-mejoramiento`) | Activo | **Existe en ambos** — ver §2.5 |
-| 6 | Seguimiento Operativo (`seguimiento_reportes.py`) | Activo, enrutado | Seguimiento Operativo (`/seguimiento-operativo`) | Activo, con limitación de tabla | **Existe parcialmente** — ver §2.6 |
+| 6 | Seguimiento Operativo (`seguimiento_reportes.py`) | Activo, enrutado | Seguimiento Operativo (`/seguimiento-operativo`) | Activo, paridad alta | **Existe en ambos** — ver §2.6 |
 | 7 | Gestión OM (`gestion_om.py`, 1640 líneas) | Activo, enrutado | Gestión OM (`/gestion-om`) | Activo, CRUD mejorado | **Existe y mejora** — ver §2.7 |
 | 8 | Tablero Operativo Nivel 3 (`tablero_operativo.py`, 1001 líneas) — Kanban, QC, Trazabilidad | **No enrutado** en menú (huérfano) | Sin equivalente directo | — | **Solo existe (parcialmente) en Streamlit** — requiere confirmación de negocio |
 | 9 | Gestión y Acreditación Nivel 2 (`pdi_acreditacion.py`) | **No enrutado** (huérfano) | PDI / Acreditación (`/pdi-acreditacion`, Beta) | Activo (Beta) | **Existe en ambos** — v2 lo formalizó pese a no estar en el menú legacy |
@@ -62,8 +63,12 @@ SGIND-v2 replica con **alta fidelidad funcional** los 7 módulos activos del men
 - Ambos sistemas cubren KPIs CNA por Factor/Característica, cumplimiento, distribución de niveles, y acciones de mejora asociadas. v2 usa barras horizontales + donut; Streamlit usa barras, pastel, barras apiladas Factor×Nivel, y **treemap Factor→Característica** que no está confirmado en v2 — posible brecha visual menor.
 
 ### 2.6 Seguimiento Operativo
-- **Streamlit**: doble motor de gráficos (Plotly + fallback ECharts), sin límite de filas visible en la tabla de detalle, exportación Excel.
-- **v2**: gráfico de barras apiladas Plotly (sin ECharts), exportación Excel, pero **la tabla de detalle trunca a 200 filas en cliente sin paginación real** (`seguimiento-operativo/page.tsx:188`) — regresión funcional frente al legacy si este mostraba el detalle completo.
+- **Streamlit**: doble motor de gráficos (Plotly + fallback ECharts), sin límite de filas visible en la tabla de detalle, exportación Excel, y **recorta el dataset completo a los últimos 7 meses de un año fijo (`_VENTANA_ANIO=2026`, `_VENTANA_N_MESES=7`, `seguimiento_reportes.py:104-115`) antes de aplicar cualquier filtro**.
+- **v2** (revalidado 2026-09-29 sobre código actual, no solo sobre el análisis de julio): `detectar_vencidos` está portada 1:1 (`seguimiento_builders.py:75-103`), el gráfico de barras apiladas por proceso/estado replica el legacy en Plotly, y la exportación Excel filtrada existe (`seguimiento_service.py::export_excel`). **La paginación ya es real**: `build_dashboard` acepta `limit`/`offset`, el endpoint `/seguimiento/dashboard` los expone como query params y el frontend (`seguimiento-operativo/page.tsx`) navega con controles Anterior/Siguiente contra el backend — la brecha de "tabla truncada a 200 filas sin paginación real" señalada en la versión de julio de este informe **ya no existe**. Los endpoints también exponen `response_model` Pydantic (`SeguimientoDashboardResponse`, `SeguimientoFiltrosResponse` en `schemas/common.py`), aunque con varios campos tipados como `dict[str, Any]` en vez de sub-esquemas estrictos.
+- **Brechas remanentes**:
+  1. Sin fallback a ECharts (solo Plotly) — igual que el resto de módulos, prioridad baja, no se recomienda replicar la redundancia técnica del legacy.
+  2. v2 **no reproduce la ventana fija "últimos 7 meses de 2026"** del legacy: muestra el histórico completo disponible según los filtros de año/mes elegidos. No es una regresión (es más completo), pero cambia la vista por defecto frente a lo que veían los usuarios del legacy — pendiente de confirmar con negocio si se desea acotar la vista inicial.
+  3. No hay tests de backend dedicados a este módulo (no existe `test_seguimiento*.py` en `backend/tests/`), a diferencia de otros módulos ya migrados.
 
 ### 2.7 Gestión OM
 - **Streamlit**: formulario simple de asociación de OM (`st.form`), sin edición/cierre posterior, sin roles diferenciados (cualquier usuario autorizado podía usar el formulario).
@@ -201,7 +206,9 @@ Dado que consume ~1300 líneas de código en tres archivos y funcionalidad de Ka
 | **Exportación PDF de ficha individual de indicador** | **Alta** | Presente en legacy (modal de ficha CMI Estratégico), no confirmada en v2 (solo hay PDF de reporte completo por módulo) |
 | **Verificar umbrales PDI/Acreditación** (`PDIService._classify_estado` vs. `categorizar_cumplimiento`) | **Alta** | Riesgo de que el mismo indicador muestre semáforo distinto entre módulos — riesgo de confianza en los datos |
 | **Cascada Subproceso dependiente de Proceso en Informe por Procesos (v2)** | **Media** | Inconsistencia entre módulos hermanos dentro del propio v2, y regresión frente al comportamiento del legacy |
-| **Paginación real en Seguimiento Operativo (v2)** (actualmente trunca a 200 filas en cliente) | **Media** | Pérdida de visibilidad de datos si el dataset supera 200 filas |
+| ~~Paginación real en Seguimiento Operativo (v2)~~ — **resuelto** (revalidado 2026-09-29): paginación server-side real vía `limit`/`offset` en `seguimiento_builders.build_dashboard` y el endpoint `/seguimiento/dashboard` | — | Ítem cerrado, ya no aplica |
+| Ventana temporal fija "últimos 7 meses de 2026" del legacy no replicada en Seguimiento Operativo (v2 muestra histórico completo) | **Baja** | No es regresión, pero cambia la vista por defecto frente al legacy — confirmar con negocio |
+| Tests de backend dedicados para Seguimiento Operativo (`seguimiento_service`/`seguimiento_builders`) | **Media** | No hay `test_seguimiento*.py`; gap de cobertura frente a otros módulos migrados |
 | Gráficas tipo heatmap, radar, gauge, bullet chart (catálogo `heatmap_chart.py` del legacy) | **Media** | Depende de si estaban realmente en uso en producción — requiere confirmación |
 | Treemap Factor→Característica (Plan de Mejoramiento) | **Baja** | Visualización secundaria, no crítica para la toma de decisiones |
 | Sparklines de tendencia en tarjetas | **Baja** | Detalle visual menor |
@@ -247,10 +254,10 @@ Dado que consume ~1300 líneas de código en tres archivos y funcionalidad de Ka
 | 2 | Verificar y unificar umbrales de PDI/Acreditación con `categorizar_cumplimiento` central | Alta | Baja | Alto (inconsistencia de cifras visibles al usuario) | Refactor de `PDIService._classify_estado` para reutilizar la función central |
 | 3 | Decidir si se replica el análisis IA real (Claude) en v2 o se documenta como decisión de producto | Alta | Media | Medio (percepción de regresión funcional) | Si es valorado por usuarios, portar `services/ai_analysis.py` del legacy al backend v2 |
 | 4 | Corregir cascada Subproceso en Informe por Procesos (v2) para que dependa de Proceso, igual que en CMI Procesos | Media | Baja | Bajo | Ajuste de frontend, reutilizar patrón ya existente en `cmi-procesos/page.tsx` |
-| 5 | Implementar paginación real en tabla de Seguimiento Operativo (v2) | Media | Baja-Media | Medio si el dataset crece | Paginación server-side vía backend, igual que en `indicators` |
+| 5 | ~~Implementar paginación real en tabla de Seguimiento Operativo (v2)~~ | — | — | — | **Resuelto** (revalidado 2026-09-29): ya implementada vía `limit`/`offset` en backend y controles Anterior/Siguiente en frontend |
 | 6 | Unificar librería de gráficos en v2 (elegir Plotly como estándar y migrar el donut SVG y las barras CSS manuales) | Media | Media | Bajo | Reduce deuda visual y de mantenimiento a mediano plazo |
 | 7 | Unificar definición de colores de nivel de semáforo en frontend v2 (una sola fuente, hoy hay 3) | Media | Baja | Medio (drift visual entre módulos) | Consolidar en `design-tokens.ts` y eliminar duplicados |
-| 8 | Añadir `response_model` Pydantic a endpoints de negocio que hoy devuelven `dict` sin tipar | Media | Media | Medio (contratos frágiles frente a cambios de frontend) | Definir schemas para PDI, plan-mejoramiento, informe, seguimiento, fichas |
+| 8 | Añadir `response_model` Pydantic a endpoints de negocio que hoy devuelven `dict` sin tipar | Media | Media | Medio (contratos frágiles frente a cambios de frontend) | Definir schemas para PDI, plan-mejoramiento, informe, fichas. Seguimiento **ya tiene** `response_model` (`SeguimientoDashboardResponse`/`SeguimientoFiltrosResponse`, revalidado 2026-09-29), aunque con campos internos todavía tipados como `dict[str, Any]` — pendiente afinar sub-esquemas |
 | 9 | Exportación PDF de ficha individual de indicador en v2 | Media | Baja-Media | Bajo | Reutilizar `pdf_service.py` existente, extender a nivel de ficha |
 | 10 | Actualizar documentación de fases (`docs/phase-4/README.md`, `RBAC_MATRIX.md`) para reflejar el estado real del código | Baja | Baja | Bajo (solo confusión interna) | Sesión de limpieza documental antes del cutover |
 | 11 | Completar sesiones de UAT reales y registrar bugs en `UAT_BUGS.md` (actualmente solo tiene la plantilla de ejemplo) | Alta | — (proceso, no desarrollo) | Alto (cutover sin validación de usuarios reales) | Ejecutar el plan ya documentado en `CUTOVER_RUNBOOK.md` antes de apagar el legacy |

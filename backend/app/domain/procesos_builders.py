@@ -1230,10 +1230,12 @@ def build_analisis_avanzado(
     base_anio: int,
 ) -> dict[str, Any]:
     col = "Proceso_padre" if "Proceso_padre" in df.columns else "Proceso"
-    best_proc, worst_proc = process_variation_for_rpp(
-        df if not df.empty else df_base_year,
-        df_base_year if not df_base_year.empty else df_prev,
-        display_col=col,
+    # No sustituir df (filtrado) por un dataset global cuando está vacío: comparar
+    # el corte filtrado contra un df_prev/df_base_year sin filtrar produce falsos
+    # "mejora"/"riesgo" de procesos que ni siquiera pertenecen al filtro aplicado.
+    df_comp_prev = df_prev if not df_prev.empty else df_base_year
+    best_proc, worst_proc = (
+        process_variation_for_rpp(df, df_comp_prev, display_col=col) if not df.empty else ([], [])
     )
     propuesta = build_propuesta_accion(df, proceso=proceso)
     narrativa = generate_proceso_narrativa_heuristica(
