@@ -97,4 +97,10 @@ require_admin = require_roles("administrador", "calidad", "desempeno")
 # Pantallas operativas (Seguimiento Operativo, Gestion OM): el rol "procesos"
 # solo ve Resumen, CMI Estrategico, CMI por Procesos, Informe y Plan de Mejoramiento.
 require_operational = require_roles("administrador", "calidad", "desempeno")
-require_reader = require_roles("procesos", "administrador", "calidad", "desempeno")
+require_reader = require_roles(
+    "procesos", "administrador", "calidad", "desempeno", "auditor_ia"
+)
+# Auditoría y publicación de narrativas generadas por IA (Análisis por Procesos):
+# rol dedicado, separado de quienes gestionan planes de mejoramiento — asignado a
+# mano en users.role_id, igual que "calidad"/"desempeno" (ver RBAC_MATRIX.md).
+require_auditor_ia = require_roles("auditor_ia", "administrador")

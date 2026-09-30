@@ -3,7 +3,7 @@ from typing import Literal
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-RoleName = Literal["procesos", "calidad", "desempeno", "administrador"]
+RoleName = Literal["procesos", "calidad", "desempeno", "administrador", "auditor_ia"]
 
 
 class Settings(BaseSettings):

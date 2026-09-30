@@ -37,9 +37,11 @@ const TABS = [
   { id: "indicadores", label: "Indicadores", icon: Activity },
   { id: "calidad", label: "Calidad de Datos", icon: ShieldCheck },
   { id: "auditoria", label: "Auditoría", icon: ClipboardCheck },
-  { id: "propuestas", label: "Propuestas", icon: Lightbulb },
+  { id: "propuestas", label: "Propuestas", icon: Lightbulb, hidden: true },
   { id: "ia", label: "Análisis IA", icon: Brain },
 ] as const;
+
+const VISIBLE_TABS = TABS.filter((t) => !("hidden" in t && t.hidden));
 
 type TabId = (typeof TABS)[number]["id"];
 
@@ -74,8 +76,8 @@ function InformeContent() {
   const [downloadingFichaPdf, setDownloadingFichaPdf] = useState(false);
 
   const filtrosQuery = useQuery({
-    queryKey: ["informe-filtros", anio],
-    queryFn: () => fetchCMIProcesosFiltros(anio ?? undefined),
+    queryKey: ["informe-filtros", anio, mes],
+    queryFn: () => fetchCMIProcesosFiltros(anio ?? undefined, mes ?? undefined),
     enabled: isAuthenticated,
   });
 
@@ -266,7 +268,7 @@ function InformeContent() {
           )}
 
           <div className="flex flex-wrap items-center gap-2 overflow-x-auto border-b border-slate-200 pb-1">
-            {TABS.map((t) => {
+            {VISIBLE_TABS.map((t) => {
               const Icon = t.icon;
               const active = tab === t.id;
               const count = tabCounts[t.id];
@@ -306,7 +308,7 @@ function InformeContent() {
                   resumen={resumen}
                   data={data ?? null}
                   proceso={proceso}
-                  onVerPropuestas={() => setTab("propuestas")}
+                  onVerPropuestas={() => setTab("indicadores")}
                 />
               )}
 
@@ -337,19 +339,11 @@ function InformeContent() {
               )}
 
               {tab === "ia" && data && (
-                <section className="space-y-6">
-                  {data.analisis_ia && (
-                    <p className="text-sm text-slate-700">
-                      <strong>{data.analisis_ia.conteos.peligro}</strong> en peligro ·{" "}
-                      <strong>{data.analisis_ia.conteos.alerta}</strong> en alerta ·{" "}
-                      <strong>{data.analisis_ia.conteos.saludables}</strong> saludables
-                    </p>
-                  )}
-                  <CmiProcesosAnalisisTab
-                    data={data}
-                    comparativa={data.vista_global?.comparativa_procesos ?? []}
-                  />
-                </section>
+                <CmiProcesosAnalisisTab
+                  data={data}
+                  narrativaIaProceso={data.narrativa_ia_proceso}
+                  narrativaIaPendiente={data.narrativa_ia_pendiente}
+                />
               )}
             </>
           )}

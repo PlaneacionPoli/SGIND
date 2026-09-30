@@ -141,7 +141,7 @@ def test_rbac_require_admin_excluye_procesos():
 
 
 def test_rbac_matrix_roles_definidos():
-    """Los 4 roles del sistema existen en RoleName."""
+    """Los 5 roles del sistema existen en RoleName (incluye auditor_ia — Análisis IA)."""
     import typing
 
     from app.core.config import RoleName
@@ -151,7 +151,8 @@ def test_rbac_matrix_roles_definidos():
     assert "calidad" in args
     assert "desempeno" in args
     assert "administrador" in args
-    assert len(args) == 4, f"Se esperaban 4 roles, hay {len(args)}: {args}"
+    assert "auditor_ia" in args
+    assert len(args) == 5, f"Se esperaban 5 roles, hay {len(args)}: {args}"
 
 
 # ─── Seguridad: dev login solo en no-producción ──────────────────────────────

@@ -334,6 +334,8 @@ class InformeDashboardResponse(CMIProcesosDashboardResponse):
     auditoria: list[dict[str, Any]] = Field(default_factory=list)
     auditoria_error: str | None = None
     analisis_ia: dict[str, Any] = Field(default_factory=dict)
+    narrativa_ia_proceso: dict[str, Any] | None = None
+    narrativa_ia_pendiente: bool = False
 
 
 class SeguimientoFiltrosResponse(BaseModel):

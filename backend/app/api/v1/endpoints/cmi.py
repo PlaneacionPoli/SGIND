@@ -82,10 +82,13 @@ async def cmi_estrategico(
 @router.get("/procesos/filtros", response_model=CMIProcesosFiltrosResponse)
 async def cmi_procesos_filtros(
     anio: int | None = Query(None),
+    mes: int | None = Query(None, ge=1, le=12),
     _user: User = Depends(require_reader),
     service: CMIService = Depends(_cmi_service),
 ) -> CMIProcesosFiltrosResponse:
-    return CMIProcesosFiltrosResponse(**await run_sync(service.get_procesos_filtros, anio=anio))
+    return CMIProcesosFiltrosResponse(
+        **await run_sync(service.get_procesos_filtros, anio=anio, mes=mes)
+    )
 
 
 @router.get("/procesos-dashboard", response_model=CMIProcesosDashboardResponse)

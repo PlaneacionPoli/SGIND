@@ -18,6 +18,7 @@ import type {
   IndicatorListResponse,
   NarrativaResponse,
   InformeDashboardResponse,
+  NarrativaIaProcesoEntry,
   OMMatrizResponse,
   OMPlanAccionActividad,
   PlanIndicadorDetalleResponse,
@@ -223,9 +224,15 @@ export async function fetchCMIEstrategico(
   return data;
 }
 
-export async function fetchCMIProcesosFiltros(anio?: number): Promise<CMIProcesosFiltrosResponse> {
+export async function fetchCMIProcesosFiltros(
+  anio?: number,
+  mes?: number
+): Promise<CMIProcesosFiltrosResponse> {
+  const params: Record<string, number> = {};
+  if (anio) params.anio = anio;
+  if (mes) params.mes = mes;
   const { data } = await api.get<CMIProcesosFiltrosResponse>("/cmi/procesos/filtros", {
-    params: anio ? { anio } : undefined,
+    params: Object.keys(params).length ? params : undefined,
   });
   return data;
 }
@@ -456,6 +463,32 @@ export async function fetchInformeDashboard(params: {
   frecuencia?: string;
 }): Promise<InformeDashboardResponse> {
   const { data } = await api.get<InformeDashboardResponse>("/informe/dashboard", { params });
+  return data;
+}
+
+/** Borrador pendiente de auditoría de la narrativa IA de proceso — solo rol auditor_ia/administrador. */
+export async function fetchNarrativaIaBorrador(params: {
+  proceso: string;
+  anio: number;
+  mes: number;
+}): Promise<NarrativaIaProcesoEntry> {
+  const { data } = await api.get<NarrativaIaProcesoEntry>("/informe/narrativa-ia/borrador", {
+    params,
+  });
+  return data;
+}
+
+/** Publica el borrador vigente de la narrativa IA de proceso — solo rol auditor_ia/administrador. */
+export async function publicarNarrativaIaProceso(params: {
+  proceso: string;
+  anio: number;
+  mes: number;
+}): Promise<NarrativaIaProcesoEntry> {
+  const { data } = await api.post<NarrativaIaProcesoEntry>(
+    "/informe/narrativa-ia/publicar",
+    null,
+    { params }
+  );
   return data;
 }
 

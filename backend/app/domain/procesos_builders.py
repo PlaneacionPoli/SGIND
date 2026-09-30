@@ -832,6 +832,7 @@ def build_filtros_options(
     cmi_df: pd.DataFrame,
     *,
     anio: int,
+    mes: int | None = None,
 ) -> dict[str, Any]:
     # Debe reflejar el mismo tope que cmi_service.MAX_ANIO_FILTROS.
     anios = (
@@ -849,7 +850,14 @@ def build_filtros_options(
     )
 
     prepared = prepare_tracking(tracking, map_df)
-    year_slice = filter_by_anio_mes(prepared, anio=anio, mes=default_mes(tracking, anio))
+    # Usa el mes seleccionado por el usuario cuando se conoce — si las opciones
+    # siempre se calculan sobre default_mes() (el mes más reciente con datos),
+    # un corte reciente aún incompleto (ej. Diciembre con solo 6 de ~34 procesos
+    # reportados) hace que el filtro de Proceso muestre solo esos 6, incluso
+    # cuando el usuario tiene seleccionado un mes anterior ya cerrado (ej. Junio)
+    # con los ~34 procesos completos. Ver bugfix "filtros 2026 Junio".
+    mes_eff = mes if mes is not None else default_mes(tracking, anio)
+    year_slice = filter_by_anio_mes(prepared, anio=anio, mes=mes_eff)
 
     unidades = (
         sorted(year_slice["Unidad"].replace("", pd.NA).dropna().astype(str).unique().tolist())

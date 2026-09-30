@@ -357,13 +357,15 @@ class CMIService:
         )
         return self._slice_by_mes(year_prepared, anio=anio, mes=mes)
 
-    def get_procesos_filtros(self, *, anio: int | None = None) -> dict[str, Any]:
+    def get_procesos_filtros(
+        self, *, anio: int | None = None, mes: int | None = None
+    ) -> dict[str, Any]:
         tracking = self._load_tracking()
         map_df = load_process_map(self._excel)
         anios = self._available_anios()
         anio_eff = int(anio) if anio is not None else default_anio_procesos(anios)
         opts = build_filtros_options(
-            tracking, map_df, self._cmi.load_cmi_worksheet(), anio=anio_eff
+            tracking, map_df, self._cmi.load_cmi_worksheet(), anio=anio_eff, mes=mes
         )
         return {
             "anios": opts["anios"] or anios,

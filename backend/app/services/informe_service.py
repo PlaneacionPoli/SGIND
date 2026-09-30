@@ -14,6 +14,7 @@ from app.domain.informe_builders import (
 )
 from app.services.cmi_service import CMIService
 from app.services.excel_reader import ExcelReaderService
+from app.services.narrativa_ia_proceso_service import get_or_refresh_narrativa_ia_proceso
 
 
 class InformeService:
@@ -76,6 +77,37 @@ class InformeService:
         )
         auditoria, aud_err = load_auditoria(self._excel, proceso or "Todos")
 
+        variacion_procesos = dash.get("analisis_avanzado", {}).get("variacion_procesos", {})
+        try:
+            narrativa_entry = get_or_refresh_narrativa_ia_proceso(
+                proceso=proceso or "Todos",
+                anio=anio,
+                mes=mes,
+                resumen=resumen,
+                criticos=build_criticos(indicadores, limit=3),
+                mejora=(variacion_procesos.get("mejoraron") or [None])[0],
+                riesgo=(variacion_procesos.get("empeoraron") or [None])[0],
+                base_anio=prev_year,
+            )
+        except Exception:
+            narrativa_entry = {"publicado": None, "borrador": None, "historial": []}
+        publicado = narrativa_entry.get("publicado")
+        narrativa_ia_proceso = (
+            {
+                "titulo": publicado["titulo"],
+                "estado_color": publicado["estado_color"],
+                "foco_urgente": publicado["foco_urgente"],
+                "directrices": publicado["directrices"],
+                "texto_html": publicado["texto_html"],
+                "modelo": publicado["modelo"],
+                "generado_en": publicado["generado_en"],
+                "revisado_por": publicado.get("revisado_por"),
+                "revisado_en": publicado.get("revisado_en"),
+            }
+            if publicado
+            else None
+        )
+
         return {
             **dash,
             "resumen_ejecutivo": resumen,
@@ -92,4 +124,6 @@ class InformeService:
             "auditoria": auditoria,
             "auditoria_error": aud_err,
             "analisis_ia": build_analisis_ia(indicadores),
+            "narrativa_ia_proceso": narrativa_ia_proceso,
+            "narrativa_ia_pendiente": narrativa_entry.get("borrador") is not None,
         }

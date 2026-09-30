@@ -1136,6 +1136,26 @@ export interface InformeDashboardResponse extends CMIProcesosDashboardResponse {
     mostrados_peligro: number;
     mostrados_alerta: number;
   };
+  narrativa_ia_proceso: NarrativaIaProceso | null;
+  narrativa_ia_pendiente: boolean;
+}
+
+export interface NarrativaIaProceso {
+  titulo: string;
+  estado_color: string;
+  foco_urgente: string;
+  directrices: string[];
+  texto_html: string;
+  modelo: string;
+  generado_en: string;
+  revisado_por?: string | null;
+  revisado_en?: string | null;
+}
+
+export interface NarrativaIaProcesoEntry {
+  publicado: NarrativaIaProceso | null;
+  borrador: NarrativaIaProceso | null;
+  historial: NarrativaIaProceso[];
 }
 
 export interface RegistroOMCreate {

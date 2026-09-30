@@ -52,8 +52,8 @@ function CMIProcesosContent() {
   const [downloadingFichaPdf, setDownloadingFichaPdf] = useState(false);
 
   const filtrosQuery = useQuery({
-    queryKey: ["cmi-procesos-filtros", anio],
-    queryFn: () => fetchCMIProcesosFiltros(anio ?? undefined),
+    queryKey: ["cmi-procesos-filtros", anio, mes],
+    queryFn: () => fetchCMIProcesosFiltros(anio ?? undefined, mes ?? undefined),
     enabled: isAuthenticated,
   });
 
@@ -300,12 +300,7 @@ function CMIProcesosContent() {
               onOpenFicha={setFichaId}
             />
           )}
-          {tab === "analisis" && (
-            <CmiProcesosAnalisisTab
-              data={data}
-              comparativa={data.vista_global?.comparativa_procesos ?? []}
-            />
-          )}
+          {tab === "analisis" && <CmiProcesosAnalisisTab data={data} />}
         </>
       )}
 
