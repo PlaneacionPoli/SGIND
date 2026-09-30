@@ -96,7 +96,16 @@ def build_comparativa_anual(
 def build_criticos(indicadores: list[dict[str, Any]], limit: int = 3) -> list[dict[str, Any]]:
     crit = [i for i in indicadores if (i.get("cumplimiento_pct") or 100) < 80]
     crit.sort(key=lambda x: x.get("cumplimiento_pct") or 0)
-    return crit[:limit]
+    out = []
+    for i in crit[:limit]:
+        out.append(
+            {
+                **i,
+                "indicador": i.get("indicador") or i.get("Indicador") or i.get("nombre"),
+                "proceso": i.get("proceso") or i.get("Proceso"),
+            }
+        )
+    return out
 
 
 def build_analisis_ia(indicadores: list[dict[str, Any]], limit: int = 20) -> dict[str, Any]:
@@ -109,9 +118,9 @@ def build_analisis_ia(indicadores: list[dict[str, Any]], limit: int = 20) -> dic
         for i in lst[:n]:
             out.append(
                 {
-                    "indicador": i.get("indicador") or i.get("nombre"),
-                    "proceso": i.get("proceso"),
-                    "subproceso": i.get("subproceso"),
+                    "indicador": i.get("indicador") or i.get("Indicador") or i.get("nombre"),
+                    "proceso": i.get("proceso") or i.get("Proceso"),
+                    "subproceso": i.get("subproceso") or i.get("Subproceso"),
                     "cumplimiento_pct": i.get("cumplimiento_pct"),
                 }
             )
@@ -223,7 +232,8 @@ def load_auditoria(excel, proceso: str = "Todos") -> tuple[list[dict[str, Any]],
             categorias = []
             for campo, estilo in _CAT_STYLE.items():
                 col_name = f"{campo}_{tipo}"
-                valor = str(row.get(col_name, "")).strip()
+                raw = row.get(col_name)
+                valor = "" if pd.isna(raw) else str(raw).strip()
                 if valor:
                     label, pill_bg, pill_text, dot_color, emoji = estilo
                     items = [

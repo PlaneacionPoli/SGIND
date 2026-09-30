@@ -48,11 +48,15 @@ def _norm_text(value: object) -> str:
 
 
 def _first_col(df: pd.DataFrame, candidates: list[str]) -> str | None:
-    cols_norm = {_norm_text(c): c for c in df.columns}
+    # Los encabezados reales del Excel traen una descripción entre paréntesis
+    # tras un salto de línea (p.ej. "I. OPORTUNIDAD\n(Entrega en tiempo )"),
+    # por eso el match es por prefijo normalizado, no por igualdad exacta.
+    cols_norm = [(_norm_text(c), c) for c in df.columns]
     for cand in candidates:
         key = _norm_text(cand)
-        if key in cols_norm:
-            return cols_norm[key]
+        for norm, original in cols_norm:
+            if norm == key or norm.startswith(key):
+                return original
     return None
 
 

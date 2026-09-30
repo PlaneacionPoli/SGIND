@@ -1,17 +1,12 @@
 "use client";
 
-import {
-  CartesianGrid,
-  Line,
-  LineChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
+import dynamic from "next/dynamic";
+import type { Data, Layout } from "plotly.js";
 import type { CMIProcesosFichaIndicador } from "@/lib/types";
 import { fmtPct, NivelBadge } from "@/components/cmi/nivelUtils";
 import { fmtMeta, fmtEjecucion } from "@/lib/formatValor";
+
+const Plot = dynamic(() => import("react-plotly.js"), { ssr: false });
 
 interface CmiProcesosFichaModalProps {
   ficha: CMIProcesosFichaIndicador | null;
@@ -93,7 +88,15 @@ export function CmiProcesosFichaModal({
               <Stat label="Cumplimiento" value={fmtPct(ficha.cumplimiento_pct as number | undefined)} />
             </div>
 
-            <NivelBadge nivel={ficha["Nivel de cumplimiento"] as string | undefined} />
+            <div className="flex flex-wrap gap-2">
+              <NivelBadge nivel={ficha["Nivel de cumplimiento"] as string | undefined} />
+              {ficha.tendencia && (
+                <span className="inline-flex items-center rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+                  {ficha.tendencia === "Al alza" ? "↑" : ficha.tendencia === "A la baja" ? "↓" : "→"}{" "}
+                  {ficha.tendencia}
+                </span>
+              )}
+            </div>
 
             {typeof ficha.Descripcion === "string" && ficha.Descripcion && (
               <div>
@@ -102,32 +105,110 @@ export function CmiProcesosFichaModal({
               </div>
             )}
 
+            {(ficha.formula_calculo || ficha.responsable || ficha.fuente_datos || ficha.periodicidad) && (
+              <div>
+                <p className="mb-2 text-sm font-semibold text-slate-700">Ficha de Identidad</p>
+                <dl className="grid gap-3 sm:grid-cols-2">
+                  {ficha.responsable && (
+                    <div>
+                      <dt className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                        Responsable
+                      </dt>
+                      <dd className="text-sm text-slate-700">{ficha.responsable}</dd>
+                    </div>
+                  )}
+                  {ficha.fuente_datos && (
+                    <div>
+                      <dt className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                        Fuente de datos
+                      </dt>
+                      <dd className="text-sm text-slate-700">{ficha.fuente_datos}</dd>
+                    </div>
+                  )}
+                  {ficha.formula_calculo && (
+                    <div className="sm:col-span-2">
+                      <dt className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                        Fórmula de cálculo
+                      </dt>
+                      <dd className="text-sm text-slate-700">{ficha.formula_calculo}</dd>
+                    </div>
+                  )}
+                  {ficha.periodicidad && (
+                    <div>
+                      <dt className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                        Periodicidad
+                      </dt>
+                      <dd className="text-sm text-slate-700">{ficha.periodicidad}</dd>
+                    </div>
+                  )}
+                </dl>
+              </div>
+            )}
+
             {ficha.historico && ficha.historico.length > 0 && (
               <div>
                 <p className="mb-2 text-sm font-semibold text-slate-700">Evolución histórica</p>
-                <ResponsiveContainer width="100%" height={220}>
-                  <LineChart data={ficha.historico}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="periodo" tick={{ fontSize: 10 }} />
-                    <YAxis yAxisId="pct" tick={{ fontSize: 10 }} />
-                    <Tooltip />
-                    <Line
-                      yAxisId="pct"
-                      type="monotone"
-                      dataKey="cumplimiento"
-                      stroke="#1A3A5C"
-                      strokeWidth={2}
-                      dot={{ r: 3 }}
-                      name="Cumplimiento %"
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
+                <Plot
+                  data={
+                    [
+                      {
+                        type: "bar",
+                        name: "Meta",
+                        x: ficha.historico.map((h) => h.periodo),
+                        y: ficha.historico.map((h) => h.meta ?? null),
+                        marker: { color: "#F9A825" },
+                      },
+                      {
+                        type: "bar",
+                        name: "Ejecución",
+                        x: ficha.historico.map((h) => h.periodo),
+                        y: ficha.historico.map((h) => h.ejecucion ?? null),
+                        marker: { color: "#1A3A5C" },
+                      },
+                      {
+                        type: "scatter",
+                        mode: "lines+markers",
+                        name: "% Cumplimiento",
+                        x: ficha.historico.map((h) => h.periodo),
+                        y: ficha.historico.map((h) => h.cumplimiento ?? null),
+                        yaxis: "y2",
+                        line: { color: "#2E7D32", width: 2 },
+                        marker: { size: 7, color: "#2E7D32" },
+                        hovertemplate: "<b>%{x}</b><br>Cumplimiento: %{y:.1f}%<extra></extra>",
+                      },
+                    ] as Data[]
+                  }
+                  layout={
+                    {
+                      margin: { l: 48, r: 48, t: 10, b: 40 },
+                      height: 260,
+                      barmode: "group",
+                      paper_bgcolor: "rgba(0,0,0,0)",
+                      plot_bgcolor: "rgba(0,0,0,0)",
+                      legend: { orientation: "h", y: 1.15 },
+                      yaxis: { title: { text: "Valor" }, gridcolor: "#E2E8F0" },
+                      yaxis2: {
+                        overlaying: "y",
+                        side: "right",
+                        ticksuffix: "%",
+                        title: { text: "% Cumplimiento" },
+                      },
+                      xaxis: { gridcolor: "#E2E8F0" },
+                      font: { family: "inherit", size: 10 },
+                    } as Partial<Layout>
+                  }
+                  config={{ displayModeBar: false, responsive: true }}
+                  style={{ width: "100%" }}
+                  useResizeHandler
+                />
               </div>
             )}
 
             {ficha.narrativa_ia && (
               <div className="rounded-xl border border-blue-100 bg-blue-50/50 p-4">
-                <p className="mb-2 text-sm font-bold text-poli-navy">Análisis IA (heurístico)</p>
+                <p className="mb-2 text-sm font-bold text-poli-navy">
+                  Análisis IA {ficha.narrativa_ia.fuente === "heuristica" ? "(heurístico)" : ""}
+                </p>
                 <div
                   className="prose prose-sm max-w-none text-slate-700"
                   dangerouslySetInnerHTML={{ __html: ficha.narrativa_ia.texto_html }}

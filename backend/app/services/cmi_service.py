@@ -801,7 +801,39 @@ class CMIService:
                 elif delta < -2:
                     tendencia = "A la baja"
         record["tendencia"] = tendencia
+        record.update(self._get_ficha_tecnica_extra(indicador_id))
         return record
+
+    def _get_ficha_tecnica_extra(self, indicador_id: str) -> dict[str, Any]:
+        """Ficha de Identidad: Fórmula/Responsable/Fuente/Periodicidad desde el
+        catálogo técnico (paridad con cargar_metadatos_kawak() del legado)."""
+        if not (self._excel.data_root / _FICHA_PATH).exists():
+            return {}
+        try:
+            ft = self._excel.read_excel(_FICHA_PATH, sheet_name=_FICHA_SHEET)
+        except Exception:
+            return {}
+        if ft.empty or "Id" not in ft.columns:
+            return {}
+        ft.columns = [str(c).strip() for c in ft.columns]
+        match = ft[ft["Id"].astype(str) == str(indicador_id)]
+        if match.empty:
+            return {}
+        row = match.iloc[0]
+
+        def _val(col: str) -> str | None:
+            v = row.get(col)
+            if v is None or (isinstance(v, float) and pd.isna(v)):
+                return None
+            text = str(v).strip()
+            return text or None
+
+        return {
+            "formula_calculo": _val("Formula"),
+            "responsable": _val("Responsable del analisis") or _val("Responsable del calculo"),
+            "fuente_datos": "Kawak" if _val("ID Kawak") else _val("Fuente V1"),
+            "periodicidad": _val("Frecuencia"),
+        }
 
     def export_procesos_indicadores(
         self,

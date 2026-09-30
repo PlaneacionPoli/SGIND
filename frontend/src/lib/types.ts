@@ -384,6 +384,10 @@ export interface CMIProcesosFichaIndicador extends Indicator {
     cumplimiento?: number;
   }>;
   Descripcion?: string;
+  formula_calculo?: string;
+  responsable?: string;
+  fuente_datos?: string;
+  periodicidad?: string;
 }
 
 export interface CMIAlertasResponse {

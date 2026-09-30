@@ -61,6 +61,73 @@ def _semaforo_hex(estado: str | None) -> str:
     return _SEMAFORO_HEX.get((estado or "").lower(), "#6b7280")
 
 
+def _fmt_valor_signo(
+    valor: Any,
+    signo: str | None = None,
+    decimales: Any = None,
+) -> str:
+    """Formatea Meta/Ejecución igual que fmtValorSigno en frontend/src/lib/formatValor.ts.
+
+    Debe mantenerse en paridad con esa función: si una ficha o tabla en pantalla
+    usa fmtMeta/fmtEjecucion, el PDF equivalente debe usar esta misma lógica para
+    que los números coincidan (mismos decimales y sufijo por indicador).
+    """
+    if valor is None:
+        return "—"
+    try:
+        num = float(valor)
+    except (TypeError, ValueError):
+        return str(valor) if valor else "—"
+
+    s = (signo or "").strip()
+    try:
+        dec = max(0, int(float(decimales))) if decimales is not None else 0
+    except (TypeError, ValueError):
+        dec = 0
+
+    if s == "Sin reporte":
+        return "Pendiente"
+    if s == "Linea Base":
+        return "Linea Base"
+
+    if s == "ENT":
+        if num == 0:
+            return "0"
+        return f"{round(num):,}".replace(",", ".")
+
+    if s in ("%", "kWh"):
+        if dec > 0:
+            return f"{num:,.{dec}f}{s}"
+        return f"{round(num):,}{s}"
+
+    if s == "$":
+        en_pesos_completos = abs(num) >= 1_000_000
+        millones = num / 1_000_000 if en_pesos_completos else num
+        dec_millones = dec if dec > 0 else (1 if en_pesos_completos else 0)
+        formatted = f"{millones:,.{dec_millones}f}" if dec_millones > 0 else f"{round(millones):,}"
+        int_part, _, dec_part = formatted.partition(".")
+        int_part = int_part.replace(",", ".")
+        return f"${int_part}{',' + dec_part if dec_part else ''} M"
+
+    if s == "DEC":
+        if dec > 0:
+            return f"{num:,.{dec}f}"
+        return f"{round(num):,}"
+
+    su = s.upper()
+    if su in ("NO APLICA", "SIN REPORTE", "NA"):
+        if dec > 0:
+            return f"{num:.{dec}f}"
+        return f"{round(num):,}"
+
+    if s in ("m3", "Kg", "tCO2e"):
+        return f"{round(num):,} {s}"
+
+    if dec > 0:
+        return f"{num:.{dec}f} {s}".strip()
+    return f"{round(num):,}{(' ' + s) if s else ''}".strip()
+
+
 # ── Estilos ───────────────────────────────────────────────────────────────────
 
 
@@ -184,13 +251,12 @@ def _indicadores_table(indicadores: list[dict[str, Any]], styles: dict) -> Table
             ),
         )
 
-        def _fmt(v: Any) -> str:
-            if v is None:
-                return "—"
-            try:
-                return f"{float(v):.1f}"
-            except (TypeError, ValueError):
-                return str(v)
+        meta_signo = ind.get("Meta_Signo") or ind.get("meta_signo") or "%"
+        meta_dec = ind.get("Decimales_Meta") or ind.get("dec_meta")
+        ejec_signo = (
+            ind.get("Ejecucion_s") or ind.get("EjecS") or ind.get("ejec_signo") or "%"
+        )
+        ejec_dec = ind.get("Decimales_Ejecucion") or ind.get("dec_ejec")
 
         rows.append(
             [
@@ -198,8 +264,16 @@ def _indicadores_table(indicadores: list[dict[str, Any]], styles: dict) -> Table
                 Paragraph(
                     str(ind.get("indicador") or ind.get("Indicador") or "")[:90], styles["cell"]
                 ),
-                Paragraph(_fmt(ind.get("meta") or ind.get("Meta")), styles["cell"]),
-                Paragraph(_fmt(ind.get("ejecucion") or ind.get("Ejecucion")), styles["cell"]),
+                Paragraph(
+                    _fmt_valor_signo(ind.get("meta") or ind.get("Meta"), meta_signo, meta_dec),
+                    styles["cell"],
+                ),
+                Paragraph(
+                    _fmt_valor_signo(
+                        ind.get("ejecucion") or ind.get("Ejecucion"), ejec_signo, ejec_dec
+                    ),
+                    styles["cell"],
+                ),
                 estado_p,
             ]
         )
@@ -491,14 +565,12 @@ def generar_informe_procesos(
         for ind in indicadores[:100]:
             estado = ind.get("estado") or ind.get("semaforo") or "Sin dato"
             color = _semaforo_color(estado)
-
-            def _fmt(v: Any) -> str:
-                if v is None:
-                    return "—"
-                try:
-                    return f"{float(v):.1f}"
-                except (TypeError, ValueError):
-                    return str(v)
+            meta_signo = ind.get("Meta_Signo") or ind.get("meta_signo") or "%"
+            meta_dec = ind.get("Decimales_Meta") or ind.get("dec_meta")
+            ejec_signo = (
+                ind.get("Ejecucion_s") or ind.get("EjecS") or ind.get("ejec_signo") or "%"
+            )
+            ejec_dec = ind.get("Decimales_Ejecucion") or ind.get("dec_ejec")
 
             rows.append(
                 [
@@ -510,8 +582,16 @@ def generar_informe_procesos(
                         str(ind.get("indicador") or ind.get("Indicador") or "")[:100],
                         styles["cell"],
                     ),
-                    Paragraph(_fmt(ind.get("meta") or ind.get("Meta")), styles["cell"]),
-                    Paragraph(_fmt(ind.get("ejecucion") or ind.get("Ejecucion")), styles["cell"]),
+                    Paragraph(
+                        _fmt_valor_signo(ind.get("meta") or ind.get("Meta"), meta_signo, meta_dec),
+                        styles["cell"],
+                    ),
+                    Paragraph(
+                        _fmt_valor_signo(
+                            ind.get("ejecucion") or ind.get("Ejecucion"), ejec_signo, ejec_dec
+                        ),
+                        styles["cell"],
+                    ),
                     Paragraph(
                         estado.capitalize(),
                         ParagraphStyle(
@@ -620,22 +700,18 @@ def generar_ficha_indicador(
     story.append(HRFlowable(width="100%", thickness=1, color=C_POLI))
     story.append(Spacer(1, 0.4 * cm))
 
-    def _fmt(v: Any) -> str:
-        if v is None:
-            return "—"
-        try:
-            return f"{float(v):.1f}"
-        except (TypeError, ValueError):
-            return str(v)
-
     meta = ficha.get("Meta") or ficha.get("meta")
     ejecucion = ficha.get("Ejecucion") or ficha.get("ejecucion")
     cumplimiento = ficha.get("cumplimiento_pct")
     nivel = ficha.get("Nivel de cumplimiento") or ficha.get("Estado") or "Sin dato"
+    meta_signo = ficha.get("Meta_Signo") or ficha.get("meta_signo") or "%"
+    meta_dec = ficha.get("Decimales_Meta") or ficha.get("dec_meta")
+    ejec_signo = ficha.get("Ejecucion_s") or ficha.get("EjecS") or ficha.get("ejec_signo") or "%"
+    ejec_dec = ficha.get("Decimales_Ejecucion") or ficha.get("dec_ejec")
 
     kpi_items = [
-        ("Meta", _fmt(meta), None),
-        ("Ejecución", _fmt(ejecucion), None),
+        ("Meta", _fmt_valor_signo(meta, meta_signo, meta_dec), None),
+        ("Ejecución", _fmt_valor_signo(ejecucion, ejec_signo, ejec_dec), None),
         (
             "Cumplimiento",
             f"{float(cumplimiento):.1f}%" if isinstance(cumplimiento, int | float) else "—",
@@ -652,6 +728,19 @@ def generar_ficha_indicador(
         story.append(Paragraph(descripcion, styles["body"]))
         story.append(Spacer(1, 0.3 * cm))
 
+    identidad_items = [
+        ("Responsable", ficha.get("responsable")),
+        ("Fuente de datos", ficha.get("fuente_datos")),
+        ("Fórmula de cálculo", ficha.get("formula_calculo")),
+        ("Periodicidad", ficha.get("periodicidad")),
+    ]
+    identidad_items = [(label, val) for label, val in identidad_items if val]
+    if identidad_items:
+        story.append(Paragraph("Ficha de Identidad", styles["section"]))
+        for label, val in identidad_items:
+            story.append(Paragraph(f"<b>{label}:</b> {val}", styles["body"]))
+        story.append(Spacer(1, 0.3 * cm))
+
     historico = ficha.get("historico") or []
     if historico:
         story.append(Paragraph("Histórico", styles["section"]))
@@ -659,12 +748,16 @@ def generar_ficha_indicador(
         col_widths = [4 * cm, 4 * cm, 4 * cm, 4 * cm]
         rows: list[list] = [[Paragraph(h, styles["cell_bold"]) for h in headers]]
         for item in historico:
+            cump = item.get("cumplimiento")
+            cump_str = f"{float(cump):.1f}%" if isinstance(cump, int | float) else "—"
             rows.append(
                 [
                     Paragraph(str(item.get("periodo", "")), styles["cell"]),
-                    Paragraph(_fmt(item.get("meta")), styles["cell"]),
-                    Paragraph(_fmt(item.get("ejecucion")), styles["cell"]),
-                    Paragraph(_fmt(item.get("cumplimiento")), styles["cell"]),
+                    Paragraph(_fmt_valor_signo(item.get("meta"), meta_signo, meta_dec), styles["cell"]),
+                    Paragraph(
+                        _fmt_valor_signo(item.get("ejecucion"), ejec_signo, ejec_dec), styles["cell"]
+                    ),
+                    Paragraph(cump_str, styles["cell"]),
                 ]
             )
         t = Table(rows, colWidths=col_widths, repeatRows=1)

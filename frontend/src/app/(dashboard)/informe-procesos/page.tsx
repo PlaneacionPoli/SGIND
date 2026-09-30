@@ -3,6 +3,7 @@
 import { Suspense, useCallback, useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { CmiProcesosCalidadSection } from "@/components/cmi/CmiProcesosCalidadSection";
+import { CmiProcesosAnalisisTab } from "@/components/cmi/CmiProcesosAnalisisTab";
 import { DataFreshnessFooter } from "@/components/layout/DataFreshnessFooter";
 import { CmiProcesosFichaModal } from "@/components/cmi/CmiProcesosFichaModal";
 import { CmiProcesosFilters } from "@/components/cmi/CmiProcesosFilters";
@@ -351,22 +352,18 @@ function InformeContent() {
                 </section>
               )}
 
-              {tab === "ia" && data?.analisis_ia && (
-                <section className="space-y-4">
-                  <p className="text-sm text-slate-700">
-                    <strong>{data.analisis_ia.conteos.peligro}</strong> en peligro ·{" "}
-                    <strong>{data.analisis_ia.conteos.alerta}</strong> en alerta ·{" "}
-                    <strong>{data.analisis_ia.conteos.saludables}</strong> saludables
-                  </p>
-                  <IATable
-                    title="Top riesgos (peligro)"
-                    rows={data.analisis_ia.top_peligro}
-                    total={data.analisis_ia.conteos.peligro}
-                  />
-                  <IATable
-                    title="Top alertas"
-                    rows={data.analisis_ia.top_alerta}
-                    total={data.analisis_ia.conteos.alerta}
+              {tab === "ia" && data && (
+                <section className="space-y-6">
+                  {data.analisis_ia && (
+                    <p className="text-sm text-slate-700">
+                      <strong>{data.analisis_ia.conteos.peligro}</strong> en peligro ·{" "}
+                      <strong>{data.analisis_ia.conteos.alerta}</strong> en alerta ·{" "}
+                      <strong>{data.analisis_ia.conteos.saludables}</strong> saludables
+                    </p>
+                  )}
+                  <CmiProcesosAnalisisTab
+                    data={data}
+                    comparativa={data.vista_global?.comparativa_procesos ?? []}
                   />
                 </section>
               )}
@@ -460,44 +457,3 @@ function PropuestasGrid({
   );
 }
 
-function IATable({
-  title,
-  rows,
-  total,
-}: {
-  title: string;
-  rows: Array<Record<string, unknown>>;
-  total?: number;
-}) {
-  const isTruncated = typeof total === "number" && total > rows.length;
-  return (
-    <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
-      <div className="flex items-center justify-between border-b px-4 py-2">
-        <h4 className="text-sm font-bold">{title}</h4>
-        {isTruncated && (
-          <span className="text-xs text-slate-500">
-            Mostrando {rows.length} de {total}
-          </span>
-        )}
-      </div>
-      <table className="min-w-full text-sm">
-        <thead className="bg-slate-50 text-xs uppercase text-slate-500">
-          <tr>
-            <th className="px-3 py-2 text-left">Indicador</th>
-            <th className="px-3 py-2 text-left">Proceso</th>
-            <th className="px-3 py-2 text-left">Cumplimiento</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y">
-          {rows.map((r, i) => (
-            <tr key={i}>
-              <td className="px-3 py-2">{String(r.indicador ?? "")}</td>
-              <td className="px-3 py-2">{String(r.proceso ?? "")}</td>
-              <td className="px-3 py-2">{r.cumplimiento_pct != null ? `${r.cumplimiento_pct}%` : "—"}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-}
