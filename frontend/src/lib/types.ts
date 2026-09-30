@@ -1101,7 +1101,7 @@ export interface InformeDashboardResponse extends CMIProcesosDashboardResponse {
         campo: string;
         label: string;
         valor: string;
-        items: string[];
+        items: Array<{ nombre: string; descripcion: string; recomendaciones: string | null }>;
         pill_bg: string;
         pill_text: string;
         dot_color: string;

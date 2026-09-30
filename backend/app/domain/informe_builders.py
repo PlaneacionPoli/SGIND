@@ -8,7 +8,8 @@ from typing import Any
 import pandas as pd
 
 _PROPUESTAS_PATH = "raw/Propuesta Indicadores/Indicadores Propuestos.xlsx"
-_AUDITORIA_PATH = "raw/Auditoria/auditoria_resultado.xlsx"
+_AUDITORIA_PATH = "raw/Auditoria/CONSOLIDADO HALLAZGOS AUDITORÍA 2026.xlsx"
+_AUDITORIA_SHEET = "CONSOLIDADO"
 
 SOURCE_STYLES = {
     "Retos": {"bg": "#e8f5e9", "border": "#66bb6a", "title": "#1b5e20"},
@@ -18,11 +19,10 @@ SOURCE_STYLES = {
 }
 
 _CAT_STYLE = {
-    "fortalezas": ("Fortalezas", "#d1f5e0", "#0a5c36", "#1aaa6b", "✅"),
-    "oportunidades_mejora": ("Oportunidades de Mejora", "#fff3cd", "#7a5000", "#e6a800", "🔄"),
-    "hallazgos": ("Hallazgos", "#dbeeff", "#003d8f", "#1a6fdb", "🔍"),
-    "no_conformidades": ("No Conformidades", "#fde0e0", "#7a0000", "#e63535", "⚠️"),
-    "recomendacion_desempeno": ("Recomendación Desempeño", "#ede0ff", "#3d0080", "#7c3aed", "💡"),
+    "fortaleza": ("Fortalezas", "#d1f5e0", "#0a5c36", "#1aaa6b", "✅"),
+    "oportunidad_de_mejora": ("Oportunidades de Mejora", "#fff3cd", "#7a5000", "#e6a800", "🔄"),
+    "no_conformidad": ("No Conformidades", "#fde0e0", "#7a0000", "#e63535", "⚠️"),
+    "nuevo_riesgo": ("Nuevo Riesgo", "#ede0ff", "#3d0080", "#7c3aed", "🚩"),
 }
 
 
@@ -207,53 +207,72 @@ def load_propuestas(
         return [], f"Error procesando propuestas: {exc}"
 
 
+def _norm_col(name: object) -> str:
+    return _norm_text(name).lower().replace(" ", "_")
+
+
 def load_auditoria(excel, proceso: str = "Todos") -> tuple[list[dict[str, Any]], str | None]:
     path = excel.data_root / _AUDITORIA_PATH
     if not path.exists():
         return [], f"No existe el archivo: {_AUDITORIA_PATH}"
     try:
-        df = excel.read_excel(_AUDITORIA_PATH)
+        df = excel.read_excel(_AUDITORIA_PATH, sheet_name=_AUDITORIA_SHEET)
     except Exception as exc:
         return [], f"No se pudo leer auditoría: {exc}"
     if df.empty:
         return [], "La hoja de auditoría está vacía."
 
-    df.columns = [str(c).strip().lower() for c in df.columns]
-    if proceso and proceso.upper() != "TODOS" and "proceso" in df.columns:
-        mask = df["proceso"].astype(str).str.upper().str.contains(proceso.upper(), na=False)
-        df = df[mask]
+    df.columns = [_norm_col(c) for c in df.columns]
+    df["proceso"] = df["proceso"].astype(str).str.strip()
+    df["categoria_norm"] = df["categoria"].map(_norm_col)
 
-    secciones = []
-    for tipo in ("interna", "externa"):
-        titulo = "Auditoría Interna" if tipo == "interna" else "Auditoría Externa – Icontec 2025"
-        fichas = []
-        for _, row in df.iterrows():
-            proceso_nombre = str(row.get("proceso", "")).strip()
-            categorias = []
-            for campo, estilo in _CAT_STYLE.items():
-                col_name = f"{campo}_{tipo}"
-                raw = row.get(col_name)
-                valor = "" if pd.isna(raw) else str(raw).strip()
-                if valor:
-                    label, pill_bg, pill_text, dot_color, emoji = estilo
-                    items = [
-                        v.strip() for v in valor.replace("\n", " | ").split(" | ") if v.strip()
-                    ]
-                    if not items:
-                        continue
-                    categorias.append(
-                        {
-                            "campo": campo,
-                            "label": label,
-                            "valor": valor,
-                            "items": items,
-                            "pill_bg": pill_bg,
-                            "pill_text": pill_text,
-                            "dot_color": dot_color,
-                            "emoji": emoji,
-                        }
-                    )
-            if categorias:
-                fichas.append({"proceso": proceso_nombre, "categorias": categorias})
-        secciones.append({"tipo": tipo, "titulo": titulo, "fichas": fichas})
+    if proceso and proceso.upper() != "TODOS":
+        pn = _norm_text(proceso)
+        df = df[df["proceso"].map(_norm_text) == pn]
+
+    fichas = []
+    for proceso_nombre, grupo in df.groupby("proceso", sort=False):
+        categorias = []
+        for campo, estilo in _CAT_STYLE.items():
+            filas = grupo[grupo["categoria_norm"] == campo]
+            if filas.empty:
+                continue
+            label, pill_bg, pill_text, dot_color, emoji = estilo
+            items = []
+            for _, row in filas.iterrows():
+                nombre = "" if pd.isna(row.get("nombre")) else str(row.get("nombre")).strip()
+                descripcion = (
+                    "" if pd.isna(row.get("descripcion")) else str(row.get("descripcion")).strip()
+                )
+                recomendaciones = row.get("recomendaciones")
+                recomendaciones = (
+                    None if pd.isna(recomendaciones) else str(recomendaciones).strip() or None
+                )
+                if not nombre and not descripcion:
+                    continue
+                items.append(
+                    {
+                        "nombre": nombre,
+                        "descripcion": descripcion,
+                        "recomendaciones": recomendaciones,
+                    }
+                )
+            if not items:
+                continue
+            categorias.append(
+                {
+                    "campo": campo,
+                    "label": label,
+                    "valor": "",
+                    "items": items,
+                    "pill_bg": pill_bg,
+                    "pill_text": pill_text,
+                    "dot_color": dot_color,
+                    "emoji": emoji,
+                }
+            )
+        if categorias:
+            fichas.append({"proceso": proceso_nombre, "categorias": categorias})
+
+    secciones = [{"tipo": "consolidado", "titulo": "Consolidado Auditoría 2026", "fichas": fichas}]
     return secciones, None

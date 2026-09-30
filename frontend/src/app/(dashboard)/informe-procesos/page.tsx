@@ -291,7 +291,7 @@ function InformeContent() {
               {tab === "auditoria" && (
                 <section className="space-y-6">
                   <p className="inline-flex w-fit items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">
-                    📅 Resultados de auditoría 2025 — no varían con el filtro de año
+                    📅 Resultados de auditoría 2026 — no varían con el filtro de año
                   </p>
                   {data?.auditoria_error ? (
                     <p className="text-sm text-amber-700">{data.auditoria_error}</p>
@@ -316,14 +316,27 @@ function InformeContent() {
                                       <span className="font-bold">
                                         {cat.emoji} {cat.label}
                                       </span>
-                                      <ul className="mt-1 space-y-1">
-                                        {(cat.items?.length ? cat.items : [cat.valor]).map((item, k) => (
+                                      <ul className="mt-1 space-y-2">
+                                        {cat.items.map((item, k) => (
                                           <li key={k} className="flex items-start gap-2">
                                             <span
                                               className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full"
                                               style={{ backgroundColor: cat.dot_color }}
                                             />
-                                            <span className="whitespace-pre-wrap">{item}</span>
+                                            <span className="whitespace-pre-wrap">
+                                              <span className="font-semibold">{item.nombre}</span>
+                                              {item.descripcion && (
+                                                <>
+                                                  {item.nombre ? ": " : ""}
+                                                  {item.descripcion}
+                                                </>
+                                              )}
+                                              {item.recomendaciones && (
+                                                <span className="mt-0.5 block text-xs italic opacity-80">
+                                                  Recomendación: {item.recomendaciones}
+                                                </span>
+                                              )}
+                                            </span>
                                           </li>
                                         ))}
                                       </ul>
