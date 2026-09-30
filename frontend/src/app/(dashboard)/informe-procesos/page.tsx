@@ -42,10 +42,12 @@ const TABS = [
 
 type TabId = (typeof TABS)[number]["id"];
 
+const YEAR_BAR_COLORS = ["#1a2b4a", "#2563eb", "#7c3aed", "#0d9488", "#c9a227"];
+
 const SCORE_LABEL_STYLES: Record<string, { border: string; bg: string; text: string; pill: string }> = {
   Saludable: { border: "border-emerald-300", bg: "bg-emerald-50/40", text: "text-emerald-900", pill: "bg-emerald-500" },
   Estable: { border: "border-amber-300", bg: "bg-amber-50/40", text: "text-amber-900", pill: "bg-amber-500" },
-  "En riesgo": { border: "border-red-300", bg: "bg-red-50/40", text: "text-red-900", pill: "bg-error" },
+  "En riesgo": { border: "border-red-300", bg: "bg-red-50/40", text: "text-red-900", pill: "bg-red-600" },
 };
 
 export default function InformeProcesosPage() {
@@ -246,7 +248,7 @@ function InformeContent() {
               {resumen && (
                 <div className="flex flex-wrap items-center justify-end gap-2 text-xs font-semibold">
                   <span className="inline-flex items-center gap-1.5 rounded-full border border-red-200 bg-red-100 px-2.5 py-0.5 text-red-800">
-                    <span className="h-2 w-2 animate-pulse rounded-full bg-error" />
+                    <span className="h-2 w-2 animate-pulse rounded-full bg-red-600" />
                     {resumen.peligro} en peligro
                   </span>
                   <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-100 px-2.5 py-0.5 text-amber-900">
@@ -455,7 +457,7 @@ function ResumenEjecutivoTab({
       {topCritico && (
         <div className="flex items-start justify-between gap-4 rounded-xl border border-red-300 bg-red-50/80 p-4">
           <div className="flex items-start gap-3">
-            <div className="shrink-0 rounded-lg bg-red-100 p-2 text-error">
+            <div className="shrink-0 rounded-lg bg-red-100 p-2 text-red-600">
               <AlertTriangle className="h-5 w-5" />
             </div>
             <div>
@@ -471,7 +473,7 @@ function ResumenEjecutivoTab({
           <button
             type="button"
             onClick={onVerPropuestas}
-            className="shrink-0 rounded-lg border border-red-300 bg-white px-3 py-1.5 text-xs font-semibold text-error shadow-xs hover:bg-red-50"
+            className="shrink-0 rounded-lg border border-red-300 bg-white px-3 py-1.5 text-xs font-semibold text-red-600 shadow-xs hover:bg-red-50"
           >
             Ver plan de acción
           </button>
@@ -492,7 +494,7 @@ function ResumenEjecutivoTab({
           </div>
           <div className="flex items-center justify-between border-t border-black/5 pt-2 text-xs">
             {resumen.delta != null ? (
-              <span className={`font-bold ${resumen.delta >= 0 ? "text-emerald-700" : "text-error"}`}>
+              <span className={`font-bold ${resumen.delta >= 0 ? "text-emerald-700" : "text-red-600"}`}>
                 {resumen.delta >= 0 ? "+" : ""}
                 {resumen.delta}% vs año anterior
               </span>
@@ -550,18 +552,18 @@ function ResumenEjecutivoTab({
         <div className="flex flex-col justify-between rounded-xl border-2 border-red-300 bg-red-50/30 p-5 shadow-sm">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-bold uppercase tracking-wider text-red-950">Estado de Alertas</span>
-            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-red-100 text-error">
+            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-red-100 text-red-600">
               <AlertTriangle className="h-4 w-4" />
             </span>
           </div>
           <div className="my-3 flex items-baseline gap-1">
-            <span className="text-3xl font-extrabold text-error">{resumen.peligro}</span>
+            <span className="text-3xl font-extrabold text-red-600">{resumen.peligro}</span>
             <span className="ml-1 text-xs font-bold text-red-900">en criticidad alta</span>
           </div>
-          <div className="flex items-center justify-between border-t border-red-200 pt-2 text-xs text-red-900">
-            <span className="font-medium">{resumen.alerta} alertas moderadas</span>
+          <div className="flex items-center justify-between border-t border-red-200 pt-2 text-xs">
+            <span className="font-semibold text-amber-700">{resumen.alerta} alertas moderadas</span>
             {resumen.peligro > 0 && (
-              <span className="rounded bg-error px-2 py-0.5 font-bold text-white shadow-xs">Requiere revisión</span>
+              <span className="rounded bg-red-600 px-2 py-0.5 font-bold text-white shadow-xs">Requiere revisión</span>
             )}
           </div>
         </div>
@@ -580,25 +582,27 @@ function ResumenEjecutivoTab({
               {comparativa.map((c, i) => {
                 const width = Math.max(4, ((c.cumplimiento ?? 0) / maxComparativa) * 100);
                 const current = i === 0;
+                const barColor = YEAR_BAR_COLORS[i % YEAR_BAR_COLORS.length];
                 return (
                   <div key={c.anio} className="space-y-1">
                     <div className={`flex justify-between text-xs font-bold ${current ? "text-poli-navy" : "text-slate-600"}`}>
                       <span className="flex items-center gap-1.5">
-                        <span className={`h-2 w-2 rounded-full ${current ? "bg-poli-navy" : "bg-slate-300"}`} />
+                        <span className="h-2 w-2 rounded-full" style={{ backgroundColor: barColor }} />
                         {c.anio}
                         {current ? " (Corte actual)" : ""}
                       </span>
-                      <span className={`rounded px-2 py-0.5 font-extrabold text-white shadow-xs ${current ? "bg-poli-navy" : "bg-poli-navy/60"}`}>
+                      <span
+                        className="rounded px-2 py-0.5 font-extrabold text-white shadow-xs"
+                        style={{ backgroundColor: barColor }}
+                      >
                         {fmtPct(c.cumplimiento)}
                       </span>
                     </div>
                     <div className={`w-full overflow-hidden rounded-lg border border-blue-100 bg-blue-50 p-0.5 ${current ? "h-7" : "h-6"}`}>
                       <div
-                        className={`flex items-center justify-end rounded-md text-[11px] font-bold text-white transition-all duration-500 ${current ? "bg-poli-navy" : "bg-poli-navy/50"}`}
-                        style={{ width: `${width}%` }}
-                      >
-                        <span className="pr-2">{fmtPct(c.cumplimiento)}</span>
-                      </div>
+                        className="h-full rounded-md transition-all duration-500"
+                        style={{ width: `${width}%`, backgroundColor: barColor }}
+                      />
                     </div>
                   </div>
                 );
@@ -633,7 +637,7 @@ function ResumenEjecutivoTab({
           {topCritico && (
             <div className="rounded-xl border-2 border-red-300 border-l-4 border-l-red-600 bg-red-50/60 p-5 shadow-sm">
               <div className="mb-2 flex items-center gap-2.5">
-                <div className="rounded-xl bg-error p-2 text-white shadow-xs">
+                <div className="rounded-xl bg-red-600 p-2 text-white shadow-xs">
                   <Zap className="h-5 w-5" />
                 </div>
                 <div>
@@ -643,7 +647,7 @@ function ResumenEjecutivoTab({
               </div>
               <p className="text-sm leading-relaxed text-red-950">
                 El indicador <span className="font-bold">{String(topCritico.indicador ?? "—")}</span> cayó al{" "}
-                <span className="rounded bg-error px-1.5 py-0.5 font-bold text-white shadow-xs">
+                <span className="rounded bg-red-600 px-1.5 py-0.5 font-bold text-white shadow-xs">
                   {fmtPct(topCritico.cumplimiento_pct as number)}
                 </span>{" "}
                 de meta{topCritico.proceso ? ` en ${String(topCritico.proceso)}` : ""}.
@@ -697,7 +701,7 @@ function ResumenEjecutivoTab({
                       </td>
                       <td className="px-6 py-3 text-right font-bold text-poli-navy">{fmtPct(row.cumplimiento)}</td>
                       <td className="px-6 py-3 text-right text-slate-500">{fmtPct(row.cumplimiento_anterior)}</td>
-                      <td className={`px-6 py-3 text-right font-bold ${(row.variacion ?? 0) >= 0 ? "text-emerald-600" : "text-error"}`}>
+                      <td className={`px-6 py-3 text-right font-bold ${(row.variacion ?? 0) >= 0 ? "text-emerald-600" : "text-red-600"}`}>
                         {row.variacion != null ? `${row.variacion >= 0 ? "+" : ""}${row.variacion} pp` : "—"}
                       </td>
                       <td className="px-6 py-3 text-center">

@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { BarChart3, Activity, Search, ExternalLink } from "lucide-react";
 import type { Indicator } from "@/lib/types";
 import { fmtPct, NivelBadge } from "@/components/cmi/nivelUtils";
 import { fmtMeta, fmtEjecucion } from "@/lib/formatValor";
@@ -60,44 +61,77 @@ export function CmiProcesosListadoTab({
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const pageItems = filtered.slice(page * pageSize, (page + 1) * pageSize);
 
+  const total = summary.total ?? 0;
+  const pct = (n: number) => (total > 0 ? `${((n / total) * 100).toFixed(1)}% del total` : "—");
+
   return (
-    <div className="space-y-6">
-      <p className="text-xs text-slate-500">
+    <div className="space-y-5">
+      <p className="flex items-start gap-1.5 text-xs text-slate-500">
+        <span className="mt-0.5 shrink-0 text-slate-400">ℹ️</span>
         Listado filtrado — respeta todos los filtros del panel (año, mes, unidad, proceso, clasificación,
         frecuencia). Columnas de proceso/subproceso, sin líneas estratégicas PDI.
       </p>
 
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="grid flex-1 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-        <SummaryCard label="Total" value={summary.total ?? 0} bg="bg-slate-50" />
-        <SummaryCard label="Métricas" value={summary.metricas ?? 0} bg="bg-slate-50" />
-        <SummaryCard label="Sobrecumpl." value={summary.sobrecumplimiento ?? 0} color="text-blue-800" bg="bg-blue-50" border="border-blue-200" />
-        <SummaryCard label="Cumplimiento" value={summary.cumplimiento ?? 0} color="text-emerald-800" bg="bg-emerald-50" border="border-emerald-200" />
-        <SummaryCard label="Alerta" value={summary.alerta ?? 0} color="text-amber-800" bg="bg-amber-50" border="border-amber-200" />
-        <SummaryCard label="Peligro" value={summary.peligro ?? 0} color="text-red-800" bg="bg-red-50" border="border-red-200" />
-        </div>
-        <div className="flex gap-2">
-          {onExportCsv && (
-            <button
-              type="button"
-              onClick={onExportCsv}
-              disabled={exporting}
-              className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
-            >
-              Exportar CSV
-            </button>
-          )}
-          {onExportExcel && (
-            <button
-              type="button"
-              onClick={onExportExcel}
-              disabled={exporting}
-              className="rounded-lg bg-poli-navy px-3 py-2 text-xs font-semibold text-white hover:opacity-90 disabled:opacity-50"
-            >
-              Exportar Excel
-            </button>
-          )}
-        </div>
+      <div className="grid grid-cols-2 gap-3.5 sm:grid-cols-3 lg:grid-cols-6">
+        <SummaryCard
+          label="Total"
+          value={summary.total ?? 0}
+          icon={<BarChart3 className="h-[18px] w-[18px] text-slate-400" />}
+          hint="Catálogo activo"
+        />
+        <SummaryCard
+          label="Métricas"
+          value={summary.metricas ?? 0}
+          icon={<Activity className="h-[18px] w-[18px] text-slate-400" />}
+          hint="calculadas"
+          valueColor="text-poli-navy"
+        />
+        <SummaryCard
+          label="Sobrecumpl."
+          value={summary.sobrecumplimiento ?? 0}
+          hint={pct(summary.sobrecumplimiento ?? 0)}
+          bg="bg-blue-50"
+          border="border-blue-200"
+          labelColor="text-blue-800"
+          valueColor="text-blue-800"
+          hintColor="text-blue-700"
+          dot="#2563EB"
+        />
+        <SummaryCard
+          label="Cumplimiento"
+          value={summary.cumplimiento ?? 0}
+          hint={(summary.cumplimiento ?? 0) > 0 ? "Meta alcanzada (100%)" : "Sin registros"}
+          bg="bg-emerald-50"
+          border="border-emerald-200"
+          labelColor="text-emerald-800"
+          valueColor="text-emerald-700"
+          hintColor="text-emerald-700"
+          dot="#16A34A"
+        />
+        <SummaryCard
+          label="Alerta"
+          value={summary.alerta ?? 0}
+          hint={(summary.alerta ?? 0) > 0 ? pct(summary.alerta ?? 0) : "Sin desvíos leves"}
+          bg="bg-amber-50"
+          border="border-amber-200"
+          labelColor="text-amber-800"
+          valueColor="text-amber-700"
+          hintColor="text-amber-700"
+          dot="#D97706"
+        />
+        <SummaryCard
+          label="Peligro"
+          value={summary.peligro ?? 0}
+          hint={(summary.peligro ?? 0) > 0 ? `${pct(summary.peligro ?? 0)} (<70%)` : "Sin críticos"}
+          bg="bg-red-50"
+          border="border-red-200"
+          labelColor="text-red-800"
+          valueColor="text-red-700"
+          hintColor="text-red-700"
+          dot="#DC2626"
+          accent
+          pulse={(summary.peligro ?? 0) > 0}
+        />
       </div>
 
       {ejecucionVariacion &&
@@ -108,45 +142,70 @@ export function CmiProcesosListadoTab({
           </div>
         )}
 
-      <div className="grid gap-3 sm:grid-cols-3">
-        <label className="flex flex-col gap-1 text-sm">
-          <span className="font-medium text-slate-600">Proceso</span>
-          <select
-            value={proceso}
-            onChange={(e) => {
-              setProceso(e.target.value);
-              setPage(0);
-            }}
-            className="rounded-lg border border-slate-200 px-3 py-2"
-          >
-            {procesos.map((p) => (
-              <option key={p} value={p}>
-                {p}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="flex flex-col gap-1 text-sm">
-          <span className="font-medium text-slate-600">Estado</span>
-          <select
-            value={estado}
-            onChange={(e) => {
-              setEstado(e.target.value);
-              setPage(0);
-            }}
-            className="rounded-lg border border-slate-200 px-3 py-2"
-          >
-            {["Todos", "Sobrecumplimiento", "Cumplimiento", "Alerta", "Peligro", "Pendiente de reporte"].map(
-              (e) => (
-                <option key={e} value={e}>
-                  {e}
+      <div className="flex flex-col items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-3 shadow-sm md:flex-row">
+        <div className="flex w-full flex-wrap items-center gap-3 md:w-auto">
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] font-semibold uppercase text-slate-500">Proceso:</span>
+            <select
+              value={proceso}
+              onChange={(e) => {
+                setProceso(e.target.value);
+                setPage(0);
+              }}
+              className="h-8 rounded-md border border-slate-200 bg-slate-50 px-2.5 text-xs text-slate-800 focus:border-poli-navy focus:outline-none focus:ring-1 focus:ring-poli-navy"
+            >
+              {procesos.map((p) => (
+                <option key={p} value={p}>
+                  {p}
                 </option>
-              )
-            )}
-          </select>
-        </label>
-        <label className="flex flex-col gap-1 text-sm sm:col-span-1">
-          <span className="font-medium text-slate-600">Buscar</span>
+              ))}
+            </select>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] font-semibold uppercase text-slate-500">Estado:</span>
+            <select
+              value={estado}
+              onChange={(e) => {
+                setEstado(e.target.value);
+                setPage(0);
+              }}
+              className="h-8 rounded-md border border-slate-200 bg-slate-50 px-2.5 text-xs text-slate-800 focus:border-poli-navy focus:outline-none focus:ring-1 focus:ring-poli-navy"
+            >
+              {["Todos", "Sobrecumplimiento", "Cumplimiento", "Alerta", "Peligro", "Pendiente de reporte"].map(
+                (e) => (
+                  <option key={e} value={e}>
+                    {e}
+                  </option>
+                )
+              )}
+            </select>
+          </div>
+          {(onExportCsv || onExportExcel) && (
+            <div className="flex gap-2">
+              {onExportCsv && (
+                <button
+                  type="button"
+                  onClick={onExportCsv}
+                  disabled={exporting}
+                  className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                >
+                  Exportar CSV
+                </button>
+              )}
+              {onExportExcel && (
+                <button
+                  type="button"
+                  onClick={onExportExcel}
+                  disabled={exporting}
+                  className="rounded-lg bg-poli-navy px-3 py-1.5 text-xs font-semibold text-white hover:opacity-90 disabled:opacity-50"
+                >
+                  Exportar Excel
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+        <div className="relative w-full md:w-80">
           <input
             type="search"
             value={busqueda}
@@ -155,95 +214,109 @@ export function CmiProcesosListadoTab({
               setPage(0);
             }}
             placeholder="Nombre del indicador..."
-            className="rounded-lg border border-slate-200 px-3 py-2"
+            className="h-8 w-full rounded-md border border-slate-200 bg-slate-50 pl-8 pr-3 text-xs text-slate-800 focus:border-poli-navy focus:outline-none focus:ring-1 focus:ring-poli-navy"
           />
-        </label>
+          <Search className="pointer-events-none absolute left-2.5 top-2 h-4 w-4 text-slate-400" />
+        </div>
       </div>
 
-      <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
-        <table className="min-w-full text-left text-sm">
-          <thead className="bg-slate-50 text-xs uppercase text-slate-500">
-            <tr>
-              <th className="px-4 py-3">Indicador</th>
-              <th className="px-4 py-3">Proceso</th>
-              <th className="px-4 py-3">Subproceso</th>
-              <th className="px-4 py-3 text-right">Meta</th>
-              <th className="px-4 py-3 text-right">Ejecución</th>
-              <th className="px-4 py-3 text-right">Cumpl.</th>
-              <th className="px-4 py-3">Nivel</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {pageItems.map((ind) => {
-              const rec = ind as Record<string, unknown>;
-              const id = String(ind.Id ?? "");
-              return (
-                <tr key={id || String(ind.Indicador)} className="hover:bg-slate-50">
-                  <td className="px-4 py-3">
-                    {onOpenFicha && id ? (
-                      <button
-                        type="button"
-                        onClick={() => onOpenFicha(id)}
-                        className="text-left font-medium text-poli-blue hover:underline"
-                      >
-                        {ind.Indicador}
-                      </button>
-                    ) : (
-                      <span className="font-medium text-slate-800">{ind.Indicador}</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-slate-600">{String(rec.Proceso_padre ?? ind.Proceso ?? "—")}</td>
-                  <td className="px-4 py-3 text-slate-600">
-                    {String(rec.Subproceso_final ?? ind.Subproceso ?? "—")}
-                  </td>
-                  <td className="px-4 py-3 text-right">{fmtMeta(ind as Record<string, unknown>)}</td>
-                  <td className="px-4 py-3 text-right">{fmtEjecucion(ind as Record<string, unknown>)}</td>
-                  <td className="px-4 py-3 text-right">{fmtPct(ind.cumplimiento_pct as number)}</td>
-                  <td className="px-4 py-3">
-                    <NivelBadge nivel={ind["Nivel de cumplimiento"] as string} />
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
+      <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse text-left text-sm">
+            <thead>
+              <tr className="border-b border-slate-200 bg-slate-50 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                <th className="px-4 py-3">Indicador</th>
+                <th className="px-3 py-3">Proceso</th>
+                <th className="px-3 py-3">Subproceso</th>
+                <th className="px-2 py-3 text-right">Meta</th>
+                <th className="px-2 py-3 text-right">Ejecución</th>
+                <th className="px-2 py-3 text-right">Cumpl.</th>
+                <th className="px-4 py-3 text-center">Nivel</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {pageItems.map((ind) => {
+                const rec = ind as Record<string, unknown>;
+                const id = String(ind.Id ?? "");
+                const esCritico = ind["Nivel de cumplimiento"] === "Peligro";
+                return (
+                  <tr
+                    key={id || String(ind.Indicador)}
+                    className={`group transition-colors hover:bg-slate-50 ${esCritico ? "bg-red-50/30" : ""}`}
+                  >
+                    <td className="px-4 py-3.5 font-semibold text-poli-navy">
+                      {onOpenFicha && id ? (
+                        <button
+                          type="button"
+                          onClick={() => onOpenFicha(id)}
+                          className="flex items-center gap-1.5 text-left hover:underline"
+                        >
+                          <span>{ind.Indicador}</span>
+                          <ExternalLink className="h-3.5 w-3.5 text-slate-400 opacity-0 transition-opacity group-hover:opacity-100" />
+                        </button>
+                      ) : (
+                        <span>{ind.Indicador}</span>
+                      )}
+                    </td>
+                    <td className="px-3 py-3.5 text-xs font-medium text-slate-600">
+                      {String(rec.Proceso_padre ?? ind.Proceso ?? "—")}
+                    </td>
+                    <td className="px-3 py-3.5 text-xs text-slate-500">
+                      {String(rec.Subproceso_final ?? ind.Subproceso ?? "—")}
+                    </td>
+                    <td className="px-2 py-3.5 text-right font-medium">{fmtMeta(ind as Record<string, unknown>)}</td>
+                    <td className={`px-2 py-3.5 text-right font-semibold ${esCritico ? "text-red-600" : "text-slate-800"}`}>
+                      {fmtEjecucion(ind as Record<string, unknown>)}
+                    </td>
+                    <td className={`px-2 py-3.5 text-right font-bold ${esCritico ? "text-red-600" : "text-poli-navy"}`}>
+                      {fmtPct(ind.cumplimiento_pct as number)}
+                    </td>
+                    <td className="px-4 py-3.5 text-center">
+                      <NivelBadge nivel={ind["Nivel de cumplimiento"] as string} />
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
-        <span className="text-slate-600">
-          {filtered.length} indicadores · página {page + 1} de {totalPages}
-        </span>
-        <div className="flex items-center gap-2">
-          <select
-            value={pageSize}
-            onChange={(e) => {
-              setPageSize(Number(e.target.value));
-              setPage(0);
-            }}
-            className="rounded border border-slate-200 px-2 py-1"
-          >
-            {PAGE_SIZES.map((s) => (
-              <option key={s} value={s}>
-                {s}/pág
-              </option>
-            ))}
-          </select>
-          <button
-            type="button"
-            disabled={page === 0}
-            onClick={() => setPage((p) => p - 1)}
-            className="rounded border border-slate-200 px-3 py-1 disabled:opacity-40"
-          >
-            Anterior
-          </button>
-          <button
-            type="button"
-            disabled={page >= totalPages - 1}
-            onClick={() => setPage((p) => p + 1)}
-            className="rounded border border-slate-200 px-3 py-1 disabled:opacity-40"
-          >
-            Siguiente
-          </button>
+        <div className="flex flex-col items-center justify-between gap-3 border-t border-slate-200 bg-slate-50/50 px-4 py-3 text-xs text-slate-500 sm:flex-row">
+          <span>
+            {filtered.length} indicadores · página {page + 1} de {totalPages}
+          </span>
+          <div className="flex items-center gap-2">
+            <select
+              value={pageSize}
+              onChange={(e) => {
+                setPageSize(Number(e.target.value));
+                setPage(0);
+              }}
+              className="h-7 rounded border border-slate-200 bg-white px-2 text-xs text-slate-700"
+            >
+              {PAGE_SIZES.map((s) => (
+                <option key={s} value={s}>
+                  {s}/pág
+                </option>
+              ))}
+            </select>
+            <button
+              type="button"
+              disabled={page === 0}
+              onClick={() => setPage((p) => p - 1)}
+              className="rounded border border-slate-200 bg-white px-2.5 py-1 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Anterior
+            </button>
+            <button
+              type="button"
+              disabled={page >= totalPages - 1}
+              onClick={() => setPage((p) => p + 1)}
+              className="rounded border border-slate-200 bg-white px-2.5 py-1 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Siguiente
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -253,20 +326,43 @@ export function CmiProcesosListadoTab({
 function SummaryCard({
   label,
   value,
-  color = "text-slate-900",
+  hint,
+  icon,
+  dot,
   bg = "bg-white",
   border = "border-slate-200",
+  labelColor = "text-slate-500",
+  valueColor = "text-slate-900",
+  hintColor = "text-slate-500",
+  accent = false,
+  pulse = false,
 }: {
   label: string;
   value: number;
-  color?: string;
+  hint?: string;
+  icon?: React.ReactNode;
+  dot?: string;
   bg?: string;
   border?: string;
+  labelColor?: string;
+  valueColor?: string;
+  hintColor?: string;
+  accent?: boolean;
+  pulse?: boolean;
 }) {
   return (
-    <div className={`rounded-xl border ${border} ${bg} p-3 text-center shadow-sm`}>
-      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">{label}</p>
-      <p className={`mt-1 text-xl font-bold ${color}`}>{value}</p>
+    <div
+      className={`flex flex-col justify-between rounded-xl border p-4 shadow-sm transition-all hover:shadow-md ${bg} ${border} ${
+        accent ? "border-l-4 border-l-red-600" : ""
+      }`}
+    >
+      <div className="flex items-center justify-between">
+        <span className={`text-[11px] font-bold uppercase tracking-wider ${labelColor}`}>{label}</span>
+        {icon}
+        {dot && <span className={`h-2.5 w-2.5 rounded-full ${pulse ? "animate-pulse" : ""}`} style={{ backgroundColor: dot }} />}
+      </div>
+      <p className={`mt-2 text-2xl font-bold ${valueColor}`}>{value}</p>
+      {hint && <p className={`mt-1 text-[11px] font-medium ${hintColor}`}>{hint}</p>}
     </div>
   );
 }
