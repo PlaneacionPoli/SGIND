@@ -253,10 +253,10 @@ def _indicadores_table(indicadores: list[dict[str, Any]], styles: dict) -> Table
 
         meta_signo = ind.get("Meta_Signo") or ind.get("meta_signo") or "%"
         meta_dec = ind.get("Decimales_Meta") or ind.get("dec_meta")
-        ejec_signo = (
-            ind.get("Ejecucion_s") or ind.get("EjecS") or ind.get("ejec_signo") or "%"
-        )
-        ejec_dec = ind.get("Decimales_Ejecucion") or ind.get("dec_ejec")
+        # Ejecución comparte unidad con Meta (cumplimiento_pct = Ejecucion/Meta); la
+        # columna Ejecucion_s/EjecS del origen suele venir vacía o con "%" de relleno.
+        ejec_signo = meta_signo
+        ejec_dec = meta_dec
 
         rows.append(
             [
@@ -567,10 +567,10 @@ def generar_informe_procesos(
             color = _semaforo_color(estado)
             meta_signo = ind.get("Meta_Signo") or ind.get("meta_signo") or "%"
             meta_dec = ind.get("Decimales_Meta") or ind.get("dec_meta")
-            ejec_signo = (
-                ind.get("Ejecucion_s") or ind.get("EjecS") or ind.get("ejec_signo") or "%"
-            )
-            ejec_dec = ind.get("Decimales_Ejecucion") or ind.get("dec_ejec")
+            # Ejecución comparte unidad con Meta (cumplimiento_pct = Ejecucion/Meta); la
+            # columna Ejecucion_s/EjecS del origen suele venir vacía o con "%" de relleno.
+            ejec_signo = meta_signo
+            ejec_dec = meta_dec
 
             rows.append(
                 [
@@ -706,8 +706,10 @@ def generar_ficha_indicador(
     nivel = ficha.get("Nivel de cumplimiento") or ficha.get("Estado") or "Sin dato"
     meta_signo = ficha.get("Meta_Signo") or ficha.get("meta_signo") or "%"
     meta_dec = ficha.get("Decimales_Meta") or ficha.get("dec_meta")
-    ejec_signo = ficha.get("Ejecucion_s") or ficha.get("EjecS") or ficha.get("ejec_signo") or "%"
-    ejec_dec = ficha.get("Decimales_Ejecucion") or ficha.get("dec_ejec")
+    # Ejecución comparte unidad con Meta (cumplimiento_pct = Ejecucion/Meta); la
+    # columna Ejecucion_s/EjecS del origen suele venir vacía o con "%" de relleno.
+    ejec_signo = meta_signo
+    ejec_dec = meta_dec
 
     kpi_items = [
         ("Meta", _fmt_valor_signo(meta, meta_signo, meta_dec), None),

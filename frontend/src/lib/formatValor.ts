@@ -65,12 +65,15 @@ export function getSignoMeta(ind: Record<string, unknown>): { signo: string; dec
   return { signo, dec: isNaN(dec) ? 0 : dec };
 }
 
+/**
+ * Meta y Ejecución siempre comparten unidad de medida — cumplimiento_pct se calcula
+ * como Ejecucion/Meta, lo cual solo tiene sentido si ambas usan el mismo signo. La
+ * columna Ejecucion_s/EjecS del origen suele venir vacía o con "%" de relleno del ETL
+ * (ver legacy-reference/scripts/etl/escritura.py), así que el signo de Meta es la
+ * fuente confiable para formatear ambos valores.
+ */
 export function getSignoEjec(ind: Record<string, unknown>): { signo: string; dec: number } {
-  const signo = String(
-    ind["Ejecucion_s"] ?? ind["EjecS"] ?? ind["Ejecucion_Signo"] ?? ind["ejec_signo"] ?? "%",
-  ).trim();
-  const dec = Number(ind["Decimales_Ejecucion"] ?? ind["DecEjec"] ?? ind["dec_ejec"] ?? 0);
-  return { signo, dec: isNaN(dec) ? 0 : dec };
+  return getSignoMeta(ind);
 }
 
 /** Formatea Meta usando los campos de signo del indicador. */
@@ -79,8 +82,8 @@ export function fmtMeta(ind: Record<string, unknown>): string {
   return fmtValorSigno(ind["Meta"] as number | null | undefined, signo, dec);
 }
 
-/** Formatea Ejecución usando los campos de signo del indicador. */
+/** Formatea Ejecución con el mismo signo/decimales que Meta (misma unidad de medida). */
 export function fmtEjecucion(ind: Record<string, unknown>): string {
-  const { signo, dec } = getSignoEjec(ind);
+  const { signo, dec } = getSignoMeta(ind);
   return fmtValorSigno(ind["Ejecucion"] as number | null | undefined, signo, dec);
 }
