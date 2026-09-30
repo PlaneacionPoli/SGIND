@@ -78,10 +78,10 @@ _FICHA_SHEET = "Ficha Tecnica Detalle"
 _YEAR_PREPARED_CACHE: dict[tuple[str, int, bool], tuple[float, pd.DataFrame]] = {}
 _PROCESOS_DASHBOARD_CACHE: dict[tuple, tuple[float, dict]] = {}
 
-# 2026 pertenece al siguiente ciclo del PDI y aun no tiene datos completos
-# cargados — se excluye de los filtros de anio en todas las secciones por
-# ahora (ver tambien app/services/resumen_service.py::ANIOS_RANGO).
-MAX_ANIO_FILTROS = 2025
+# Tope superior de año visible en Informe/CMI por Procesos. 2026 ya tiene
+# datos de corte Junio cargados — habilitado (ver también
+# app/services/resumen_service.py::ANIOS_RANGO, que es un módulo aparte).
+MAX_ANIO_FILTROS = 2026
 
 
 class CMIService:

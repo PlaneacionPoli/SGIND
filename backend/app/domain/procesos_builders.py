@@ -833,8 +833,7 @@ def build_filtros_options(
     *,
     anio: int,
 ) -> dict[str, Any]:
-    # 2026 pertenece al siguiente ciclo del PDI y aun no tiene datos completos —
-    # se excluye de los filtros de anio por ahora (ver cmi_service.MAX_ANIO_FILTROS).
+    # Debe reflejar el mismo tope que cmi_service.MAX_ANIO_FILTROS.
     anios = (
         sorted(
             a
@@ -843,7 +842,7 @@ def build_filtros_options(
             .astype(int)
             .unique()
             .tolist()
-            if a <= 2025
+            if a <= 2026
         )
         if "Anio" in tracking.columns
         else [anio]
@@ -949,6 +948,8 @@ def avg_cumplimiento(df: pd.DataFrame) -> float | None:
 
 
 def default_anio_procesos(anios: list[int]) -> int:
+    if 2026 in anios:
+        return 2026
     if 2025 in anios:
         return 2025
     if anios:
