@@ -14,6 +14,7 @@ import {
   Zap,
   AlertTriangle,
 } from "lucide-react";
+import { CmiAuditoriaTab } from "@/components/cmi/CmiAuditoriaTab";
 import { CmiProcesosCalidadSection } from "@/components/cmi/CmiProcesosCalidadSection";
 import { CmiProcesosAnalisisTab } from "@/components/cmi/CmiProcesosAnalisisTab";
 import { DataFreshnessFooter } from "@/components/layout/DataFreshnessFooter";
@@ -320,68 +321,7 @@ function InformeContent() {
               {tab === "calidad" && data && <CmiProcesosCalidadSection calidad={data.calidad} />}
 
               {tab === "auditoria" && (
-                <section className="space-y-6">
-                  <p className="inline-flex w-fit items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">
-                    📅 Resultados de auditoría 2026 — no varían con el filtro de año
-                  </p>
-                  {data?.auditoria_error ? (
-                    <p className="text-sm text-amber-700">{data.auditoria_error}</p>
-                  ) : (
-                    (data?.auditoria ?? []).map((sec) => (
-                      <div key={sec.tipo}>
-                        <h3 className="mb-4 text-lg font-semibold text-slate-800">{sec.titulo}</h3>
-                        {sec.fichas.length === 0 ? (
-                          <p className="text-sm text-slate-500">Sin fichas para este filtro.</p>
-                        ) : (
-                          <div className="space-y-4">
-                            {sec.fichas.map((ficha, i) => (
-                              <div key={i} className="rounded-xl border border-slate-200 bg-white p-4">
-                                <h4 className="mb-3 font-bold text-slate-800">{ficha.proceso}</h4>
-                                <div className="space-y-2">
-                                  {ficha.categorias.map((cat, j) => (
-                                    <div
-                                      key={j}
-                                      className="rounded-lg p-3 text-sm"
-                                      style={{ backgroundColor: cat.pill_bg, color: cat.pill_text }}
-                                    >
-                                      <span className="font-bold">
-                                        {cat.emoji} {cat.label}
-                                      </span>
-                                      <ul className="mt-1 space-y-2">
-                                        {cat.items.map((item, k) => (
-                                          <li key={k} className="flex items-start gap-2">
-                                            <span
-                                              className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full"
-                                              style={{ backgroundColor: cat.dot_color }}
-                                            />
-                                            <span className="whitespace-pre-wrap">
-                                              <span className="font-semibold">{item.nombre}</span>
-                                              {item.descripcion && (
-                                                <>
-                                                  {item.nombre ? ": " : ""}
-                                                  {item.descripcion}
-                                                </>
-                                              )}
-                                              {item.recomendaciones && (
-                                                <span className="mt-0.5 block text-xs italic opacity-80">
-                                                  Recomendación: {item.recomendaciones}
-                                                </span>
-                                              )}
-                                            </span>
-                                          </li>
-                                        ))}
-                                      </ul>
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    ))
-                  )}
-                </section>
+                <CmiAuditoriaTab secciones={data?.auditoria ?? []} error={data?.auditoria_error ?? null} />
               )}
 
               {tab === "propuestas" && (
