@@ -75,3 +75,27 @@ test.describe("Navegación — sidebar accesible", () => {
     expect(count).toBeGreaterThanOrEqual(6);
   });
 });
+
+test.describe("Navegación — selección de PDI", () => {
+  test.beforeEach(async ({ page }) => {
+    await mockAPI(page);
+    await devLogin(page);
+  });
+
+  test("entrar a un módulo sin PDI muestra el selector con ambos ciclos", async ({ page }) => {
+    await page.goto("/cmi-estrategico");
+    await page.waitForURL(/\/seleccion-pdi\?destino=%2Fcmi-estrategico/);
+    await expect(page.getByText("PDI 2022-2026")).toBeVisible();
+    await expect(page.getByText("PDI 2026-2030")).toBeVisible();
+
+    await page.getByRole("link", { name: /PDI 2022-2026/ }).click();
+    await page.waitForURL(/\/cmi-estrategico\?pdi=PDI-2022-2026/);
+    await expect(page.locator("h2").filter({ hasText: /cmi estratégico/i })).toBeVisible();
+  });
+
+  test("un PDI sin datos cargados muestra aviso y no datos de otro ciclo", async ({ page }) => {
+    await page.goto("/resumen-general?pdi=PDI-2026-2030");
+    await expect(page.getByText(/información en preparación/i)).toBeVisible();
+  });
+});
+

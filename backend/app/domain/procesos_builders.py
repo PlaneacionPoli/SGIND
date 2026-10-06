@@ -260,10 +260,15 @@ def apply_ui_filters(
     subproceso: str | None = None,
     clasificacion: str | None = None,
     frecuencia: str | None = None,
+    ids_linea: set[str] | None = None,
 ) -> pd.DataFrame:
+    """`ids_linea` (conjunto vacío incluido) restringe a los indicadores de la línea
+    estratégica elegida del PDI; None = sin filtro por línea."""
     if df.empty:
         return df
     out = df.copy()
+    if ids_linea is not None and "Id" in out.columns:
+        out = out[out["Id"].astype(str).str.strip().isin(ids_linea)]
     if unidad and unidad != "Todos" and "Unidad" in out.columns:
         out = out[out["Unidad"].astype(str) == unidad]
     if proceso and proceso != "Todos":

@@ -40,7 +40,7 @@ test.beforeEach(async ({ page }) => {
 });
 
 test("tokens CSS —  variables de semáforo definidas en :root", async ({ page }) => {
-  await page.goto("/resumen-general");
+  await page.goto("/resumen-general?pdi=PDI-2022-2026");
   await page.waitForLoadState("networkidle");
 
   // Leer variables CSS del documento
@@ -78,7 +78,7 @@ test("semáforo en Resumen General usa los colores correctos", async ({ page }) 
     })
   );
 
-  await page.goto("/resumen-general");
+  await page.goto("/resumen-general?pdi=PDI-2022-2026");
   await page.waitForLoadState("networkidle");
   await page.waitForTimeout(1_000); // Esperar que React Query resuelva
 
@@ -109,7 +109,7 @@ test("semáforo en Resumen General usa los colores correctos", async ({ page }) 
 });
 
 test("badges de nivel en tablas usan colores correctos", async ({ page }) => {
-  await page.goto("/cmi-estrategico");
+  await page.goto("/cmi-estrategico?pdi=PDI-2022-2026");
   await page.waitForLoadState("networkidle");
   await page.waitForTimeout(1_000);
 

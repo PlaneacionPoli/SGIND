@@ -2,8 +2,10 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import Response
 
 from app.api.deps import get_excel_service
+from app.api.pdi_deps import get_pdi_marco
 from app.core.concurrency import run_sync
 from app.core.security import require_reader
+from app.domain.marcos import Marco
 from app.models.user import User
 from app.schemas.common import (
     CMIAlertasResponse,
@@ -18,7 +20,8 @@ from app.schemas.common import (
 from app.services.cmi_service import CMIService
 from app.services.excel_reader import ExcelReaderService
 
-router = APIRouter()
+# El PDI pedido se valida en TODOS los endpoints (404/409 si no existe o no tiene datos).
+router = APIRouter(dependencies=[Depends(get_pdi_marco)])
 
 
 def _cmi_service(excel: ExcelReaderService = Depends(get_excel_service)) -> CMIService:
@@ -38,12 +41,19 @@ async def cmi_estrategico_dashboard(
     anio: int | None = Query(None),
     mes: int | None = Query(None, ge=1, le=12),
     corte: str | None = Query(None, description="Junio o Diciembre"),
-    rango: bool = Query(False, description="Cierre PDI 2022-2025 (resultado final por indicador)"),
+    rango: bool = Query(False, description="Cierre del PDI elegido (resultado final por indicador)"),
+    marco: Marco = Depends(get_pdi_marco),
     _user: User = Depends(require_reader),
     service: CMIService = Depends(_cmi_service),
 ) -> CMIDashboardResponse:
     return CMIDashboardResponse(
-        **await run_sync(service.get_dashboard, anio=anio, mes=mes, corte=corte, rango=rango)
+        **await run_sync(service.get_dashboard,
+            anio=anio,
+            mes=mes,
+            corte=corte,
+            rango=rango,
+            pdi=marco.version_id,
+        )
     )
 
 
@@ -83,11 +93,14 @@ async def cmi_estrategico(
 async def cmi_procesos_filtros(
     anio: int | None = Query(None),
     mes: int | None = Query(None, ge=1, le=12),
+    marco: Marco = Depends(get_pdi_marco),
     _user: User = Depends(require_reader),
     service: CMIService = Depends(_cmi_service),
 ) -> CMIProcesosFiltrosResponse:
     return CMIProcesosFiltrosResponse(
-        **await run_sync(service.get_procesos_filtros, anio=anio, mes=mes)
+        **await run_sync(
+            service.get_procesos_filtros, anio=anio, mes=mes, pdi=marco.version_id
+        )
     )
 
 
@@ -100,6 +113,8 @@ async def cmi_procesos_dashboard(
     subproceso: str | None = Query(None),
     clasificacion: str | None = Query(None),
     frecuencia: str | None = Query(None),
+    linea: str | None = Query(None, description="Línea estratégica del PDI elegido"),
+    marco: Marco = Depends(get_pdi_marco),
     _user: User = Depends(require_reader),
     service: CMIService = Depends(_cmi_service),
 ) -> CMIProcesosDashboardResponse:
@@ -113,6 +128,8 @@ async def cmi_procesos_dashboard(
             subproceso=subproceso,
             clasificacion=clasificacion,
             frecuencia=frecuencia,
+            linea=linea,
+            pdi=marco.version_id,
         )
     )
 
@@ -152,6 +169,8 @@ async def cmi_procesos_export(
     subproceso: str | None = Query(None),
     clasificacion: str | None = Query(None),
     frecuencia: str | None = Query(None),
+    linea: str | None = Query(None, description="Línea estratégica del PDI elegido"),
+    marco: Marco = Depends(get_pdi_marco),
     _user: User = Depends(require_reader),
     service: CMIService = Depends(_cmi_service),
 ) -> Response:
@@ -165,6 +184,8 @@ async def cmi_procesos_export(
         subproceso=subproceso,
         clasificacion=clasificacion,
         frecuencia=frecuencia,
+        linea=linea,
+        pdi=marco.version_id,
     )
     return Response(
         content=content,

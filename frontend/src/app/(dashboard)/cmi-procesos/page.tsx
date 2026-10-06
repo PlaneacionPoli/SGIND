@@ -17,6 +17,8 @@ import {
   fetchCMIProcesosFicha,
   fetchCMIProcesosFiltros,
 } from "@/lib/api";
+import { PdiChip } from "@/components/ui/PdiChip";
+import { PdiGate } from "@/components/ui/PdiGate";
 import { useAuthReady } from "@/stores/auth-store";
 
 const TABS = [
@@ -32,12 +34,12 @@ type TabId = (typeof TABS)[number]["id"];
 export default function CMIProcesosPage() {
   return (
     <Suspense fallback={<p className="text-sm text-slate-500">Cargando CMI por procesos...</p>}>
-      <CMIProcesosContent />
+      <PdiGate>{(pdi) => <CMIProcesosContent pdi={pdi} />}</PdiGate>
     </Suspense>
   );
 }
 
-function CMIProcesosContent() {
+function CMIProcesosContent({ pdi }: { pdi: string }) {
   const { isAuthenticated } = useAuthReady();
   const [anio, setAnio] = useState<number | null>(null);
   const [mes, setMes] = useState<number | null>(null);
@@ -46,14 +48,15 @@ function CMIProcesosContent() {
   const [subproceso, setSubproceso] = useState("Todos");
   const [clasificacion, setClasificacion] = useState("Todos");
   const [frecuencia, setFrecuencia] = useState("Todos");
+  const [linea, setLinea] = useState("Todos");
   const [tab, setTab] = useState<TabId>("resumen");
   const [fichaId, setFichaId] = useState<string | null>(null);
   const [exporting, setExporting] = useState(false);
   const [downloadingFichaPdf, setDownloadingFichaPdf] = useState(false);
 
   const filtrosQuery = useQuery({
-    queryKey: ["cmi-procesos-filtros", anio, mes],
-    queryFn: () => fetchCMIProcesosFiltros(anio ?? undefined, mes ?? undefined),
+    queryKey: ["cmi-procesos-filtros", pdi, anio, mes],
+    queryFn: () => fetchCMIProcesosFiltros(anio ?? undefined, mes ?? undefined, pdi),
     enabled: isAuthenticated,
   });
 
@@ -81,6 +84,7 @@ function CMIProcesosContent() {
   const dashboardQuery = useQuery({
     queryKey: [
       "cmi-procesos-dashboard",
+      pdi,
       anioEfectivo,
       mesEfectivo,
       unidad,
@@ -88,6 +92,7 @@ function CMIProcesosContent() {
       subproceso,
       clasificacion,
       frecuencia,
+      linea,
     ],
     queryFn: () =>
       fetchCMIProcesosDashboard({
@@ -98,12 +103,14 @@ function CMIProcesosContent() {
         subproceso: subproceso !== "Todos" ? subproceso : undefined,
         clasificacion: clasificacion !== "Todos" ? clasificacion : undefined,
         frecuencia: frecuencia !== "Todos" ? frecuencia : undefined,
+        linea: linea !== "Todos" ? linea : undefined,
+        pdi,
       }),
     enabled: isAuthenticated && anio != null && mes != null,
   });
 
   const fichaQuery = useQuery({
-    queryKey: ["cmi-procesos-ficha", fichaId, anioEfectivo, mesEfectivo, unidad, proceso, subproceso],
+    queryKey: ["cmi-procesos-ficha", pdi, fichaId, anioEfectivo, mesEfectivo, unidad, proceso, subproceso],
     queryFn: () =>
       fetchCMIProcesosFicha(fichaId!, {
         anio: anioEfectivo,
@@ -111,6 +118,7 @@ function CMIProcesosContent() {
         unidad: unidad !== "Todos" ? unidad : undefined,
         proceso: proceso !== "Todos" ? proceso : undefined,
         subproceso: subproceso !== "Todos" ? subproceso : undefined,
+        pdi,
       }),
     enabled: isAuthenticated && !!fichaId,
   });
@@ -123,6 +131,8 @@ function CMIProcesosContent() {
     subproceso: subproceso !== "Todos" ? subproceso : undefined,
     clasificacion: clasificacion !== "Todos" ? clasificacion : undefined,
     frecuencia: frecuencia !== "Todos" ? frecuencia : undefined,
+    linea: linea !== "Todos" ? linea : undefined,
+    pdi,
   };
 
   const handleExport = async (formato: "csv" | "xlsx") => {
@@ -161,6 +171,7 @@ function CMIProcesosContent() {
     setSubproceso("Todos");
     setClasificacion("Todos");
     setFrecuencia("Todos");
+    setLinea("Todos");
   }, [filtrosQuery.data]);
 
   const data = dashboardQuery.data;
@@ -168,7 +179,10 @@ function CMIProcesosContent() {
   return (
     <div className="mx-auto max-w-[1400px] space-y-5 px-1">
       <div>
-        <h2 className="text-2xl font-bold text-slate-900">CMI por Procesos</h2>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-2xl font-bold text-slate-900">CMI por Procesos</h2>
+          <PdiChip pdi={pdi} className="text-slate-700" />
+        </div>
         <p className="mt-1 text-slate-600">
           Balanced Scorecard por procesos — Subprocesos=1, validados contra Kawak
         </p>
@@ -186,11 +200,13 @@ function CMIProcesosContent() {
           subprocesos={subprocesosFiltrados}
           clasificaciones={filtrosQuery.data.clasificaciones}
           frecuencias={filtrosQuery.data.frecuencias}
+          lineas={filtrosQuery.data.lineas ?? []}
           unidad={unidad}
           proceso={proceso}
           subproceso={subproceso}
           clasificacion={clasificacion}
           frecuencia={frecuencia}
+          linea={linea}
           onAnioChange={(y) => {
             setAnio(y);
             setMes(null);
@@ -201,6 +217,7 @@ function CMIProcesosContent() {
           onSubprocesoChange={setSubproceso}
           onClasificacionChange={setClasificacion}
           onFrecuenciaChange={setFrecuencia}
+          onLineaChange={setLinea}
           onReset={handleReset}
         />
       )}

@@ -15,6 +15,7 @@ from app.domain.calculos import (
 )
 from app.domain.cmi_filters import CMIFilterService
 from app.domain.linea_order import linea_sort_key
+from app.domain.marcos import Marco, get_marco, marco_por_defecto
 from app.domain.resumen_builders import (
     _INDICADORES_EXCLUIDOS_PDF,
     STRATEGIC_LINE_DEFS,
@@ -552,25 +553,32 @@ class ResumenService:
             "parrafos": parrafos,
         }
 
+    @staticmethod
+    def _marco(pdi: str | None) -> Marco:
+        """Marco PDI pedido; sin `pdi` usa el vigente con datos (compatibilidad)."""
+        return get_marco(pdi) if pdi else marco_por_defecto("PDI")
+
     def get_resumen_completo(
-        self, *, anio: int, vista: str = "indicadores", rango: bool = False
+        self, *, anio: int, vista: str = "indicadores", rango: bool = False, pdi: str | None = None
     ) -> dict[str, Any]:
         """Payload unificado alineado con streamlit resumen_general.py.
         Se cachea por combinación de filtros — este dashboard recorre
         varios builders con groupby/loops pesados (resumen_builders.py) en
         cada request; _warm_caches (main.py) precalienta exactamente
         anio=2025/vista='indicadores'/rango=True al arrancar."""
-        key = (id(self._excel), anio, vista, rango)
+        marco = self._marco(pdi)
+        key = (id(self._excel), marco.version_id, anio, vista, rango)
         return cache_get(
             _RESUMEN_COMPLETO_CACHE,
             key,
-            lambda: self._get_resumen_completo_uncached(anio=anio, vista=vista, rango=rango),
+            lambda: self._get_resumen_completo_uncached(anio=anio, vista=vista, rango=rango, marco=marco),
             ttl=self._excel.ttl,
         )
 
     def _get_resumen_completo_uncached(
-        self, *, anio: int, vista: str = "indicadores", rango: bool = False
+        self, *, anio: int, vista: str = "indicadores", rango: bool = False, marco: Marco
     ) -> dict[str, Any]:
+        anios_rango = marco.anios
         vista_norm = (vista or "indicadores").strip().lower()
         meses = {
             1: "Enero",
@@ -589,7 +597,7 @@ class ResumenService:
 
         if vista_norm == "indicadores":
             pdi_df = (
-                ensure_nivel_cumplimiento(self._strategic.preparar_pdi_cierre_final())
+                ensure_nivel_cumplimiento(self._strategic.preparar_pdi_cierre_final(marco.hoja_cierre or "Cierre PDI"))
                 if rango
                 else ensure_nivel_cumplimiento(self._strategic.preparar_pdi_con_cierre(anio, 12))
             )
@@ -636,7 +644,7 @@ class ResumenService:
             # NINGÚN proyecto de Expansión con cierre bajo el Id actual del
             # catálogo (hallazgo 2026-09-29); el PMO solo (fix anterior,
             # commit 8e37fe8) traía cifras que no eran las oficiales.
-            pmo_anios = ANIOS_RANGO if rango else [anio]
+            pmo_anios = anios_rango if rango else [anio]
             pmo_gantt = build_proyectos_oficiales_gantt(
                 self._proyectos_oficiales.load(), anios=pmo_anios
             )
@@ -690,13 +698,13 @@ class ResumenService:
 
         if vista_norm == "retos":
             if rango:
-                linea_df, obj_df, planes_df = self._retos_multi_anio(ANIOS_RANGO)
+                linea_df, obj_df, planes_df = self._retos_multi_anio(anios_rango)
             else:
                 linea_df, obj_df = self._retos.load_retos_data(anio)
                 planes_df = self._retos.load_planes(anio)
-            area_count = self._retos.load_area_count(max(ANIOS_RANGO) if rango else anio)
+            area_count = self._retos.load_area_count(max(anios_rango) if rango else anio)
             linea_summary = build_linea_summary_retos(linea_df, obj_df, planes_df)
-            avance_global = self._retos.load_avance_global(ANIOS_RANGO if rango else [anio])
+            avance_global = self._retos.load_avance_global(anios_rango if rango else [anio])
             chips = get_chip_config_retos(linea_summary, area_count, avance_global)
             cards = build_strategy_cards(linea_summary, linea_df, vista=vista_norm)
             mindmap = build_pdi_mindmap(
@@ -723,9 +731,9 @@ class ResumenService:
 
         if vista_norm == "consolidado":
             if rango:
-                pdi_df = ensure_nivel_cumplimiento(self._strategic.preparar_pdi_cierre_final())
-                proy_df = self._proyectos_multi_anio(ANIOS_RANGO)
-                ret_linea_df, ret_obj_df, ret_planes_df = self._retos_multi_anio(ANIOS_RANGO)
+                pdi_df = ensure_nivel_cumplimiento(self._strategic.preparar_pdi_cierre_final(marco.hoja_cierre or "Cierre PDI"))
+                proy_df = self._proyectos_multi_anio(anios_rango)
+                ret_linea_df, ret_obj_df, ret_planes_df = self._retos_multi_anio(anios_rango)
             else:
                 pdi_df = ensure_nivel_cumplimiento(
                     self._strategic.preparar_pdi_con_cierre(anio, 12)
@@ -760,7 +768,7 @@ class ResumenService:
                     else 0
                 )
             )
-            area_count = self._retos.load_area_count(max(ANIOS_RANGO) if rango else anio)
+            area_count = self._retos.load_area_count(max(anios_rango) if rango else anio)
 
             chips = get_chip_config_consolidado(linea_summary, ind_count, proy_count, area_count)
             cards = build_strategy_cards(linea_summary, None, vista=vista_norm)
@@ -815,30 +823,33 @@ class ResumenService:
             "total_indicadores": 0,
         }
 
-    def get_resumen_linea(self, *, key: str, anio: int | None = None) -> dict[str, Any] | None:
+    def get_resumen_linea(
+        self, *, key: str, anio: int | None = None, pdi: str | None = None
+    ) -> dict[str, Any] | None:
         """Payload de una línea estratégica individual para la hoja de línea
         del portal Resumen General: Retos + Proyectos PMO + Indicadores CMI.
         Reutiliza build_informe_ejecutivo_lineas (misma fuente que el PDF
         Informe Ejecutivo) — cero lógica de agregación duplicada.
         Si `anio` es None se usa el rango completo (Cierre PDI 2022-2025);
         el bloque CMI/objetivos no varía con el año (cierre final del ciclo)."""
-        cache_key = (id(self._excel), "resumen-linea", key, anio)
+        marco = self._marco(pdi)
+        cache_key = (id(self._excel), marco.version_id, "resumen-linea", key, anio)
         return cache_get(
             _RESUMEN_COMPLETO_CACHE,
             cache_key,
-            lambda: self._get_resumen_linea_uncached(key=key, anio=anio),
+            lambda: self._get_resumen_linea_uncached(key=key, anio=anio, marco=marco),
             ttl=self._excel.ttl,
         )
 
     def _get_resumen_linea_uncached(
-        self, *, key: str, anio: int | None = None
+        self, *, key: str, anio: int | None = None, marco: Marco
     ) -> dict[str, Any] | None:
         target = norm_key(key)
         if target not in {norm_key(d["key"]) for d in STRATEGIC_LINE_DEFS}:
             return None
 
-        anios = [anio] if anio is not None else ANIOS_RANGO
-        pdi_df = ensure_nivel_cumplimiento(self._strategic.preparar_pdi_cierre_final())
+        anios = [anio] if anio is not None else marco.anios
+        pdi_df = ensure_nivel_cumplimiento(self._strategic.preparar_pdi_cierre_final(marco.hoja_cierre or "Cierre PDI"))
         # Proyectos PMO: fuente real del Centro de Proyectos (Comienzo/Fin/%
         # completado por proyecto), no la derivada de Cierres/Consolidado
         # (build_proyectos_gantt) — esa solo tiene 33 filas totales y no
@@ -901,12 +912,15 @@ class ResumenService:
             }
         return lookup
 
-    def get_informe_ejecutivo(self) -> dict[str, Any]:
+    def get_informe_ejecutivo(self, *, pdi: str | None = None) -> dict[str, Any]:
         """Payload del Informe Ejecutivo PDF — Cierre PDI 2022-2025.
         Articula por línea: Retos, Proyectos PMO (cronograma) e Indicadores
         CMI (objetivo → indicador), sobre el mismo rango fijo que usa la
-        vista Consolidado (ANIOS_RANGO)."""
-        pdi_df = ensure_nivel_cumplimiento(self._strategic.preparar_pdi_cierre_final())
+        vista Consolidado (marco.anios)."""
+        marco = self._marco(pdi)
+        pdi_df = ensure_nivel_cumplimiento(
+            self._strategic.preparar_pdi_cierre_final(marco.hoja_cierre or "Cierre PDI")
+        )
         if not pdi_df.empty and "Id" in pdi_df.columns:
             pdi_df = pdi_df[~pdi_df["Id"].astype(str).isin(_INDICADORES_EXCLUIDOS_PDF)]
         # Proyectos: 44 oficiales del catálogo (Id PRY-1..44), cifras de
@@ -916,7 +930,7 @@ class ResumenService:
         # cifras; confirmado con negocio 2026-09-30 que Resultados
         # Consolidados es siempre la fuente de las cifras.
         proy_gantt = build_proyectos_oficiales_gantt(self._proyectos_oficiales.load())
-        ret_linea_df, ret_obj_df, ret_planes_df = self._retos_multi_anio(ANIOS_RANGO)
+        ret_linea_df, ret_obj_df, ret_planes_df = self._retos_multi_anio(marco.anios)
         signo_lookup = self._build_signo_lookup()
 
         lineas = build_informe_ejecutivo_lineas(
@@ -978,7 +992,7 @@ class ResumenService:
         # Total global de áreas (hoja "Areas" — sin desglose por línea en el
         # dato fuente, ver build_informe_ejecutivo_lineas). Mismo criterio
         # que la vista Retos/Consolidado: último año del rango.
-        areas_count = self._retos.load_area_count(max(ANIOS_RANGO))
+        areas_count = self._retos.load_area_count(max(marco.anios))
 
         # Narrativa cualitativa (Informe Estratégico): estática, generada
         # aparte con scripts/generar_narrativa_estrategica.py — se lee del

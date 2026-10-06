@@ -163,6 +163,7 @@ class CMIProcesosFiltrosResponse(BaseModel):
     subprocesos_por_proceso: dict[str, list[str]] = Field(default_factory=dict)
     clasificaciones: list[str] = Field(default_factory=list)
     frecuencias: list[str] = Field(default_factory=list)
+    lineas: list[str] = Field(default_factory=list)
 
 
 class CMIProcesosDashboardResponse(BaseModel):

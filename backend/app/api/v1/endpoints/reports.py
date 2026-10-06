@@ -8,8 +8,10 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
 
 from app.api.deps import get_excel_service
+from app.api.pdi_deps import get_pdi_marco
 from app.core.concurrency import run_sync
 from app.core.security import require_reader
+from app.domain.marcos import Marco
 from app.models.user import User
 from app.services.cmi_service import CMIService
 from app.services.dashboard_service import DashboardService
@@ -85,7 +87,7 @@ async def pdf_resumen_general(
 
 @router.get(
     "/informe-ejecutivo",
-    summary="PDF Informe Ejecutivo — Cierre PDI 2022-2025",
+    summary="PDF Informe Ejecutivo — cierre del PDI elegido (?pdi=)",
     response_class=StreamingResponse,
     responses={
         200: {
@@ -95,14 +97,15 @@ async def pdf_resumen_general(
     },
 )
 async def pdf_informe_ejecutivo(
+    marco: Marco = Depends(get_pdi_marco),
     _user: User = Depends(require_reader),
     excel: ExcelReaderService = Depends(_excel),
 ) -> StreamingResponse:
     service = ResumenService(excel)
-    data = await run_sync(service.get_informe_ejecutivo)
+    data = await run_sync(service.get_informe_ejecutivo, pdi=marco.version_id)
     pdf_bytes = await run_sync(generar_informe_ejecutivo, data)
 
-    filename = "informe_ejecutivo_pdi_2022_2025.pdf"
+    filename = f"informe_ejecutivo_pdi_{marco.anio_datos_desde}_{marco.anio_datos_hasta}.pdf"
     return StreamingResponse(
         iter([pdf_bytes]),
         media_type="application/pdf",

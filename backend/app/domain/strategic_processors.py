@@ -135,14 +135,14 @@ class StrategicProcessors:
 
         return self._cmi.filter_estrategico(result.reset_index(drop=True))
 
-    def preparar_pdi_cierre_final(self) -> pd.DataFrame:
+    def preparar_pdi_cierre_final(self, hoja: str = "Cierre PDI") -> pd.DataFrame:
         """Resultado final por indicador (hoja 'Cierre PDI'), para el rango
         "Cierre PDI 2022-2025" — a diferencia de preparar_pdi_con_cierre, no
         arrastra el ultimo valor disponible de anios anteriores cuando un
         indicador no tiene resultado final cargado."""
         base = self._loaders.load_worksheet_flags()
         catalog = self._loaders.load_pdi_catalog()
-        cierre_pdi = self._loaders.load_cierre_pdi_final()
+        cierre_pdi = self._loaders.load_cierre_pdi_final(hoja)
         if base.empty or cierre_pdi.empty:
             return pd.DataFrame()
         if "FlagPlanEstrategico" not in base.columns:

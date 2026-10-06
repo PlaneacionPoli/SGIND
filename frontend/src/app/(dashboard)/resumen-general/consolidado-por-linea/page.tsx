@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { FlorEstrategica } from "@/components/ui/FlorEstrategica";
 import { fetchResumenCompleto } from "@/lib/api";
+import { moduloHref, PDI_VISTAS_POR_LINEA } from "@/lib/pdi";
 import { STRATEGIC_LINES } from "@/lib/strategic-lines";
 import { useAuthReady } from "@/stores/auth-store";
 
@@ -13,7 +14,7 @@ export default function ConsolidadoPorLineaPage() {
 
   const resumenQuery = useQuery({
     queryKey: ["resumen-completo", "consolidado-por-linea"],
-    queryFn: () => fetchResumenCompleto({ anio: 2025, vista: "consolidado", rango: true }),
+    queryFn: () => fetchResumenCompleto({ anio: 2025, vista: "consolidado", rango: true, pdi: PDI_VISTAS_POR_LINEA }),
     enabled: ready && isAuthenticated,
   });
 
@@ -29,7 +30,8 @@ export default function ConsolidadoPorLineaPage() {
   }
 
   function goToResumenGeneral() {
-    router.push("/resumen-general");
+    // Esta vista aún es fija al cierre 2022-2025 (rango=true): vuelve a ese PDI.
+    router.push(moduloHref("/resumen-general", PDI_VISTAS_POR_LINEA));
   }
 
   return (

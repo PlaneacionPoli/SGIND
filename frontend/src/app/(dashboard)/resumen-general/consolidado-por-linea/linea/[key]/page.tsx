@@ -8,6 +8,7 @@ import { CmiEstrategicoTable } from "@/components/tables/CmiEstrategicoTable";
 import { RetosBadges } from "@/components/ui/RetosBadges";
 import { findStrategicLine } from "@/lib/strategic-lines";
 import { fetchDashboardFiltros, fetchResumenLinea } from "@/lib/api";
+import { PDI_VISTAS_POR_LINEA } from "@/lib/pdi";
 import { useAuthReady } from "@/stores/auth-store";
 
 export default function HojaLineaPage({ params }: { params: { key: string } }) {
@@ -20,14 +21,14 @@ export default function HojaLineaPage({ params }: { params: { key: string } }) {
 
   const filtrosQuery = useQuery({
     queryKey: ["dashboard-filtros"],
-    queryFn: fetchDashboardFiltros,
+    queryFn: () => fetchDashboardFiltros(PDI_VISTAS_POR_LINEA),
     enabled: ready && isAuthenticated,
   });
   const years = filtrosQuery.data?.anios ?? [2022, 2023, 2024, 2025];
 
   const lineaQuery = useQuery({
     queryKey: ["resumen-linea", key, anio],
-    queryFn: () => fetchResumenLinea(key, anio ?? undefined),
+    queryFn: () => fetchResumenLinea(key, anio ?? undefined, PDI_VISTAS_POR_LINEA),
     enabled: ready && isAuthenticated,
   });
 

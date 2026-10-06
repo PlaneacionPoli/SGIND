@@ -215,6 +215,30 @@ def norm_key(value: str | None) -> str:
     return _sunburst_norm_key(str(value))
 
 
+NIVEL_METRICA = "Métrica"
+
+
+def mask_metrica(df: pd.DataFrame) -> pd.Series:
+    """Filas que son métricas (no tienen meta ni porcentaje de cumplimiento por diseño).
+
+    Mismo criterio que domain.calculos.aplicar_calculos_cumplimiento: columna de tipo
+    de registro == 'metrica', o la palabra 'metrica' en el nombre del indicador.
+    """
+    for col in ("Tipo_Registro", "TipoRegistro", "Tipo de indicador"):
+        if col in df.columns:
+            marca = df[col].astype(str).map(norm_key) == "metrica"
+            if marca.any():
+                return marca | _nombre_metrica(df)
+    return _nombre_metrica(df)
+
+
+def _nombre_metrica(df: pd.DataFrame) -> pd.Series:
+    if "Indicador" not in df.columns:
+        return pd.Series(False, index=df.index)
+    patron = r"\bmetrica\b"
+    return df["Indicador"].astype(str).map(norm_key).str.contains(patron, na=False)
+
+
 def ensure_nivel_cumplimiento(df: pd.DataFrame, regimen: str | None = None) -> pd.DataFrame:
     """Agrega/recalcula 'Nivel de cumplimiento' con la fuente única de verdad
     (categorizar_cumplimiento). `regimen` fuerza un régimen explícito
@@ -227,9 +251,13 @@ def ensure_nivel_cumplimiento(df: pd.DataFrame, regimen: str | None = None) -> p
         out["cumplimiento_pct"] = pd.to_numeric(out["cumplimiento_dec"], errors="coerce") * 100
     if "cumplimiento_pct" in out.columns:
 
+        es_metrica = mask_metrica(out)
+        # Una métrica sin porcentaje no está "pendiente de reporte": no lleva meta.
+        sin_pct = "Pendiente de reporte"
+
         def _map_level(row):
             if pd.isna(row["cumplimiento_pct"]):
-                return "Pendiente de reporte"
+                return NIVEL_METRICA if es_metrica.loc[row.name] else sin_pct
             try:
                 pct = float(row["cumplimiento_pct"])
             except (TypeError, ValueError):

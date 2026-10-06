@@ -9,6 +9,7 @@ export const NAV_ITEMS = [
   { href: "/cmi-estrategico", label: "CMI Estratégico", icon: "⌂", iconSrc: "/icons/nav/cmi-estrategico.png" },
   { href: "/cmi-procesos", label: "CMI por Procesos", icon: "◷", iconSrc: "/icons/nav/cmi-procesos.png" },
   { href: "/informe-procesos", label: "Informe por Procesos", icon: "◯", iconSrc: "/icons/nav/informe-procesos.png" },
+  { href: "/polisigs", label: "Indicadores POLISIGS", icon: "✦", iconSrc: "/icons/nav/polisigs.png" },
   { href: "/plan-mejoramiento", label: "Plan de Mejoramiento", icon: "◐", iconSrc: "/icons/nav/plan-mejoramiento.png" },
   { href: "/seguimiento-operativo", label: "Seguimiento Operativo", icon: "◧", iconSrc: "/icons/nav/seguimiento-operativo.png" },
   { href: "/gestion-om", label: "Gestión OM", icon: "◈", iconSrc: "/icons/nav/gestion-om.png" },
@@ -24,8 +25,12 @@ const HREFS_PROCESOS: ReadonlySet<string> = new Set([
   "/cmi-estrategico",
   "/cmi-procesos",
   "/informe-procesos",
+  "/polisigs",
   "/plan-mejoramiento",
 ]);
+
+/** Pantallas del menú de inicio que quedan tras el botón "Sección Operativa". */
+export const OPERATIVE_HREFS: ReadonlySet<string> = new Set(["/seguimiento-operativo", "/gestion-om"]);
 
 const ROLES_ACCESO_TOTAL: ReadonlySet<string> = new Set(["administrador", "calidad", "desempeno"]);
 
@@ -118,6 +123,12 @@ export const NAV_ITEM_META: Record<string, NavItemMeta> = {
     accent: "sky",
     highlight: "Informes",
     pillColor: "#5B3FD1",
+  },
+  "/polisigs": {
+    description: "Cumplimiento de la política del sistema integrado",
+    accent: "indigo",
+    highlight: "Política",
+    pillColor: "#0B2A5B",
   },
   "/plan-mejoramiento": {
     description: "Planes de acción y mejora continua",

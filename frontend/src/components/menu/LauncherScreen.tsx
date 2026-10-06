@@ -1,7 +1,14 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
-import { NAV_ITEM_META, navItemsForRole, splitIntoRows } from "@/config/navigation";
+import { ArrowLeft, Wrench } from "lucide-react";
+import {
+  NAV_ITEM_META,
+  OPERATIVE_HREFS,
+  navItemsForRole,
+  splitIntoRows,
+} from "@/config/navigation";
 import { useAuthStore } from "@/stores/auth-store";
 import { OrbitWaveRow } from "@/components/menu/OrbitWaveRow";
 import { useGreeting } from "@/components/menu/useGreeting";
@@ -31,11 +38,15 @@ export function LauncherScreen() {
   const firstName = email?.split("@")[0];
 
   // Orden fijo: Resumen General, CMI Estratégico, CMI por Procesos, Informe por
-  // Procesos, Plan de Mejoramiento, Seguimiento Operativo, Gestión OM. El rol
-  // "procesos" solo ve las cinco primeras (los administradores y calidad/desempeno
-  // ven las siete); las filas se reparten parejas (7 → 4+3, 5 → 3+2).
+  // Procesos, Indicadores POLISIGS, Plan de Mejoramiento. Seguimiento Operativo y
+  // Gestión OM (solo administrador, calidad y desempeno) quedan tras el botón
+  // "Sección Operativa". Las filas se reparten parejas (6 → 3+3, 5 → 3+2).
+  const [seccion, setSeccion] = useState<"principal" | "operativa">("principal");
   const items = navItemsForRole(role).filter((item) => Boolean(NAV_ITEM_META[item.href]));
-  const rows = splitIntoRows(items);
+  const principales = items.filter((item) => !OPERATIVE_HREFS.has(item.href));
+  const operativos = items.filter((item) => OPERATIVE_HREFS.has(item.href));
+  const operativa = seccion === "operativa" && operativos.length > 0;
+  const rows = splitIntoRows(operativa ? operativos : principales);
 
   return (
     <div className="relative flex h-screen flex-col overflow-hidden bg-[radial-gradient(ellipse_at_top,#16345f_0%,#0a1a33_45%,#050d1a_100%)]">
@@ -81,8 +92,22 @@ export function LauncherScreen() {
               Panel de indicadores
             </h1>
           </div>
+          {operativos.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setSeccion(operativa ? "principal" : "operativa")}
+              className="ml-auto flex items-center gap-2 rounded-full border border-cyan-300/40 bg-cyan-400/10 px-4 py-1.5 text-sm font-semibold text-white backdrop-blur-sm transition hover:bg-cyan-400/20"
+            >
+              {operativa ? (
+                <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+              ) : (
+                <Wrench className="h-4 w-4" aria-hidden="true" />
+              )}
+              {operativa ? "Menú principal" : "Sección Operativa"}
+            </button>
+          )}
           {role && (
-            <span className="ml-auto rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-medium capitalize text-white backdrop-blur-sm">
+            <span className={`${operativos.length > 0 ? "" : "ml-auto "}rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-medium capitalize text-white backdrop-blur-sm`}>
               {role}
             </span>
           )}
@@ -91,7 +116,7 @@ export function LauncherScreen() {
         <section className="flex min-h-0 flex-1 flex-col justify-evenly gap-8 overflow-y-auto py-2 sm:overflow-visible">
           {rows.map((rowItems, rowIndex) => (
             <OrbitWaveRow
-              key={rowIndex}
+              key={`${seccion}-${rowIndex}`}
               items={rowItems}
               rowIndex={rowIndex}
               currentRole={role}

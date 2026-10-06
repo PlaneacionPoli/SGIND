@@ -26,6 +26,7 @@ import type {
   PlanMejoramientoDashboardResponse,
   PlanMetricaDetalleResponse,
   PlanMetricasDashboardResponse,
+  PolisigsResponse,
   RegistroOM,
   RegistroOMCerrar,
   RegistroOMCreate,
@@ -123,6 +124,8 @@ export async function fetchResumenCompleto(params: {
   anio: number;
   vista?: string;
   rango?: boolean;
+  /** version_id del PDI (p. ej. "PDI-2022-2026"); vacío = el vigente con datos. */
+  pdi?: string;
 }): Promise<ResumenCompletoResponse> {
   const { data } = await api.get<ResumenCompletoResponse>("/dashboard/resumen-completo", { params });
   return data;
@@ -130,16 +133,19 @@ export async function fetchResumenCompleto(params: {
 
 export async function fetchResumenLinea(
   key: string,
-  anio?: number
+  anio?: number,
+  pdi?: string
 ): Promise<ResumenLineaResponse> {
   const { data } = await api.get<ResumenLineaResponse>(`/dashboard/resumen-linea/${key}`, {
-    params: anio ? { anio } : undefined,
+    params: { ...(anio ? { anio } : {}), ...(pdi ? { pdi } : {}) },
   });
   return data;
 }
 
-export async function fetchDashboardFiltros(): Promise<DashboardFiltrosResponse> {
-  const { data } = await api.get<DashboardFiltrosResponse>("/dashboard/filtros");
+export async function fetchDashboardFiltros(pdi?: string): Promise<DashboardFiltrosResponse> {
+  const { data } = await api.get<DashboardFiltrosResponse>("/dashboard/filtros", {
+    params: pdi ? { pdi } : undefined,
+  });
   return data;
 }
 
@@ -191,8 +197,10 @@ export async function fetchIndicators(params?: {
   return data;
 }
 
-export async function fetchCMIFiltros(): Promise<CMIFiltrosResponse> {
-  const { data } = await api.get<CMIFiltrosResponse>("/cmi/filtros");
+export async function fetchCMIFiltros(pdi?: string): Promise<CMIFiltrosResponse> {
+  const { data } = await api.get<CMIFiltrosResponse>("/cmi/filtros", {
+    params: pdi ? { pdi } : undefined,
+  });
   return data;
 }
 
@@ -201,6 +209,7 @@ export async function fetchCMIDashboard(params: {
   corte?: string;
   mes?: number;
   rango?: boolean;
+  pdi?: string;
 }): Promise<CMIDashboardResponse> {
   const { data } = await api.get<CMIDashboardResponse>("/cmi/estrategico-dashboard", { params });
   return data;
@@ -208,7 +217,7 @@ export async function fetchCMIDashboard(params: {
 
 export async function fetchCMIFicha(
   indicadorId: string,
-  params: { anio: number; corte?: string; mes?: number }
+  params: { anio: number; corte?: string; mes?: number; pdi?: string }
 ): Promise<CMIFichaIndicador> {
   const { data } = await api.get<CMIFichaIndicador>(`/cmi/indicador/${indicadorId}`, { params });
   return data;
@@ -226,11 +235,13 @@ export async function fetchCMIEstrategico(
 
 export async function fetchCMIProcesosFiltros(
   anio?: number,
-  mes?: number
+  mes?: number,
+  pdi?: string
 ): Promise<CMIProcesosFiltrosResponse> {
-  const params: Record<string, number> = {};
+  const params: Record<string, number | string> = {};
   if (anio) params.anio = anio;
   if (mes) params.mes = mes;
+  if (pdi) params.pdi = pdi;
   const { data } = await api.get<CMIProcesosFiltrosResponse>("/cmi/procesos/filtros", {
     params: Object.keys(params).length ? params : undefined,
   });
@@ -245,6 +256,8 @@ export async function fetchCMIProcesosDashboard(params: {
   subproceso?: string;
   clasificacion?: string;
   frecuencia?: string;
+  linea?: string;
+  pdi?: string;
 }): Promise<CMIProcesosDashboardResponse> {
   const { data } = await api.get<CMIProcesosDashboardResponse>("/cmi/procesos-dashboard", { params });
   return data;
@@ -258,6 +271,7 @@ export async function fetchCMIProcesosFicha(
     unidad?: string;
     proceso?: string;
     subproceso?: string;
+    pdi?: string;
   }
 ): Promise<CMIProcesosFichaIndicador> {
   const { data } = await api.get<CMIProcesosFichaIndicador>(`/cmi/procesos/indicador/${indicadorId}`, {
@@ -275,6 +289,8 @@ export async function downloadCMIProcesosExport(params: {
   subproceso?: string;
   clasificacion?: string;
   frecuencia?: string;
+  linea?: string;
+  pdi?: string;
 }): Promise<void> {
   const formato = params.formato ?? "xlsx";
   const response = await api.get("/cmi/procesos/export", {
@@ -513,10 +529,10 @@ export async function downloadResumenGeneralPdf(anio: number): Promise<void> {
 }
 
 /** Informe Ejecutivo institucional (Cierre PDI 2022-2025): Retos + Proyectos + Indicadores por línea. */
-export async function downloadInformeEjecutivoPdf(): Promise<void> {
+export async function downloadInformeEjecutivoPdf(pdi?: string): Promise<void> {
   await _downloadPdf(
-    "/reports/informe-ejecutivo",
-    "informe_ejecutivo_pdi_2022_2025.pdf",
+    pdi ? `/reports/informe-ejecutivo?pdi=${encodeURIComponent(pdi)}` : "/reports/informe-ejecutivo",
+    `informe_ejecutivo_${(pdi ?? "PDI-2022-2026").toLowerCase().replace(/-/g, "_")}.pdf`,
   );
 }
 
@@ -558,4 +574,9 @@ export async function downloadFichaIndicadorPdf(
     `/reports/ficha/${indicadorId}?${qs.toString()}`,
     `ficha_${indicadorId}_${anio}.pdf`,
   );
+}
+
+export async function fetchPolisigs(): Promise<PolisigsResponse> {
+  const { data } = await api.get<PolisigsResponse>("/polisigs");
+  return data;
 }

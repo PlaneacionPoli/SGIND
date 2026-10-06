@@ -1,0 +1,258 @@
+{
+  "version_id": "PDI-2022-2026",
+  "tipo": "PDI",
+  "fuente": "docs/PDI/Plan_de_Desarrollo_Institucional_PDI_2022-2026.docx",
+  "lineas": [
+    {
+      "id": "calidad",
+      "orden": 1,
+      "nombre": "Calidad",
+      "objetivos": [
+        {
+          "id": "calidad-O1",
+          "numero": 1,
+          "nombre": "Asegurar la alta calidad a nivel institucional",
+          "metas": [
+            {
+              "id": "calidad-O1-M1",
+              "nombre": "Al 2025 contar con la acreditación institucional en alta calidad de la Sede de Bogotá."
+            }
+          ]
+        },
+        {
+          "id": "calidad-O2",
+          "numero": 2,
+          "nombre": "Fortalecer la oferta educativa y la innovación curricular",
+          "metas": [
+            {
+              "id": "calidad-O2-M1",
+              "nombre": "Contar con un portafolio de programas académicos innovador, de calidad, pertinente y flexible, que responda a las necesidades del estudiante y del entorno."
+            },
+            {
+              "id": "calidad-O2-M2",
+              "nombre": "Avanzar en la construcción de una cultura de buena docencia centrada en el estudiante, su aprendizaje y en la excelencia pedagógica del equipo de profesores."
+            },
+            {
+              "id": "calidad-O2-M3",
+              "nombre": "Innovar en el currículo."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "expansion",
+      "orden": 2,
+      "nombre": "Expansión",
+      "objetivos": [
+        {
+          "id": "expansion-O3",
+          "numero": 3,
+          "nombre": "Crecer con compromiso social",
+          "metas": [
+            {
+              "id": "expansion-O3-M1",
+              "nombre": "En el 2026, alcanzar una población estudiantil superior a 70.000 estudiantes."
+            },
+            {
+              "id": "expansion-O3-M2",
+              "nombre": "Diseñar e implementar el esquema de relacionamiento con la empresa y el Estado."
+            },
+            {
+              "id": "expansion-O3-M3",
+              "nombre": "Posicionar al POLI como una de las opciones más atractivas para iniciar los estudios de educación superior."
+            },
+            {
+              "id": "expansion-O3-M4",
+              "nombre": "Lanzamiento efectivo de nuevos programas."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "educacion-para-toda-la-vida",
+      "orden": 3,
+      "nombre": "Educación para Toda la Vida",
+      "objetivos": [
+        {
+          "id": "educacion-para-toda-la-vida-O4",
+          "numero": 4,
+          "nombre": "Incursionar en los niveles de Educación Media y de Educación para el Trabajo y el Desarrollo Humano",
+          "metas": [
+            {
+              "id": "educacion-para-toda-la-vida-O4-M1",
+              "nombre": "Creación del Instituto para la Educación para el Trabajo y el Desarrollo Humano, con 10 programas de ETDH y 750 estudiantes por programa al año 2026."
+            },
+            {
+              "id": "educacion-para-toda-la-vida-O4-M2",
+              "nombre": "Creación del colegio virtual para tener una matrícula de 100 estudiantes en los niveles décimo y once de educación media al año 2026."
+            }
+          ]
+        },
+        {
+          "id": "educacion-para-toda-la-vida-O5",
+          "numero": 5,
+          "nombre": "Impulsar y potenciar la educación continua",
+          "metas": [
+            {
+              "id": "educacion-para-toda-la-vida-O5-M1",
+              "nombre": "Incrementar en más del 50% los ingresos de B2B y B2G para el año 2026."
+            },
+            {
+              "id": "educacion-para-toda-la-vida-O5-M2",
+              "nombre": "Ofrecer 250 microcertificaciones con 1.000 estudiantes al año 2026."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "experiencia",
+      "orden": 4,
+      "nombre": "Experiencia",
+      "objetivos": [
+        {
+          "id": "experiencia-O6",
+          "numero": 6,
+          "nombre": "Garantizar una experiencia significativa y de valor agregado a la comunidad POLI",
+          "metas": [
+            {
+              "id": "experiencia-O6-M1",
+              "nombre": "Diseñar e implementar el Modelo de Experiencia Institucional que defina los principios, valores, cualidades, indicadores y variables."
+            },
+            {
+              "id": "experiencia-O6-M2",
+              "nombre": "Alcanzar una satisfacción del servicio superior al 85%."
+            },
+            {
+              "id": "experiencia-O6-M3",
+              "nombre": "Alcanzar una tasa de permanencia intersemestral superior al 90%."
+            },
+            {
+              "id": "experiencia-O6-M4",
+              "nombre": "Innovar en el modelo de bienestar universitario para velar por la calidad de vida de todos los actores del POLI."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "transformacion-organizacional",
+      "orden": 5,
+      "nombre": "Transformación Organizacional",
+      "objetivos": [
+        {
+          "id": "transformacion-organizacional-O7",
+          "numero": 7,
+          "nombre": "Contar con un equipo humano feliz y apasionado, que trabaja de forma colaborativa para alcanzar las metas institucionales",
+          "metas": [
+            {
+              "id": "transformacion-organizacional-O7-M1",
+              "nombre": "Estar en el ranking de las 100 mejores empresas para trabajar en Colombia."
+            },
+            {
+              "id": "transformacion-organizacional-O7-M2",
+              "nombre": "Implementar el Plan Talento para colaboradores alineado con la estrategia."
+            },
+            {
+              "id": "transformacion-organizacional-O7-M3",
+              "nombre": "Contar con una estrategia de comunicaciones integrada que apalanque la cultura y el posicionamiento institucional."
+            },
+            {
+              "id": "transformacion-organizacional-O7-M4",
+              "nombre": "Contribuir a la formación permanente del equipo humano."
+            }
+          ]
+        },
+        {
+          "id": "transformacion-organizacional-O8",
+          "numero": 8,
+          "nombre": "Asegurar una arquitectura tecnológica institucional centrada en la experiencia de la comunidad educativa",
+          "metas": [
+            {
+              "id": "transformacion-organizacional-O8-M1",
+              "nombre": "Contar con una arquitectura IT implementada al 100%, con un 99,7% de disponibilidad."
+            },
+            {
+              "id": "transformacion-organizacional-O8-M2",
+              "nombre": "Contar con un ecosistema digital centrado en la experiencia institucional."
+            }
+          ]
+        },
+        {
+          "id": "transformacion-organizacional-O9",
+          "numero": 9,
+          "nombre": "Fortalecer la gestión por procesos y la toma de decisiones basada en el análisis de los datos",
+          "metas": [
+            {
+              "id": "transformacion-organizacional-O9-M1",
+              "nombre": "Ampliar el alcance del sistema integrado POLISIGS y su apropiación en la comunidad."
+            },
+            {
+              "id": "transformacion-organizacional-O9-M2",
+              "nombre": "Impulsar la mejora y optimización de procesos."
+            },
+            {
+              "id": "transformacion-organizacional-O9-M3",
+              "nombre": "Asegurar un esquema de gobierno y calidad de datos institucional."
+            },
+            {
+              "id": "transformacion-organizacional-O9-M4",
+              "nombre": "Promover el uso de los datos, a partir del diseño e implementación de soluciones analíticas."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sostenibilidad",
+      "orden": 6,
+      "nombre": "Sostenibilidad",
+      "objetivos": [
+        {
+          "id": "sostenibilidad-O10",
+          "numero": 10,
+          "nombre": "Promover una cultura de optimización de recursos financieros como apalancador de la estrategia",
+          "metas": [
+            {
+              "id": "sostenibilidad-O10-M1",
+              "nombre": "Incrementar los ingresos y el presupuesto de inversión en proyectos institucionales."
+            }
+          ]
+        },
+        {
+          "id": "sostenibilidad-O11",
+          "numero": 11,
+          "nombre": "Contribuir a la inclusión, la proyección social y el cuidado del medio ambiente",
+          "metas": [
+            {
+              "id": "sostenibilidad-O11-M1",
+              "nombre": "Mejorar la empleabilidad de nuestros graduados."
+            },
+            {
+              "id": "sostenibilidad-O11-M2",
+              "nombre": "Creación de la asociación de graduados."
+            },
+            {
+              "id": "sostenibilidad-O11-M3",
+              "nombre": "Incrementar el índice de inclusión institucional."
+            },
+            {
+              "id": "sostenibilidad-O11-M4",
+              "nombre": "Propiciar espacios de interacción con la comunidad del entorno."
+            },
+            {
+              "id": "sostenibilidad-O11-M5",
+              "nombre": "Mantener hasta el 5% de estudiantes becados, sobre el total de estudiantes."
+            },
+            {
+              "id": "sostenibilidad-O11-M6",
+              "nombre": "Promover una cultura de protección y cuidado del medio ambiente, apalancados en estándares internacionales."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

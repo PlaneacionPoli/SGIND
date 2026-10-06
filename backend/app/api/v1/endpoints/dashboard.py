@@ -1,9 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 
 from app.api.deps import get_excel_service
+from app.api.pdi_deps import get_pdi_marco
 from app.core.concurrency import run_sync
 from app.core.config import Settings, get_settings
 from app.core.security import require_reader
+from app.domain.marcos import Marco
 from app.models.user import User
 from app.schemas.common import (
     CMILineaItem,
@@ -20,7 +22,8 @@ from app.schemas.common import (
 from app.services.dashboard_service import DashboardService
 from app.services.excel_reader import ExcelReaderService
 
-router = APIRouter()
+# El PDI pedido se valida en TODOS los endpoints (404/409 si no existe o no tiene datos).
+router = APIRouter(dependencies=[Depends(get_pdi_marco)])
 
 
 def _excel_service(settings: Settings = Depends(get_settings)) -> ExcelReaderService:
@@ -128,11 +131,18 @@ async def get_resumen_completo(
     anio: int = Query(...),
     vista: str = Query("indicadores"),
     rango: bool = Query(False),
+    marco: Marco = Depends(get_pdi_marco),
     _user: User = Depends(require_reader),
     dashboard: DashboardService = Depends(_dashboard_service),
 ) -> DashboardResumenCompletoResponse:
     return DashboardResumenCompletoResponse(
-        **await run_sync(dashboard.get_resumen_completo, anio=anio, vista=vista, rango=rango)
+        **await run_sync(
+            dashboard.get_resumen_completo,
+            anio=anio,
+            vista=vista,
+            rango=rango,
+            pdi=marco.version_id,
+        )
     )
 
 
@@ -140,10 +150,11 @@ async def get_resumen_completo(
 async def get_resumen_linea(
     key: str,
     anio: int | None = Query(None),
+    marco: Marco = Depends(get_pdi_marco),
     _user: User = Depends(require_reader),
     dashboard: DashboardService = Depends(_dashboard_service),
 ) -> DashboardResumenLineaResponse:
-    raw = await run_sync(dashboard.get_resumen_linea, key=key, anio=anio)
+    raw = await run_sync(dashboard.get_resumen_linea, key=key, anio=anio, pdi=marco.version_id)
     if raw is None:
         raise HTTPException(status_code=404, detail=f"Línea estratégica '{key}' no encontrada")
     return DashboardResumenLineaResponse(**raw)

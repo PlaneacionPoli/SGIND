@@ -13,11 +13,14 @@ interface CmiProcesosFiltersProps {
   subprocesos: string[];
   clasificaciones: string[];
   frecuencias: string[];
+  /** Opcional: solo CMI por Procesos filtra por línea del PDI elegido. */
+  lineas?: string[];
   unidad: string;
   proceso: string;
   subproceso: string;
   clasificacion: string;
   frecuencia: string;
+  linea?: string;
   onAnioChange: (anio: number) => void;
   onMesChange: (mes: number) => void;
   onUnidadChange: (v: string) => void;
@@ -25,6 +28,7 @@ interface CmiProcesosFiltersProps {
   onSubprocesoChange: (v: string) => void;
   onClasificacionChange: (v: string) => void;
   onFrecuenciaChange: (v: string) => void;
+  onLineaChange?: (v: string) => void;
   onReset?: () => void;
 }
 
@@ -40,11 +44,13 @@ export function CmiProcesosFilters(props: CmiProcesosFiltersProps) {
     subprocesos,
     clasificaciones,
     frecuencias,
+    lineas = [],
     unidad,
     proceso,
     subproceso,
     clasificacion,
     frecuencia,
+    linea = "Todos",
     onAnioChange,
     onMesChange,
     onUnidadChange,
@@ -52,6 +58,7 @@ export function CmiProcesosFilters(props: CmiProcesosFiltersProps) {
     onSubprocesoChange,
     onClasificacionChange,
     onFrecuenciaChange,
+    onLineaChange,
     onReset,
   } = props;
 
@@ -98,6 +105,9 @@ export function CmiProcesosFilters(props: CmiProcesosFiltersProps) {
           onChange={onClasificacionChange}
         />
         <SelectFilter label="Frecuencia" value={frecuencia} options={frecuencias} onChange={onFrecuenciaChange} />
+        {onLineaChange && (
+          <SelectFilter label="Línea estratégica (PDI)" value={linea} options={lineas} onChange={onLineaChange} />
+        )}
       </div>
     </div>
   );

@@ -11,6 +11,8 @@ import { CmiLineasTab } from "@/components/cmi/CmiLineasTab";
 import { CmiListadoTab } from "@/components/cmi/CmiListadoTab";
 import { CmiResumenTab } from "@/components/cmi/CmiResumenTab";
 import { downloadFichaIndicadorPdf, fetchCMIDashboard, fetchCMIFicha, fetchCMIFiltros } from "@/lib/api";
+import { PdiChip } from "@/components/ui/PdiChip";
+import { PdiGate } from "@/components/ui/PdiGate";
 import { useAuthReady } from "@/stores/auth-store";
 
 const TABS = [
@@ -25,12 +27,12 @@ type TabId = (typeof TABS)[number]["id"];
 export default function CMIEstrategicoPage() {
   return (
     <Suspense fallback={<p className="text-sm text-slate-500">Cargando CMI estratégico...</p>}>
-      <CMIEstrategicoContent />
+      <PdiGate>{(pdi) => <CMIEstrategicoContent pdi={pdi} />}</PdiGate>
     </Suspense>
   );
 }
 
-function CMIEstrategicoContent() {
+function CMIEstrategicoContent({ pdi }: { pdi: string }) {
   const { isAuthenticated } = useAuthReady();
   const searchParams = useSearchParams();
   const [anio, setAnio] = useState<number | null>(null);
@@ -42,8 +44,8 @@ function CMIEstrategicoContent() {
   const [downloadingFichaPdf, setDownloadingFichaPdf] = useState(false);
 
   const filtrosQuery = useQuery({
-    queryKey: ["cmi-filtros"],
-    queryFn: fetchCMIFiltros,
+    queryKey: ["cmi-filtros", pdi],
+    queryFn: () => fetchCMIFiltros(pdi),
     enabled: isAuthenticated,
   });
 
@@ -65,14 +67,14 @@ function CMIEstrategicoContent() {
   const anioEfectivo = anio ?? filtrosQuery.data?.anio_default ?? new Date().getFullYear();
 
   const dashboardQuery = useQuery({
-    queryKey: ["cmi-dashboard", anioEfectivo, corte, rango],
-    queryFn: () => fetchCMIDashboard({ anio: anioEfectivo, corte, rango }),
+    queryKey: ["cmi-dashboard", pdi, anioEfectivo, corte, rango],
+    queryFn: () => fetchCMIDashboard({ anio: anioEfectivo, corte, rango, pdi }),
     enabled: isAuthenticated && anio != null,
   });
 
   const fichaQuery = useQuery({
-    queryKey: ["cmi-ficha", fichaId, anioEfectivo, corte],
-    queryFn: () => fetchCMIFicha(fichaId!, { anio: anioEfectivo, corte }),
+    queryKey: ["cmi-ficha", pdi, fichaId, anioEfectivo, corte],
+    queryFn: () => fetchCMIFicha(fichaId!, { anio: anioEfectivo, corte, pdi }),
     enabled: isAuthenticated && !!fichaId,
   });
 
@@ -106,7 +108,10 @@ function CMIEstrategicoContent() {
   return (
     <div className="mx-auto max-w-[1400px] space-y-6 px-1">
       <div>
-        <h2 className="text-2xl font-bold text-slate-900">CMI Estratégico</h2>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-2xl font-bold text-slate-900">CMI Estratégico</h2>
+          <PdiChip pdi={pdi} className="text-slate-700" />
+        </div>
         <p className="mt-1 text-slate-600">
           Indicadores del Plan Estratégico (PDI) interactivo y detallado.
         </p>

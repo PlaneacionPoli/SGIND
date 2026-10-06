@@ -7,6 +7,8 @@ import pandas as pd
 from app.domain.categorization import categorizar_cumplimiento
 from app.domain.health_metrics import recalcular_cumplimiento_faltante
 from app.domain.loader_utils import find_col, id_a_str, repair_linea_encoding
+from app.domain.marcos import get_marco
+from app.domain.taxonomia import ResultadoAsociacion, resolver_asociaciones
 from app.services.excel_reader import ExcelReaderService
 
 PENDIENTE = "Pendiente de reporte"
@@ -54,6 +56,11 @@ class StrategicLoaders:
             if (self._excel.data_root / p).exists():
                 return p
         return None
+
+    def _cached_obj(self, key: str, loader):
+        if key not in self._cache:
+            self._cache[key] = loader()
+        return self._cache[key]
 
     def _cached(self, key: str, loader) -> pd.DataFrame:
         if key not in self._cache:
@@ -133,6 +140,70 @@ class StrategicLoaders:
             return out.drop_duplicates().reset_index(drop=True)
 
         return self._cached("cna_catalog", _load)
+
+    def load_asociaciones(self, version_id: str) -> ResultadoAsociacion:
+        """Asociación indicador ↔ línea/objetivo/meta del PDI, con ids resueltos, desde la
+        hoja propia de ese PDI en el catálogo (p. ej. 'PDI_2026_2030'): columna PDI (1 =
+        estratégico, 0 = de proceso) y Linea / Objetivo / Meta por nombre. Filas sin
+        asociación se omiten; los errores y el incumplimiento de la regla de meta quedan en
+        `errores` / `incumplimientos`. En un PDI cerrado las metas con otra redacción se
+        toleran (advertencia). Sin hoja o archivo → vacío."""
+        vacio = ResultadoAsociacion(
+            validas=pd.DataFrame(columns=["Id", "version_id", "linea_id", "objetivo_id", "meta_id"])
+        )
+
+        def _load() -> ResultadoAsociacion:
+            path = self._resolve_cmi()
+            if not path:
+                return vacio
+            marco = get_marco(version_id)
+            try:
+                df = self._excel.read_excel(path, sheet_name=marco.hoja_asociacion)
+            except (ValueError, KeyError):
+                return vacio
+            df.columns = [str(c).strip() for c in df.columns]
+            df["version_id"] = version_id
+            try:
+                return resolver_asociaciones(df, version_id, meta_tolerante=marco.estado == "cerrado")
+            except ValueError:
+                return vacio
+
+        return self._cached_obj(f"asociaciones:{version_id}", _load)
+
+    def load_vigencias(self) -> dict[str, tuple[int | None, int | None]]:
+        """Id -> (año de inicio, año de fin) del indicador, desde la hoja
+        'Ficha Tecnica Detalle' (Fecha Desde / Fecha Hasta). Sin fecha → None."""
+
+        def _load() -> dict[str, tuple[int | None, int | None]]:
+            path = self._resolve_cmi()
+            if not path:
+                return {}
+            try:
+                df = self._excel.read_excel(path, sheet_name="Ficha Tecnica Detalle")
+            except (ValueError, KeyError):
+                return {}
+            df.columns = [str(c).strip() for c in df.columns]
+            c_id = find_col(df, ["Id", "ID"])
+            if not c_id or "Fecha Desde" not in df.columns:
+                return {}
+            desde = pd.to_datetime(df["Fecha Desde"], errors="coerce").dt.year
+            hasta = (
+                pd.to_datetime(df["Fecha Hasta"], errors="coerce").dt.year
+                if "Fecha Hasta" in df.columns
+                else pd.Series([None] * len(df))
+            )
+            out: dict[str, tuple[int | None, int | None]] = {}
+            for i, raw_id in enumerate(df[c_id]):
+                if pd.isna(raw_id):
+                    continue
+                d, h = desde.iloc[i], hasta.iloc[i]
+                out[id_a_str(raw_id)] = (
+                    int(d) if pd.notna(d) else None,
+                    int(h) if pd.notna(h) else None,
+                )
+            return out
+
+        return self._cached_obj("vigencias", _load)
 
     def load_pdi_catalog(self) -> pd.DataFrame:
         def _load() -> pd.DataFrame:
@@ -268,8 +339,9 @@ class StrategicLoaders:
 
         return self._cached("cierres", _load)
 
-    def load_cierre_pdi_final(self) -> pd.DataFrame:
-        """Hoja 'Cierre PDI': resultado final por indicador/proyecto (no es
+    def load_cierre_pdi_final(self, hoja: str = "Cierre PDI") -> pd.DataFrame:
+        """Hoja de cierre del PDI (por defecto 'Cierre PDI'; cada versión de
+        marco declara la suya en marcos.toml): resultado final por indicador/proyecto (no es
         historico por anio — Año/Mes/Periodo vienen fijos como 'Avance' en la
         fuente). Se usa solo para el rango "Cierre PDI 2022-2025"."""
 
@@ -278,7 +350,7 @@ class StrategicLoaders:
             if not path:
                 return pd.DataFrame()
             try:
-                df = self._excel.read_excel(path, sheet_name="Cierre PDI")
+                df = self._excel.read_excel(path, sheet_name=hoja)
             except (ValueError, KeyError):
                 return pd.DataFrame()
 
@@ -333,7 +405,7 @@ class StrategicLoaders:
             out.loc[out["cumplimiento_pct"].isna(), "Nivel de cumplimiento"] = PENDIENTE
             return out.reset_index(drop=True)
 
-        return self._cached("cierre_pdi_final", _load)
+        return self._cached(f"cierre_pdi_final:{hoja}", _load)
 
     def load_proyectos_consolidados(self) -> pd.DataFrame:
         """Consolidado Cierres con IDs de proyectos (fuente raw, no output ETL)."""

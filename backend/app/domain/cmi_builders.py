@@ -32,6 +32,7 @@ LINEA_COLORES: dict[str, str] = {
 COLOR_CATEGORIA: dict[str, str] = {
     **_COLOR_CATEGORIA_BASE,
     "Pendiente de reporte": "#9E9E9E",
+    "Métrica": "#64748B",
 }
 
 CATALOGO_LINEAS = list(LINEA_COLORES.keys())

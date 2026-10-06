@@ -54,9 +54,11 @@ class DashboardService:
         return self._resumen.get_narrativa(anio=anio, vista=vista)
 
     def get_resumen_completo(
-        self, anio: int, vista: str = "indicadores", rango: bool = False
+        self, anio: int, vista: str = "indicadores", rango: bool = False, pdi: str | None = None
     ) -> dict:
-        return self._resumen.get_resumen_completo(anio=anio, vista=vista, rango=rango)
+        return self._resumen.get_resumen_completo(anio=anio, vista=vista, rango=rango, pdi=pdi)
 
-    def get_resumen_linea(self, key: str, anio: int | None = None) -> dict | None:
-        return self._resumen.get_resumen_linea(key=key, anio=anio)
+    def get_resumen_linea(
+        self, key: str, anio: int | None = None, pdi: str | None = None
+    ) -> dict | None:
+        return self._resumen.get_resumen_linea(key=key, anio=anio, pdi=pdi)

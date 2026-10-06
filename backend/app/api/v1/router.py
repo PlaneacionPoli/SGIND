@@ -7,8 +7,10 @@ from app.api.v1.endpoints import (
     health,
     indicators,
     informe,
+    marcos,
     om,
     plan_mejoramiento,
+    polisigs,
     reports,
     seguimiento,
 )
@@ -18,6 +20,7 @@ api_router.include_router(health.router, tags=["health"])
 api_router.include_router(auth.router, prefix="/auth", tags=["auth"])
 api_router.include_router(dashboard.router, prefix="/dashboard", tags=["dashboard"])
 api_router.include_router(indicators.router, prefix="/indicators", tags=["indicators"])
+api_router.include_router(marcos.router, prefix="/marcos", tags=["marcos"])
 api_router.include_router(cmi.router, prefix="/cmi", tags=["cmi"])
 api_router.include_router(om.router, prefix="/om", tags=["om"])
 api_router.include_router(seguimiento.router, prefix="/seguimiento", tags=["seguimiento"])
@@ -25,4 +28,5 @@ api_router.include_router(
     plan_mejoramiento.router, prefix="/plan-mejoramiento", tags=["plan-mejoramiento"]
 )
 api_router.include_router(informe.router, prefix="/informe", tags=["informe"])
+api_router.include_router(polisigs.router, prefix="/polisigs", tags=["polisigs"])
 api_router.include_router(reports.router, prefix="/reports", tags=["reports"])

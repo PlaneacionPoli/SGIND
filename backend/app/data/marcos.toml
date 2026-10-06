@@ -1,0 +1,70 @@
+# Registro de marcos de referencia versionados (PDI y CNA).
+#
+# Cada [[marco]] es una versión independiente: su propia taxonomía (líneas /
+# objetivos / metas para PDI; factores / características para CNA) y su propia
+# asociación de indicadores. Agregar un ciclo nuevo = agregar un bloque aquí,
+# sin tocar código. Ver impact_report.md §4.1.
+#
+# anio_datos_desde / anio_datos_hasta: años de datos que cuentan para la
+# versión (independientes del nombre del ciclo: el PDI 2022-2026 cierra con
+# datos 2022-2025 y 2026 pertenece solo al 2026-2030).
+#
+# estado: "activo" (uno por tipo) | "cerrado" (consultable, congelado).
+#
+# taxonomia: nombre del JSON en app/data/taxonomia/ (líneas → objetivos → metas).
+#
+# etiqueta_cierre (opcional): texto del corte de cierre; por defecto "Cierre <nombre>".
+#
+# datos_disponibles: false mientras la versión no tenga taxonomía/asociación
+# cargadas y el backend filtrado; los módulos muestran un aviso en vez de
+# datos de otro ciclo.
+#
+# imagen (opcional): ruta en frontend/public para la tarjeta del selector.
+
+[[marco]]
+tipo = "PDI"
+version_id = "PDI-2022-2026"
+nombre = "PDI 2022-2026"
+descripcion = "Plan de Desarrollo Institucional 2022-2026 (ciclo cerrado)"
+anio_datos_desde = 2022
+anio_datos_hasta = 2025
+estado = "cerrado"
+orden = 1
+hoja_cierre = "Cierre PDI"
+etiqueta_cierre = "Cierre PDI 2022-2025"
+taxonomia = "PDI-2022-2026"
+imagen = "/img/pdi/pdi-2022-2026.png"
+datos_disponibles = true
+
+[[marco]]
+tipo = "PDI"
+version_id = "PDI-2026-2030"
+nombre = "PDI 2026-2030"
+descripcion = "Plan de Desarrollo Institucional 2026-2030 (ciclo vigente)"
+anio_datos_desde = 2026
+anio_datos_hasta = 2030
+estado = "activo"
+orden = 2
+hoja_cierre = "Cierre PDI 2026-2030"
+taxonomia = "PDI-2026-2030"
+imagen = "/img/pdi/pdi-2026-2030.png"
+datos_disponibles = false
+
+[[marco]]
+tipo = "CNA"
+version_id = "CNA-ACTUAL"
+nombre = "CNA - resolución vigente"
+descripcion = "Factores y características CNA vigentes hasta 2026 (versión original)"
+anio_datos_desde = 2022
+anio_datos_hasta = 2026
+estado = "activo"
+orden = 1
+datos_disponibles = true
+
+# La nueva resolución CNA (vigente desde 2027) se registra aquí cuando exista
+# su listado de factores/características:
+# [[marco]]
+# tipo = "CNA"
+# version_id = "CNA-2027"
+# anio_datos_desde = 2027
+# estado = "activo"   # y CNA-ACTUAL pasa a "cerrado"

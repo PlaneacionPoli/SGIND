@@ -1,0 +1,68 @@
+{
+  "version": "Objetivos POLISIGS versión 6",
+  "objetivos": [
+    {
+      "numero": 1,
+      "corto": "Desarrollo sostenible e impacto",
+      "nombre": "Aportar al cumplimiento de los objetivos de desarrollo sostenible, mediante procesos que generen valor e impacto en la comunidad, siendo ambientalmente apropiados, socialmente beneficiosos y financieramente viables"
+    },
+    {
+      "numero": 2,
+      "corto": "Autoevaluación y aseguramiento de la calidad",
+      "nombre": "Promover procesos de autoevaluación, autorregulación y mejoramiento de las labores formativas, académicas, docentes, científicas, culturales y de extensión, para contribuir a la cultura del aseguramiento de la calidad, bajo principios de equidad, diversidad y sostenibilidad"
+    },
+    {
+      "numero": 3,
+      "corto": "Procesos con calidad y experiencia positiva",
+      "nombre": "Garantizar el desarrollo de los procesos institucionales con calidad y oportunidad, asegurando la experiencia positiva de la comunidad universitaria"
+    },
+    {
+      "numero": 4,
+      "corto": "Entorno de trabajo sano y seguro",
+      "nombre": "Procurar un entorno de trabajo sano, seguro y armónico mediante la gestión de peligros y la prevención de riesgos laborales, para el cuidado de la salud y el bienestar de los colaboradores"
+    },
+    {
+      "numero": 5,
+      "corto": "Protección del medio ambiente",
+      "nombre": "Proteger el medio ambiente aplicando controles de prevención, mitigación, corrección y/o compensación, garantizando el uso sostenible de los recursos naturales, la preservación de la biodiversidad y los ecosistemas"
+    },
+    {
+      "numero": 6,
+      "corto": "Cumplimiento de requisitos legales",
+      "nombre": "Gestionar el cumplimiento de los requisitos legales aplicables a la ejecución de las actividades Institucionales"
+    }
+  ],
+  "_nota": "Un indicador puede asociarse a varios objetivos. 'por_id' (si existe) reemplaza la regla del componente.",
+  "por_componente": {
+    "Aprendizaje y logro de resultados de aprendizaje": [2],
+    "Aseguramiento de la alta calidad (acreditación, SIAC, cuerpo docente)": [2],
+    "Bienestar y desarrollo integral": [3],
+    "Inclusión, accesibilidad y equidad": [1, 2],
+    "Permanencia": [2, 3],
+    "Portafolio pertinente e innovador": [2],
+    "Transformación de vidas y desarrollo social": [1],
+    "Cultura de mejoramiento continuo": [2, 3],
+    "Evaluación del desempeño y toma de decisiones": [2],
+    "Experiencias positivas de estudiantes y grupos de interés": [3],
+    "Gestión de riesgos y oportunidades": [3],
+    "Innovación": [3],
+    "Planes y programas ambientales y cumplimiento legal": [5],
+    "Preservación de la biodiversidad": [1, 5],
+    "Prevención de la contaminación": [5],
+    "Sensibilización ambiental (soporte a planes y programas)": [1, 5],
+    "Uso responsable de los recursos naturales": [1, 5],
+    "Bienestar laboral e impacto social": [1, 4],
+    "Cumplimiento legal y participación de trabajadores": [4],
+    "Gestión de peligros y riesgos SST": [4],
+    "Prevención de lesiones (accidentalidad)": [4],
+    "Prevención del deterioro de la salud (enfermedad laboral)": [4],
+    "Infraestructura y proveedores": [3],
+    "Recursos financieros": [1, 3],
+    "Recursos humanos": [3],
+    "Recursos tecnológicos": [3]
+  },
+  "por_id": {
+    "235": [5, 6],
+    "100": [4, 6]
+  }
+}

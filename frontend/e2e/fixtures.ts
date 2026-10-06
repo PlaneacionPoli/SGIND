@@ -69,9 +69,27 @@ export const MOCK_CMI_DASHBOARD = {
 
 export const MOCK_OM_LIST: unknown[] = [];
 
+export const MOCK_MARCOS_PDI = [
+  {
+    tipo: "PDI", version_id: "PDI-2022-2026", nombre: "PDI 2022-2026",
+    descripcion: "Plan de Desarrollo Institucional 2022-2026 (ciclo cerrado)",
+    anio_datos_desde: 2022, anio_datos_hasta: 2025, estado: "cerrado", orden: 1,
+    imagen: null, datos_disponibles: true,
+  },
+  {
+    tipo: "PDI", version_id: "PDI-2026-2030", nombre: "PDI 2026-2030",
+    descripcion: "Plan de Desarrollo Institucional 2026-2030 (ciclo vigente)",
+    anio_datos_desde: 2026, anio_datos_hasta: 2030, estado: "activo", orden: 2,
+    imagen: null, datos_disponibles: false,
+  },
+];
+
 // ─── Helper: intercepta todas las llamadas a /api/v1/* ───────────────────────
 
 export async function mockAPI(page: Page) {
+  await page.route(`**${API_BASE}/marcos**`, (r) =>
+    r.fulfill({ json: MOCK_MARCOS_PDI })
+  );
   await page.route(`**${API_BASE}/health`, (r) =>
     r.fulfill({ json: MOCK_HEALTH })
   );

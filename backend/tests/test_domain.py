@@ -176,3 +176,37 @@ def test_generate_narrative_consolidado_dinamica():
     assert "Expansión" in narrativa["texto"] or "Expansion" in narrativa["texto"]
     assert narrativa["health_rate"] > 0
     assert "<strong>" in narrativa["texto"]
+
+
+def test_metrica_sin_porcentaje_no_es_pendiente_de_reporte():
+    import pandas as pd
+
+    from app.domain.resumen_builders import NIVEL_METRICA, ensure_nivel_cumplimiento
+
+    df = pd.DataFrame(
+        {
+            "Id": ["325", "999", "10"],
+            "Indicador": [
+                "Número de programas nuevos con registro calificado aprobado - Metrica",
+                "Indicador común sin dato",
+                "Indicador con dato",
+            ],
+            "cumplimiento_pct": [float("nan"), float("nan"), 105.0],
+        }
+    )
+    out = ensure_nivel_cumplimiento(df)
+    assert out.loc[0, "Nivel de cumplimiento"] == NIVEL_METRICA
+    assert out.loc[1, "Nivel de cumplimiento"] == "Pendiente de reporte"
+    assert out.loc[2, "Nivel de cumplimiento"] == "Sobrecumplimiento"
+
+
+def test_filtro_por_linea_del_pdi_en_procesos():
+    import pandas as pd
+
+    from app.domain.procesos_builders import apply_ui_filters
+
+    df = pd.DataFrame({"Id": ["1", "2", "3"], "Proceso": ["A", "A", "B"]})
+    assert list(apply_ui_filters(df, ids_linea={"1", "3"})["Id"]) == ["1", "3"]
+    assert apply_ui_filters(df, ids_linea=set()).empty  # línea sin indicadores
+    assert len(apply_ui_filters(df, ids_linea=None)) == 3  # sin filtro por línea
+    assert list(apply_ui_filters(df, proceso="A", ids_linea={"1", "3"})["Id"]) == ["1"]

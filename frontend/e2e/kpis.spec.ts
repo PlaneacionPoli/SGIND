@@ -17,7 +17,7 @@ test.beforeEach(async ({ page }) => {
 });
 
 test("Resumen General — KPI cards visibles tras login", async ({ page }) => {
-  await page.goto("/resumen-general");
+  await page.goto("/resumen-general?pdi=PDI-2022-2026");
   await page.waitForLoadState("networkidle");
   await page.waitForTimeout(1_200);
 
@@ -35,7 +35,7 @@ test("Resumen General — valor de KPI coincide con mock (paridad)", async ({ pa
     r.fulfill({ json: MOCK_KPIS })
   );
 
-  await page.goto("/resumen-general");
+  await page.goto("/resumen-general?pdi=PDI-2022-2026");
   await page.waitForLoadState("networkidle");
   await page.waitForTimeout(1_500);
 
@@ -47,7 +47,7 @@ test("Resumen General — valor de KPI coincide con mock (paridad)", async ({ pa
 });
 
 test("CMI Estratégico — carga el heading correcto", async ({ page }) => {
-  await page.goto("/cmi-estrategico");
+  await page.goto("/cmi-estrategico?pdi=PDI-2022-2026");
   await page.waitForLoadState("networkidle");
 
   const heading = page.getByRole("heading", { name: /cmi estratégico/i });
@@ -55,7 +55,7 @@ test("CMI Estratégico — carga el heading correcto", async ({ page }) => {
 });
 
 test("CMI Estratégico — filtro de año visible", async ({ page }) => {
-  await page.goto("/cmi-estrategico");
+  await page.goto("/cmi-estrategico?pdi=PDI-2022-2026");
   await page.waitForLoadState("networkidle");
   await page.waitForTimeout(1_000);
 

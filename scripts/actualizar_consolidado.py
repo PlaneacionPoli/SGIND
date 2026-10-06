@@ -312,6 +312,19 @@ def main() -> None:
     tipo_calculo_map     = cat_data["tipo_calculo_map"]
     tipo_indicador_map   = cat_data["tipo_indicador_map"]
     variables_campo_map  = cat_data["variables_campo_map"]
+    # Guardia: sin el mapa símbolo→Meta/Ejecución los pasos de reparación pisan los
+    # indicadores 'Desglose Variables' con el valor crudo del API (100). Mejor
+    # detenerse que corromper el consolidado en silencio.
+    _n_desglose_var = sum(
+        1 for i, e in extraccion_map.items()
+        if e == "Desglose Variables" and tipo_indicador_map.get(i) != "Tipo 1"
+    )
+    if _n_desglose_var and not variables_campo_map:
+        raise RuntimeError(
+            f"La hoja 'Variables' (Campo Meta/Ejecución) no se encontró ni en la fuente ni en "
+            f"{OUTPUT_FILE.name}, y hay {_n_desglose_var} indicadores 'Desglose Variables'. "
+            f"Se detiene el pipeline para no corromper Meta/Ejecución."
+        )
 
     # ── 3. Metadatos y catálogos auxiliares ───────────────────────
     logger.info("3. Cargando metadatos y catálogos auxiliares…")

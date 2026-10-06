@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
@@ -14,6 +14,8 @@ import { ChipRow } from "@/components/ui/ChipRow";
 import { ExecutiveNarrative } from "@/components/ui/ExecutiveNarrative";
 import { InformeEstrategicoConsolidado } from "@/components/ui/InformeEstrategicoConsolidado";
 import { LineaFichaGeneral } from "@/components/ui/LineaFichaGeneral";
+import { PdiChip } from "@/components/ui/PdiChip";
+import { PdiGate } from "@/components/ui/PdiGate";
 import { StrategyCardGrid } from "@/components/ui/StrategyCard";
 import { VistaSelector } from "@/components/ui/VistaSelector";
 import { YearSegmentedControl } from "@/components/ui/YearSegmentedControl";
@@ -30,6 +32,14 @@ const PdiMindmap = dynamic(() => import("@/components/charts/PdiMindmap").then((
 });
 
 export default function ResumenGeneralPage() {
+  return (
+    <Suspense fallback={<p className="text-sm text-slate-500">Cargando resumen…</p>}>
+      <PdiGate>{(pdi) => <ResumenGeneralContent pdi={pdi} />}</PdiGate>
+    </Suspense>
+  );
+}
+
+function ResumenGeneralContent({ pdi }: { pdi: string }) {
   const router = useRouter();
   const { ready, isAuthenticated } = useAuthReady();
   const { login, loading: loginLoading, error: loginError } = useDevLogin();
@@ -41,8 +51,8 @@ export default function ResumenGeneralPage() {
   const [selectedLinea, setSelectedLinea] = useState<string | null>(null);
 
   const filtrosQuery = useQuery({
-    queryKey: ["dashboard-filtros"],
-    queryFn: fetchDashboardFiltros,
+    queryKey: ["dashboard-filtros", pdi],
+    queryFn: () => fetchDashboardFiltros(pdi),
     enabled: ready && isAuthenticated,
   });
 
@@ -60,8 +70,8 @@ export default function ResumenGeneralPage() {
   });
 
   const resumenQuery = useQuery({
-    queryKey: ["resumen-completo", anioEfectivo, vista, rango],
-    queryFn: () => fetchResumenCompleto({ anio: anioEfectivo, vista, rango }),
+    queryKey: ["resumen-completo", pdi, anioEfectivo, vista, rango],
+    queryFn: () => fetchResumenCompleto({ anio: anioEfectivo, vista, rango, pdi }),
     enabled: ready && isAuthenticated,
   });
 
@@ -96,7 +106,7 @@ export default function ResumenGeneralPage() {
   async function handleDownloadPdf() {
     setPdfLoading(true);
     try {
-      await downloadInformeEjecutivoPdf();
+      await downloadInformeEjecutivoPdf(pdi);
     } finally {
       setPdfLoading(false);
     }
@@ -112,6 +122,7 @@ export default function ResumenGeneralPage() {
               Sistema de Indicadores Institucionales
             </p>
             <h2 className="mt-2 text-2xl font-bold text-white">Plan de Desarrollo Institucional 2022–2026</h2>
+            <PdiChip pdi={pdi} className="mt-2 text-blue-100" />
             <p className="mt-1 flex flex-wrap items-center gap-2 text-sm text-slate-300">
               Seguimiento estratégico de indicadores PDI · Cuadro de Mando Integral
               {health && (

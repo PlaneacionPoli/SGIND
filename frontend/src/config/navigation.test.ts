@@ -6,22 +6,23 @@ const PROCESOS_HREFS = [
   "/cmi-estrategico",
   "/cmi-procesos",
   "/informe-procesos",
+  "/polisigs",
   "/plan-mejoramiento",
 ];
 
 describe("navItemsForRole", () => {
-  it("procesos ve solo las 5 pantallas permitidas, en orden", () => {
+  it("procesos ve solo las 6 pantallas permitidas, en orden", () => {
     expect(navItemsForRole("procesos").map((i) => i.href)).toEqual(PROCESOS_HREFS);
   });
 
   it.each(["administrador", "calidad", "desempeno"])("%s ve las 7 pantallas", (role) => {
-    expect(navItemsForRole(role)).toHaveLength(7);
+    expect(navItemsForRole(role)).toHaveLength(8);
   });
 
   it("un rol ausente o desconocido se trata como procesos", () => {
-    expect(navItemsForRole(null)).toHaveLength(5);
-    expect(navItemsForRole(undefined)).toHaveLength(5);
-    expect(navItemsForRole("otro")).toHaveLength(5);
+    expect(navItemsForRole(null)).toHaveLength(6);
+    expect(navItemsForRole(undefined)).toHaveLength(6);
+    expect(navItemsForRole("otro")).toHaveLength(6);
   });
 });
 
@@ -32,7 +33,7 @@ describe("canAccessPath", () => {
     expect(canAccessPath("procesos", "/gestion-om/nuevo")).toBe(false);
   });
 
-  it("procesos accede a sus 5 pantallas", () => {
+  it("procesos accede a sus 6 pantallas", () => {
     for (const href of PROCESOS_HREFS) expect(canAccessPath("procesos", href)).toBe(true);
   });
 

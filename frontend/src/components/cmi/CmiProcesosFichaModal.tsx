@@ -145,6 +145,22 @@ export function CmiProcesosFichaModal({
               </div>
             )}
 
+            {ficha.asociaciones_pdi && ficha.asociaciones_pdi.length > 0 && (
+              <div>
+                <p className="mb-2 text-sm font-semibold text-slate-700">Línea estratégica por PDI</p>
+                <ul className="space-y-2">
+                  {ficha.asociaciones_pdi.map((a, i) => (
+                    <li key={`${a.version_id}-${i}`} className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">{a.pdi}</p>
+                      <p className="text-sm font-semibold text-slate-800">{a.linea ?? "—"}</p>
+                      {a.objetivo && <p className="text-xs text-slate-600">{a.objetivo}</p>}
+                      {a.meta && <p className="text-xs italic text-slate-500">Meta: {a.meta}</p>}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
             {ficha.historico && ficha.historico.length > 0 && (
               <div>
                 <p className="mb-2 text-sm font-semibold text-slate-700">Evolución histórica</p>

@@ -77,6 +77,31 @@ def cargar_directorio_maestro() -> Dict[str, Dict]:
 
 # ── Lectura unificada del Catálogo (1 sola I/O) ───────────────────
 
+def _leer_variables_campo(dfv: pd.DataFrame, destino: Dict) -> None:
+    """Llena destino {id: {'ejec': [símbolos], 'meta': [símbolos]}} desde la hoja Variables."""
+    dfv.columns = [str(c).strip() for c in dfv.columns]
+    col_id   = next((c for c in dfv.columns if c.lower() == "id"), None)
+    col_simb = next(
+        (c for c in dfv.columns if "simb" in c.lower() or c.lower() == "var_simbolo"), None
+    )
+    col_camp = next((c for c in dfv.columns if "campo" in c.lower()), None)
+    if not all([col_id, col_simb, col_camp]):
+        return
+    for _, row in dfv.iterrows():
+        id_s = _id_str(row.get(col_id, ""))
+        simb = str(row.get(col_simb, "") or "").strip()
+        camp = str(row.get(col_camp, "") or "").strip()
+        if not id_s or not simb or simb == "None":
+            continue
+        if id_s not in destino:
+            destino[id_s] = {"ejec": [], "meta": []}
+        camp_low = camp.lower()
+        if "jecuci" in camp_low:
+            destino[id_s]["ejec"].append(simb)
+        elif camp_low == "meta":
+            destino[id_s]["meta"].append(simb)
+
+
 def cargar_catalogo_completo(src: Optional[Path] = None) -> Dict:
     """
     Lee 'Catalogo Indicadores' del archivo fuente UNA sola vez y retorna:
@@ -134,31 +159,30 @@ def cargar_catalogo_completo(src: Optional[Path] = None) -> Dict:
                         }
                 # ── Hoja Variables ─────────────────────────────────────
                 if "Variables" in xl.sheet_names:
-                    dfv = xl.parse("Variables")
-                    dfv.columns = [str(c).strip() for c in dfv.columns]
-                    col_id   = next((c for c in dfv.columns if c.lower() == "id"), None)
-                    col_simb = next(
-                        (c for c in dfv.columns
-                         if "simb" in c.lower() or c.lower() == "var_simbolo"),
-                        None,
-                    )
-                    col_camp = next((c for c in dfv.columns if "campo" in c.lower()), None)
-                    if all([col_id, col_simb, col_camp]):
-                        for _, row in dfv.iterrows():
-                            id_s = _id_str(row.get(col_id, ""))
-                            simb = str(row.get(col_simb, "") or "").strip()
-                            camp = str(row.get(col_camp, "") or "").strip()
-                            if not id_s or not simb or simb == "None":
-                                continue
-                            if id_s not in result["variables_campo_map"]:
-                                result["variables_campo_map"][id_s] = {"ejec": [], "meta": []}
-                            camp_low = camp.lower()
-                            if "jecuci" in camp_low:
-                                result["variables_campo_map"][id_s]["ejec"].append(simb)
-                            elif camp_low == "meta":
-                                result["variables_campo_map"][id_s]["meta"].append(simb)
+                    _leer_variables_campo(xl.parse("Variables"), result["variables_campo_map"])
     except Exception as e:
         logger.warning(f"  Error leyendo Catálogo de {source.name}: {e}")
+
+    # La hoja Variables (símbolo → Campo Meta/Ejecución) es configuración curada que
+    # el pipeline conserva en el libro de salida. Si la fuente no la trae (p. ej. se
+    # recortó a solo catálogo), se toma de OUTPUT_FILE en vez de seguir con el mapa
+    # vacío: sin ella los pasos de reparación pisan Meta/Ejecución con el valor
+    # crudo del API (100) en los indicadores 'Desglose Variables' (hallazgo 2026-10).
+    if not result["variables_campo_map"] and OUTPUT_FILE.exists() and OUTPUT_FILE != source:
+        try:
+            with workbook_local_copy(OUTPUT_FILE) as (local_out, _):
+                with pd.ExcelFile(local_out) as xl_out:
+                    if "Variables" in xl_out.sheet_names:
+                        _leer_variables_campo(
+                            xl_out.parse("Variables"), result["variables_campo_map"]
+                        )
+            if result["variables_campo_map"]:
+                logger.warning(
+                    f"  'Variables' no está en {source.name}: se usó la de {OUTPUT_FILE.name} "
+                    f"({len(result['variables_campo_map'])} indicadores)"
+                )
+        except Exception as e:
+            logger.warning(f"  No se pudo leer Variables de {OUTPUT_FILE.name}: {e}")
 
     n1 = sum(1 for v in result["tipo_indicador_map"].values() if v == "Tipo 1")
     n2 = sum(1 for v in result["tipo_indicador_map"].values() if v == "Tipo 2")

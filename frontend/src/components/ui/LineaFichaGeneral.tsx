@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { FileText, X } from "lucide-react";
 import { STRATEGIC_ICON_MAP } from "@/lib/strategic-icons";
 import { fetchResumenLinea } from "@/lib/api";
+import { PDI_VISTAS_POR_LINEA } from "@/lib/pdi";
 import type { ResumenLineaProyectoItem } from "@/lib/types";
 
 interface LineaFichaGeneralProps {
@@ -21,7 +22,7 @@ const CUMPLE_UMBRAL = 100;
 export function LineaFichaGeneral({ slug, color, icon, onClose }: LineaFichaGeneralProps) {
   const query = useQuery({
     queryKey: ["resumen-linea", slug, "rango"],
-    queryFn: () => fetchResumenLinea(slug),
+    queryFn: () => fetchResumenLinea(slug, undefined, PDI_VISTAS_POR_LINEA),
   });
 
   const IconComponent = STRATEGIC_ICON_MAP[icon];

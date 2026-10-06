@@ -106,6 +106,8 @@ export interface CMIProcesosFiltrosResponse {
   subprocesos_por_proceso: Record<string, string[]>;
   clasificaciones: string[];
   frecuencias: string[];
+  /** Líneas estratégicas del PDI elegido (taxonomía de ese ciclo). */
+  lineas: string[];
 }
 
 export interface CMIProcesoTipoCard {
@@ -382,7 +384,18 @@ export interface CMIProcesosAnalisisAvanzado {
   }>;
 }
 
+/** Línea/objetivo/meta del indicador en un PDI cuya vigencia cruza la del indicador. */
+export interface AsociacionPdi {
+  version_id: string;
+  pdi: string;
+  linea: string | null;
+  objetivo: string | null;
+  meta: string | null;
+}
+
 export interface CMIProcesosFichaIndicador extends Indicator {
+  /** Un indicador iniciado en 2023 trae el PDI 2022-2026 y el 2026-2030. */
+  asociaciones_pdi?: AsociacionPdi[];
   proceso_padre?: string;
   subproceso_final?: string;
   unidad?: string;
@@ -1193,4 +1206,62 @@ export interface OMPlanAccionActividad {
   avance: string;
   estado_plan: string;
   estado_om: string;
+}
+
+// ── POLISIGS ────────────────────────────────────────────────────────────────
+export interface PolisigsConsolidado {
+  cumplimiento: number | null;
+  nivel: string;
+  total: number;
+  con_dato: number;
+  sobrecumple: number;
+  cumple: number;
+  alerta: number;
+  peligro: number;
+  sin_dato: number;
+}
+
+export interface PolisigsComponente extends PolisigsConsolidado {
+  nombre: string;
+}
+
+export interface PolisigsObjetivo extends PolisigsConsolidado {
+  numero: number;
+  /** Enunciado completo del objetivo (versión 6). */
+  nombre: string;
+  corto: string;
+  componentes: PolisigsComponente[];
+}
+
+/** Meta/Ejecucion/Meta_Signo/Decimales_Meta/"Nivel de cumplimiento" replican el listado del CMI. */
+export interface PolisigsIndicador {
+  Id: string;
+  Indicador: string;
+  /** Objetivos V6 a los que se asocia; un indicador puede repetirse en varios. */
+  objetivos: number[];
+  /** Compromiso de la política del que proviene (catálogo del Excel). */
+  compromiso: string;
+  componente: string | null;
+  proceso: string | null;
+  responsable: string | null;
+  tipo_medicion: string | null;
+  frecuencia: string | null;
+  sentido: string | null;
+  clasificacion: string | null;
+  objetivo_secundario: string | null;
+  justificacion: string | null;
+  Meta: number | null;
+  Ejecucion: number | null;
+  Meta_Signo: string | null;
+  Decimales_Meta: number | null;
+  periodo: string | null;
+  cumplimiento_pct: number | null;
+  "Nivel de cumplimiento": string;
+}
+
+export interface PolisigsResponse {
+  anio: number;
+  politica: PolisigsConsolidado & { nombre: string };
+  objetivos: PolisigsObjetivo[];
+  indicadores: PolisigsIndicador[];
 }

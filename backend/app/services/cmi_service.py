@@ -28,6 +28,10 @@ from app.domain.cmi_builders import (
 )
 from app.domain.cmi_filters import CMIFilterService
 from app.domain.linea_order import linea_sort_key
+from app.domain.asociaciones import asociaciones_ficha, ids_de_linea
+from app.domain.marcos import Marco, get_marco, marco_por_defecto
+from app.domain.marcos import get_marcos as _get_marcos
+from app.domain.taxonomia import load_taxonomia
 from app.domain.procesos_builders import (
     MESES_OPCIONES,
     TIPO_PROCESO_COLORS,
@@ -158,10 +162,10 @@ class CMIService:
         df = ensure_nivel_cumplimiento(df)
         return self._enrich_ficha(df)
 
-    def _prepare_df_cierre_pdi(self) -> pd.DataFrame:
-        """Rango "Cierre PDI 2022-2025": resultado final por indicador (hoja
-        'Cierre PDI'), sin arrastrar valores de anios anteriores."""
-        df = self._strategic.preparar_pdi_cierre_final()
+    def _prepare_df_cierre_pdi(self, marco: Marco) -> pd.DataFrame:
+        """Rango "Cierre PDI": resultado final por indicador (hoja de cierre
+        del marco, p. ej. 'Cierre PDI'), sin arrastrar valores de anios anteriores."""
+        df = self._strategic.preparar_pdi_cierre_final(marco.hoja_cierre or "Cierre PDI")
         if df.empty:
             return df
         df = ensure_nivel_cumplimiento(df)
@@ -184,14 +188,16 @@ class CMIService:
         mes: int | None = None,
         corte: str | None = None,
         rango: bool = False,
+        pdi: str | None = None,
     ) -> dict[str, Any]:
+        marco = get_marco(pdi) if pdi else marco_por_defecto("PDI")
         anios = self._available_anios()
         anio_eff = int(anio) if anio is not None else default_anio(anios)
         mes_eff = self._resolve_mes(mes, corte)
-        corte_label = "Cierre PDI 2022-2025" if rango else CORTE_POR_MES.get(mes_eff, "Diciembre")
+        corte_label = marco.etiqueta_cierre if rango else CORTE_POR_MES.get(mes_eff, "Diciembre")
 
         df = (
-            self._prepare_df_cierre_pdi() if rango else self._prepare_df(anio=anio_eff, mes=mes_eff)
+            self._prepare_df_cierre_pdi(marco) if rango else self._prepare_df(anio=anio_eff, mes=mes_eff)
         )
         pdi_catalog = self._loaders.load_pdi_catalog()
         cierres = self._loaders.load_cierres()
@@ -357,8 +363,18 @@ class CMIService:
         )
         return self._slice_by_mes(year_prepared, anio=anio, mes=mes)
 
+    def _pdi_version(self, pdi: str | None) -> str:
+        return get_marco(pdi).version_id if pdi else marco_por_defecto("PDI").version_id
+
+    def _ids_linea(self, pdi: str | None, linea: str | None) -> set[str] | None:
+        """Ids de indicadores de la línea elegida del PDI (None = sin filtro)."""
+        if not linea or linea == "Todos":
+            return None
+        version = self._pdi_version(pdi)
+        return ids_de_linea(self._loaders.load_asociaciones(version).validas, version, linea)
+
     def get_procesos_filtros(
-        self, *, anio: int | None = None, mes: int | None = None
+        self, *, anio: int | None = None, mes: int | None = None, pdi: str | None = None
     ) -> dict[str, Any]:
         tracking = self._load_tracking()
         map_df = load_process_map(self._excel)
@@ -378,7 +394,15 @@ class CMIService:
             "subprocesos": opts["subprocesos"],
             "clasificaciones": opts["clasificaciones"],
             "frecuencias": opts["frecuencias"],
+            "lineas": self._lineas_del_pdi(pdi),
         }
+
+    def _lineas_del_pdi(self, pdi: str | None) -> list[str]:
+        """Líneas estratégicas del PDI elegido (taxonomía de ese ciclo)."""
+        marco = get_marco(pdi) if pdi else marco_por_defecto("PDI")
+        if not marco.taxonomia:
+            return []
+        return [ln.nombre for ln in sorted(load_taxonomia(marco.taxonomia).lineas, key=lambda x: x.orden)]
 
     def get_procesos_indicators_light(
         self,
@@ -390,8 +414,11 @@ class CMIService:
         subproceso: str | None = None,
         clasificacion: str | None = None,
         frecuencia: str | None = None,
+        linea: str | None = None,
+        pdi: str | None = None,
     ) -> list[dict[str, Any]]:
         """Solo listado de indicadores (sin KPIs/gráficos) — para comparación año anterior en Informe."""
+        ids_linea = self._ids_linea(pdi, linea)
         tracking = self._load_tracking()
         map_df = load_process_map(self._excel)
         if tracking.empty:
@@ -405,6 +432,7 @@ class CMIService:
             subproceso=subproceso,
             clasificacion=clasificacion,
             frecuencia=frecuencia,
+            ids_linea=ids_linea,
         )
         latest = latest_per_indicator(df)
         return build_indicadores_procesos_listado(latest)
@@ -419,6 +447,8 @@ class CMIService:
         subproceso: str | None = None,
         clasificacion: str | None = None,
         frecuencia: str | None = None,
+        linea: str | None = None,
+        pdi: str | None = None,
     ) -> dict[str, Any]:
         """Dashboard completo de Procesos (groupby + loops pesados en
         procesos_builders.py) — se cachea por combinación de filtros ya que
@@ -434,6 +464,8 @@ class CMIService:
             subproceso,
             clasificacion,
             frecuencia,
+            self._pdi_version(pdi),
+            linea,
         )
         return cache_get(
             _PROCESOS_DASHBOARD_CACHE,
@@ -446,6 +478,8 @@ class CMIService:
                 subproceso=subproceso,
                 clasificacion=clasificacion,
                 frecuencia=frecuencia,
+                linea=linea,
+                pdi=pdi,
             ),
             ttl=self._excel.ttl,
         )
@@ -460,7 +494,10 @@ class CMIService:
         subproceso: str | None = None,
         clasificacion: str | None = None,
         frecuencia: str | None = None,
+        linea: str | None = None,
+        pdi: str | None = None,
     ) -> dict[str, Any]:
+        ids_linea = self._ids_linea(pdi, linea)
         tracking = self._load_tracking()
         map_df = load_process_map(self._excel)
         cmi_catalog = self._cmi.load_cmi_worksheet()
@@ -539,6 +576,7 @@ class CMIService:
             subproceso=subproceso,
             clasificacion=clasificacion,
             frecuencia=frecuencia,
+            ids_linea=ids_linea,
         )
 
         df_base_year = (
@@ -553,6 +591,7 @@ class CMIService:
             subproceso=subproceso,
             clasificacion=clasificacion,
             frecuencia=frecuencia,
+            ids_linea=ids_linea,
         )
 
         mes_global = get_prev_month_for_year(tracking, anio_eff) or mes_eff
@@ -605,6 +644,7 @@ class CMIService:
             subproceso=subproceso,
             clasificacion=clasificacion,
             frecuencia=frecuencia,
+            ids_linea=ids_linea,
         )
         latest = latest_per_indicator(filtered)
 
@@ -623,6 +663,7 @@ class CMIService:
                 subproceso=subproceso,
                 clasificacion=clasificacion,
                 frecuencia=frecuencia,
+                ids_linea=ids_linea,
             )
             if not sl.empty:
                 hist_slices.append(sl)
@@ -824,7 +865,22 @@ class CMIService:
                     tendencia = "A la baja"
         record["tendencia"] = tendencia
         record.update(self._get_ficha_tecnica_extra(indicador_id))
+        record["asociaciones_pdi"] = self._asociaciones_pdi(indicador_id)
         return record
+
+    def _asociaciones_pdi(self, indicador_id: str) -> list[dict[str, Any]]:
+        """Línea/objetivo/meta del indicador en cada PDI cuya vigencia cruza la del
+        indicador (fecha de inicio/fin de su ficha técnica). Ver impact_report.md D7."""
+        desde, hasta = self._loaders.load_vigencias().get(str(indicador_id).strip(), (None, None))
+        validas = pd.concat(
+            [
+                self._loaders.load_asociaciones(m.version_id).validas
+                for m in _get_marcos("PDI")
+                if m.taxonomia
+            ],
+            ignore_index=True,
+        )
+        return asociaciones_ficha(validas, indicador_id, desde, hasta)
 
     def _get_ficha_tecnica_extra(self, indicador_id: str) -> dict[str, Any]:
         """Ficha de Identidad: Fórmula/Responsable/Fuente/Periodicidad desde el
@@ -868,7 +924,10 @@ class CMIService:
         subproceso: str | None = None,
         clasificacion: str | None = None,
         frecuencia: str | None = None,
+        linea: str | None = None,
+        pdi: str | None = None,
     ) -> tuple[bytes, str, str]:
+        ids_linea = self._ids_linea(pdi, linea)
         tracking = self._load_tracking()
         map_df = load_process_map(self._excel)
         mes_eff = int(mes) if mes is not None else default_mes(tracking, int(anio))
@@ -880,6 +939,7 @@ class CMIService:
             subproceso=subproceso,
             clasificacion=clasificacion,
             frecuencia=frecuencia,
+            ids_linea=ids_linea,
         )
         latest = latest_per_indicator(df)
         if formato.lower() == "csv":

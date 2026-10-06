@@ -1,0 +1,193 @@
+{
+  "version_id": "PDI-2026-2030",
+  "tipo": "PDI",
+  "fuente": "skill contexto-pdi-poli §3 (PDI 2026-2030)",
+  "lineas": [
+    {
+      "id": "calidad-e-innovacion-educativa",
+      "orden": 1,
+      "nombre": "Calidad e Innovación Educativa",
+      "objetivos": [
+        {
+          "id": "calidad-e-innovacion-educativa-O1",
+          "numero": 1,
+          "nombre": "Consolidar el Modelo Educativo Intergeneracional, Innovador y Multimodal",
+          "metas": [
+            {
+              "id": "calidad-e-innovacion-educativa-O1-M1",
+              "nombre": "Diseñar e implementar el Modelo"
+            },
+            {
+              "id": "calidad-e-innovacion-educativa-O1-M2",
+              "nombre": "Actualizar los programas académicos con el nuevo Modelo"
+            }
+          ]
+        },
+        {
+          "id": "calidad-e-innovacion-educativa-O2",
+          "numero": 2,
+          "nombre": "Fortalecer la enseñanza y el aprendizaje mediante nuevas tendencias tecnológicas",
+          "metas": [
+            {
+              "id": "calidad-e-innovacion-educativa-O2-M1",
+              "nombre": "Diseñar e implementar estrategias pedagógicas innovadoras con uso ético de la IA"
+            },
+            {
+              "id": "calidad-e-innovacion-educativa-O2-M2",
+              "nombre": "Capacitar y certificar a los profesores en competencias intergeneracionales, IA y nuevas tecnologías"
+            }
+          ]
+        },
+        {
+          "id": "calidad-e-innovacion-educativa-O3",
+          "numero": 3,
+          "nombre": "Promover una cultura de mejoramiento continuo en las labores misionales y los procesos",
+          "metas": [
+            {
+              "id": "calidad-e-innovacion-educativa-O3-M1",
+              "nombre": "Avanzar en acreditación internacional institucional y de programas"
+            },
+            {
+              "id": "calidad-e-innovacion-educativa-O3-M2",
+              "nombre": "Impulsar acreditación nacional de programas"
+            },
+            {
+              "id": "calidad-e-innovacion-educativa-O3-M3",
+              "nombre": "Optimizar procesos con nuevas tecnologías y fortalecer decisiones basadas en evidencia"
+            },
+            {
+              "id": "calidad-e-innovacion-educativa-O3-M4",
+              "nombre": "Consolidar la autoevaluación permanente"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "experiencia-centrada-en-las-personas",
+      "orden": 2,
+      "nombre": "Experiencia Centrada en las Personas",
+      "objetivos": [
+        {
+          "id": "experiencia-centrada-en-las-personas-O1",
+          "numero": 1,
+          "nombre": "Consolidar una comunidad Poli feliz y apasionada por transformar vidas de manera positiva",
+          "metas": [
+            {
+              "id": "experiencia-centrada-en-las-personas-O1-M1",
+              "nombre": "Consolidar el ADN Poli como pilar de la experiencia institucional"
+            },
+            {
+              "id": "experiencia-centrada-en-las-personas-O1-M2",
+              "nombre": "Garantizar el bienestar integral con enfoque intergeneracional"
+            }
+          ]
+        },
+        {
+          "id": "experiencia-centrada-en-las-personas-O2",
+          "numero": 2,
+          "nombre": "Diseñar experiencias empáticas e incluyentes que integren tecnología y calidez humana con los grupos de interés",
+          "metas": [
+            {
+              "id": "experiencia-centrada-en-las-personas-O2-M1",
+              "nombre": "Impulsar un modelo de madurez de la experiencia (bienestar, datos, optimización de procesos)"
+            },
+            {
+              "id": "experiencia-centrada-en-las-personas-O2-M2",
+              "nombre": "Consolidar el Ecosistema Digital centrado en las personas"
+            },
+            {
+              "id": "experiencia-centrada-en-las-personas-O2-M3",
+              "nombre": "Potenciar la madurez institucional en datos y analítica (incluida IA)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "expansion-con-compromiso-social",
+      "orden": 3,
+      "nombre": "Expansión con Compromiso Social",
+      "objetivos": [
+        {
+          "id": "expansion-con-compromiso-social-O1",
+          "numero": 1,
+          "nombre": "Fortalecer el relacionamiento, posicionamiento y crecimiento en el país",
+          "metas": [
+            {
+              "id": "expansion-con-compromiso-social-O1-M1",
+              "nombre": "Potenciar el posicionamiento nacional mediante convenios y alianzas público-privadas"
+            },
+            {
+              "id": "expansion-con-compromiso-social-O1-M2",
+              "nombre": "Implementar iniciativas de posicionamiento de marca con sentido social"
+            }
+          ]
+        },
+        {
+          "id": "expansion-con-compromiso-social-O2",
+          "numero": 2,
+          "nombre": "Ampliar la presencia en América",
+          "metas": [
+            {
+              "id": "expansion-con-compromiso-social-O2-M1",
+              "nombre": "Posicionar la marca Poli en países priorizados de América"
+            }
+          ]
+        },
+        {
+          "id": "expansion-con-compromiso-social-O3",
+          "numero": 3,
+          "nombre": "Desarrollar un portafolio intergeneracional de servicios educativos pertinente y flexible para toda la vida",
+          "metas": [
+            {
+              "id": "expansion-con-compromiso-social-O3-M1",
+              "nombre": "Consolidar un portafolio de educación formal pertinente en Colombia y América"
+            },
+            {
+              "id": "expansion-con-compromiso-social-O3-M2",
+              "nombre": "Contar con oferta de educación no formal (cursos, seminarios, talleres)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "desarrollo-sostenible",
+      "orden": 4,
+      "nombre": "Desarrollo Sostenible",
+      "objetivos": [
+        {
+          "id": "desarrollo-sostenible-O1",
+          "numero": 1,
+          "nombre": "Garantizar una gestión sostenible que impacte positivamente en la comunidad y el ambiente",
+          "metas": [
+            {
+              "id": "desarrollo-sostenible-O1-M1",
+              "nombre": "Posicionar al Poli como referente en Responsabilidad Social Universitaria"
+            },
+            {
+              "id": "desarrollo-sostenible-O1-M2",
+              "nombre": "Diseñar, implementar y consolidar el Modelo de Sostenibilidad Poli con indicadores medibles"
+            }
+          ]
+        },
+        {
+          "id": "desarrollo-sostenible-O2",
+          "numero": 2,
+          "nombre": "Diversificar y optimizar los recursos financieros como apalancadores de la estrategia",
+          "metas": [
+            {
+              "id": "desarrollo-sostenible-O2-M1",
+              "nombre": "Incrementar la participación de otros ingresos distintos a matrículas (educación continua, formación a la medida, consultorías)"
+            },
+            {
+              "id": "desarrollo-sostenible-O2-M2",
+              "nombre": "Asignar recursos priorizados por impacto social, ambiental y económico"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
