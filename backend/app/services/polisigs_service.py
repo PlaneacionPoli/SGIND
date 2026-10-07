@@ -100,6 +100,30 @@ def _ultimo(excel: ExcelReaderService, anio: int, mes: int) -> dict[str, dict[st
     return {r["_id"]: r for r in df.to_dict("records")}
 
 
+def _ultimo_fallback_anual(excel: ExcelReaderService, anio: int) -> dict[str, dict[str, Any]]:
+    """Último corte anual disponible antes de `anio`, para indicadores de
+    periodicidad anual (se miden una sola vez al año: en el corte de junio del
+    año en curso todavía no tienen ejecución, así que se muestra el último
+    dato anual reportado, p. ej. diciembre 2025, marcando ese corte real)."""
+    tracking = get_tracking_dataframe(excel, historico=True)
+    if tracking.empty or not {"Anio", "Mes", "Ejecucion", "Periodicidad", "Id"}.issubset(tracking.columns):
+        return {}
+    df = tracking.copy()
+    df["_anio_num"] = pd.to_numeric(df["Anio"], errors="coerce")
+    df = df[df["_anio_num"] < anio]
+    df = df[df["Periodicidad"].astype(str).str.strip().str.lower() == "anual"]
+    df = df[pd.to_numeric(df["Ejecucion"], errors="coerce").notna()]
+    if df.empty:
+        return {}
+    df["cumplimiento_pct"] = pd.to_numeric(df.get("Cumplimiento_norm"), errors="coerce") * 100
+    df = ensure_nivel_cumplimiento(df)
+    df["_id"] = df["Id"].map(_id)
+    df["_mes_num"] = df["Mes"].map(mes_to_num)
+    sort_cols = ["_anio_num", "_mes_num"] + (["Fecha"] if "Fecha" in df.columns else [])
+    df = df.sort_values(sort_cols).drop_duplicates("_id", keep="last")
+    return {r["_id"]: r for r in df.to_dict("records")}
+
+
 def _plan_mejoramiento(excel: ExcelReaderService, anio: int, mes: int) -> dict[str, dict[str, str]]:
     """Id de indicador -> Factor / Característica del Plan de mejoramiento (CNA)."""
     out: dict[str, dict[str, str]] = {}
@@ -175,6 +199,7 @@ def get_polisigs(
     cfg = _load_objetivos()
     catalogo = _load_catalogo(excel)
     datos = _ultimo(excel, anio, mes)
+    datos_fallback = _ultimo_fallback_anual(excel, anio)
     plan = _plan_mejoramiento(excel, anio, mes)
 
     indicadores: list[dict[str, Any]] = []
@@ -184,6 +209,12 @@ def get_polisigs(
             continue  # la base lista 350 indicadores; solo los asociados a algún objetivo
         ind_id = _id(r["ID"])
         d = datos.get(ind_id, {})
+        corte_dato: str | None = None
+        if _num(d.get("Ejecucion")) is None:
+            fb = datos_fallback.get(ind_id)
+            if fb is not None:
+                d = fb
+                corte_dato = f"{mes_nombre(int(fb['_mes_num']))} {int(fb['_anio_num'])}"
         real = _num(d.get("cumplimiento_pct"))
         # Techo de 100 % por indicador: el sobrecumplimiento no compensa otros
         # indicadores al promediar el objetivo.
@@ -211,6 +242,11 @@ def get_polisigs(
                 "cumplimiento_pct": None if pct is None else round(pct, 1),
                 "cumplimiento_real": None if real is None else round(real, 1),
                 "Nivel de cumplimiento": d.get("Nivel de cumplimiento") or _PENDIENTE,
+                # Indicador anual sin ejecución aún en el corte pedido: se usa el
+                # último dato anual disponible (p. ej. "Diciembre 2025") y se
+                # etiqueta el corte real en lugar del solicitado.
+                "corte_dato": corte_dato,
+                "corte_distinto": corte_dato is not None,
             }
         )
 

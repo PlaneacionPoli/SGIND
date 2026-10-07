@@ -546,8 +546,16 @@ function TileIndicador({
         <span className="font-mono text-[10px] font-semibold text-slate-500">{ind.Id}</span>
       </div>
       <span className="mt-1 line-clamp-2 text-[11px] font-medium leading-snug text-slate-800">{ind.Indicador}</span>
-      {(ind.plan_mejoramiento || (mostrarOds && ind.ods.length > 0)) && (
+      {(ind.plan_mejoramiento || ind.corte_distinto || (mostrarOds && ind.ods.length > 0)) && (
         <span className="mt-1.5 flex flex-wrap gap-1">
+          {ind.corte_distinto && ind.corte_dato && (
+            <span
+              className="rounded bg-sky-100 px-1 text-[9px] font-bold uppercase text-sky-800"
+              title={`Indicador anual: sin ejecución aún en el corte seleccionado; se muestra el dato de ${ind.corte_dato}`}
+            >
+              Corte {ind.corte_dato}
+            </span>
+          )}
           {ind.plan_mejoramiento && (
             <span className="rounded bg-amber-100 px-1 text-[9px] font-bold uppercase text-amber-800">Plan mej.</span>
           )}
@@ -616,6 +624,12 @@ function FichaIndicador({
           </p>
         ) : (
           <>
+            {ind.corte_distinto && ind.corte_dato && (
+              <p className="rounded-lg border border-sky-200 bg-sky-50 px-2.5 py-1.5 text-[11px] font-semibold text-sky-800">
+                Indicador anual: aún sin ejecución en el corte seleccionado; se muestra el dato de{" "}
+                <span className="font-bold">{ind.corte_dato}</span>.
+              </p>
+            )}
             <dl className="grid grid-cols-3 gap-2 text-center">
               <Medida k="Meta" v={fmtMeta(rec)} />
               <Medida k="Ejecución" v={fmtEjecucion(rec)} />
