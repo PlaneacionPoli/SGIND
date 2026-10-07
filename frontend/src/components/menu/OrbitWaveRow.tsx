@@ -8,6 +8,7 @@ interface OrbitWaveRowItem {
   href: string;
   label: string;
   iconSrc: string;
+  locked?: boolean;
 }
 
 interface OrbitWaveRowProps {
@@ -186,6 +187,7 @@ export function OrbitWaveRow({ items, rowIndex, currentRole }: OrbitWaveRowProps
               index={index}
               highlighted={isHighlighted(meta.roles, currentRole)}
               layout="static"
+              locked={item.locked}
             />
           );
         })}
@@ -206,6 +208,7 @@ export function OrbitWaveRow({ items, rowIndex, currentRole }: OrbitWaveRowProps
               index={index}
               highlighted={isHighlighted(meta.roles, currentRole)}
               layout="orbit"
+              locked={item.locked}
               left={point.x}
               top={(point.y / VIEWBOX_HEIGHT) * 100}
             />

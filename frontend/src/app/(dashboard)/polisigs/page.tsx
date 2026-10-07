@@ -37,8 +37,8 @@ interface ObjetivoMeta {
 
 const OBJETIVO_META: Record<number, ObjetivoMeta> = {
   1: { img: "/img/polisigs/obj-ods.png", oscuro: false },
-  2: { img: "/img/polisigs/obj1.png", oscuro: true },
-  3: { img: "/img/polisigs/obj2.png", oscuro: false },
+  2: { img: "/img/polisigs/obj-calidad.png", oscuro: true },
+  3: { img: "/img/polisigs/obj-procesos.png", oscuro: false },
   4: { img: "/img/polisigs/obj3.png", oscuro: true },
   5: { img: "/img/polisigs/obj4.png", oscuro: false },
   6: { img: "/img/polisigs/obj-legal.png", oscuro: true },
