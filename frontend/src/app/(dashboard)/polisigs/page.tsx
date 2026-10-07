@@ -312,6 +312,19 @@ function ObjetivoRow({
   );
 }
 
+const ORDEN_NIVEL = [
+  "Peligro",
+  "Alerta",
+  "Cumplimiento",
+  "Sobrecumplimiento",
+  "Métrica",
+  "Pendiente de reporte",
+];
+const rangoNivel = (n: string) => {
+  const k = ORDEN_NIVEL.indexOf(n);
+  return k < 0 ? ORDEN_NIVEL.length : k;
+};
+
 function ObjetivoDetalle({
   objetivo,
   indicadores,
@@ -319,61 +332,257 @@ function ObjetivoDetalle({
   objetivo: PolisigsObjetivo;
   indicadores: PolisigsIndicador[];
 }) {
-  const [soloConDato, setSoloConDato] = useState(false);
-  const filas = useMemo(
-    () => (soloConDato ? indicadores.filter((i) => i.cumplimiento_pct != null) : indicadores),
-    [indicadores, soloConDato]
-  );
+  const [nivel, setNivel] = useState<string | null>(null);
+  const [busqueda, setBusqueda] = useState("");
+  const [soloPlan, setSoloPlan] = useState(false);
+  const [ods, setOds] = useState<number | null>(null);
+  const [selId, setSelId] = useState<string | null>(null);
+
+  const mostrarOds = objetivo.numero === 1;
+  const conteo = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const i of indicadores) m.set(i["Nivel de cumplimiento"], (m.get(i["Nivel de cumplimiento"]) ?? 0) + 1);
+    return Array.from(m.entries()).sort((x, y) => rangoNivel(x[0]) - rangoNivel(y[0]));
+  }, [indicadores]);
+  const nPlan = useMemo(() => indicadores.filter((i) => i.plan_mejoramiento).length, [indicadores]);
+  const odsDisponibles = useMemo(() => {
+    const m = new Map<number, string>();
+    for (const i of indicadores) for (const o of i.ods) m.set(o.numero, o.nombre);
+    return Array.from(m.entries()).sort((x, y) => x[0] - y[0]);
+  }, [indicadores]);
+
+  const filas = useMemo(() => {
+    const q = busqueda.trim().toLowerCase();
+    return indicadores
+      .filter(
+        (i) =>
+          (nivel == null || i["Nivel de cumplimiento"] === nivel) &&
+          (!soloPlan || i.plan_mejoramiento) &&
+          (ods == null || i.ods.some((o) => o.numero === ods)) &&
+          (q === "" || i.Indicador.toLowerCase().includes(q) || i.Id === q)
+      )
+      .sort(
+        (x, y) =>
+          rangoNivel(x["Nivel de cumplimiento"]) - rangoNivel(y["Nivel de cumplimiento"]) ||
+          (x.cumplimiento_pct ?? 999) - (y.cumplimiento_pct ?? 999)
+      );
+  }, [indicadores, nivel, busqueda, soloPlan, ods]);
+
+  const seleccionado = indicadores.find((i) => i.Id === selId) ?? null;
+  const total = indicadores.length;
 
   return (
-    <div>
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-        <h4 className="text-sm font-bold text-poli-navy">
-          Indicadores asociados <span className="font-normal text-slate-500">({filas.length})</span>
-        </h4>
-        <label className="flex cursor-pointer items-center gap-2 text-xs font-medium text-slate-600">
-          <input
-            type="checkbox"
-            checked={soloConDato}
-            onChange={(e) => setSoloConDato(e.target.checked)}
-            className="h-3.5 w-3.5 accent-[#0B2A5B]"
-          />
-          Ocultar indicadores sin información
-        </label>
-      </div>
-      {filas.length === 0 ? (
-        <p className="rounded-xl border border-slate-200 bg-slate-50 p-6 text-center text-sm text-slate-500">
-          Sin indicadores para mostrar en este corte.
-        </p>
-      ) : (
-        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-          {filas.map((i) => (
-            <FichaIndicador key={i.Id} ind={i} mostrarOds={objetivo.numero === 1} />
+    <div className="space-y-4">
+      <div>
+        <div className="flex h-3 overflow-hidden rounded-full bg-slate-100" role="img" aria-label="Distribución por nivel">
+          {conteo.map(([n, k]) => (
+            <div
+              key={n}
+              style={{ width: `${(k / total) * 100}%`, backgroundColor: (NIVEL_COLOR[n] ?? NIVEL_NEUTRO).bar }}
+              title={`${etiquetaNivel(n)}: ${k}`}
+            />
           ))}
         </div>
-      )}
-      <p className="mt-3 text-[11px]" style={{ color: CYAN }}>
+        <div className="mt-2 flex flex-wrap items-center gap-1.5">
+          <ChipFiltro activo={nivel == null} onClick={() => setNivel(null)}>
+            Todos · {total}
+          </ChipFiltro>
+          {conteo.map(([n, k]) => {
+            const c = NIVEL_COLOR[n] ?? NIVEL_NEUTRO;
+            return (
+              <ChipFiltro key={n} activo={nivel === n} onClick={() => setNivel(nivel === n ? null : n)} punto={c.bar}>
+                {etiquetaNivel(n)} · {k}
+              </ChipFiltro>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2">
+        <input
+          type="search"
+          value={busqueda}
+          onChange={(e) => setBusqueda(e.target.value)}
+          placeholder="Buscar indicador o ID…"
+          aria-label="Buscar indicador"
+          className="min-w-[14rem] flex-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm outline-none focus:border-poli-navy"
+        />
+        {mostrarOds && odsDisponibles.length > 0 && (
+          <select
+            value={ods ?? ""}
+            onChange={(e) => setOds(e.target.value === "" ? null : Number(e.target.value))}
+            aria-label="Filtrar por ODS"
+            className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm"
+          >
+            <option value="">Todos los ODS</option>
+            {odsDisponibles.map(([n, nombre]) => (
+              <option key={n} value={n}>
+                ODS {n} – {nombre}
+              </option>
+            ))}
+          </select>
+        )}
+        {nPlan > 0 && (
+          <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-700">
+            <input
+              type="checkbox"
+              checked={soloPlan}
+              onChange={(e) => setSoloPlan(e.target.checked)}
+              className="h-3.5 w-3.5 accent-[#0B2A5B]"
+            />
+            Plan de mejoramiento ({nPlan})
+          </label>
+        )}
+        <span className="text-xs text-slate-500">
+          {filas.length} de {total} indicadores
+        </span>
+      </div>
+
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_380px]">
+        <div>
+          {filas.length === 0 ? (
+            <p className="rounded-xl border border-slate-200 bg-slate-50 p-6 text-center text-sm text-slate-500">
+              Sin indicadores para los filtros seleccionados.
+            </p>
+          ) : (
+            <ul className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-3 2xl:grid-cols-4">
+              {filas.map((i) => (
+                <li key={i.Id}>
+                  <TileIndicador
+                    ind={i}
+                    activo={selId === i.Id}
+                    onSelect={() => setSelId(selId === i.Id ? null : i.Id)}
+                    mostrarOds={mostrarOds}
+                  />
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+        <aside className="xl:sticky xl:top-4 xl:self-start" aria-live="polite">
+          {seleccionado ? (
+            <FichaIndicador ind={seleccionado} mostrarOds={mostrarOds} onCerrar={() => setSelId(null)} />
+          ) : (
+            <p className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500">
+              Seleccione un indicador para ver su ficha: meta, ejecución, cumplimiento y proceso.
+            </p>
+          )}
+        </aside>
+      </div>
+
+      <p className="text-[11px]" style={{ color: CYAN }}>
         Meta, ejecución y cumplimiento de Resultados Consolidados en el corte seleccionado; sin medición en el corte = sin
         información. Cumplimiento de cada indicador topado en 100 %; consolidado = promedio de los indicadores con
-        cumplimiento.
+        cumplimiento. Ordenados del más crítico al más cumplido.
       </p>
     </div>
   );
 }
 
-function FichaIndicador({ ind, mostrarOds }: { ind: PolisigsIndicador; mostrarOds: boolean }) {
+function ChipFiltro({
+  activo,
+  onClick,
+  punto,
+  children,
+}: {
+  activo: boolean;
+  onClick: () => void;
+  punto?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={activo}
+      className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold transition ${
+        activo ? "border-poli-navy bg-poli-navy text-white" : "border-slate-200 bg-white text-slate-700 hover:border-slate-300"
+      }`}
+    >
+      {punto && <span className="h-2 w-2 rounded-full" style={{ backgroundColor: punto }} />}
+      {children}
+    </button>
+  );
+}
+
+function TileIndicador({
+  ind,
+  activo,
+  onSelect,
+  mostrarOds,
+}: {
+  ind: PolisigsIndicador;
+  activo: boolean;
+  onSelect: () => void;
+  mostrarOds: boolean;
+}) {
+  const c = NIVEL_COLOR[ind["Nivel de cumplimiento"]] ?? NIVEL_NEUTRO;
+  return (
+    <button
+      type="button"
+      onClick={onSelect}
+      aria-pressed={activo}
+      title={ind.Indicador}
+      className={`flex h-full w-full flex-col rounded-lg border border-l-[5px] p-2.5 text-left transition hover:shadow-md ${
+        activo ? "ring-2 ring-poli-navy" : ""
+      }`}
+      style={{ borderLeftColor: c.bar, backgroundColor: `${c.bg}99` }}
+    >
+      <div className="flex items-baseline justify-between gap-1">
+        <span className="text-xl font-extrabold leading-none tabular-nums" style={{ color: c.text }}>
+          {ind.cumplimiento_pct != null ? fmtPct(ind.cumplimiento_pct, 0) : "—"}
+        </span>
+        <span className="font-mono text-[10px] font-semibold text-slate-500">{ind.Id}</span>
+      </div>
+      <span className="mt-1 line-clamp-2 text-[11px] font-medium leading-snug text-slate-800">{ind.Indicador}</span>
+      {(ind.plan_mejoramiento || (mostrarOds && ind.ods.length > 0)) && (
+        <span className="mt-1.5 flex flex-wrap gap-1">
+          {ind.plan_mejoramiento && (
+            <span className="rounded bg-amber-100 px-1 text-[9px] font-bold uppercase text-amber-800">Plan mej.</span>
+          )}
+          {mostrarOds &&
+            ind.ods.map((o) => (
+              <span key={o.numero} className="rounded bg-poli-navy px-1 text-[9px] font-bold text-white">
+                ODS {o.numero}
+              </span>
+            ))}
+        </span>
+      )}
+    </button>
+  );
+}
+
+function FichaIndicador({
+  ind,
+  mostrarOds,
+  onCerrar,
+}: {
+  ind: PolisigsIndicador;
+  mostrarOds: boolean;
+  onCerrar: () => void;
+}) {
   const nivel = ind["Nivel de cumplimiento"];
   const c = NIVEL_COLOR[nivel] ?? NIVEL_NEUTRO;
   const rec = ind as unknown as Record<string, unknown>;
   const sinInfo = ind.Meta == null && ind.Ejecucion == null && ind.cumplimiento_pct == null;
   return (
     <article className="flex flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-      <div className="flex-1 space-y-3 p-4">
+      <div className="space-y-3 p-4">
         <div className="flex items-start justify-between gap-2">
           <h5 className="text-sm font-bold leading-snug text-slate-900">{ind.Indicador}</h5>
-          <span className="shrink-0 rounded-md bg-slate-100 px-1.5 py-0.5 font-mono text-[11px] font-semibold text-slate-600">
-            {ind.Id}
-          </span>
+          <div className="flex shrink-0 items-center gap-1.5">
+            <span className="rounded-md bg-slate-100 px-1.5 py-0.5 font-mono text-[11px] font-semibold text-slate-600">
+              {ind.Id}
+            </span>
+            <button
+              type="button"
+              onClick={onCerrar}
+              aria-label="Cerrar ficha"
+              className="rounded-md px-1.5 text-lg leading-none text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+            >
+              ×
+            </button>
+          </div>
         </div>
 
         {mostrarOds && ind.ods.length > 0 && (
@@ -381,12 +590,9 @@ function FichaIndicador({ ind, mostrarOds }: { ind: PolisigsIndicador; mostrarOd
             {ind.ods.map((o) => (
               <li
                 key={o.numero}
-                title={`ODS ${o.numero} – ${o.nombre}`}
                 className="inline-flex items-center gap-1 rounded-full border border-sky-200 bg-sky-50 px-2 py-0.5 text-[11px] font-semibold text-sky-900"
               >
-                <span className="rounded-full bg-poli-navy px-1.5 text-[10px] font-bold text-white">
-                  ODS {o.numero}
-                </span>
+                <span className="rounded-full bg-poli-navy px-1.5 text-[10px] font-bold text-white">ODS {o.numero}</span>
                 {o.nombre}
               </li>
             ))}
@@ -420,6 +626,20 @@ function FichaIndicador({ ind, mostrarOds }: { ind: PolisigsIndicador; mostrarOd
               </span>
             </div>
           </>
+        )}
+
+        {ind.plan_mejoramiento && (
+          <div className="rounded-lg border border-amber-200 bg-amber-50 p-2.5 text-xs text-amber-950">
+            <p className="mb-1 text-[10px] font-bold uppercase tracking-wide text-amber-800">Plan de mejoramiento</p>
+            <p>
+              <span className="font-semibold">Factor: </span>
+              {ind.plan_mejoramiento.factor}
+            </p>
+            <p className="mt-0.5">
+              <span className="font-semibold">Característica: </span>
+              {ind.plan_mejoramiento.caracteristica}
+            </p>
+          </div>
         )}
       </div>
       <footer className="border-t border-slate-100 bg-slate-50 px-4 py-2 text-[11px] text-slate-600">

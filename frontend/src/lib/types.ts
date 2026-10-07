@@ -1248,6 +1248,8 @@ export interface PolisigsIndicador {
   ods: { numero: number; nombre: string }[];
   relevancia_ods: string | null;
   observaciones: string | null;
+  /** Factor y característica del Plan de mejoramiento; null si el indicador no hace parte de él. */
+  plan_mejoramiento: { factor: string; caracteristica: string } | null;
   Meta: number | null;
   Ejecucion: number | null;
   Meta_Signo: string | null;

@@ -12,6 +12,7 @@ cumplimiento de los indicadores con dato, topado en 100 % por indicador, igual q
 from __future__ import annotations
 
 import json
+import logging
 import math
 import re
 from pathlib import Path
@@ -21,8 +22,10 @@ from typing import Any
 import pandas as pd
 
 from app.domain.categorization import categorizar_cumplimiento
+from app.domain.plan_mejoramiento_builders import load_plan_indicadores
 from app.domain.procesos_builders import mes_nombre, mes_to_num
 from app.domain.resumen_builders import ensure_nivel_cumplimiento
+from app.domain.strategic_processors import StrategicProcessors
 from app.services.excel_reader import ExcelReaderService
 from app.services.tracking_cache import get_tracking_dataframe
 
@@ -38,6 +41,7 @@ _HOJA = "Indicadores POLISIGS"
 _PENDIENTE = "Pendiente de reporte"
 _OBJETIVOS_JSON = Path(__file__).resolve().parent.parent / "data" / "polisigs_objetivos.json"
 
+logger = logging.getLogger(__name__)
 _catalogo_cache: dict[str, Any] = {"mtime": None, "df": None}
 _lock = Lock()
 
@@ -96,6 +100,30 @@ def _ultimo(excel: ExcelReaderService, anio: int, mes: int) -> dict[str, dict[st
     return {r["_id"]: r for r in df.to_dict("records")}
 
 
+def _plan_mejoramiento(excel: ExcelReaderService, anio: int, mes: int) -> dict[str, dict[str, str]]:
+    """Id de indicador -> Factor / Característica del Plan de mejoramiento (CNA)."""
+    out: dict[str, dict[str, str]] = {}
+
+    def _agregar(df: pd.DataFrame, col_id: str) -> None:
+        if df.empty or not {col_id, "Factor", "Caracteristica"}.issubset(df.columns):
+            return
+        for r in df[[col_id, "Factor", "Caracteristica"]].dropna().to_dict("records"):
+            out.setdefault(
+                _id(r[col_id]),
+                {
+                    "factor": str(r["Factor"]).strip(),
+                    "caracteristica": str(r["Caracteristica"]).strip(),
+                },
+            )
+
+    try:
+        _agregar(StrategicProcessors(excel).preparar_cna_con_cierre(anio, mes), "Id")
+        _agregar(load_plan_indicadores(excel), "Id_Kawak")
+    except Exception:  # noqa: BLE001 - el plan es información complementaria; no debe tumbar el tablero
+        logger.warning("No se pudo cargar el Plan de mejoramiento para POLISIGS", exc_info=True)
+    return out
+
+
 def _nivel_consolidado(pct: float | None) -> str:
     return _PENDIENTE if pct is None else categorizar_cumplimiento(pct / 100.0)
 
@@ -147,6 +175,7 @@ def get_polisigs(
     cfg = _load_objetivos()
     catalogo = _load_catalogo(excel)
     datos = _ultimo(excel, anio, mes)
+    plan = _plan_mejoramiento(excel, anio, mes)
 
     indicadores: list[dict[str, Any]] = []
     for r in catalogo.to_dict("records"):
@@ -172,6 +201,7 @@ def get_polisigs(
                 "ods": _parse_ods(_txt(r.get("ODS relacionados (análisis ODS)"))),
                 "relevancia_ods": _txt(r.get("Relevancia ODS")),
                 "observaciones": _txt(r.get("Observaciones")),
+                "plan_mejoramiento": plan.get(ind_id),
                 # Mismos nombres de campo que el listado del CMI (fmtMeta/fmtEjecucion).
                 "Meta": _num(d.get("Meta")),
                 "Ejecucion": _num(d.get("Ejecucion")),
