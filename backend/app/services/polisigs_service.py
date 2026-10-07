@@ -3,10 +3,10 @@
 - Catálogo y asociación a los 6 objetivos (columnas "Obj. N" con "Sí"):
   data/raw/POLISIGS/Indicadores Polisigs.xlsx, hoja "Indicadores POLISIGS"
 - Meta / Ejecución / Cumplimiento: Resultados Consolidados (mismo tracking que el
-  CMI), año 2026, último periodo reportado de cada indicador.
+  CMI), año y corte elegidos (por defecto junio 2026), último periodo reportado de cada indicador.
 
 El consolidado de un objetivo (y de la política) es el promedio simple del
-cumplimiento de los indicadores con dato, igual que `avg_cumplimiento` del CMI.
+cumplimiento de los indicadores con dato, topado en 100 % por indicador, igual que `avg_cumplimiento` del CMI.
 """
 
 from __future__ import annotations
@@ -21,11 +21,18 @@ from typing import Any
 import pandas as pd
 
 from app.domain.categorization import categorizar_cumplimiento
+from app.domain.procesos_builders import mes_nombre, mes_to_num
 from app.domain.resumen_builders import ensure_nivel_cumplimiento
 from app.services.excel_reader import ExcelReaderService
 from app.services.tracking_cache import get_tracking_dataframe
 
 ANIO = 2026
+# Corte de la data: junio 2026 (cierres semestrales: junio y diciembre).
+MES_CORTE = 6
+CORTES = (6, 12)
+# Solo aplica 2026 (la política V6 empieza a medirse ese año).
+ANIOS = (2026,)
+_TECHO = 100.0
 _ARCHIVO = Path("raw") / "POLISIGS" / "Indicadores Polisigs.xlsx"
 _HOJA = "Indicadores POLISIGS"
 _PENDIENTE = "Pendiente de reporte"
@@ -68,12 +75,15 @@ def _load_catalogo(excel: ExcelReaderService) -> pd.DataFrame:
         return _catalogo_cache["df"]
 
 
-def _ultimo_2026(excel: ExcelReaderService) -> dict[str, dict[str, Any]]:
-    """Último registro 2026 por Id (preferimos el último con ejecución reportada)."""
+def _ultimo(excel: ExcelReaderService, anio: int, mes: int) -> dict[str, dict[str, Any]]:
+    """Registro de cada Id en el mes de corte exacto; sin medición en ese corte = sin información."""
     tracking = get_tracking_dataframe(excel, historico=False)
     if tracking.empty or "Anio" not in tracking.columns:
         return {}
-    df = tracking[pd.to_numeric(tracking["Anio"], errors="coerce") == ANIO].copy()
+    df = tracking[pd.to_numeric(tracking["Anio"], errors="coerce") == anio].copy()
+    if df.empty:
+        return {}
+    df = df[df["Mes"].map(mes_to_num).eq(mes)]
     if df.empty:
         return {}
     # Cumplimiento_norm (fracción) lo calcula el ETL con las reglas del CMI.
@@ -111,6 +121,16 @@ def _load_objetivos() -> dict[str, Any]:
     return json.loads(_OBJETIVOS_JSON.read_text(encoding="utf-8"))
 
 
+def _parse_ods(texto: str | None) -> list[dict[str, Any]]:
+    """'ODS 4 – Educación de calidad; ODS 8 – Trabajo…' -> [{numero, nombre}, ...]."""
+    out: list[dict[str, Any]] = []
+    for parte in (texto or "").split(";"):
+        m = re.match(r"^\s*ODS\s*(\d+)\s*[–-]\s*(.+?)\s*$", parte)
+        if m:
+            out.append({"numero": int(m.group(1)), "nombre": m.group(2)})
+    return out
+
+
 def _objetivos_marcados(row: dict[str, Any]) -> list[int]:
     """Objetivos con 'Sí' en las columnas 'Obj. N ...' del Excel (un indicador puede tener varios)."""
     out: list[int] = []
@@ -121,10 +141,12 @@ def _objetivos_marcados(row: dict[str, Any]) -> list[int]:
     return sorted(out)
 
 
-def get_polisigs(excel: ExcelReaderService) -> dict[str, Any]:
+def get_polisigs(
+    excel: ExcelReaderService, anio: int = ANIO, mes: int = MES_CORTE
+) -> dict[str, Any]:
     cfg = _load_objetivos()
     catalogo = _load_catalogo(excel)
-    datos = _ultimo_2026(excel)
+    datos = _ultimo(excel, anio, mes)
 
     indicadores: list[dict[str, Any]] = []
     for r in catalogo.to_dict("records"):
@@ -133,7 +155,10 @@ def get_polisigs(excel: ExcelReaderService) -> dict[str, Any]:
             continue  # la base lista 350 indicadores; solo los asociados a algún objetivo
         ind_id = _id(r["ID"])
         d = datos.get(ind_id, {})
-        pct = _num(d.get("cumplimiento_pct"))
+        real = _num(d.get("cumplimiento_pct"))
+        # Techo de 100 % por indicador: el sobrecumplimiento no compensa otros
+        # indicadores al promediar el objetivo.
+        pct = None if real is None else min(real, _TECHO)
         indicadores.append(
             {
                 "Id": ind_id,
@@ -144,7 +169,7 @@ def get_polisigs(excel: ExcelReaderService) -> dict[str, Any]:
                 "tipo": _txt(r.get("Tipo")),
                 "frecuencia": _txt(d.get("Periodicidad")) or _txt(r.get("Frecuencia")),
                 "sentido": _txt(d.get("Sentido")),
-                "ods": _txt(r.get("ODS relacionados (análisis ODS)")),
+                "ods": _parse_ods(_txt(r.get("ODS relacionados (análisis ODS)"))),
                 "relevancia_ods": _txt(r.get("Relevancia ODS")),
                 "observaciones": _txt(r.get("Observaciones")),
                 # Mismos nombres de campo que el listado del CMI (fmtMeta/fmtEjecucion).
@@ -154,6 +179,7 @@ def get_polisigs(excel: ExcelReaderService) -> dict[str, Any]:
                 "Decimales_Meta": _num(d.get("Decimales_Meta")),
                 "periodo": _txt(d.get("Periodo")),
                 "cumplimiento_pct": None if pct is None else round(pct, 1),
+                "cumplimiento_real": None if real is None else round(real, 1),
                 "Nivel de cumplimiento": d.get("Nivel de cumplimiento") or _PENDIENTE,
             }
         )
@@ -176,7 +202,14 @@ def get_polisigs(excel: ExcelReaderService) -> dict[str, Any]:
         )
 
     return {
-        "anio": ANIO,
+        "anio": anio,
+        "mes": mes,
+        "corte": f"{mes_nombre(mes)} {anio}",
+        "filtros": {
+            "anios": list(ANIOS),
+            "cortes": [{"mes": m, "nombre": mes_nombre(m)} for m in CORTES],
+            "corte_defecto": {"anio": ANIO, "mes": MES_CORTE},
+        },
         "version_objetivos": cfg["version"],
         "politica": {"nombre": "Política POLISIGS V6", **_consolidar(indicadores)},
         "objetivos": objetivos,

@@ -576,7 +576,7 @@ export async function downloadFichaIndicadorPdf(
   );
 }
 
-export async function fetchPolisigs(): Promise<PolisigsResponse> {
-  const { data } = await api.get<PolisigsResponse>("/polisigs");
+export async function fetchPolisigs(params?: { anio?: number; mes?: number }): Promise<PolisigsResponse> {
+  const { data } = await api.get<PolisigsResponse>("/polisigs", { params });
   return data;
 }

@@ -1,11 +1,11 @@
 "use client";
 
-import { Fragment, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import Image from "next/image";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronDown } from "lucide-react";
 import { DataFreshnessFooter } from "@/components/layout/DataFreshnessFooter";
-import { fmtPct, NivelBadge } from "@/components/cmi/nivelUtils";
+import { fmtPct } from "@/components/cmi/nivelUtils";
 import { fetchPolisigs } from "@/lib/api";
 import { fmtEjecucion, fmtMeta } from "@/lib/formatValor";
 import type { PolisigsConsolidado, PolisigsIndicador, PolisigsObjetivo } from "@/lib/types";
@@ -26,30 +26,37 @@ const NIVEL_COLOR: Record<string, { bar: string; text: string; bg: string }> = {
 };
 const NIVEL_NEUTRO = NIVEL_COLOR["Pendiente de reporte"];
 
+/** "Pendiente de reporte" del CMI se muestra como "Sin información" (no hay medición en el corte). */
+const etiquetaNivel = (n: string) => (n === "Pendiente de reporte" ? "Sin información" : n);
+
 interface ObjetivoMeta {
   img: string;
   /** Fila clara (azul cielo) u oscura (navy), alternadas como en la política. */
   oscuro: boolean;
 }
 
-const LOGO_ICON = "/icons/nav/polisigs.png";
 const OBJETIVO_META: Record<number, ObjetivoMeta> = {
-  1: { img: LOGO_ICON, oscuro: false },
+  1: { img: "/img/polisigs/obj-ods.png", oscuro: false },
   2: { img: "/img/polisigs/obj1.png", oscuro: true },
   3: { img: "/img/polisigs/obj2.png", oscuro: false },
   4: { img: "/img/polisigs/obj3.png", oscuro: true },
   5: { img: "/img/polisigs/obj4.png", oscuro: false },
-  6: { img: LOGO_ICON, oscuro: true },
+  6: { img: "/img/polisigs/obj-legal.png", oscuro: true },
 };
 
 export default function PolisigsPage() {
   const { isAuthenticated } = useAuthReady();
   const [abierto, setAbierto] = useState<number | null>(null);
 
+  // Corte vigente de la data: junio 2026 (cierres semestrales: junio y diciembre).
+  const [anio, setAnio] = useState(2026);
+  const [mes, setMes] = useState(6);
+
   const query = useQuery({
-    queryKey: ["polisigs"],
-    queryFn: fetchPolisigs,
+    queryKey: ["polisigs", anio, mes],
+    queryFn: () => fetchPolisigs({ anio, mes }),
     enabled: isAuthenticated,
+    placeholderData: (prev) => prev,
   });
   const data = query.data;
 
@@ -61,9 +68,32 @@ export default function PolisigsPage() {
         </span>
         <h2 className="text-3xl font-bold tracking-tight text-slate-900">Indicadores POLISIGS</h2>
         <p className="text-sm text-slate-600">
-          Cumplimiento consolidado de la política y de cada uno de sus objetivos (vigencia {data?.anio ?? 2026}).
+          Cumplimiento consolidado de la política y de cada uno de sus objetivos (corte {data?.corte ?? "junio 2026"}).
         </p>
       </header>
+
+      {isAuthenticated && data && (
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-3 rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
+          <FiltroGrupo label="Año">
+            {data.filtros.anios.map((a) => (
+              <Pill key={a} activo={anio === a} onClick={() => setAnio(a)}>
+                {a}
+              </Pill>
+            ))}
+          </FiltroGrupo>
+          <FiltroGrupo label="Fecha de corte">
+            {data.filtros.cortes.map((c) => (
+              <Pill key={c.mes} activo={mes === c.mes} onClick={() => setMes(c.mes)}>
+                {c.nombre}
+              </Pill>
+            ))}
+          </FiltroGrupo>
+          <span className="ml-auto inline-flex items-center gap-1.5 rounded-full border border-emerald-300 bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-600" />
+            Corte de la data: {data.corte}
+          </span>
+        </div>
+      )}
 
       {!isAuthenticated ? (
         <p className="text-sm text-amber-700">Inicie sesión para ver los indicadores.</p>
@@ -73,7 +103,7 @@ export default function PolisigsPage() {
         <p className="text-sm text-red-700">No fue posible cargar los indicadores POLISIGS.</p>
       ) : (
         <>
-          <Hero anio={data.anio} politica={data.politica} objetivos={data.objetivos} />
+          <Hero corte={data.corte} politica={data.politica} objetivos={data.objetivos} />
 
           <section className="space-y-3" aria-label="Objetivos de la política">
             <h3 className="text-lg font-bold text-poli-navy">Cumplimiento por objetivo (versión 6)</h3>
@@ -98,12 +128,44 @@ export default function PolisigsPage() {
   );
 }
 
+function FiltroGrupo({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="flex items-center gap-2">
+      <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">{label}</span>
+      <div className="flex flex-wrap gap-1.5">{children}</div>
+    </div>
+  );
+}
+
+function Pill({
+  activo,
+  onClick,
+  children,
+}: {
+  activo: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={activo}
+      className={`rounded-lg px-3.5 py-1.5 text-sm font-semibold transition ${
+        activo ? "bg-poli-navy text-white shadow-sm" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+      }`}
+    >
+      {children}
+    </button>
+  );
+}
+
 function Hero({
-  anio,
+  corte,
   politica,
   objetivos,
 }: {
-  anio: number;
+  corte: string;
   politica: PolisigsConsolidado;
   objetivos: PolisigsObjetivo[];
 }) {
@@ -125,7 +187,7 @@ function Hero({
           />
           <div className="text-center lg:text-left">
             <p className="text-xs font-bold uppercase tracking-widest text-sky-200">
-              Cumplimiento consolidado de la política · {anio}
+              Cumplimiento consolidado de la política · {corte}
             </p>
             <p className="mt-1 text-6xl font-extrabold leading-none">{fmtPct(politica.cumplimiento)}</p>
             <span
@@ -133,10 +195,10 @@ function Hero({
               style={{ color: estilo.text, backgroundColor: estilo.bg }}
             >
               <span className="h-2 w-2 rounded-full" style={{ backgroundColor: estilo.bar }} />
-              {politica.nivel}
+              {etiquetaNivel(politica.nivel)}
             </span>
             <p className="mt-3 text-xs text-sky-100/80">
-              {politica.con_dato} de {politica.total} indicadores con dato · {politica.sobrecumple + politica.cumple} cumplen ·{" "}
+              {politica.con_dato} de {politica.total} indicadores con información · {politica.sobrecumple + politica.cumple} cumplen ·{" "}
               {politica.alerta} en alerta · {politica.peligro} en peligro
             </p>
           </div>
@@ -225,7 +287,7 @@ function ObjetivoRow({
             {objetivo.nombre}
           </p>
           <p className={`mt-1 text-[11px] font-semibold ${oscuro ? "text-sky-200" : "text-slate-600"}`}>
-            {objetivo.con_dato} de {objetivo.total} indicadores con dato · {objetivo.sobrecumple + objetivo.cumple} cumplen ·{" "}
+            {objetivo.con_dato} de {objetivo.total} indicadores con información · {objetivo.sobrecumple + objetivo.cumple} cumplen ·{" "}
             {objetivo.alerta} alerta · {objetivo.peligro} peligro
           </p>
         </div>
@@ -235,7 +297,7 @@ function ObjetivoRow({
             className="rounded-full px-2.5 py-0.5 text-[11px] font-bold"
             style={{ color: c.text, backgroundColor: c.bg }}
           >
-            {objetivo.nivel}
+            {etiquetaNivel(objetivo.nivel)}
           </span>
         </div>
         <ChevronDown className={`h-6 w-6 shrink-0 transition-transform ${abierto ? "rotate-180" : ""}`} aria-hidden />
@@ -257,192 +319,125 @@ function ObjetivoDetalle({
   objetivo: PolisigsObjetivo;
   indicadores: PolisigsIndicador[];
 }) {
-  const [proceso, setProceso] = useState<string | null>(null);
   const [soloConDato, setSoloConDato] = useState(false);
-  const [detalle, setDetalle] = useState<string | null>(null);
-
   const filas = useMemo(
-    () =>
-      indicadores.filter(
-        (i) =>
-          (proceso == null || (i.proceso ?? "Sin proceso") === proceso) &&
-          (!soloConDato || i.cumplimiento_pct != null)
-      ),
-    [indicadores, proceso, soloConDato]
+    () => (soloConDato ? indicadores.filter((i) => i.cumplimiento_pct != null) : indicadores),
+    [indicadores, soloConDato]
   );
 
   return (
-    <>
-      <div>
-        <div className="mb-2 flex items-center justify-between">
-          <h4 className="text-sm font-bold text-poli-navy">Procesos con indicadores en el objetivo</h4>
-          {proceso && (
-            <button
-              type="button"
-              onClick={() => setProceso(null)}
-              className="text-xs font-semibold text-blue-700 underline"
-            >
-              Ver todos
-            </button>
-          )}
-        </div>
-        <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
-          {objetivo.procesos.map((comp) => {
-            const c = NIVEL_COLOR[comp.nivel] ?? NIVEL_NEUTRO;
-            const activo = proceso === comp.nombre;
-            return (
-              <button
-                key={comp.nombre}
-                type="button"
-                onClick={() => setProceso(activo ? null : comp.nombre)}
-                aria-pressed={activo}
-                className={`rounded-xl border p-3 text-left transition ${
-                  activo ? "border-poli-navy bg-blue-50 shadow-sm" : "border-slate-200 bg-white hover:border-slate-300"
-                }`}
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <span className="text-xs font-semibold text-slate-800">{comp.nombre}</span>
-                  <span className="shrink-0 text-sm font-extrabold" style={{ color: c.text }}>
-                    {fmtPct(comp.cumplimiento)}
-                  </span>
-                </div>
-                <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-100">
-                  <div
-                    className="h-full rounded-full"
-                    style={{ width: `${Math.min(100, comp.cumplimiento ?? 0)}%`, backgroundColor: c.bar }}
-                  />
-                </div>
-                <p className="mt-1.5 text-[10px] text-slate-500">
-                  {comp.con_dato}/{comp.total} con dato
-                </p>
-              </button>
-            );
-          })}
-        </div>
+    <div>
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+        <h4 className="text-sm font-bold text-poli-navy">
+          Indicadores asociados <span className="font-normal text-slate-500">({filas.length})</span>
+        </h4>
+        <label className="flex cursor-pointer items-center gap-2 text-xs font-medium text-slate-600">
+          <input
+            type="checkbox"
+            checked={soloConDato}
+            onChange={(e) => setSoloConDato(e.target.checked)}
+            className="h-3.5 w-3.5 accent-[#0B2A5B]"
+          />
+          Ocultar indicadores sin información
+        </label>
       </div>
-
-      <div>
-        <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-          <h4 className="text-sm font-bold text-poli-navy">
-            Indicadores asociados <span className="font-normal text-slate-500">({filas.length})</span>
-          </h4>
-          <label className="flex cursor-pointer items-center gap-2 text-xs font-medium text-slate-600">
-            <input
-              type="checkbox"
-              checked={soloConDato}
-              onChange={(e) => setSoloConDato(e.target.checked)}
-              className="h-3.5 w-3.5 accent-[#0B2A5B]"
-            />
-            Ocultar indicadores sin dato
-          </label>
-        </div>
-        <div className="overflow-x-auto rounded-xl border border-slate-200">
-          <table className="w-full min-w-[980px] border-collapse text-left text-sm">
-            <thead>
-              <tr
-                className="text-[11px] font-bold uppercase tracking-wider text-white"
-                style={{ backgroundColor: NAVY }}
-              >
-                <th className="px-3 py-2.5">ID</th>
-                <th className="px-3 py-2.5">Indicador</th>
-                <th className="px-3 py-2.5">Proceso</th>
-                <th className="px-3 py-2.5">Tipo</th>
-                <th className="px-3 py-2.5 text-right">Meta</th>
-                <th className="px-3 py-2.5 text-right">Ejecución</th>
-                <th className="px-3 py-2.5">Cumplimiento</th>
-                <th className="px-3 py-2.5 text-center">Nivel</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {filas.length === 0 && (
-                <tr>
-                  <td colSpan={8} className="px-3 py-6 text-center text-sm text-slate-500">
-                    Sin indicadores para el filtro seleccionado.
-                  </td>
-                </tr>
-              )}
-              {filas.map((i) => {
-                const c = NIVEL_COLOR[i["Nivel de cumplimiento"]] ?? NIVEL_NEUTRO;
-                const expandido = detalle === i.Id;
-                const rec = i as unknown as Record<string, unknown>;
-                return (
-                  <Fragment key={i.Id}>
-                    <tr
-                      onClick={() => setDetalle(expandido ? null : i.Id)}
-                      className="cursor-pointer align-top transition-colors hover:bg-slate-50"
-                    >
-                      <td className="px-3 py-2.5 font-mono text-xs font-semibold text-slate-600">{i.Id}</td>
-                      <td className="px-3 py-2.5 font-medium text-slate-900">{i.Indicador}</td>
-                      <td className="px-3 py-2.5 text-xs text-slate-600">{i.proceso ?? "—"}</td>
-                      <td className="px-3 py-2.5">
-                        <span
-                          className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${
-                            i.tipo === "Efectividad"
-                              ? "bg-blue-100 text-blue-800"
-                              : "bg-slate-100 text-slate-600"
-                          }`}
-                        >
-                          {i.tipo ?? "—"}
-                        </span>
-                      </td>
-                      <td className="px-3 py-2.5 text-right font-medium tabular-nums">{fmtMeta(rec)}</td>
-                      <td className="px-3 py-2.5 text-right font-medium tabular-nums">{fmtEjecucion(rec)}</td>
-                      <td className="px-3 py-2.5">
-                        <div className="flex items-center gap-2">
-                          <div className="h-2 w-16 overflow-hidden rounded-full bg-slate-100">
-                            <div
-                              className="h-full rounded-full"
-                              style={{ width: `${Math.min(100, i.cumplimiento_pct ?? 0)}%`, backgroundColor: c.bar }}
-                            />
-                          </div>
-                          <span className="text-xs font-bold tabular-nums text-slate-800">
-                            {fmtPct(i.cumplimiento_pct)}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-3 py-2.5 text-center">
-                        <NivelBadge nivel={i["Nivel de cumplimiento"]} />
-                      </td>
-                    </tr>
-                    {expandido && (
-                      <tr className="bg-slate-50">
-                        <td colSpan={8} className="px-4 py-3 text-xs text-slate-700">
-                          <dl className="grid gap-x-6 gap-y-1 sm:grid-cols-2">
-                            <Dato k="Objetivos asociados" v={i.objetivos.map((n) => `O${n}`).join(", ")} />
-                            <Dato k="Responsable" v={i.responsable} />
-                            <Dato k="Frecuencia" v={i.frecuencia} />
-                            <Dato k="Último periodo reportado" v={i.periodo} />
-                            <Dato k="Sentido" v={i.sentido} />
-                            <Dato k="ODS relacionados" v={i.ods} />
-                            <Dato k="Relevancia ODS" v={i.relevancia_ods} />
-                          </dl>
-                          {i.observaciones && (
-                            <p className="mt-2 border-t border-slate-200 pt-2 italic text-slate-600">
-                              {i.observaciones}
-                            </p>
-                          )}
-                        </td>
-                      </tr>
-                    )}
-                  </Fragment>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-        <p className="mt-2 text-[11px]" style={{ color: CYAN }}>
-          Meta, ejecución y cumplimiento de Resultados Consolidados (último periodo reportado de 2026); consolidado = promedio de los indicadores con cumplimiento.
+      {filas.length === 0 ? (
+        <p className="rounded-xl border border-slate-200 bg-slate-50 p-6 text-center text-sm text-slate-500">
+          Sin indicadores para mostrar en este corte.
         </p>
-      </div>
-    </>
+      ) : (
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+          {filas.map((i) => (
+            <FichaIndicador key={i.Id} ind={i} mostrarOds={objetivo.numero === 1} />
+          ))}
+        </div>
+      )}
+      <p className="mt-3 text-[11px]" style={{ color: CYAN }}>
+        Meta, ejecución y cumplimiento de Resultados Consolidados en el corte seleccionado; sin medición en el corte = sin
+        información. Cumplimiento de cada indicador topado en 100 %; consolidado = promedio de los indicadores con
+        cumplimiento.
+      </p>
+    </div>
   );
 }
 
-function Dato({ k, v }: { k: string; v: string | null }) {
+function FichaIndicador({ ind, mostrarOds }: { ind: PolisigsIndicador; mostrarOds: boolean }) {
+  const nivel = ind["Nivel de cumplimiento"];
+  const c = NIVEL_COLOR[nivel] ?? NIVEL_NEUTRO;
+  const rec = ind as unknown as Record<string, unknown>;
+  const sinInfo = ind.Meta == null && ind.Ejecucion == null && ind.cumplimiento_pct == null;
   return (
-    <div className="flex gap-1.5">
-      <dt className="font-semibold text-slate-500">{k}:</dt>
-      <dd>{v ?? "—"}</dd>
+    <article className="flex flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+      <div className="flex-1 space-y-3 p-4">
+        <div className="flex items-start justify-between gap-2">
+          <h5 className="text-sm font-bold leading-snug text-slate-900">{ind.Indicador}</h5>
+          <span className="shrink-0 rounded-md bg-slate-100 px-1.5 py-0.5 font-mono text-[11px] font-semibold text-slate-600">
+            {ind.Id}
+          </span>
+        </div>
+
+        {mostrarOds && ind.ods.length > 0 && (
+          <ul className="flex flex-wrap gap-1.5" aria-label="ODS asociados">
+            {ind.ods.map((o) => (
+              <li
+                key={o.numero}
+                title={`ODS ${o.numero} – ${o.nombre}`}
+                className="inline-flex items-center gap-1 rounded-full border border-sky-200 bg-sky-50 px-2 py-0.5 text-[11px] font-semibold text-sky-900"
+              >
+                <span className="rounded-full bg-poli-navy px-1.5 text-[10px] font-bold text-white">
+                  ODS {o.numero}
+                </span>
+                {o.nombre}
+              </li>
+            ))}
+          </ul>
+        )}
+
+        {sinInfo ? (
+          <p className="rounded-lg bg-slate-50 py-4 text-center text-sm font-semibold text-slate-500">
+            Sin información en este corte
+          </p>
+        ) : (
+          <>
+            <dl className="grid grid-cols-3 gap-2 text-center">
+              <Medida k="Meta" v={fmtMeta(rec)} />
+              <Medida k="Ejecución" v={fmtEjecucion(rec)} />
+              <Medida k="Cumplimiento" v={fmtPct(ind.cumplimiento_pct)} fuerte color={c.text} />
+            </dl>
+            <div className="flex items-center gap-2">
+              <div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-100">
+                <div
+                  className="h-full rounded-full"
+                  style={{ width: `${Math.min(100, ind.cumplimiento_pct ?? 0)}%`, backgroundColor: c.bar }}
+                />
+              </div>
+              <span
+                className="rounded-full px-2 py-0.5 text-[11px] font-bold"
+                style={{ color: c.text, backgroundColor: c.bg }}
+                title={ind.cumplimiento_real != null ? `Cumplimiento real: ${fmtPct(ind.cumplimiento_real)}` : undefined}
+              >
+                {etiquetaNivel(nivel)}
+              </span>
+            </div>
+          </>
+        )}
+      </div>
+      <footer className="border-t border-slate-100 bg-slate-50 px-4 py-2 text-[11px] text-slate-600">
+        <span className="font-semibold text-slate-500">Proceso: </span>
+        {ind.proceso ?? "—"}
+        {ind.frecuencia ? <span className="text-slate-400"> · {ind.frecuencia}</span> : null}
+      </footer>
+    </article>
+  );
+}
+
+function Medida({ k, v, fuerte, color }: { k: string; v: string; fuerte?: boolean; color?: string }) {
+  return (
+    <div className="rounded-lg bg-slate-50 px-1 py-2">
+      <dt className="text-[10px] font-bold uppercase tracking-wide text-slate-500">{k}</dt>
+      <dd className={`mt-0.5 tabular-nums ${fuerte ? "text-base font-extrabold" : "text-sm font-semibold text-slate-800"}`} style={fuerte ? { color } : undefined}>
+        {v}
+      </dd>
     </div>
   );
 }

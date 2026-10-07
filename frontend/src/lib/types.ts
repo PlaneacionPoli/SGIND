@@ -1244,7 +1244,8 @@ export interface PolisigsIndicador {
   tipo: string | null;
   frecuencia: string | null;
   sentido: string | null;
-  ods: string | null;
+  /** ODS relacionados (análisis ODS del Excel). */
+  ods: { numero: number; nombre: string }[];
   relevancia_ods: string | null;
   observaciones: string | null;
   Meta: number | null;
@@ -1252,12 +1253,23 @@ export interface PolisigsIndicador {
   Meta_Signo: string | null;
   Decimales_Meta: number | null;
   periodo: string | null;
+  /** Cumplimiento con techo de 100 %; es el que se promedia. */
   cumplimiento_pct: number | null;
+  /** Cumplimiento sin techo (como en el CMI). */
+  cumplimiento_real: number | null;
   "Nivel de cumplimiento": string;
 }
 
 export interface PolisigsResponse {
   anio: number;
+  mes: number;
+  /** Etiqueta del corte, p. ej. "Junio 2026". */
+  corte: string;
+  filtros: {
+    anios: number[];
+    cortes: { mes: number; nombre: string }[];
+    corte_defecto: { anio: number; mes: number };
+  };
   politica: PolisigsConsolidado & { nombre: string };
   objetivos: PolisigsObjetivo[];
   indicadores: PolisigsIndicador[];
