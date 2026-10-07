@@ -1,6 +1,6 @@
 # Matriz RBAC — SGIND v2
 
-**Fecha:** 2026-06-13  
+**Fecha:** 2026-06-13  ACT
 **Nota:** El sistema Streamlit actual no implementa roles; esta matriz define el **sistema destino**.
 
 ## Roles
