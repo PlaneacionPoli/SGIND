@@ -128,7 +128,7 @@ export const NAV_ITEM_META: Record<string, NavItemMeta> = {
     description: "Cumplimiento de la política del sistema integrado",
     accent: "indigo",
     highlight: "Política",
-    pillColor: "#0B2A5B",
+    pillColor: "#2E86DE",
   },
   "/plan-mejoramiento": {
     description: "Planes de acción y mejora continua",

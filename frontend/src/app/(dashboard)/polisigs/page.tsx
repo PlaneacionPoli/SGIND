@@ -37,8 +37,8 @@ const OBJETIVO_META: Record<number, ObjetivoMeta> = {
   1: { img: LOGO_ICON, oscuro: false },
   2: { img: "/img/polisigs/obj1.png", oscuro: true },
   3: { img: "/img/polisigs/obj2.png", oscuro: false },
-  4: { img: "/img/polisigs/obj4.png", oscuro: true },
-  5: { img: "/img/polisigs/obj3.png", oscuro: false },
+  4: { img: "/img/polisigs/obj3.png", oscuro: true },
+  5: { img: "/img/polisigs/obj4.png", oscuro: false },
   6: { img: LOGO_ICON, oscuro: true },
 };
 
@@ -257,7 +257,7 @@ function ObjetivoDetalle({
   objetivo: PolisigsObjetivo;
   indicadores: PolisigsIndicador[];
 }) {
-  const [componente, setComponente] = useState<string | null>(null);
+  const [proceso, setProceso] = useState<string | null>(null);
   const [soloConDato, setSoloConDato] = useState(false);
   const [detalle, setDetalle] = useState<string | null>(null);
 
@@ -265,21 +265,21 @@ function ObjetivoDetalle({
     () =>
       indicadores.filter(
         (i) =>
-          (componente == null || (i.componente ?? "Sin componente") === componente) &&
+          (proceso == null || (i.proceso ?? "Sin proceso") === proceso) &&
           (!soloConDato || i.cumplimiento_pct != null)
       ),
-    [indicadores, componente, soloConDato]
+    [indicadores, proceso, soloConDato]
   );
 
   return (
     <>
       <div>
         <div className="mb-2 flex items-center justify-between">
-          <h4 className="text-sm font-bold text-poli-navy">Componentes del objetivo</h4>
-          {componente && (
+          <h4 className="text-sm font-bold text-poli-navy">Procesos con indicadores en el objetivo</h4>
+          {proceso && (
             <button
               type="button"
-              onClick={() => setComponente(null)}
+              onClick={() => setProceso(null)}
               className="text-xs font-semibold text-blue-700 underline"
             >
               Ver todos
@@ -287,14 +287,14 @@ function ObjetivoDetalle({
           )}
         </div>
         <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
-          {objetivo.componentes.map((comp) => {
+          {objetivo.procesos.map((comp) => {
             const c = NIVEL_COLOR[comp.nivel] ?? NIVEL_NEUTRO;
-            const activo = componente === comp.nombre;
+            const activo = proceso === comp.nombre;
             return (
               <button
                 key={comp.nombre}
                 type="button"
-                onClick={() => setComponente(activo ? null : comp.nombre)}
+                onClick={() => setProceso(activo ? null : comp.nombre)}
                 aria-pressed={activo}
                 className={`rounded-xl border p-3 text-left transition ${
                   activo ? "border-poli-navy bg-blue-50 shadow-sm" : "border-slate-200 bg-white hover:border-slate-300"
@@ -346,7 +346,7 @@ function ObjetivoDetalle({
                 <th className="px-3 py-2.5">ID</th>
                 <th className="px-3 py-2.5">Indicador</th>
                 <th className="px-3 py-2.5">Proceso</th>
-                <th className="px-3 py-2.5">Clasificación</th>
+                <th className="px-3 py-2.5">Tipo</th>
                 <th className="px-3 py-2.5 text-right">Meta</th>
                 <th className="px-3 py-2.5 text-right">Ejecución</th>
                 <th className="px-3 py-2.5">Cumplimiento</th>
@@ -377,12 +377,12 @@ function ObjetivoDetalle({
                       <td className="px-3 py-2.5">
                         <span
                           className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${
-                            i.clasificacion === "Núcleo"
+                            i.tipo === "Efectividad"
                               ? "bg-blue-100 text-blue-800"
                               : "bg-slate-100 text-slate-600"
                           }`}
                         >
-                          {i.clasificacion ?? "—"}
+                          {i.tipo ?? "—"}
                         </span>
                       </td>
                       <td className="px-3 py-2.5 text-right font-medium tabular-nums">{fmtMeta(rec)}</td>
@@ -408,19 +408,17 @@ function ObjetivoDetalle({
                       <tr className="bg-slate-50">
                         <td colSpan={8} className="px-4 py-3 text-xs text-slate-700">
                           <dl className="grid gap-x-6 gap-y-1 sm:grid-cols-2">
-                            <Dato k="Compromiso de la política" v={i.compromiso} />
-                            <Dato k="Componente" v={i.componente} />
                             <Dato k="Objetivos asociados" v={i.objetivos.map((n) => `O${n}`).join(", ")} />
                             <Dato k="Responsable" v={i.responsable} />
                             <Dato k="Frecuencia" v={i.frecuencia} />
                             <Dato k="Último periodo reportado" v={i.periodo} />
                             <Dato k="Sentido" v={i.sentido} />
-                            <Dato k="Tipo de medición" v={i.tipo_medicion} />
-                            <Dato k="Objetivo secundario" v={i.objetivo_secundario} />
+                            <Dato k="ODS relacionados" v={i.ods} />
+                            <Dato k="Relevancia ODS" v={i.relevancia_ods} />
                           </dl>
-                          {i.justificacion && (
+                          {i.observaciones && (
                             <p className="mt-2 border-t border-slate-200 pt-2 italic text-slate-600">
-                              {i.justificacion}
+                              {i.observaciones}
                             </p>
                           )}
                         </td>

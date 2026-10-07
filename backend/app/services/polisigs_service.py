@@ -1,7 +1,7 @@
 """Indicadores asociados a la Política POLISIGS.
 
-- Catálogo (objetivo, componente, clasificación, responsable…):
-  data/raw/POLISIGS/Indicadores Polisigs.xlsx
+- Catálogo y asociación a los 6 objetivos (columnas "Obj. N" con "Sí"):
+  data/raw/POLISIGS/Indicadores Polisigs.xlsx, hoja "Indicadores POLISIGS"
 - Meta / Ejecución / Cumplimiento: Resultados Consolidados (mismo tracking que el
   CMI), año 2026, último periodo reportado de cada indicador.
 
@@ -27,6 +27,7 @@ from app.services.tracking_cache import get_tracking_dataframe
 
 ANIO = 2026
 _ARCHIVO = Path("raw") / "POLISIGS" / "Indicadores Polisigs.xlsx"
+_HOJA = "Indicadores POLISIGS"
 _PENDIENTE = "Pendiente de reporte"
 _OBJETIVOS_JSON = Path(__file__).resolve().parent.parent / "data" / "polisigs_objetivos.json"
 
@@ -62,7 +63,7 @@ def _load_catalogo(excel: ExcelReaderService) -> pd.DataFrame:
     mtime = path.stat().st_mtime
     with _lock:
         if _catalogo_cache["mtime"] != mtime:
-            _catalogo_cache["df"] = pd.read_excel(path)
+            _catalogo_cache["df"] = pd.read_excel(path, sheet_name=_HOJA)
             _catalogo_cache["mtime"] = mtime
         return _catalogo_cache["df"]
 
@@ -110,17 +111,14 @@ def _load_objetivos() -> dict[str, Any]:
     return json.loads(_OBJETIVOS_JSON.read_text(encoding="utf-8"))
 
 
-def _compromiso(label: str) -> str:
-    """'1. Alta calidad académica' -> 'Alta calidad académica' (compromiso de la política)."""
-    return re.sub(r"^\s*\d+\.\s*", "", label).strip()
-
-
-def _objetivos_de(cfg: dict[str, Any], ind_id: str, componente: str | None) -> list[int]:
-    """Objetivos V6 de un indicador: regla por ID y, si no hay, la del componente."""
-    por_id = cfg.get("por_id", {})
-    if ind_id in por_id:
-        return list(por_id[ind_id])
-    return list(cfg.get("por_componente", {}).get(componente or "", []))
+def _objetivos_marcados(row: dict[str, Any]) -> list[int]:
+    """Objetivos con 'Sí' en las columnas 'Obj. N ...' del Excel (un indicador puede tener varios)."""
+    out: list[int] = []
+    for col, val in row.items():
+        m = re.match(r"^\s*Obj\.\s*(\d+)", str(col))
+        if m and str(val).strip().lower() in {"sí", "si", "x", "1"}:
+            out.append(int(m.group(1)))
+    return sorted(out)
 
 
 def get_polisigs(excel: ExcelReaderService) -> dict[str, Any]:
@@ -130,25 +128,25 @@ def get_polisigs(excel: ExcelReaderService) -> dict[str, Any]:
 
     indicadores: list[dict[str, Any]] = []
     for r in catalogo.to_dict("records"):
+        objetivos_ind = _objetivos_marcados(r)
+        if not objetivos_ind:
+            continue  # la base lista 350 indicadores; solo los asociados a algún objetivo
         ind_id = _id(r["ID"])
         d = datos.get(ind_id, {})
-        componente = _txt(r.get("Componente del objetivo"))
         pct = _num(d.get("cumplimiento_pct"))
         indicadores.append(
             {
                 "Id": ind_id,
                 "Indicador": _txt(d.get("Indicador")) or _txt(r.get("Indicador")) or "",
-                "objetivos": _objetivos_de(cfg, ind_id, componente),
-                "compromiso": _compromiso(str(r["Objetivo de la política"])),
-                "componente": componente,
+                "objetivos": objetivos_ind,
                 "proceso": _txt(d.get("Proceso")) or _txt(r.get("Proceso")),
                 "responsable": _txt(r.get("Responsable")),
-                "tipo_medicion": _txt(r.get("Tipo de medición")),
+                "tipo": _txt(r.get("Tipo")),
                 "frecuencia": _txt(d.get("Periodicidad")) or _txt(r.get("Frecuencia")),
-                "sentido": _txt(d.get("Sentido")) or _txt(r.get("Sentido")),
-                "clasificacion": _txt(r.get("Clasificación")),
-                "objetivo_secundario": _txt(r.get("Objetivo secundario")),
-                "justificacion": _txt(r.get("Justificación")),
+                "sentido": _txt(d.get("Sentido")),
+                "ods": _txt(r.get("ODS relacionados (análisis ODS)")),
+                "relevancia_ods": _txt(r.get("Relevancia ODS")),
+                "observaciones": _txt(r.get("Observaciones")),
                 # Mismos nombres de campo que el listado del CMI (fmtMeta/fmtEjecucion).
                 "Meta": _num(d.get("Meta")),
                 "Ejecucion": _num(d.get("Ejecucion")),
@@ -166,14 +164,14 @@ def get_polisigs(excel: ExcelReaderService) -> dict[str, Any]:
         items = [i for i in indicadores if o["numero"] in i["objetivos"]]
         comps: dict[str, list[dict[str, Any]]] = {}
         for i in items:
-            comps.setdefault(i["componente"] or "Sin componente", []).append(i)
+            comps.setdefault(i["proceso"] or "Sin proceso", []).append(i)
         objetivos.append(
             {
                 "numero": o["numero"],
                 "nombre": o["nombre"],
                 "corto": o["corto"],
                 **_consolidar(items),
-                "componentes": [{"nombre": n, **_consolidar(v)} for n, v in comps.items()],
+                "procesos": [{"nombre": n, **_consolidar(v)} for n, v in comps.items()],
             }
         )
 

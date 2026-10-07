@@ -1221,7 +1221,7 @@ export interface PolisigsConsolidado {
   sin_dato: number;
 }
 
-export interface PolisigsComponente extends PolisigsConsolidado {
+export interface PolisigsProceso extends PolisigsConsolidado {
   nombre: string;
 }
 
@@ -1230,7 +1230,7 @@ export interface PolisigsObjetivo extends PolisigsConsolidado {
   /** Enunciado completo del objetivo (versión 6). */
   nombre: string;
   corto: string;
-  componentes: PolisigsComponente[];
+  procesos: PolisigsProceso[];
 }
 
 /** Meta/Ejecucion/Meta_Signo/Decimales_Meta/"Nivel de cumplimiento" replican el listado del CMI. */
@@ -1239,17 +1239,14 @@ export interface PolisigsIndicador {
   Indicador: string;
   /** Objetivos V6 a los que se asocia; un indicador puede repetirse en varios. */
   objetivos: number[];
-  /** Compromiso de la política del que proviene (catálogo del Excel). */
-  compromiso: string;
-  componente: string | null;
   proceso: string | null;
   responsable: string | null;
-  tipo_medicion: string | null;
+  tipo: string | null;
   frecuencia: string | null;
   sentido: string | null;
-  clasificacion: string | null;
-  objetivo_secundario: string | null;
-  justificacion: string | null;
+  ods: string | null;
+  relevancia_ods: string | null;
+  observaciones: string | null;
   Meta: number | null;
   Ejecucion: number | null;
   Meta_Signo: string | null;
