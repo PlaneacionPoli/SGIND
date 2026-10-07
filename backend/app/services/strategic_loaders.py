@@ -376,6 +376,24 @@ class StrategicLoaders:
                     lambda s: repair_linea_encoding(s.astype(str).str.strip()),
                 ),
                 (find_col(df, ["Objetivo"]), "Objetivo", lambda s: s.astype(str).str.strip()),
+                # Unidad de medida: sin estas columnas la pantalla asume "%" para todo
+                # (p. ej. $ de Caja/EBITDA o ENT de GreenMetric se mostraban como %).
+                (find_col(df, ["Meta_Signo", "Meta s"]), "Meta_Signo", lambda s: s.astype(str).str.strip()),
+                (
+                    find_col(df, ["Ejecucion_Signo", "Ejecucion_s"]),
+                    "Ejecucion_s",
+                    lambda s: s.astype(str).str.strip(),
+                ),
+                (
+                    find_col(df, ["Decimales_Meta"]),
+                    "Decimales_Meta",
+                    lambda s: pd.to_numeric(s, errors="coerce"),
+                ),
+                (
+                    find_col(df, ["Decimales_Ejecucion"]),
+                    "Decimales_Ejecucion",
+                    lambda s: pd.to_numeric(s, errors="coerce"),
+                ),
             ]:
                 if src:
                     out[dst] = transform(df[src])

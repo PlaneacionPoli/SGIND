@@ -53,7 +53,15 @@ _IDS_META_FIJA: Dict[str, float] = {"121": 100.0}
 # variables propias (solo dentro de cada serie) — su Meta/Ejecución real es
 # la suma de TEP/TEMS de sus 4 series (mismos símbolos que usa
 # construir_registros_poblacion para el indicador 14).
-_IDS_SUMA_VARIABLES_SERIES: Dict[str, Tuple[str, str]] = {"274": ("TEMS", "TEP")}
+# 203 "Cumplimiento de Ingresos" (Extraccion "Sumar las variables de las series", formato $): su
+# Meta/Ejecución son los montos presupuestado (TIPRE) y ejecutado (TIEJE) sumados en sus series
+# (matrículas, programas especiales, otros ingresos); el resultado porcentual crudo del API
+# (95 / 104.6) NO es la cifra que se reporta. El texto del catálogo ("Sumar las variables de las
+# series") no coincide con las constantes _EXT_SER_*, por eso se declara aquí por Id.
+_IDS_SUMA_VARIABLES_SERIES: Dict[str, Tuple[str, str]] = {
+    "274": ("TEMS", "TEP"),
+    "203": ("TIEJE", "TIPRE"),
+}
 
 
 def _sumar_variables_series(

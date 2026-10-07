@@ -24,6 +24,7 @@ from .periodos import ultimo_dia_mes
 logger = logging.getLogger(__name__)
 
 
+
 # ── Purga de filas inválidas ──────────────────────────────────────
 
 def purgar_filas_invalidas(
@@ -797,10 +798,15 @@ def reparar_semestral_agregados(
             list(range(1, 7)) if fecha.month <= 6 else list(range(7, 13))
         )
 
-        ejecs = [monthly.get((id_s, fecha.year, m), (None, None))[0] for m in months]
-        metas = [monthly.get((id_s, fecha.year, m), (None, None))[1] for m in months]
-        ejecs = [e for e in ejecs if e is not None]
-        metas = [m for m in metas if m is not None]
+        pares = [monthly.get((id_s, fecha.year, m), (None, None)) for m in months]
+        if patron == "AVG":
+            # Meta=0 y Ejecución=0 en un mes del período: sin medición, no entra al promedio
+            # (solo si hay otros meses con dato; si todo es 0, el promedio sigue siendo 0).
+            con_dato = [(e, mt) for e, mt in pares if not (e == 0 and mt == 0)]
+            if any(e is not None for e, _ in con_dato):
+                pares = con_dato
+        ejecs = [e for e, _ in pares if e is not None]
+        metas = [mt for _, mt in pares if mt is not None]
 
         if not ejecs:
             # Sin dato mensual real para este período: si el valor actual es
