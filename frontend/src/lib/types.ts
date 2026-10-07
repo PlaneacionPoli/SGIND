@@ -872,6 +872,14 @@ export interface PlanValorFmt {
   valor_fmt: string;
 }
 
+/** % de cumplimiento con su nivel de semáforo (Peligro/Alerta/Cumplimiento/
+ * Sobrecumplimiento) ya resuelto en backend — ver NIVEL_COLOR_EXT en
+ * plan_mejoramiento_builders.py. */
+export interface PlanCumpFmt extends PlanValorFmt {
+  nivel: string | null;
+  nivel_color: string | null;
+}
+
 export interface PlanIndicadoresDashboardResponse {
   kpis: {
     total: number;
@@ -900,10 +908,10 @@ export interface PlanIndicadoresDashboardResponse {
         indicador: string;
         meta_2025: PlanValorFmt;
         ejecucion_2025: PlanValorFmt;
-        cump_2025: PlanValorFmt;
+        cump_2025: PlanCumpFmt;
         meta_2026: PlanValorFmt;
         ejecucion_2026: PlanValorFmt;
-        cump_2026: PlanValorFmt;
+        cump_2026: PlanCumpFmt;
       }
   >;
   total: number;
@@ -924,7 +932,7 @@ export interface PlanIndicadorDetalleResponse {
   observacion: string | null;
   cumplimiento_texto: string | null;
   metas_futuras_texto: string | null;
-  cumplimiento: Array<{ anio: string; meta: string; ejecucion: string; cump: string }>;
+  cumplimiento: Array<{ anio: string; meta: string; ejecucion: string; cump: string; nivel: string; nivel_color: string }>;
   metas_futuras: Array<{ anio: string; meta: string }>;
 }
 

@@ -272,10 +272,13 @@ export function PmIndicadoresTab({
                                 ejecucion={row.ejecucion_2025.valor}
                                 metaFmt={row.meta_2025.valor_fmt}
                                 ejecucionFmt={row.ejecucion_2025.valor_fmt}
-                                color={getFactorColor(row.factor_num)}
+                                color={row.cump_2025.nivel_color ?? getFactorColor(row.factor_num)}
                               />
                             </td>
-                            <td className="px-4 py-2.5 text-right tabular-nums font-semibold text-slate-800">
+                            <td
+                              className="px-4 py-2.5 text-right tabular-nums font-semibold"
+                              style={{ color: row.cump_2025.nivel_color ?? undefined }}
+                            >
                               {row.cump_2025.valor_fmt}
                             </td>
                             <td className="px-4 py-2.5">
@@ -284,10 +287,13 @@ export function PmIndicadoresTab({
                                 ejecucion={row.ejecucion_2026.valor}
                                 metaFmt={row.meta_2026.valor_fmt}
                                 ejecucionFmt={row.ejecucion_2026.valor_fmt}
-                                color={getFactorColor(row.factor_num)}
+                                color={row.cump_2026.nivel_color ?? getFactorColor(row.factor_num)}
                               />
                             </td>
-                            <td className="px-4 py-2.5 text-right tabular-nums font-semibold text-slate-800">
+                            <td
+                              className="px-4 py-2.5 text-right tabular-nums font-semibold"
+                              style={{ color: row.cump_2026.nivel_color ?? undefined }}
+                            >
                               {row.cump_2026.valor_fmt}
                             </td>
                           </>

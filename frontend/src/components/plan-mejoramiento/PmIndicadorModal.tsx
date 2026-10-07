@@ -117,7 +117,12 @@ export function PmIndicadorModal({ seleccion, onClose }: PmIndicadorModalProps) 
                           <td className="px-3 py-2 font-semibold text-slate-800">{f.anio}</td>
                           <td className="px-3 py-2 text-right">{f.meta}</td>
                           <td className="px-3 py-2 text-right">{f.ejecucion}</td>
-                          <td className="px-3 py-2 text-right font-semibold text-slate-800">{f.cump}</td>
+                          <td
+                            className="px-3 py-2 text-right font-semibold"
+                            style={{ color: f.nivel_color || undefined }}
+                          >
+                            {f.cump}
+                          </td>
                         </tr>
                       ))}
                     </tbody>

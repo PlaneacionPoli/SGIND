@@ -26,6 +26,7 @@ from app.domain.agregacion_anual import (
     IDS_SUMA_SEMESTRAL,
     IDS_TOTAL_NO_APLICA,
 )
+from app.domain.categorization import categorizar_cumplimiento
 from app.domain.loader_utils import ascii_lower, find_col, id_a_str
 
 CORTE_SEMESTRAL = {"Junio": 6, "Diciembre": 12}
@@ -1012,12 +1013,18 @@ def build_plan_indicadores_tabla_historico(df: pd.DataFrame) -> list[dict[str, A
             ),
         }
 
-    def _cump(v, decimales_cump) -> dict[str, Any]:
+    def _cump(v, decimales_cump, id_indicador) -> dict[str, Any]:
         if pd.isna(v):
-            return {"valor": None, "valor_fmt": "—"}
+            return {"valor": None, "valor_fmt": "—", "nivel": None, "nivel_color": None}
         pct = float(v) * 100
         dec = int(decimales_cump) if pd.notna(decimales_cump) else _DECIMALES_CUMP_DEFAULT
-        return {"valor": round(pct, dec), "valor_fmt": f"{pct:.{dec}f}%"}
+        nivel = categorizar_cumplimiento(v, id_indicador=id_indicador)
+        return {
+            "valor": round(pct, dec),
+            "valor_fmt": f"{pct:.{dec}f}%",
+            "nivel": nivel,
+            "nivel_color": NIVEL_COLOR_EXT.get(nivel, "#BDBDBD"),
+        }
 
     records = []
     for _, row in rows_sorted.iterrows():
@@ -1026,6 +1033,7 @@ def build_plan_indicadores_tabla_historico(df: pd.DataFrame) -> list[dict[str, A
             row.get("Decimales"),
             row.get("Decimales_Cump"),
         )
+        id_indicador = row.get("Id")
         fnum, cnum = row.get("Factor_num"), row.get("Caracteristica_num")
         records.append(
             {
@@ -1036,10 +1044,10 @@ def build_plan_indicadores_tabla_historico(df: pd.DataFrame) -> list[dict[str, A
                 "indicador": row.get("Indicador"),
                 "meta_2025": _valor(row, "Meta_num_2025", signo, decimales),
                 "ejecucion_2025": _valor(row, "Ejecucion_num_2025", signo, decimales),
-                "cump_2025": _cump(row.get("Cump_calc_2025"), dec_cump),
+                "cump_2025": _cump(row.get("Cump_calc_2025"), dec_cump, id_indicador),
                 "meta_2026": _valor(row, "Meta_num_2026", signo, decimales),
                 "ejecucion_2026": _valor(row, "Ejecucion_num_2026", signo, decimales),
-                "cump_2026": _cump(row.get("Cump_calc_2026"), dec_cump),
+                "cump_2026": _cump(row.get("Cump_calc_2026"), dec_cump, id_indicador),
             }
         )
     return records
@@ -1075,15 +1083,19 @@ def build_indicador_metas_futuras_texto(row: pd.Series) -> str:
 def build_indicador_cump_tabla(row: pd.Series) -> list[dict[str, str]]:
     """Filas (año, meta, ejecución, % cump) del modal de detalle, ya formateadas."""
     signo, decimales, dec_cump = row.get("Signo"), row.get("Decimales"), row.get("Decimales_Cump")
+    id_indicador = row.get("Id")
     filas = []
     for y in ("2025", "2026"):
         cump = row.get(f"Cump_calc_{y}")
+        nivel = categorizar_cumplimiento(cump, id_indicador=id_indicador) if pd.notna(cump) else None
         filas.append(
             {
                 "anio": y,
                 "meta": fmt_meta_plan(row, y, signo, decimales),
                 "ejecucion": fmt_valor_plan(row.get(f"Ejecucion_num_{y}"), signo, decimales),
                 "cump": fmt_valor_plan(cump * 100 if pd.notna(cump) else None, "%", dec_cump),
+                "nivel": nivel or "",
+                "nivel_color": NIVEL_COLOR_EXT.get(nivel, "") if nivel else "",
             }
         )
     return filas
