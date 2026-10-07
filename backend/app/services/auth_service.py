@@ -11,6 +11,15 @@ from app.core.config import RoleName, Settings
 from app.core.security import create_access_token
 from app.models.user import Role, User
 
+# Mismas descripciones que database/migrations/001 y 004.
+_ROLE_DESCRIPTIONS: dict[str, str] = {
+    "procesos": "Lectura de dashboards e indicadores",
+    "calidad": "Administración y gestión OM",
+    "desempeno": "Administración y gestión OM",
+    "administrador": "Acceso total: todas las pantallas y edicion de OM",
+    "auditor_ia": "Auditoria y publicacion de narrativas IA",
+}
+
 SCOPES = ["openid", "profile", "email", "User.Read"]
 
 
@@ -128,10 +137,11 @@ class AuthService:
         role_result = await db.execute(select(Role).where(Role.name == role_name))
         role = role_result.scalar_one_or_none()
         if role is None:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Rol '{role_name}' no existe en la base de datos",
-            )
+            # Bases nuevas o sin las migraciones 004+ (p. ej. un Postgres recién creado en
+            # Render): los roles del sistema se crean al primer uso en vez de fallar.
+            role = Role(name=role_name, description=_ROLE_DESCRIPTIONS[role_name])
+            db.add(role)
+            await db.flush()
         return role
 
     async def email_login(self, db: AsyncSession, *, email: str) -> tuple[str, User]:

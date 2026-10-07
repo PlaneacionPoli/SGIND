@@ -334,6 +334,7 @@ function ObjetivoDetalle({
 }) {
   const [nivel, setNivel] = useState<string | null>(null);
   const [busqueda, setBusqueda] = useState("");
+  const [soloConDatos, setSoloConDatos] = useState(false);
   const [soloPlan, setSoloPlan] = useState(false);
   const [ods, setOds] = useState<number | null>(null);
   const [selId, setSelId] = useState<string | null>(null);
@@ -357,6 +358,7 @@ function ObjetivoDetalle({
       .filter(
         (i) =>
           (nivel == null || i["Nivel de cumplimiento"] === nivel) &&
+          (!soloConDatos || i.Ejecucion != null || i.cumplimiento_pct != null) &&
           (!soloPlan || i.plan_mejoramiento) &&
           (ods == null || i.ods.some((o) => o.numero === ods)) &&
           (q === "" || i.Indicador.toLowerCase().includes(q) || i.Id === q)
@@ -366,7 +368,7 @@ function ObjetivoDetalle({
           rangoNivel(x["Nivel de cumplimiento"]) - rangoNivel(y["Nivel de cumplimiento"]) ||
           (x.cumplimiento_pct ?? 999) - (y.cumplimiento_pct ?? 999)
       );
-  }, [indicadores, nivel, busqueda, soloPlan, ods]);
+  }, [indicadores, nivel, busqueda, soloConDatos, soloPlan, ods]);
 
   const seleccionado = indicadores.find((i) => i.Id === selId) ?? null;
   const total = indicadores.length;
@@ -422,6 +424,15 @@ function ObjetivoDetalle({
             ))}
           </select>
         )}
+        <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-700">
+          <input
+            type="checkbox"
+            checked={soloConDatos}
+            onChange={(e) => setSoloConDatos(e.target.checked)}
+            className="h-3.5 w-3.5 accent-[#0B2A5B]"
+          />
+          Mostrar solo indicadores con datos
+        </label>
         {nPlan > 0 && (
           <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-700">
             <input

@@ -146,3 +146,23 @@ async def test_calidad_fuera_de_la_lista_no_se_toca():
     )
     assert existing.role_id == 2
     assert db.execute.await_count == 1
+
+
+# ─── Rol ausente en la BD (base nueva sin migración 004) ─────────────────────
+
+
+@pytest.mark.asyncio
+async def test_get_role_crea_el_rol_si_falta():
+    db = MagicMock()
+    result = MagicMock()
+    result.scalar_one_or_none.return_value = None
+    db.execute = AsyncMock(return_value=result)
+    db.add = MagicMock()
+    db.flush = AsyncMock()
+
+    role = await AuthService(Settings())._get_role(db, "administrador")
+
+    assert role.name == "administrador"
+    assert role.description
+    db.add.assert_called_once_with(role)
+    db.flush.assert_awaited_once()
