@@ -1,9 +1,9 @@
 # Fase 5 — Frontend Next.js
 
-**Estado:** En progreso  
-**Fecha:** 2026-06-13
+**Estado:** Completada (salvo eliminar OM en UI)  
+**Actualizado:** 2026-10-08 — ver `docs/migration/ROADMAP.md` Fase 5 para el detalle verificado contra código.
 
-## Páginas conectadas a API
+## Páginas conectadas a API (listado inicial 2026-06; el vigente está en ROADMAP.md)
 
 | Página | Ruta | Endpoints |
 |--------|------|-----------|
@@ -33,15 +33,14 @@
 
 ## Pendiente
 
-- [ ] Modal CRUD OM
-- [ ] shadcn/ui design system
-- [ ] Páginas secundarias (PDI, diagnóstico, etc.)
-- [ ] Componentes IA en frontend
+- [x] Eliminar OM en UI (solo `administrador`)
+- [ ] Lint ESLint sin warnings
+- [ ] Componentes IA en frontend (el informe usa narrativa IA vía backend)
 - [ ] Lighthouse > 90
 
 ## Verificación
 
 ```bash
-cd sgind-v2/frontend && npm run build
+cd frontend && npm run build
 # Abrir http://localhost:3000 → Dev login → Resumen General
 ```

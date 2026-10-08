@@ -19,7 +19,7 @@
 | 2    | Modelo de Datos     | **Completada**| Esquema PG, migración, docs E2.1–E2.6     |
 | 3    | UX/UI Design System | **En progreso**| Tokens, globals.css, componentes de estado |
 | 4    | Backend             | **Completada** | CRUD OM, filtros plan/seguimiento/informe, lint ✅ |
-| 5    | Frontend            | **Completada** | 9 páginas conectadas a API real ✅         |
+| 5    | Frontend            | **Completada** | Páginas conectadas a API real ✅; pendiente eliminar OM en UI |
 | 6    | Testing E2E         | **Completada** | Playwright E2E + contratos API + CI ✅  |
 | 7    | Auth Real (Azure AD)| **Completada** | /login, AuthGuard, JWT, MSAL, RBAC ✅   |
 | 8    | Migración de Datos  | **Completada** | Scripts migración + validación + sync ✅  |
@@ -40,9 +40,11 @@
 - [x] Plan de Mejoramiento — filtros, KPIs, gráficos, tablas CNA y acciones
 - [x] Seguimiento Operativo — filtros, alertas, barras apiladas, tabla detalle, export Excel
 - [x] Informe por Procesos — 6 tabs: resumen, indicadores, calidad, auditoría, propuestas, IA
-- [x] PDI / Acreditación — filtros, KPIs, treemap, benchmark, evolución brechas, tabla
+- [x] Selección PDI (`/seleccion-pdi`, `PdiGate`) — reemplaza a la página PDI/Acreditación
+- [x] Indicadores POLISIGS (`/polisigs`)
 - [x] Diagnóstico — panel de salud: checks API, datos, módulos
-- [ ] CRUD OM en UI (Fase 5 extra)
+- [x] Gestión OM — crear, editar y cerrar en UI
+- [x] Gestión OM — eliminar en UI; eliminar solo rol `administrador`; crear/editar/cerrar también `calidad` y `desempeno`
 
 ## Docker
 

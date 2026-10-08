@@ -119,7 +119,7 @@ async def test_om_cerrar_procesos_forbidden(client, auth_as_procesos):
 
 
 @pytest.mark.asyncio
-async def test_om_delete_not_found(client, auth_as_calidad):
+async def test_om_delete_not_found(client, auth_as_administrador):
     try:
         resp = await client.delete("/api/v1/om/999999")
     except Exception as e:
@@ -130,7 +130,7 @@ async def test_om_delete_not_found(client, auth_as_calidad):
 
 
 @pytest.mark.asyncio
-async def test_om_crud_flujo_completo(client, auth_as_calidad):
+async def test_om_crud_flujo_completo(client, auth_as_administrador):
     """Crea, lee, cierra y elimina un OM en secuencia."""
     payload = {
         "id_indicador": "FASE4-FLUJO-001",
@@ -166,6 +166,13 @@ async def test_om_crud_flujo_completo(client, auth_as_calidad):
     list_resp = await client.get("/api/v1/om")
     ids = [r["id"] for r in list_resp.json()]
     assert om_id not in ids
+
+
+@pytest.mark.asyncio
+async def test_om_delete_solo_administrador(client, auth_as_calidad):
+    """calidad y desempeno registran/editan/cierran OM pero no la eliminan."""
+    resp = await client.delete("/api/v1/om/1")
+    assert resp.status_code == 403
 
 
 # ─── Filtros Plan de Mejoramiento ────────────────────────────────────────────

@@ -97,6 +97,9 @@ require_admin = require_roles("administrador", "calidad", "desempeno")
 # Pantallas operativas (Seguimiento Operativo, Gestion OM): el rol "procesos"
 # solo ve Resumen, CMI Estrategico, CMI por Procesos, Informe y Plan de Mejoramiento.
 require_operational = require_roles("administrador", "calidad", "desempeno")
+# Eliminar registros OM (irreversible): solo "administrador". Crear, editar y cerrar
+# siguen con require_admin (administrador, calidad, desempeno).
+require_om_deleter = require_roles("administrador")
 require_reader = require_roles(
     "procesos", "administrador", "calidad", "desempeno", "auditor_ia"
 )

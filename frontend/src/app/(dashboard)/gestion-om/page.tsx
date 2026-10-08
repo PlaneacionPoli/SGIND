@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { KPICard } from "@/components/ui/KPICard";
-import { cerrarOM, createOM, fetchOMMatriz, fetchOMPlanAccion, updateOM } from "@/lib/api";
+import { cerrarOM, createOM, deleteOM, fetchOMMatriz, fetchOMPlanAccion, updateOM } from "@/lib/api";
 import { useAuthReady, useAuthStore } from "@/stores/auth-store";
 
 const MESES = [
@@ -25,6 +25,8 @@ export default function GestionOMPage() {
   const { isAuthenticated } = useAuthReady();
   const role = useAuthStore((s) => s.role);
   const canEdit = role === "administrador" || role === "calidad" || role === "desempeno";
+  // Eliminar es irreversible: solo administrador (el backend lo refuerza con 403).
+  const canDelete = role === "administrador";
   const queryClient = useQueryClient();
 
   const [anio, setAnio] = useState(2025);
@@ -100,6 +102,13 @@ export default function GestionOMPage() {
 
   const cerrarMutation = useMutation({
     mutationFn: (id: number) => cerrarOM(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["om-matriz"] });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => deleteOM(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["om-matriz"] });
     },
@@ -441,6 +450,25 @@ export default function GestionOMPage() {
                                 className="rounded border border-amber-300 px-2 py-1 text-xs font-medium text-amber-700 hover:bg-amber-50 disabled:opacity-50"
                               >
                                 Cerrar
+                              </button>
+                            )}
+                            {canDelete && row.om_id != null && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (
+                                    window.confirm(
+                                      `¿Eliminar definitivamente el registro OM del indicador ${row.id}` +
+                                        `${row.numero_om ? ` (OM ${row.numero_om})` : ""}? Esta acción no se puede deshacer.`,
+                                    )
+                                  ) {
+                                    deleteMutation.mutate(row.om_id as number);
+                                  }
+                                }}
+                                disabled={deleteMutation.isPending}
+                                className="rounded border border-red-300 px-2 py-1 text-xs font-medium text-red-700 hover:bg-red-50 disabled:opacity-50"
+                              >
+                                Eliminar
                               </button>
                             )}
                           </div>

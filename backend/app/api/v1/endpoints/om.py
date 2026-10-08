@@ -7,7 +7,7 @@ from app.api.deps import get_excel_service
 from app.core.concurrency import run_sync
 from app.core.config import Settings, get_settings
 from app.core.database import get_db
-from app.core.security import require_admin, require_operational
+from app.core.security import require_admin, require_om_deleter, require_operational
 from app.domain.om_builders import load_plan_accion_para_om
 from app.models.user import User
 from app.schemas.common import (
@@ -119,7 +119,7 @@ async def cerrar_om(
 @router.delete("/{registro_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_om(
     registro_id: int,
-    _user: User = Depends(require_admin),
+    _user: User = Depends(require_om_deleter),
     db: AsyncSession = Depends(get_db),
 ) -> None:
     deleted = await _om_service.delete(db, registro_id)

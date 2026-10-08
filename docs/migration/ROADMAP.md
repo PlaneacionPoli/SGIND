@@ -153,28 +153,26 @@ t
 
 > Archivos clave: `frontend/src/app/(dashboard)/`, `frontend/src/lib/api.ts`, `frontend/src/lib/types.ts`
 
-#### Completado
-- [x] Cliente API Axios (`src/lib/api.ts`)
-- [x] Tipos TypeScript para todas las respuestas (`src/lib/types.ts`)
-- [x] Layout dashboard: Sidebar + AppShell + Header
-- [x] Dev login en header (`hooks/use-dev-login.ts`)
-- [x] Resumen General — KPIs + semáforo + tendencia + tabla
-- [x] CMI Estratégico — conectado a API real
-- [x] CMI Procesos — conectado a API real
-- [x] Gestión OM — lectura conectada a API real
-- [x] Build `npm run build` sin errores
+#### Completado (verificado contra código, 2026-10-08)
+- [x] Cliente API Axios (`src/lib/api.ts`) y tipos (`src/lib/types.ts`)
+- [x] Layout dashboard: Sidebar + AppShell + Header + `AuthGuard`
+- [x] Resumen General — KPIs + semáforo + tendencia + tabla (`fetchResumenCompleto`)
+- [x] CMI Estratégico y CMI Procesos (`fetchCMIDashboard`, `fetchCMIProcesosDashboard`, fichas)
+- [x] Informe por Procesos (`fetchInformeDashboard`)
+- [x] Plan de Mejoramiento — 2 pestañas Indicadores/Métricas (`PmIndicadoresTab`, `PmMetricasTab`; endpoints `plan-mejoramiento/indicadores` y `/metricas`)
+- [x] Seguimiento Operativo (`fetchSeguimientoDashboard`)
+- [x] Gestión OM — matriz, plan de acción y CRUD parcial en UI: crear, editar, cerrar
+- [x] Indicadores POLISIGS (`/polisigs`, módulo nuevo, no estaba en el plan original)
+- [x] Selección PDI (`/seleccion-pdi` + `PdiGate`, marcos/taxonomía): reemplaza a la página "PDI/Acreditación (BETA)"
+- [x] Diagnóstico (`/diagnostico`, herramienta interna sin enlace de navegación; `BETA_ITEMS` vacío)
+- [x] `tsc --noEmit` sin errores; Vitest 27/27
 
 #### Pendiente
-- [ ] Gestión OM — CRUD completo en UI (formulario crear/editar OM, acción cerrar)
-- [ ] Plan de Mejoramiento — conectar a endpoint real
-- [ ] Seguimiento Operativo — conectar a endpoint real
-- [ ] Informe por Procesos — conectar a endpoint real
-- [ ] PDI/Acreditación (BETA) — conectar o marcar como placeholder claro con fecha estimada
-- [ ] Diagnóstico (BETA) — conectar o marcar como placeholder claro
-- [ ] Estados de carga y error en todas las páginas (skeleton / toast)
-- [ ] `npm run build` sin errores de TypeScript ni warnings ESLint
+- [x] Gestión OM — eliminar en UI (2026-10-08). Eliminar restringido al rol `administrador` (`require_om_deleter`); crear/editar/cerrar siguen para `administrador`, `calidad` y `desempeno`
+- [ ] `npm run lint` sin warnings ESLint (no verificado en esta revisión)
+- [ ] Estados de carga/error uniformes: `plan-mejoramiento`, `diagnostico` y `resumen-general` no usan `Skeleton`/`ErrorState` de forma consistente (revisar)
 
-**Hito F5:** Las 9 páginas del dashboard renderizan datos reales desde la API. Build Next.js pasa limpio.
+**Hito F5:** Las 9 páginas del dashboard renderizan datos reales desde la API (8 en navegación + Diagnóstico interno). Falta solo eliminar OM en UI y limpieza de lint/estados de error.
 
 ---
 
