@@ -34,7 +34,7 @@ type TabId = (typeof TABS)[number]["id"];
 export default function CMIProcesosPage() {
   return (
     <Suspense fallback={<p className="text-sm text-slate-500">Cargando CMI por procesos...</p>}>
-      <PdiGate>{(pdi) => <CMIProcesosContent pdi={pdi} />}</PdiGate>
+      <PdiGate modulo="cmi-procesos">{(pdi) => <CMIProcesosContent pdi={pdi} />}</PdiGate>
     </Suspense>
   );
 }

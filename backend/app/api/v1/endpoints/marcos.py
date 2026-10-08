@@ -20,6 +20,8 @@ class MarcoResponse(BaseModel):
     orden: int
     imagen: str | None
     datos_disponibles: bool
+    # Módulos del dashboard habilitados (vacío = todos si datos_disponibles).
+    modulos: list[str] = []
 
 
 def _to_response(m: Marco) -> MarcoResponse:
@@ -34,6 +36,7 @@ def _to_response(m: Marco) -> MarcoResponse:
         orden=m.orden,
         imagen=m.imagen,
         datos_disponibles=m.datos_disponibles,
+        modulos=list(m.modulos),
     )
 
 

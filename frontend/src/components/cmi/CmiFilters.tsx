@@ -12,9 +12,11 @@ interface CmiFiltersProps {
   onAnioChange: (anio: number) => void;
   onCorteChange?: (corte: string) => void;
   onReset?: () => void;
-  /** "Cierre PDI 2022-2025" — resultado final por indicador (hoja Cierre PDI). */
+  /** Cierre del PDI — resultado final por indicador (hoja de cierre). Solo se muestra si hay `onSelectRango`. */
   rango?: boolean;
   onSelectRango?: () => void;
+  /** Texto del botón de cierre (p. ej. "Cierre PDI 2022-2025"). */
+  etiquetaCierre?: string;
 }
 
 export function CmiFilters({
@@ -24,6 +26,7 @@ export function CmiFilters({
   onReset,
   rango = false,
   onSelectRango,
+  etiquetaCierre = "Cierre PDI",
 }: CmiFiltersProps) {
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_2px_12px_rgba(26,58,92,0.06)]">
@@ -70,7 +73,7 @@ export function CmiFilters({
                   : "text-slate-600 hover:bg-white hover:text-slate-900"
               }`}
             >
-              Cierre PDI 2022-2025
+              {etiquetaCierre}
             </button>
           )}
         </div>

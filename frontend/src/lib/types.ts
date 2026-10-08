@@ -432,6 +432,9 @@ export interface CMIAlertasResponse {
 }
 
 export interface CMIFiltrosResponse {
+  /** false = el PDI aún no tiene hoja de cierre: no se ofrece el botón de cierre. */
+  tiene_cierre?: boolean;
+  etiqueta_cierre?: string | null;
   anios: number[];
   anio_default: number;
   corte_default: string;

@@ -30,10 +30,11 @@ def _cmi_service(excel: ExcelReaderService = Depends(get_excel_service)) -> CMIS
 
 @router.get("/filtros", response_model=CMIFiltrosResponse)
 async def cmi_filtros(
+    marco: Marco = Depends(get_pdi_marco),
     _user: User = Depends(require_reader),
     service: CMIService = Depends(_cmi_service),
 ) -> CMIFiltrosResponse:
-    return CMIFiltrosResponse(**await run_sync(service.get_filtros))
+    return CMIFiltrosResponse(**await run_sync(service.get_filtros, pdi=marco.version_id))
 
 
 @router.get("/estrategico-dashboard", response_model=CMIDashboardResponse)
@@ -63,11 +64,17 @@ async def cmi_indicador_ficha(
     anio: int = Query(...),
     mes: int | None = Query(None, ge=1, le=12),
     corte: str | None = Query(None),
+    marco: Marco = Depends(get_pdi_marco),
     _user: User = Depends(require_reader),
     service: CMIService = Depends(_cmi_service),
 ) -> FichaIndicadorResponse:
     ficha = await run_sync(
-        service.get_indicador_ficha, indicador_id, anio=anio, mes=mes, corte=corte
+        service.get_indicador_ficha,
+        indicador_id,
+        anio=anio,
+        mes=mes,
+        corte=corte,
+        pdi=marco.version_id,
     )
     if ficha is None:
         raise HTTPException(

@@ -15,7 +15,7 @@ def test_filtro_por_linea_acepta_nombre_o_id_y_todos_es_sin_filtro():
     v = _validas(
         ["1", V22, "calidad", None, None],
         ["2", V22, "expansion", None, None],
-        ["3", V26, "desarrollo-sostenible", None, None],
+        ["3", V26, "L4", None, None],
     )
     assert ids_de_linea(v, V22, "Calidad") == {"1"}
     assert ids_de_linea(v, V22, "expansion") == {"2"}
@@ -27,7 +27,7 @@ def test_filtro_por_linea_acepta_nombre_o_id_y_todos_es_sin_filtro():
 def test_ficha_muestra_ambos_pdi_segun_fecha_de_inicio():
     v = _validas(
         ["7", V22, "calidad", "calidad-O1", None],
-        ["7", V26, "desarrollo-sostenible", "desarrollo-sostenible-O1", None],
+        ["7", V26, "L4", "L4-OI", None],
     )
     assert [a["version_id"] for a in asociaciones_ficha(v, "7", 2023, None)] == [V22, V26]
     assert [a["version_id"] for a in asociaciones_ficha(v, "7", 2027, None)] == [V26]

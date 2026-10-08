@@ -260,6 +260,7 @@ def main() -> int:
     # Construir comandos
     # Nota: usamos sys.executable para asegurar el mismo Python del entorno.
     cmd_map: Dict[str, List[str]] = {
+        "sincronizar_directorio_indicadores": [sys.executable, str(base_dir / "scripts" / "sincronizar_directorio_indicadores.py")],
         "actualizar_directorio_maestro": [sys.executable, str(base_dir / "scripts" / "actualizar_directorio_maestro.py")],
         "cna_extraction": [sys.executable, "-m", "scripts.cna_extraction.build_cli", "--write"],
         "consolidar_api": [sys.executable, str(base_dir / "scripts" / "consolidar_api.py")],
@@ -538,10 +539,12 @@ def main() -> int:
 
     # Avisos no-fatales que si ameritan atencion humana aunque el paso haya
     # terminado con exit 0 (ej: cna_extraction detecta una hoja nueva en el
-    # Anexo Estadistico que el catalogo "Indice Tablas" todavia no mapea).
+    # Anexo Estadistico que el catalogo "Indice Tablas" todavia no mapea, o
+    # sincronizar_directorio_indicadores deja indicadores nuevos sin linea
+    # estrategica asignada en el PDI activo).
     avisos: List[str] = []
     for r in results:
-        if r.name == "cna_extraction" and "[AVISO]" in r.stdout_tail:
+        if r.name in ("cna_extraction", "sincronizar_directorio_indicadores") and "[AVISO]" in r.stdout_tail:
             for line in r.stdout_tail.splitlines():
                 if "[AVISO]" in line:
                     avisos.append(line.strip())

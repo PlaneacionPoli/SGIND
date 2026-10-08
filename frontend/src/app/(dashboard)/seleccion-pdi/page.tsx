@@ -8,6 +8,12 @@ import { NAV_ITEMS } from "@/config/navigation";
 import { destinoValido, fetchMarcos, moduloHref, type Marco } from "@/lib/pdi";
 import { useAuthReady } from "@/stores/auth-store";
 
+const NOMBRES_MODULO: Record<string, string> = {
+  "resumen-general": "Resumen General",
+  "cmi-estrategico": "CMI Estratégico",
+  "cmi-procesos": "CMI por Procesos",
+};
+
 export default function SeleccionPdiPage() {
   return (
     <Suspense fallback={<p className="text-sm text-slate-500">Cargando…</p>}>
@@ -93,6 +99,11 @@ function PdiCard({ marco, href }: { marco: Marco; href: string }) {
           <p className="text-base font-semibold text-slate-900">{marco.nombre}</p>
           <p className="text-sm text-slate-700">{marco.descripcion}</p>
           <p className="mt-1 text-xs text-slate-500">{datos}</p>
+          {marco.modulos.length > 0 && (
+            <p className="mt-1 text-xs text-slate-500">
+              Disponible: {marco.modulos.map((m) => NOMBRES_MODULO[m] ?? m).join(" · ")}
+            </p>
+          )}
         </div>
         <span className="text-sm font-semibold text-blue-700 transition group-hover:translate-x-0.5">Entrar →</span>
       </div>

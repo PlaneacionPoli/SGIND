@@ -47,10 +47,13 @@ def test_cada_anio_pertenece_a_un_solo_pdi():
         assert len([m for m in get_marcos("PDI") if m.incluye_anio(anio)]) == 1
 
 
-def test_solo_pdi_2022_2026_tiene_datos_por_ahora():
-    # El 2026-2030 queda bloqueado hasta cargar taxonomía y filtrar el backend
-    assert get_marco("PDI-2022-2026").datos_disponibles
-    assert not get_marco("PDI-2026-2030").datos_disponibles
+def test_modulos_habilitados_por_pdi():
+    # El 2022-2026 sirve a todos los módulos; el 2026-2030 solo a los CMI (el Resumen General
+    # aún no está listo para ese ciclo). Ambos PDI se mantienen.
+    a, b = get_marco("PDI-2022-2026"), get_marco("PDI-2026-2030")
+    assert all(a.sirve(m) for m in ("resumen-general", "cmi-estrategico", "cmi-procesos"))
+    assert b.sirve("cmi-estrategico") and b.sirve("cmi-procesos") and not b.sirve("resumen-general")
+    assert a.indicadores_desde == "catalogo" and b.indicadores_desde == "hoja"
 
 
 def test_get_marco_desconocido():
@@ -159,16 +162,17 @@ def test_etiqueta_de_cierre_conserva_el_texto_historico():
 
 
 @pytest.mark.asyncio
-async def test_pdi_sin_datos_responde_409_en_dashboard_y_cmi(client, auth_as_procesos):
+async def test_modulo_no_habilitado_para_el_pdi_responde_409(client, auth_as_procesos):
+    # Resumen General y el informe ejecutivo aún no están listos para el PDI 2026-2030:
+    # nunca se sirven datos del 2022-2026 en su lugar.
     for url in (
         "/api/v1/dashboard/resumen-completo?anio=2026",
-        "/api/v1/cmi/estrategico-dashboard",
-        "/api/v1/cmi/procesos/filtros",
+        "/api/v1/dashboard/kpis",
         "/api/v1/reports/informe-ejecutivo",
     ):
         r = await client.get(url, params={"pdi": "PDI-2026-2030"})
         assert r.status_code == 409, url
-        assert "no está cargada" in r.json()["detail"]
+        assert "aún no está disponible" in r.json()["detail"]
 
 
 @pytest.mark.asyncio
@@ -208,3 +212,10 @@ def test_cache_de_resumen_se_separa_por_pdi(monkeypatch):
     assert svc.get_resumen_completo(anio=2026, vista="indicadores", rango=True, pdi="PDI-A") == {"pdi": "PDI-A"}
     assert llamadas == ["PDI-A", "PDI-B"]  # la 3.ª llamada salió de caché
     rs._RESUMEN_COMPLETO_CACHE.clear()
+
+
+def test_default_sigue_siendo_el_pdi_que_sirve_a_todos_los_modulos():
+    """Sin `pdi`, los clientes que aún no lo envían no deben recibir datos del 2026-2030."""
+    from app.domain.marcos import marco_por_defecto
+
+    assert marco_por_defecto("PDI").version_id == "PDI-2022-2026"

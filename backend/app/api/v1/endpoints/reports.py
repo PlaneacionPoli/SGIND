@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
 
 from app.api.deps import get_excel_service
-from app.api.pdi_deps import get_pdi_marco
+from app.api.pdi_deps import pdi_para
 from app.core.concurrency import run_sync
 from app.core.security import require_reader
 from app.domain.marcos import Marco
@@ -97,7 +97,7 @@ async def pdf_resumen_general(
     },
 )
 async def pdf_informe_ejecutivo(
-    marco: Marco = Depends(get_pdi_marco),
+    marco: Marco = Depends(pdi_para("resumen-general")),
     _user: User = Depends(require_reader),
     excel: ExcelReaderService = Depends(_excel),
 ) -> StreamingResponse:

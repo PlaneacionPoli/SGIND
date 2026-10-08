@@ -135,6 +135,35 @@ class StrategicProcessors:
 
         return self._cmi.filter_estrategico(result.reset_index(drop=True))
 
+    def preparar_pdi_marco_con_cierre(self, anio: int, mes: int, version_id: str) -> pd.DataFrame:
+        """Indicadores ESTRATÉGICOS (PDI = 1) de un PDI con hoja propia (p. ej. PDI 2026-2030),
+        con su línea/objetivo/meta de esa hoja y el último cierre hasta el corte. Análogo a
+        preparar_pdi_con_cierre, que sigue siendo el camino del PDI 2022-2026."""
+        indicadores = self._loaders.load_indicadores_pdi(version_id)
+        cierres = self._loaders.load_cierres()
+        if indicadores.empty or cierres.empty:
+            return pd.DataFrame()
+        indicadores = indicadores[indicadores["PDI"] == 1].copy()
+        if indicadores.empty:
+            return pd.DataFrame()
+        indicadores["Id"] = indicadores["Id"].apply(_normalize_id_value)
+        cierres_cut = cierre_por_corte(cierres, anio, mes)
+        if cierres_cut.empty:
+            return pd.DataFrame()
+        cierres_cut["Id"] = cierres_cut["Id"].apply(_normalize_id_value)
+        result = indicadores[["Id", "Indicador", "Linea", "Objetivo", "Meta_Estrategica"]].merge(
+            cierres_cut, on="Id", how="inner", suffixes=("", "_cierre")
+        )
+        if "Indicador_cierre" in result.columns:
+            result["Indicador"] = result["Indicador"].where(
+                result["Indicador"].notna() & (result["Indicador"].astype(str).str.strip() != ""),
+                result["Indicador_cierre"],
+            )
+            result = result.drop(columns=["Indicador_cierre"])
+        if "Nivel de cumplimiento" in result.columns:
+            result["Nivel de cumplimiento"] = result["Nivel de cumplimiento"].fillna(PENDIENTE_STR)
+        return result.reset_index(drop=True)
+
     def preparar_pdi_cierre_final(self, hoja: str = "Cierre PDI") -> pd.DataFrame:
         """Resultado final por indicador (hoja 'Cierre PDI'), para el rango
         "Cierre PDI 2022-2025" — a diferencia de preparar_pdi_con_cierre, no

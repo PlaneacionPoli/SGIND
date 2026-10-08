@@ -1,3 +1,5 @@
+import shutil
+import tempfile
 import time
 from datetime import UTC, datetime
 from pathlib import Path
@@ -75,9 +77,22 @@ class ExcelReaderService:
         if not path.exists():
             raise FileNotFoundError(f"Archivo no encontrado: {relative_path}")
 
-        df = pd.read_excel(path, sheet_name=sheet_name, header=header, engine="openpyxl")
+        try:
+            df = pd.read_excel(path, sheet_name=sheet_name, header=header, engine="openpyxl")
+        except PermissionError:
+            # El archivo está abierto en Excel (o lo bloquea OneDrive): leer directo falla,
+            # pero copiarlo suele funcionar. Sin esto, el dashboard queda vacío mientras
+            # Planeación diligencia el catálogo.
+            df = self._read_excel_via_copy(path, sheet_name=sheet_name, header=header)
         self._cache[cache_key] = (time.time(), df)
         return df.copy()
+
+    @staticmethod
+    def _read_excel_via_copy(path: Path, *, sheet_name: str | int | None, header: int | None) -> pd.DataFrame:
+        with tempfile.TemporaryDirectory(prefix="sgind_xlsx_") as tmp:
+            local = Path(tmp) / path.name
+            shutil.copy2(path, local)  # si tampoco se puede copiar, se propaga el PermissionError
+            return pd.read_excel(local, sheet_name=sheet_name, header=header, engine="openpyxl")
 
     def read_consolidado(self) -> pd.DataFrame:
         for candidate in PRIMARY_EXCEL_FILES:

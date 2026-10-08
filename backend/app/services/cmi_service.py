@@ -96,7 +96,7 @@ class CMIService:
         self._cmi = CMIFilterService(excel)
         self._indicators = IndicatorService(excel)
 
-    def _available_anios(self) -> list[int]:
+    def _available_anios(self, marco: Marco | None = None) -> list[int]:
         cierres = self._loaders.load_cierres()
         fallback = min(date.today().year, MAX_ANIO_FILTROS)
         if cierres.empty or "Anio" not in cierres.columns:
@@ -108,7 +108,7 @@ class CMIService:
             .astype(int)
             .unique()
             .tolist()
-            if a <= MAX_ANIO_FILTROS
+            if a <= MAX_ANIO_FILTROS and (marco is None or marco.incluye_anio(a))
         )
         return anios or [fallback]
 
@@ -155,8 +155,11 @@ class CMIService:
         ft_sub["Id"] = ft_sub["Id"].astype(str)
         return out.merge(ft_sub, on="Id", how="left")
 
-    def _prepare_df(self, *, anio: int, mes: int) -> pd.DataFrame:
-        df = self._strategic.preparar_pdi_con_cierre(int(anio), int(mes))
+    def _prepare_df(self, *, anio: int, mes: int, marco: Marco | None = None) -> pd.DataFrame:
+        if marco is not None and marco.indicadores_desde != "catalogo":
+            df = self._strategic.preparar_pdi_marco_con_cierre(int(anio), int(mes), marco.version_id)
+        else:
+            df = self._strategic.preparar_pdi_con_cierre(int(anio), int(mes))
         if df.empty:
             return df
         df = ensure_nivel_cumplimiento(df)
@@ -171,14 +174,18 @@ class CMIService:
         df = ensure_nivel_cumplimiento(df)
         return self._enrich_ficha(df)
 
-    def get_filtros(self) -> dict[str, Any]:
-        anios = self._available_anios()
+    def get_filtros(self, pdi: str | None = None) -> dict[str, Any]:
+        marco = get_marco(pdi) if pdi else marco_por_defecto("PDI")
+        anios = self._available_anios(marco)
         anio_def = default_anio(anios)
         return {
             "anios": anios,
             "anio_default": anio_def,
             "corte_default": default_corte(anio_def),
             "cortes": list(CORTE_SEMESTRAL.keys()),
+            # El botón de cierre solo se ofrece si el PDI ya tiene su hoja de cierre cargada.
+            "tiene_cierre": not self._loaders.load_cierre_pdi_final(marco.hoja_cierre or "Cierre PDI").empty,
+            "etiqueta_cierre": marco.etiqueta_cierre,
         }
 
     def get_dashboard(
@@ -191,15 +198,23 @@ class CMIService:
         pdi: str | None = None,
     ) -> dict[str, Any]:
         marco = get_marco(pdi) if pdi else marco_por_defecto("PDI")
-        anios = self._available_anios()
+        anios = self._available_anios(marco)
         anio_eff = int(anio) if anio is not None else default_anio(anios)
         mes_eff = self._resolve_mes(mes, corte)
         corte_label = marco.etiqueta_cierre if rango else CORTE_POR_MES.get(mes_eff, "Diciembre")
 
         df = (
-            self._prepare_df_cierre_pdi(marco) if rango else self._prepare_df(anio=anio_eff, mes=mes_eff)
+            self._prepare_df_cierre_pdi(marco)
+            if rango
+            else self._prepare_df(anio=anio_eff, mes=mes_eff, marco=marco)
         )
-        pdi_catalog = self._loaders.load_pdi_catalog()
+        legacy = marco.indicadores_desde == "catalogo"
+        pdi_catalog = (
+            self._loaders.load_pdi_catalog()
+            if legacy
+            else self._loaders.load_catalogo_taxonomia(marco.version_id)
+        )
+        lineas_catalogo = None if legacy else list(pdi_catalog["Linea"].drop_duplicates())
         cierres = self._loaders.load_cierres()
 
         if df.empty:
@@ -224,7 +239,7 @@ class CMIService:
         df_previous = pd.DataFrame()
         if not rango:
             prev_anio, prev_mes = previous_corte(anio_eff, mes_eff)
-            df_previous = self._prepare_df(anio=prev_anio, mes=prev_mes)
+            df_previous = self._prepare_df(anio=prev_anio, mes=prev_mes, marco=marco)
 
         return {
             "anio": anio_eff,
@@ -236,7 +251,7 @@ class CMIService:
             "kpis": kpis,
             "cumplimiento_por_linea": build_cumplimiento_por_linea(df),
             "distribucion_nivel": build_distribucion_nivel(df),
-            "vista_rapida_lineas": build_vista_rapida_lineas(df),
+            "vista_rapida_lineas": build_vista_rapida_lineas(df, lineas_catalogo),
             "insights": build_insights(kpis),
             "lineas_detalle": build_lineas_detalle(
                 df,
@@ -251,10 +266,17 @@ class CMIService:
         }
 
     def get_indicador_ficha(
-        self, indicador_id: str, *, anio: int, mes: int | None = None, corte: str | None = None
+        self,
+        indicador_id: str,
+        *,
+        anio: int,
+        mes: int | None = None,
+        corte: str | None = None,
+        pdi: str | None = None,
     ) -> dict[str, Any] | None:
+        marco = get_marco(pdi) if pdi else marco_por_defecto("PDI")
         mes_eff = self._resolve_mes(mes, corte)
-        df = self._prepare_df(anio=int(anio), mes=mes_eff)
+        df = self._prepare_df(anio=int(anio), mes=mes_eff, marco=marco)
         if df.empty or "Id" not in df.columns:
             return None
         match = df[df["Id"].astype(str) == str(indicador_id)]

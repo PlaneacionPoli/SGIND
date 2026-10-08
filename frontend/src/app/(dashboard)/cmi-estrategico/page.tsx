@@ -27,7 +27,7 @@ type TabId = (typeof TABS)[number]["id"];
 export default function CMIEstrategicoPage() {
   return (
     <Suspense fallback={<p className="text-sm text-slate-500">Cargando CMI estratégico...</p>}>
-      <PdiGate>{(pdi) => <CMIEstrategicoContent pdi={pdi} />}</PdiGate>
+      <PdiGate modulo="cmi-estrategico">{(pdi) => <CMIEstrategicoContent pdi={pdi} />}</PdiGate>
     </Suspense>
   );
 }
@@ -93,6 +93,13 @@ function CMIEstrategicoContent({ pdi }: { pdi: string }) {
     }
   }, [fichaId, anioEfectivo, corte]);
 
+  // El cierre solo se ofrece si el PDI ya tiene su hoja de cierre (el 2026-2030 aún no).
+  const tieneCierre = filtrosQuery.data?.tiene_cierre !== false;
+
+  useEffect(() => {
+    if (!tieneCierre) setRango(false);
+  }, [tieneCierre]);
+
   const handleReset = () => {
     if (filtrosQuery.data) {
       setAnio(filtrosQuery.data.anio_default);
@@ -130,7 +137,8 @@ function CMIEstrategicoContent({ pdi }: { pdi: string }) {
           onCorteChange={setCorte}
           onReset={handleReset}
           rango={rango}
-          onSelectRango={() => setRango(true)}
+          onSelectRango={tieneCierre ? () => setRango(true) : undefined}
+          etiquetaCierre={filtrosQuery.data?.etiqueta_cierre ?? undefined}
         />
       )}
 
@@ -157,12 +165,7 @@ function CMIEstrategicoContent({ pdi }: { pdi: string }) {
         <p className="text-sm text-slate-500">Cargando datos del CMI estratégico...</p>
       ) : dashboardQuery.isError ? (
         <p className="text-sm text-red-600">No se pudieron cargar los datos del CMI.</p>
-      ) : !data || data.total_indicadores === 0 ? (
-        <p className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
-          No hay indicadores para los filtros seleccionados (
-          {rango ? "Cierre PDI 2022-2025" : `año ${anioEfectivo}, corte ${corte}`}).
-        </p>
-      ) : tab === "resumen" ? (
+      ) : !data ? null : tab === "resumen" ? (
         <CmiResumenTab data={data} onVerLinea={handleVerLinea} />
       ) : tab === "lineas" ? (
         <CmiLineasTab lineas={data.lineas_detalle} expandLineaKey={expandLineaKey} />

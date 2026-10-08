@@ -31,6 +31,10 @@ out_api_consolidado = "data/raw/Fuentes Consolidadas/Consolidado_API_Kawak.xlsx"
 
 [pipeline]
 # Orden de ejecucion del pipeline.
+# "sincronizar_directorio_indicadores" agrega al directorio maestro los indicadores
+# nuevos de Kawak/API y a la hoja de cada PDI activo, y solicita su asignacion de
+# linea/objetivo/meta (en CI queda pendiente y emite [AVISO]); va despues de
+# consolidar_api y antes de actualizar_directorio_maestro.
 # "actualizar_directorio_maestro" complementa Periodicidad/Sentido/Clasificacion
 # del directorio maestro (data/raw/Catalogo de Indicadores.xlsx) usando
 # Ficha_Tecnica_Indicadores.xlsx y, si esta presente, data/raw/Indicadores por
@@ -40,9 +44,10 @@ out_api_consolidado = "data/raw/Fuentes Consolidadas/Consolidado_API_Kawak.xlsx"
 # lista a proposito -- solo se ejecuta manualmente (ver comentario en
 # scripts/run_pipeline.py).
 steps = [
+  "consolidar_api",
+  "sincronizar_directorio_indicadores",
   "actualizar_directorio_maestro",
   "cna_extraction",
-  "consolidar_api",
   "actualizar_consolidado",
   "generar_reporte",
 ]

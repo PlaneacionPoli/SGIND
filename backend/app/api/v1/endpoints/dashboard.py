@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 
 from app.api.deps import get_excel_service
-from app.api.pdi_deps import get_pdi_marco
+from app.api.pdi_deps import pdi_para
 from app.core.concurrency import run_sync
 from app.core.config import Settings, get_settings
 from app.core.security import require_reader
@@ -23,7 +23,8 @@ from app.services.dashboard_service import DashboardService
 from app.services.excel_reader import ExcelReaderService
 
 # El PDI pedido se valida en TODOS los endpoints (404/409 si no existe o no tiene datos).
-router = APIRouter(dependencies=[Depends(get_pdi_marco)])
+pdi_resumen = pdi_para("resumen-general")
+router = APIRouter(dependencies=[Depends(pdi_resumen)])
 
 
 def _excel_service(settings: Settings = Depends(get_settings)) -> ExcelReaderService:
@@ -131,7 +132,7 @@ async def get_resumen_completo(
     anio: int = Query(...),
     vista: str = Query("indicadores"),
     rango: bool = Query(False),
-    marco: Marco = Depends(get_pdi_marco),
+    marco: Marco = Depends(pdi_resumen),
     _user: User = Depends(require_reader),
     dashboard: DashboardService = Depends(_dashboard_service),
 ) -> DashboardResumenCompletoResponse:
@@ -150,7 +151,7 @@ async def get_resumen_completo(
 async def get_resumen_linea(
     key: str,
     anio: int | None = Query(None),
-    marco: Marco = Depends(get_pdi_marco),
+    marco: Marco = Depends(pdi_resumen),
     _user: User = Depends(require_reader),
     dashboard: DashboardService = Depends(_dashboard_service),
 ) -> DashboardResumenLineaResponse:

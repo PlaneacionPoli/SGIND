@@ -35,6 +35,11 @@ class Marco:
     imagen: str | None = None
     hoja_cierre: str | None = None
     taxonomia: str | None = None
+    # Módulos del dashboard habilitados para este PDI (vacío = todos si datos_disponibles).
+    modulos: tuple[str, ...] = ()
+    # De dónde salen los indicadores del PDI: "hoja" (hoja PDI_* del catálogo) o
+    # "catalogo" (columnas heredadas del catálogo; solo el PDI 2022-2026, que se conserva igual).
+    indicadores_desde: str = "hoja"
     etiqueta_cierre_cfg: str | None = None
     datos_disponibles: bool = False
 
@@ -43,6 +48,11 @@ class Marco:
         """Hoja del catálogo con los indicadores de este PDI, su marcador 1/0 y los códigos
         de línea/objetivo/meta (p. ej. 'PDI_2026_2030')."""
         return self.version_id.replace("-", "_")
+
+    def sirve(self, modulo: str) -> bool:
+        """True si el módulo del dashboard (p. ej. 'resumen-general', 'cmi-estrategico',
+        'cmi-procesos') está habilitado para este PDI."""
+        return self.datos_disponibles and (not self.modulos or modulo in self.modulos)
 
     @property
     def etiqueta_cierre(self) -> str:
@@ -86,6 +96,8 @@ def parse_marcos(data: dict) -> list[Marco]:
             imagen=raw.get("imagen"),
             hoja_cierre=raw.get("hoja_cierre"),
             taxonomia=raw.get("taxonomia"),
+            modulos=tuple(raw.get("modulos", ())),
+            indicadores_desde=raw.get("indicadores_desde", "hoja"),
             etiqueta_cierre_cfg=raw.get("etiqueta_cierre"),
             datos_disponibles=bool(raw.get("datos_disponibles", False)),
         )
@@ -132,14 +144,16 @@ def marco_activo(tipo: str = "PDI") -> Marco:
 
 
 def marco_por_defecto(tipo: str = "PDI") -> Marco:
-    """Marco a usar cuando la API no recibe `pdi`: el activo si ya tiene datos;
-    si no, el más reciente con datos. Mantiene compatibilidad con clientes que
-    aún no envían el parámetro."""
+    """Marco a usar cuando la API no recibe `pdi`. Se prefiere el que sirve a TODOS los módulos
+    (el activo si lo hay; si no, el más reciente): un PDI con solo algunos módulos habilitados
+    (p. ej. el 2026-2030 mientras el Resumen General no esté listo) no puede ser el
+    predeterminado, o los clientes que aún no envían `pdi` recibirían datos de otro ciclo."""
     con_datos = [m for m in get_marcos(tipo) if m.datos_disponibles]
     if not con_datos:
         raise LookupError(f"No hay marco {tipo} con datos disponibles")
-    activos = [m for m in con_datos if m.estado == "activo"]
-    return activos[0] if activos else con_datos[-1]
+    completos = [m for m in con_datos if not m.modulos] or con_datos
+    activos = [m for m in completos if m.estado == "activo"]
+    return activos[0] if activos else completos[-1]
 
 
 def marcos_traslapados(tipo: str, desde: int, hasta: int | None = None) -> list[Marco]:

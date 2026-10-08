@@ -269,14 +269,19 @@ def _estado_linea(cump: float) -> tuple[str, str]:
     return categoria, COLOR_CATEGORIA[categoria]
 
 
-def build_vista_rapida_lineas(df: pd.DataFrame) -> list[dict[str, Any]]:
+def build_vista_rapida_lineas(
+    df: pd.DataFrame, catalogo: list[str] | None = None
+) -> list[dict[str, Any]]:
+    """`catalogo`: líneas del PDI que se muestran aunque no tengan indicadores (por defecto las
+    del PDI 2022-2026)."""
+    catalogo = catalogo if catalogo is not None else CATALOGO_LINEAS
     if df.empty or "Linea" not in df.columns:
         return []
     presentes = sorted(
         [ln for ln in df["Linea"].dropna().unique() if str(ln).strip()],
         key=linea_sort_key,
     )
-    catalogo_por_clave = {normalize_linea_key(ln): ln for ln in CATALOGO_LINEAS}
+    catalogo_por_clave = {normalize_linea_key(ln): ln for ln in catalogo}
     presentes_por_clave = {normalize_linea_key(ln): ln for ln in presentes}
     lineas = [presentes_por_clave[k] for k in presentes_por_clave] + [
         catalogo_por_clave[k] for k in catalogo_por_clave if k not in presentes_por_clave

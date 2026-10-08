@@ -34,7 +34,7 @@ const PdiMindmap = dynamic(() => import("@/components/charts/PdiMindmap").then((
 export default function ResumenGeneralPage() {
   return (
     <Suspense fallback={<p className="text-sm text-slate-500">Cargando resumen…</p>}>
-      <PdiGate>{(pdi) => <ResumenGeneralContent pdi={pdi} />}</PdiGate>
+      <PdiGate modulo="resumen-general">{(pdi) => <ResumenGeneralContent pdi={pdi} />}</PdiGate>
     </Suspense>
   );
 }

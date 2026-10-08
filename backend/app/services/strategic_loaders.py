@@ -8,7 +8,12 @@ from app.domain.categorization import categorizar_cumplimiento
 from app.domain.health_metrics import recalcular_cumplimiento_faltante
 from app.domain.loader_utils import find_col, id_a_str, repair_linea_encoding
 from app.domain.marcos import get_marco
-from app.domain.taxonomia import ResultadoAsociacion, resolver_asociaciones
+from app.domain.taxonomia import (
+    ResultadoAsociacion,
+    load_taxonomia,
+    parse_flag01,
+    resolver_asociaciones,
+)
 from app.services.excel_reader import ExcelReaderService
 
 PENDIENTE = "Pendiente de reporte"
@@ -169,6 +174,52 @@ class StrategicLoaders:
                 return vacio
 
         return self._cached_obj(f"asociaciones:{version_id}", _load)
+
+    def load_indicadores_pdi(self, version_id: str) -> pd.DataFrame:
+        """Indicadores asociados a un PDI desde su hoja (p. ej. 'PDI_2026_2030'): Id, Indicador,
+        PDI (1/0/None), Linea, Objetivo y Meta_Estrategica con los NOMBRES OFICIALES de la
+        taxonomía. Solo filas con asociación válida; un Id con varias metas queda con la primera."""
+        cols = ["Id", "Indicador", "PDI", "Linea", "Objetivo", "Meta_Estrategica"]
+
+        def _load() -> pd.DataFrame:
+            marco = get_marco(version_id)
+            validas = self.load_asociaciones(version_id).validas
+            path = self._resolve_cmi()
+            if validas.empty or not path or not marco.taxonomia:
+                return pd.DataFrame(columns=cols)
+            hoja = self._excel.read_excel(path, sheet_name=marco.hoja_asociacion)
+            hoja.columns = [str(c).strip() for c in hoja.columns]
+            hoja["Id"] = hoja["Id"].astype(str).str.strip()
+            hoja["PDI"] = hoja["PDI"].map(parse_flag01).fillna(0) if "PDI" in hoja.columns else 0  # vacío = 0 (de proceso)
+            tax = load_taxonomia(marco.taxonomia)
+            n_lin = {ln.id: ln.nombre for ln in tax.lineas}
+            n_obj = {o.id: o.nombre for ln in tax.lineas for o in ln.objetivos}
+            n_meta = {m.id: m.nombre for _, _, m in tax.iter_metas()}
+            out = validas.drop_duplicates("Id", keep="first").merge(
+                hoja[["Id", "Indicador", "PDI"]].drop_duplicates("Id"), on="Id", how="left"
+            )
+            out["Linea"] = out["linea_id"].map(n_lin)
+            out["Objetivo"] = out["objetivo_id"].map(n_obj)
+            out["Meta_Estrategica"] = out["meta_id"].map(n_meta)
+            return out[cols].reset_index(drop=True)
+
+        return self._cached(f"indicadores_pdi:{version_id}", _load)
+
+    def load_catalogo_taxonomia(self, version_id: str) -> pd.DataFrame:
+        """Catálogo Linea / Objetivo / Meta_Estrategica del PDI, desde su taxonomía (equivale
+        a load_pdi_catalog del PDI heredado)."""
+
+        def _load() -> pd.DataFrame:
+            marco = get_marco(version_id)
+            if not marco.taxonomia:
+                return pd.DataFrame(columns=["Linea", "Objetivo", "Meta_Estrategica"])
+            filas = [
+                {"Linea": ln.nombre, "Objetivo": ob.nombre, "Meta_Estrategica": m.nombre}
+                for ln, ob, m in load_taxonomia(marco.taxonomia).iter_metas()
+            ]
+            return pd.DataFrame(filas)
+
+        return self._cached(f"catalogo_taxonomia:{version_id}", _load)
 
     def load_vigencias(self) -> dict[str, tuple[int | None, int | None]]:
         """Id -> (año de inicio, año de fin) del indicador, desde la hoja

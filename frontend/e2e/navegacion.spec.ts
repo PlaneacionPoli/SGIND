@@ -93,9 +93,9 @@ test.describe("Navegación — selección de PDI", () => {
     await expect(page.locator("h2").filter({ hasText: /cmi estratégico/i })).toBeVisible();
   });
 
-  test("un PDI sin datos cargados muestra aviso y no datos de otro ciclo", async ({ page }) => {
+  test("un módulo no habilitado para el PDI muestra aviso y no datos de otro ciclo", async ({ page }) => {
     await page.goto("/resumen-general?pdi=PDI-2026-2030");
-    await expect(page.getByText(/información en preparación/i)).toBeVisible();
+    await expect(page.getByText(/módulo en preparación/i)).toBeVisible();
   });
 });
 

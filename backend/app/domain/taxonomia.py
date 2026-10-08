@@ -222,7 +222,7 @@ def resolver_asociaciones(
                 continue
 
         if "PDI" in df.columns:
-            motivo = regla_meta(parse_flag01(row["PDI"]), bool(meta_t), ver)
+            motivo = regla_meta(parse_flag01(row["PDI"]) or 0, bool(meta_t), ver)  # PDI vacío = 0 (de proceso)
             if motivo:
                 incumplimientos.append({"fila": fila, "Id": ind, "version_id": ver, "motivo": motivo})
 

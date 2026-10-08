@@ -17,6 +17,14 @@ export interface Marco {
   imagen: string | null;
   /** false = la versión aún no tiene datos cargados; el módulo muestra un aviso. */
   datos_disponibles: boolean;
+  /** Módulos habilitados (vacío = todos si datos_disponibles). */
+  modulos: string[];
+}
+
+/** Módulo del dashboard (ruta sin barra) habilitado para el PDI. */
+export function marcoSirve(marco: Marco | undefined, modulo: string): boolean {
+  if (!marco?.datos_disponibles) return false;
+  return marco.modulos.length === 0 || marco.modulos.includes(modulo);
 }
 
 export async function fetchMarcos(tipo: "PDI" | "CNA" = "PDI"): Promise<Marco[]> {

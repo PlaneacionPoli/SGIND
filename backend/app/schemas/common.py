@@ -203,6 +203,8 @@ class CMIAlertasResponse(BaseModel):
 
 
 class CMIFiltrosResponse(BaseModel):
+    tiene_cierre: bool = True
+    etiqueta_cierre: str | None = None
     anios: list[int] = Field(default_factory=list)
     anio_default: int
     corte_default: str

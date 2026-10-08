@@ -1,189 +1,189 @@
 {
   "version_id": "PDI-2026-2030",
   "tipo": "PDI",
-  "fuente": "skill contexto-pdi-poli §3 (PDI 2026-2030)",
+  "fuente": "PDI_2026-2030_Lineas_Objetivos_Metas.xlsx (textos oficiales del PDI)",
   "lineas": [
     {
-      "id": "calidad-e-innovacion-educativa",
+      "id": "L1",
       "orden": 1,
       "nombre": "Calidad e Innovación Educativa",
       "objetivos": [
         {
-          "id": "calidad-e-innovacion-educativa-O1",
+          "id": "L1-OI",
           "numero": 1,
-          "nombre": "Consolidar el Modelo Educativo Intergeneracional, Innovador y Multimodal",
+          "nombre": "Consolidar el Modelo Educativo Intergeneracional, Innovador y Multimodal.",
           "metas": [
             {
-              "id": "calidad-e-innovacion-educativa-O1-M1",
-              "nombre": "Diseñar e implementar el Modelo"
+              "id": "L1-OI-M1",
+              "nombre": "Diseñar e implementar el Modelo Educativo Intergeneracional, Innovador y Multimodal."
             },
             {
-              "id": "calidad-e-innovacion-educativa-O1-M2",
-              "nombre": "Actualizar los programas académicos con el nuevo Modelo"
+              "id": "L1-OI-M2",
+              "nombre": "Actualizar los programas académicos con el nuevo Modelo."
             }
           ]
         },
         {
-          "id": "calidad-e-innovacion-educativa-O2",
+          "id": "L1-OII",
           "numero": 2,
-          "nombre": "Fortalecer la enseñanza y el aprendizaje mediante nuevas tendencias tecnológicas",
+          "nombre": "Fortalecer la enseñanza y el aprendizaje mediante nuevas tendencias tecnológicas.",
           "metas": [
             {
-              "id": "calidad-e-innovacion-educativa-O2-M1",
-              "nombre": "Diseñar e implementar estrategias pedagógicas innovadoras con uso ético de la IA"
+              "id": "L1-OII-M1",
+              "nombre": "Diseñar e implementar estrategias pedagógicas innovadoras que incorporen el uso ético de la IA y las nuevas tendencias."
             },
             {
-              "id": "calidad-e-innovacion-educativa-O2-M2",
-              "nombre": "Capacitar y certificar a los profesores en competencias intergeneracionales, IA y nuevas tecnologías"
+              "id": "L1-OII-M2",
+              "nombre": "Capacitar y certificar a la comunidad de profesores en competencias intergeneracionales, uso de IA y nuevas tecnologías."
             }
           ]
         },
         {
-          "id": "calidad-e-innovacion-educativa-O3",
+          "id": "L1-OIII",
           "numero": 3,
-          "nombre": "Promover una cultura de mejoramiento continuo en las labores misionales y los procesos",
+          "nombre": "Promover una cultura de mejoramiento continuo en las labores misionales y los procesos.",
           "metas": [
             {
-              "id": "calidad-e-innovacion-educativa-O3-M1",
-              "nombre": "Avanzar en acreditación internacional institucional y de programas"
+              "id": "L1-OIII-M1",
+              "nombre": "Avanzar en procesos de acreditación con estándares internacionales a nivel institucional y de programas."
             },
             {
-              "id": "calidad-e-innovacion-educativa-O3-M2",
-              "nombre": "Impulsar acreditación nacional de programas"
+              "id": "L1-OIII-M2",
+              "nombre": "Impulsar la acreditación de programas a nivel nacional."
             },
             {
-              "id": "calidad-e-innovacion-educativa-O3-M3",
-              "nombre": "Optimizar procesos con nuevas tecnologías y fortalecer decisiones basadas en evidencia"
+              "id": "L1-OIII-M3",
+              "nombre": "Optimizar los procesos con la aplicación de nuevas tendencias tecnológicas y fortalecer la toma de decisiones a partir del análisis de las fuentes de mejoramiento institucional."
             },
             {
-              "id": "calidad-e-innovacion-educativa-O3-M4",
-              "nombre": "Consolidar la autoevaluación permanente"
+              "id": "L1-OIII-M4",
+              "nombre": "Consolidar procesos de autoevaluación permanente e implementación de acciones que contribuyan a seguir mejorando el impacto de las labores misionales."
             }
           ]
         }
       ]
     },
     {
-      "id": "experiencia-centrada-en-las-personas",
+      "id": "L2",
       "orden": 2,
       "nombre": "Experiencia Centrada en las Personas",
       "objetivos": [
         {
-          "id": "experiencia-centrada-en-las-personas-O1",
+          "id": "L2-OI",
           "numero": 1,
-          "nombre": "Consolidar una comunidad Poli feliz y apasionada por transformar vidas de manera positiva",
+          "nombre": "Consolidar una comunidad Poli feliz y apasionada por transformar vidas de manera positiva.",
           "metas": [
             {
-              "id": "experiencia-centrada-en-las-personas-O1-M1",
-              "nombre": "Consolidar el ADN Poli como pilar de la experiencia institucional"
+              "id": "L2-OI-M1",
+              "nombre": "Consolidar el ADN Poli como pilar de la experiencia institucional, asegurando su apropiación e interiorización."
             },
             {
-              "id": "experiencia-centrada-en-las-personas-O1-M2",
-              "nombre": "Garantizar el bienestar integral con enfoque intergeneracional"
+              "id": "L2-OI-M2",
+              "nombre": "Garantizar el bienestar integral y el desarrollo de nuestra comunidad universitaria, a través de un modelo con enfoque intergeneracional que responda a las necesidades reales de las personas."
             }
           ]
         },
         {
-          "id": "experiencia-centrada-en-las-personas-O2",
+          "id": "L2-OII",
           "numero": 2,
-          "nombre": "Diseñar experiencias empáticas e incluyentes que integren tecnología y calidez humana con los grupos de interés",
+          "nombre": "Diseñar experiencias empáticas e incluyentes que integren tecnología y calidez humana con los grupos de interés.",
           "metas": [
             {
-              "id": "experiencia-centrada-en-las-personas-O2-M1",
-              "nombre": "Impulsar un modelo de madurez de la experiencia (bienestar, datos, optimización de procesos)"
+              "id": "L2-OII-M1",
+              "nombre": "Impulsar un modelo de madurez de la experiencia en la comunidad universitaria que integre el bienestar, la toma de decisiones basada en datos y la optimización de los procesos."
             },
             {
-              "id": "experiencia-centrada-en-las-personas-O2-M2",
-              "nombre": "Consolidar el Ecosistema Digital centrado en las personas"
+              "id": "L2-OII-M2",
+              "nombre": "Consolidar el Ecosistema Digital centrado en las personas, apalancado por las tecnologías emergentes."
             },
             {
-              "id": "experiencia-centrada-en-las-personas-O2-M3",
-              "nombre": "Potenciar la madurez institucional en datos y analítica (incluida IA)"
+              "id": "L2-OII-M3",
+              "nombre": "Potenciar la madurez institucional en datos y analítica, incorporando tecnologías emergentes —incluida la IA— para habilitar decisiones inteligentes."
             }
           ]
         }
       ]
     },
     {
-      "id": "expansion-con-compromiso-social",
+      "id": "L3",
       "orden": 3,
       "nombre": "Expansión con Compromiso Social",
       "objetivos": [
         {
-          "id": "expansion-con-compromiso-social-O1",
+          "id": "L3-OI",
           "numero": 1,
-          "nombre": "Fortalecer el relacionamiento, posicionamiento y crecimiento en el país",
+          "nombre": "Fortalecer el relacionamiento, posicionamiento y crecimiento en el país.",
           "metas": [
             {
-              "id": "expansion-con-compromiso-social-O1-M1",
-              "nombre": "Potenciar el posicionamiento nacional mediante convenios y alianzas público-privadas"
+              "id": "L3-OI-M1",
+              "nombre": "Potenciar el posicionamiento nacional por medio de la gestión estratégica de convenios y alianzas con los sectores público y privado, asegurando un crecimiento sostenido."
             },
             {
-              "id": "expansion-con-compromiso-social-O1-M2",
-              "nombre": "Implementar iniciativas de posicionamiento de marca con sentido social"
+              "id": "L3-OI-M2",
+              "nombre": "Implementar iniciativas de posicionamiento que proyecten una identidad de marca con sentido social, fortaleciendo la reputación y reconocimiento en el país."
             }
           ]
         },
         {
-          "id": "expansion-con-compromiso-social-O2",
+          "id": "L3-OII",
           "numero": 2,
-          "nombre": "Ampliar la presencia en América",
+          "nombre": "Ampliar la presencia en América.",
           "metas": [
             {
-              "id": "expansion-con-compromiso-social-O2-M1",
-              "nombre": "Posicionar la marca Poli en países priorizados de América"
+              "id": "L3-OII-M1",
+              "nombre": "Posicionar la marca Poli en países priorizados de América."
             }
           ]
         },
         {
-          "id": "expansion-con-compromiso-social-O3",
+          "id": "L3-OIII",
           "numero": 3,
-          "nombre": "Desarrollar un portafolio intergeneracional de servicios educativos pertinente y flexible para toda la vida",
+          "nombre": "Desarrollar un portafolio intergeneracional de servicios educativos pertinente y flexible para toda la vida.",
           "metas": [
             {
-              "id": "expansion-con-compromiso-social-O3-M1",
-              "nombre": "Consolidar un portafolio de educación formal pertinente en Colombia y América"
+              "id": "L3-OIII-M1",
+              "nombre": "Consolidar un portafolio de educación formal pertinente en Colombia y América."
             },
             {
-              "id": "expansion-con-compromiso-social-O3-M2",
-              "nombre": "Contar con oferta de educación no formal (cursos, seminarios, talleres)"
+              "id": "L3-OIII-M2",
+              "nombre": "Contar con una oferta de educación no formal que incluya cursos, seminarios y talleres alineados con las dinámicas del entorno."
             }
           ]
         }
       ]
     },
     {
-      "id": "desarrollo-sostenible",
+      "id": "L4",
       "orden": 4,
       "nombre": "Desarrollo Sostenible",
       "objetivos": [
         {
-          "id": "desarrollo-sostenible-O1",
+          "id": "L4-OI",
           "numero": 1,
-          "nombre": "Garantizar una gestión sostenible que impacte positivamente en la comunidad y el ambiente",
+          "nombre": "Garantizar una gestión sostenible que impacte positivamente en la comunidad y el ambiente.",
           "metas": [
             {
-              "id": "desarrollo-sostenible-O1-M1",
-              "nombre": "Posicionar al Poli como referente en Responsabilidad Social Universitaria"
+              "id": "L4-OI-M1",
+              "nombre": "Posicionar la Institución como referente en Responsabilidad Social Universitaria, mediante la generación de valor social sostenible y la transformación positiva de la comunidad."
             },
             {
-              "id": "desarrollo-sostenible-O1-M2",
-              "nombre": "Diseñar, implementar y consolidar el Modelo de Sostenibilidad Poli con indicadores medibles"
+              "id": "L4-OI-M2",
+              "nombre": "Diseñar, implementar y consolidar el Modelo de Sostenibilidad Poli que integre de manera articulada la sostenibilidad ambiental, social y económica en su gestión, con indicadores medibles de impacto."
             }
           ]
         },
         {
-          "id": "desarrollo-sostenible-O2",
+          "id": "L4-OII",
           "numero": 2,
-          "nombre": "Diversificar y optimizar los recursos financieros como apalancadores de la estrategia",
+          "nombre": "Diversificar y optimizar los recursos financieros como apalancadores de la estrategia.",
           "metas": [
             {
-              "id": "desarrollo-sostenible-O2-M1",
-              "nombre": "Incrementar la participación de otros ingresos distintos a matrículas (educación continua, formación a la medida, consultorías)"
+              "id": "L4-OII-M1",
+              "nombre": "Incrementar la participación de otros ingresos provenientes de fuentes diferentes a matrículas."
             },
             {
-              "id": "desarrollo-sostenible-O2-M2",
-              "nombre": "Asignar recursos priorizados por impacto social, ambiental y económico"
+              "id": "L4-OII-M2",
+              "nombre": "Asignar los recursos necesarios para el desarrollo de planes y proyectos, priorizados por su impacto social, ambiental y económico, en el marco de las Líneas Estratégicas."
             }
           ]
         }

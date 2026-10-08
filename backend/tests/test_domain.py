@@ -210,3 +210,27 @@ def test_filtro_por_linea_del_pdi_en_procesos():
     assert apply_ui_filters(df, ids_linea=set()).empty  # línea sin indicadores
     assert len(apply_ui_filters(df, ids_linea=None)) == 3  # sin filtro por línea
     assert list(apply_ui_filters(df, proceso="A", ids_linea={"1", "3"})["Id"]) == ["1"]
+
+
+def test_lectura_de_excel_bloqueado_usa_una_copia(tmp_path, monkeypatch):
+    """Si Excel/OneDrive bloquea el archivo (PermissionError), se lee desde una copia temporal."""
+    import pandas as pd
+
+    from app.core.config import Settings
+    from app.services.excel_reader import ExcelReaderService
+
+    pd.DataFrame({"Id": [1, 2]}).to_excel(tmp_path / "bloqueado.xlsx", index=False)
+    svc = ExcelReaderService(Settings(sgind_data_path=str(tmp_path)))
+    original = pd.read_excel
+    llamadas: list[str] = []
+
+    def lectura(io, *args, **kwargs):
+        llamadas.append(str(io))
+        if len(llamadas) == 1:
+            raise PermissionError(13, "Permission denied")
+        return original(io, *args, **kwargs)
+
+    monkeypatch.setattr(pd, "read_excel", lectura)
+    df = svc.read_excel("bloqueado.xlsx", sheet_name=0, use_cache=False)
+    assert list(df["Id"]) == [1, 2]
+    assert len(llamadas) == 2 and llamadas[0] != llamadas[1]  # el segundo intento fue sobre la copia

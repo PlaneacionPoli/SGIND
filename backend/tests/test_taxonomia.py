@@ -17,7 +17,7 @@ from app.domain.taxonomia import (
 V22 = "PDI-2022-2026"
 V26 = "PDI-2026-2030"
 OBJ_1 = "Consolidar el Modelo Educativo Intergeneracional, Innovador y Multimodal"
-META_1 = "Diseñar e implementar el Modelo"
+META_1 = "Diseñar e implementar el Modelo Educativo Intergeneracional, Innovador y Multimodal."
 
 
 def _df(*filas):
@@ -66,9 +66,9 @@ def test_asociacion_valida_resuelve_ids_ignorando_tildes_y_espacios():
     assert r.errores == []
     assert r.validas.iloc[0].to_dict() == {
         "Id": "10", "version_id": V26,
-        "linea_id": "calidad-e-innovacion-educativa",
-        "objetivo_id": "calidad-e-innovacion-educativa-O1",
-        "meta_id": "calidad-e-innovacion-educativa-O1-M1",
+        "linea_id": "L1",
+        "objetivo_id": "L1-OI",
+        "meta_id": "L1-OI-M1",
     }
 
 
@@ -104,10 +104,10 @@ def test_regla_meta_pdi_1_exige_meta_y_0_no_puede_tenerla():
         ["2", V26, 1, ln, OBJ_1, None],       # estratégico sin meta
         ["3", V26, 0, ln, OBJ_1, None],       # proceso sin meta: ok
         ["4", V26, 0, ln, OBJ_1, META_1],     # proceso con meta
-        ["5", V26, None, ln, OBJ_1, None],    # sin marcador
+        ["5", V26, None, ln, OBJ_1, None],    # sin marcador: vacío = 0, sin meta: ok
     ))
     assert len(r.validas) == 5  # incumplir la regla no descarta la fila
-    assert [i["Id"] for i in r.incumplimientos] == ["2", "4", "5"]
+    assert [i["Id"] for i in r.incumplimientos] == ["2", "4"]
 
 
 def test_duplicados_version_sin_taxonomia_y_filtro_por_version():
