@@ -43,6 +43,7 @@ async def cmi_estrategico_dashboard(
     mes: int | None = Query(None, ge=1, le=12),
     corte: str | None = Query(None, description="Junio o Diciembre"),
     rango: bool = Query(False, description="Cierre del PDI elegido (resultado final por indicador)"),
+    solo_con_reporte: bool = Query(False, description="Oculta los indicadores pendientes de medición"),
     marco: Marco = Depends(get_pdi_marco),
     _user: User = Depends(require_reader),
     service: CMIService = Depends(_cmi_service),
@@ -54,6 +55,7 @@ async def cmi_estrategico_dashboard(
             corte=corte,
             rango=rango,
             pdi=marco.version_id,
+            solo_con_reporte=solo_con_reporte,
         )
     )
 

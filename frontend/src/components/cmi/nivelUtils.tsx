@@ -17,7 +17,7 @@ export function NivelBadge({ nivel }: { nivel?: string }) {
       style={{ color: style.text, backgroundColor: style.bg }}
     >
       <span className="h-2 w-2 rounded-full" style={{ backgroundColor: style.text }} />
-      {n}
+      {n === "Pendiente de reporte" ? "Pendiente de medición" : n}
     </span>
   );
 }

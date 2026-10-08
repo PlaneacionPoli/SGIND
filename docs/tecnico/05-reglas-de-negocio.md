@@ -90,6 +90,53 @@ indicador". Ver gap G-19 en
 | RN-16 | Estado del Indicador dentro de Plan de Mejoramiento (distinto del semáforo de cumplimiento) | `domain/plan_mejoramiento_builders.py::classify_plan_indicador_estado` (526-544) | Estado_Aprobacion, Tipo, medición 2025/2026 | Activo (aprobado + Tipo=Indicador + con medición) / Aprobado (aprobado sin medición) / Pendiente | No — solo aplica a filas de Plan de Mejoramiento, no al indicador general del dashboard |
 | RN-17 | Exclusión de "subtotal fantasma" en desglose de Métricas | `domain/plan_mejoramiento_builders.py::_excluye_subtotal_fantasma` (1010-1028) | filas de una Métrica con y sin `Subindicador` | filas sin el subtotal duplicado | No — corrige un caso real de doble conteo detectado en "Matrícula de estudiantes" (5.881 vs. 58.398 real, 2026-09-18) |
 
+## RN-21 · Arrastre del último dato anual: solo en Indicadores POLISIGS
+
+**Regla aparte (confirmada con negocio, 2026-10-08).** Cuando un indicador de
+periodicidad anual todavía no tiene reporte en el año en curso (p. ej. Great
+Place to Work o «Programas acreditables acreditados Sede Bogotá» en 2026), la
+única sección que muestra el último dato anual disponible (p. ej. diciembre
+2025) es **Indicadores POLISIGS**. En todas las demás secciones el indicador
+se muestra como **«Pendiente de medición»**, sin meta ni ejecución, y nunca con
+cifras de un año anterior.
+
+| Sección | Indicador anual sin reporte del año | Dónde se implementa |
+|---|---|---|
+| Indicadores POLISIGS | Muestra el último dato anual, rotulando el corte real («Diciembre 2025») | `services/polisigs_service.py::_ultimo_fallback_anual` |
+| CMI Estratégico (PDI con hoja propia, p. ej. 2026-2030) | «Pendiente de medición» (nivel interno `Pendiente de reporte`); la ficha solo trae histórico de los años del ciclo | `domain/strategic_processors.py::preparar_pdi_marco_con_cierre`, `services/cmi_service.py::get_indicador_ficha` |
+| CMI por Procesos (PDI con hoja propia) | Solo ofrece los años del ciclo del PDI | `services/cmi_service.py::get_procesos_filtros` |
+| Resto de secciones | No arrastran datos de otro año | — |
+
+Consecuencias de diseño:
+- El CMI Estratégico del 2026-2030 solo mide dentro de su ciclo (`Marco.incluye_anio`); los años 2022-2025 se consultan en POLISIGS o en el PDI 2022-2026.
+- El filtro general **«Mostrar solo indicadores con reporte»** (CMI Estratégico) oculta los pendientes de medición y recalcula KPIs y gráficas sin ellos (`solo_con_reporte` en `/cmi/estrategico-dashboard`).
+- Si se agrega otra sección que deba arrastrar el dato anual, esta regla se debe ampliar de forma explícita; por defecto **no** aplica.
+
+## Reglas del ciclo N-PDI y del catálogo (octubre 2026)
+
+Reglas de negocio confirmadas durante la incorporación del PDI 2026-2030. El diseño
+y las decisiones abiertas están en [`impact_report.md`](../../impact_report.md);
+aquí queda lo que el sistema **aplica**.
+
+| Id | Regla | Implementada en | Notas |
+|---|---|---|---|
+| RN-22 | **Coexistencia de PDI.** Cada PDI es un marco versionado en `marcos.toml` (años de datos, módulos habilitados, taxonomía, hoja de cierre). Los dos PDI se mantienen: 2022-2026 (cerrado, consultable) y 2026-2030 (activo). **2026 pertenece solo al 2026-2030**; el 2022-2026 cierra con datos 2022-2025. El Id de un indicador **no cambia** entre PDI: solo cambia su asociación. | `backend/app/data/marcos.toml`, `domain/marcos.py` | Sin `?pdi` se sirve el PDI que atiende todos los módulos (hoy 2022-2026), nunca el 2026-2030 por omisión. |
+| RN-23 | **Qué responde la API según el PDI.** `?pdi` inexistente → 404; no es un PDI → 422; sin datos cargados → 409; módulo no habilitado para ese PDI → 409 (hoy el Resumen General del 2026-2030). Nunca se sirven datos de otro ciclo en su lugar; las cachés y las claves del frontend incluyen el PDI. | `api/pdi_deps.py` (`get_pdi_marco`, `pdi_para`) | El selector de PDI se pide siempre al entrar a Resumen, CMI Estratégico y CMI por Procesos, con chip para cambiar. |
+| RN-24 | **Una hoja por PDI en el catálogo** (`PDI_2022_2026`, `PDI_2026_2030`). Columnas: contexto del indicador + `PDI` + `Linea` + `Objetivo` + `Meta` + `Observaciones`. Línea, objetivo y meta se eligen **por nombre** con desplegables en cascada (`Listas_PDI_*`), no por códigos. La hoja 2022-2026 es una migración congelada; la del 2026-2030 la diligencia Planeación y los scripts solo agregan lo que falta. | `scripts/agregar_hojas_marco_catalogo.py`, `domain/taxonomia.py::resolver_asociaciones` | Los errores de asociación (texto que no existe en la taxonomía) se reportan con su fila; no se ignoran en silencio. |
+| RN-25 | **Marcador `PDI` y regla de meta estratégica.** `PDI = 1` indicador estratégico del PDI: **debe** tener meta estratégica. `PDI = 0` indicador de proceso: **no puede** tenerla. **Vacío = 0** (los indicadores nuevos entran con 0). El incumplimiento se reporta pero **no descarta la fila**. | `domain/taxonomia.py::regla_meta`, `services/strategic_loaders.py::load_indicadores_pdi` | El CMI Estratégico de un PDI con hoja propia solo incluye `PDI = 1`. |
+| RN-26 | **Taxonomía oficial por PDI.** Las líneas, objetivos y metas salen del Excel oficial (`data/raw/PDI_2026-2030_Lineas_Objetivos_Metas.xlsx`: 4 líneas, 10 objetivos, 22 metas, textos sin parafrasear). Los ids son los códigos del Excel (`L1`, `L1-OI`, `L1-OI-M1`). | `scripts/importar_taxonomia_pdi.py`, `backend/app/data/taxonomia/*.json` | Al reimportar, lo ya elegido en el catálogo se migra al texto oficial por posición; lo que no se pueda emparejar se informa sin modificarlo. |
+| RN-27 | **Proyectos.** Los proyectos del ciclo anterior (PRY ≤ 44) cuyo estado PMO **no** sea Cerrado/Finalizado continúan en el 2026-2030 con el mismo Id (los «Stand by» se consideran abiertos). Los PRY posteriores al 44 son del ciclo nuevo. | `scripts/agregar_hojas_marco_catalogo.py::candidatos_vigente` | Abierto: si el avance de un proyecto que continúa es acumulado o reinicia en 2026. |
+| RN-28 | **Indicadores nuevos y «activo».** Un indicador es nuevo si está en el año más reciente de Kawak o en la API y no en el catálogo. «Activo» = Estado `Activo` **o** vigente en Kawak/API (el Estado vacío no lo excluye). Solo los activos se asocian al PDI vigente; los nuevos entran con `PDI = 0` y la línea/objetivo se **solicita** (en terminal) o queda pendiente con `[AVISO]` (en el pipeline). Los vacíos del catálogo se completan desde Kawak/API **sin pisar** valores existentes. | `scripts/sincronizar_directorio_indicadores.py` | Paso del pipeline entre `consolidar_api` y `actualizar_directorio_maestro`. |
+| RN-29 | **Asociación preliminar.** La línea y el objetivo propuestos por contenido (nombre, descripción, proceso) son una **propuesta** para revisión: solo llenan celdas vacías, no tocan `PDI` ni `Meta` y marcan la fila en Observaciones. | `scripts/asociar_preliminar_pdi.py` | La decisión final es de Planeación. |
+| RN-30 | **CMI por Procesos.** Los filtros muestran las líneas del PDI elegido y los años de su ciclo. La **ficha** del indicador muestra la línea de cada PDI cuya vigencia cruza la del indicador según su fecha de inicio (iniciado en 2023: ambos PDI; iniciado en 2027: solo el vigente). | `services/cmi_service.py::get_procesos_filtros`, `domain/asociaciones.py::asociaciones_ficha` | Faltan fechas de inicio en algunos indicadores (p. ej. 526, 543, 544, 551). |
+| RN-31 | **Años y cierre por PDI.** El PDI 2022-2026 ofrece 2022-2025 y su botón «Cierre PDI 2022-2025» (medición consolidada al cierre). El 2026-2030 ofrece solo 2026 y no muestra botón de cierre hasta que exista su hoja «Cierre PDI 2026-2030». Un PDI no muestra mensajes de «sin información» de otro ciclo. | `services/cmi_service.py::get_filtros`, `Marco.etiqueta_cierre` | Ver también RN-21 (pendiente de medición y filtro «solo con reporte»). |
+| RN-32 | **ETL: la hoja Variables es obligatoria.** Si hay indicadores con extracción «Desglose Variables» y el mapa de Variables/Campo está vacío, el ETL **se detiene** en lugar de escribir el consolidado (sin ella, ~88 indicadores quedaban con Meta/Ejecución = 100). Todo cambio del ETL se prueba primero en un sandbox. | `scripts/actualizar_consolidado.py`, `scripts/etl/catalogo.py::_leer_variables_campo` | Incidente documentado; ver memoria del proyecto. |
+| RN-33 | **ETL: indicadores que suman variables de series.** Meta y Ejecución del 274 (matrículas) y del 203 (ingresos) se calculan sumando variables de sus series (TEMS/TEP y TIEJE/TIPRE), en montos, no como el porcentaje crudo de la API. El promedio de NPS ignora semestres 0/0. | `scripts/etl/extraccion.py::_IDS_SUMA_VARIABLES_SERIES`, `scripts/etl/purga.py` | El texto del catálogo no coincide con las constantes del ETL: se declara por Id. |
+| RN-34 | **Unidades de visualización.** El formato (`%`, `$`, `ENT`) sale de `Meta_Signo` en el catálogo; si falta se usa `%`. Por eso las cifras en pesos (Caja, Utilidad, CAPEX, OPEX, EBITDA, Ingresos) y las enteras (GreenMetric) deben tener su signo declarado. | `frontend/src/lib/*` (`fmtValorSigno`), catálogo | |
+| RN-35 | **Métricas.** Un registro que es métrica (sin meta por diseño) tiene nivel `Métrica`, **no** «Pendiente de reporte». | `domain/resumen_builders.py::mask_metrica`, `NIVEL_METRICA` | |
+| RN-36 | **Lectura con Excel abierto.** Si el catálogo está bloqueado por Excel/OneDrive, el backend lee una copia temporal en lugar de fallar; si tampoco puede copiarlo, propaga el error. | `services/excel_reader.py::_read_excel_via_copy` | Evita que el dashboard quede vacío mientras Planeación diligencia el catálogo. |
+| RN-37 | **CNA versionado (diseñado, sin implementar).** Los factores y características pasan a una nueva resolución desde 2027. El mismo modelo de marcos (`tipo = CNA`) los versiona; la resolución vigente queda como versión original. | `marcos.toml` (`CNA-ACTUAL`) | La nueva resolución aún no existe. |
+
 ## Regla que sí es única y bien centralizada
 
 `domain/categorization.py` (RN-03) es la única fuente desde Oleada 2 — todos

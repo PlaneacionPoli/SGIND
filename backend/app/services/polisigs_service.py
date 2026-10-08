@@ -101,7 +101,11 @@ def _ultimo(excel: ExcelReaderService, anio: int, mes: int) -> dict[str, dict[st
 
 
 def _ultimo_fallback_anual(excel: ExcelReaderService, anio: int) -> dict[str, dict[str, Any]]:
-    """Último corte anual disponible antes de `anio`, para indicadores de
+    """RN-21 (docs/tecnico/05-reglas-de-negocio.md): POLISIGS es la ÚNICA sección que arrastra
+    el último dato anual cuando el indicador aún no tiene reporte del año; las demás secciones
+    lo muestran como «Pendiente de medición».
+
+    Último corte anual disponible antes de `anio`, para indicadores de
     periodicidad anual (se miden una sola vez al año: en el corte de junio del
     año en curso todavía no tienen ejecución, así que se muestra el último
     dato anual reportado, p. ej. diciembre 2025, marcando ese corte real)."""

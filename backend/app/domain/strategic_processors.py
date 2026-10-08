@@ -147,12 +147,18 @@ class StrategicProcessors:
         if indicadores.empty:
             return pd.DataFrame()
         indicadores["Id"] = indicadores["Id"].apply(_normalize_id_value)
+        # RN-21: un PDI con hoja propia solo mide dentro de su año. Un indicador anual sin cierre
+        # en el año elegido queda «Pendiente de reporte»; NO se arrastra el valor de 2025 (eso
+        # solo lo hace Indicadores POLISIGS).
+        if "Anio" in cierres.columns:
+            cierres = cierres[pd.to_numeric(cierres["Anio"], errors="coerce") == int(anio)]
         cierres_cut = cierre_por_corte(cierres, anio, mes)
-        if cierres_cut.empty:
-            return pd.DataFrame()
-        cierres_cut["Id"] = cierres_cut["Id"].apply(_normalize_id_value)
+        if not cierres_cut.empty:
+            cierres_cut["Id"] = cierres_cut["Id"].apply(_normalize_id_value)
+        else:
+            cierres_cut = pd.DataFrame({"Id": []})
         result = indicadores[["Id", "Indicador", "Linea", "Objetivo", "Meta_Estrategica"]].merge(
-            cierres_cut, on="Id", how="inner", suffixes=("", "_cierre")
+            cierres_cut, on="Id", how="left", suffixes=("", "_cierre")
         )
         if "Indicador_cierre" in result.columns:
             result["Indicador"] = result["Indicador"].where(
@@ -160,8 +166,9 @@ class StrategicProcessors:
                 result["Indicador_cierre"],
             )
             result = result.drop(columns=["Indicador_cierre"])
-        if "Nivel de cumplimiento" in result.columns:
-            result["Nivel de cumplimiento"] = result["Nivel de cumplimiento"].fillna(PENDIENTE_STR)
+        if "Nivel de cumplimiento" not in result.columns:
+            result["Nivel de cumplimiento"] = PENDIENTE_STR
+        result["Nivel de cumplimiento"] = result["Nivel de cumplimiento"].fillna(PENDIENTE_STR)
         return result.reset_index(drop=True)
 
     def preparar_pdi_cierre_final(self, hoja: str = "Cierre PDI") -> pd.DataFrame:

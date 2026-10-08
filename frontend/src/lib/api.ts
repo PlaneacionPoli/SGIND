@@ -210,6 +210,8 @@ export async function fetchCMIDashboard(params: {
   mes?: number;
   rango?: boolean;
   pdi?: string;
+  /** true = oculta los indicadores pendientes de medición. */
+  solo_con_reporte?: boolean;
 }): Promise<CMIDashboardResponse> {
   const { data } = await api.get<CMIDashboardResponse>("/cmi/estrategico-dashboard", { params });
   return data;

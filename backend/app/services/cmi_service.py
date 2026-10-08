@@ -157,6 +157,8 @@ class CMIService:
 
     def _prepare_df(self, *, anio: int, mes: int, marco: Marco | None = None) -> pd.DataFrame:
         if marco is not None and marco.indicadores_desde != "catalogo":
+            if not marco.incluye_anio(int(anio)):
+                return pd.DataFrame()  # fuera del ciclo del PDI: no se muestran datos de otro ciclo
             df = self._strategic.preparar_pdi_marco_con_cierre(int(anio), int(mes), marco.version_id)
         else:
             df = self._strategic.preparar_pdi_con_cierre(int(anio), int(mes))
@@ -196,6 +198,7 @@ class CMIService:
         corte: str | None = None,
         rango: bool = False,
         pdi: str | None = None,
+        solo_con_reporte: bool = False,
     ) -> dict[str, Any]:
         marco = get_marco(pdi) if pdi else marco_por_defecto("PDI")
         anios = self._available_anios(marco)
@@ -208,6 +211,8 @@ class CMIService:
             if rango
             else self._prepare_df(anio=anio_eff, mes=mes_eff, marco=marco)
         )
+        if solo_con_reporte and not df.empty and "Nivel de cumplimiento" in df.columns:
+            df = df[df["Nivel de cumplimiento"].fillna("Pendiente de reporte") != "Pendiente de reporte"].reset_index(drop=True)
         legacy = marco.indicadores_desde == "catalogo"
         pdi_catalog = (
             self._loaders.load_pdi_catalog()
@@ -287,7 +292,12 @@ class CMIService:
         historico: list[dict[str, Any]] = []
         if not cierres.empty and "Id" in cierres.columns:
             hist = cierres[cierres["Id"].astype(str) == str(indicador_id)].copy()
-            hist = ensure_nivel_cumplimiento(hist)
+            if marco.indicadores_desde != "catalogo" and "Anio" in hist.columns:
+                # Un PDI con hoja propia solo muestra su ciclo: el histórico de otros años va en POLISIGS.
+                hist = hist[pd.to_numeric(hist["Anio"], errors="coerce").map(
+                    lambda a: pd.notna(a) and marco.incluye_anio(int(a)))]
+            if not hist.empty:
+                hist = ensure_nivel_cumplimiento(hist)
             if not hist.empty and "Anio" in hist.columns:
                 hist["Periodo"] = (
                     hist["Anio"].astype(str)
@@ -401,12 +411,19 @@ class CMIService:
         tracking = self._load_tracking()
         map_df = load_process_map(self._excel)
         anios = self._available_anios()
+        marco = get_marco(pdi) if pdi else marco_por_defecto("PDI")
+        if marco.indicadores_desde != "catalogo":
+            # PDI con hoja propia: solo los años de su ciclo (2022-2025 se consultan en POLISIGS)
+            anios = [a for a in anios if marco.incluye_anio(a)] or anios
         anio_eff = int(anio) if anio is not None else default_anio_procesos(anios)
         opts = build_filtros_options(
             tracking, map_df, self._cmi.load_cmi_worksheet(), anio=anio_eff, mes=mes
         )
+        anios_filtro = opts["anios"] or anios
+        if marco.indicadores_desde != "catalogo":
+            anios_filtro = [a for a in anios_filtro if marco.incluye_anio(a)] or anios
         return {
-            "anios": opts["anios"] or anios,
+            "anios": anios_filtro,
             "anio_default": anio_eff,
             "meses": opts["meses"],
             "mes_default": opts["mes_default"],

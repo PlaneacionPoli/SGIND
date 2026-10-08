@@ -37,6 +37,15 @@ El dashboard de indicadores **no lee Postgres**, lee archivos `.xlsx` en
 | `Resultados Consolidados - copia.xlsx`, `Resultados Consolidadoss - copia - copia.xlsx`, `Metricas CNA.xlsx`, `Metricas CNA - copia.xlsx`, `Resultados_Consolidados_CNA - copia.xlsx`, `revvv.xlsx` | **Obsoletos/residuales** | Copias manuales | Ninguno — no referenciados en código |
 | `.versiones/` | Infraestructura de respaldo activa | `scripts/etl/versioning.py::VersionManager` (rota 5 versiones) | — |
 
+### Catálogo de indicadores (`data/raw/Catalogo de Indicadores.xlsx`)
+
+Fuente manual, diligenciada por Planeación. Hojas: `Catalogo Indicadores` (directorio maestro),
+`Ficha Tecnica Detalle`, **`PDI_2022_2026`** y **`PDI_2026_2030`** (asociación de cada indicador
+a un PDI: `PDI` 1/0, `Linea`, `Objetivo`, `Meta`; ver RN-24/RN-25), `Taxonomia_Marco` (derivada de
+la taxonomía oficial) y `Listas_PDI_*` (listas de los desplegables en cascada). Cada PDI se
+registra en `backend/app/data/marcos.toml` y su taxonomía en `backend/app/data/taxonomia/*.json`.
+Reglas en [`05-reglas-de-negocio.md`](05-reglas-de-negocio.md) (RN-22 a RN-37).
+
 ### Discrepancia de ruta detectada
 
 `backend/app/services/excel_reader.py` declara como archivo primario

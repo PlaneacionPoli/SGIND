@@ -10,6 +10,13 @@ scripts/run_pipeline.py (o agent_runner.py)
        data/raw/Kawak/{año}.xlsx + data/raw/API/{año}.xlsx
        → data/raw/Fuentes Consolidadas/Indicadores Kawak.xlsx
        → data/raw/Fuentes Consolidadas/Consolidado_API_Kawak.xlsx
+  1b) scripts/sincronizar_directorio_indicadores.py   (RN-28)
+       detecta indicadores nuevos en Kawak/API, los agrega a
+       data/raw/Catalogo de Indicadores.xlsx y a la hoja de cada PDI activo,
+       y solicita su línea/objetivo (en terminal) o deja [AVISO] (en el pipeline)
+  1c) scripts/actualizar_directorio_maestro.py
+       completa periodicidad/sentido/clasificación vacíos del catálogo
+  1d) scripts/cna_extraction (si está en settings.pipeline.steps)
   2) scripts/actualizar_consolidado.py (orquestador de negocio real)
        usa 23 módulos de scripts/etl/*
        (carga, valida "Gate 1", construye registros, aplica correcciones
@@ -22,6 +29,12 @@ scripts/run_pipeline.py (o agent_runner.py)
 python -m scripts.cna_extraction.build_cli --write
   → data/output/Resultados_Consolidados_CNA.xlsx
 ```
+
+Orden real de `config/settings.toml`: `consolidar_api`, `sincronizar_directorio_indicadores`,
+`actualizar_directorio_maestro`, `cna_extraction`, `actualizar_consolidado`, `generar_reporte`.
+Herramientas del catálogo que **no** forman parte del pipeline (se ejecutan a mano):
+`scripts/importar_taxonomia_pdi.py` (RN-26), `scripts/agregar_hojas_marco_catalogo.py` (RN-24)
+y `scripts/asociar_preliminar_pdi.py` (RN-29).
 
 **No hay ningún disparador automático.** Nadie ejecuta esto salvo un
 operador humano. Si nadie lo corre, los indicadores del dashboard se

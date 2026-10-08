@@ -17,6 +17,9 @@ interface CmiFiltersProps {
   onSelectRango?: () => void;
   /** Texto del botón de cierre (p. ej. "Cierre PDI 2022-2025"). */
   etiquetaCierre?: string;
+  /** Botón general «Mostrar solo indicadores con reporte» (oculta los pendientes de medición). */
+  soloConReporte?: boolean;
+  onToggleSoloConReporte?: () => void;
 }
 
 export function CmiFilters({
@@ -27,6 +30,8 @@ export function CmiFilters({
   rango = false,
   onSelectRango,
   etiquetaCierre = "Cierre PDI",
+  soloConReporte = false,
+  onToggleSoloConReporte,
 }: CmiFiltersProps) {
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_2px_12px_rgba(26,58,92,0.06)]">
@@ -78,6 +83,24 @@ export function CmiFilters({
           )}
         </div>
       </div>
+      {onToggleSoloConReporte && (
+        <button
+          type="button"
+          role="switch"
+          aria-checked={soloConReporte}
+          onClick={onToggleSoloConReporte}
+          className={`mt-4 inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-semibold transition ${
+            soloConReporte
+              ? "border-poli-navy bg-poli-navy text-white shadow-md"
+              : "border-slate-200 text-slate-600 hover:bg-slate-50"
+          }`}
+        >
+          <span
+            className={`h-2.5 w-2.5 rounded-full ${soloConReporte ? "bg-emerald-300" : "bg-slate-300"}`}
+          />
+          Mostrar solo indicadores con reporte
+        </button>
+      )}
       {/* Corte semestral (Junio/Diciembre) oculto por ahora — se usa siempre Diciembre. */}
     </div>
   );

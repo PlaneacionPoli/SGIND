@@ -219,3 +219,30 @@ def test_default_sigue_siendo_el_pdi_que_sirve_a_todos_los_modulos():
     from app.domain.marcos import marco_por_defecto
 
     assert marco_por_defecto("PDI").version_id == "PDI-2022-2026"
+
+
+# ── RN-21: solo POLISIGS arrastra el último dato anual ───────────────
+
+@pytest.mark.asyncio
+async def test_cmi_estrategico_2026_2030_no_arrastra_datos_de_2025(client, auth_as_procesos):
+    r = await client.get(
+        "/api/v1/cmi/estrategico-dashboard",
+        params={"pdi": "PDI-2026-2030", "anio": 2026, "corte": "Diciembre"},
+    )
+    assert r.status_code == 200
+    pendientes = [i for i in r.json()["indicadores"] if i["Nivel de cumplimiento"] == "Pendiente de reporte"]
+    for i in pendientes:
+        assert i.get("Meta") is None and i.get("Ejecucion") is None, i["Id"]
+
+    solo = await client.get(
+        "/api/v1/cmi/estrategico-dashboard",
+        params={"pdi": "PDI-2026-2030", "anio": 2026, "corte": "Diciembre", "solo_con_reporte": True},
+    )
+    assert all(i["Nivel de cumplimiento"] != "Pendiente de reporte" for i in solo.json()["indicadores"])
+    assert solo.json()["total_indicadores"] == r.json()["total_indicadores"] - len(pendientes)
+
+
+def test_polisigs_declara_la_regla_de_arrastre():
+    from app.services import polisigs_service
+
+    assert "RN-21" in polisigs_service._ultimo_fallback_anual.__doc__

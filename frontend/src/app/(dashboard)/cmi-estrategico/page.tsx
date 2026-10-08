@@ -38,6 +38,7 @@ function CMIEstrategicoContent({ pdi }: { pdi: string }) {
   const [anio, setAnio] = useState<number | null>(null);
   const [corte, setCorte] = useState<string>("Diciembre");
   const [rango, setRango] = useState(false);
+  const [soloConReporte, setSoloConReporte] = useState(false);
   const [tab, setTab] = useState<TabId>("resumen");
   const [expandLineaKey, setExpandLineaKey] = useState<string | null>(null);
   const [fichaId, setFichaId] = useState<string | null>(null);
@@ -67,8 +68,8 @@ function CMIEstrategicoContent({ pdi }: { pdi: string }) {
   const anioEfectivo = anio ?? filtrosQuery.data?.anio_default ?? new Date().getFullYear();
 
   const dashboardQuery = useQuery({
-    queryKey: ["cmi-dashboard", pdi, anioEfectivo, corte, rango],
-    queryFn: () => fetchCMIDashboard({ anio: anioEfectivo, corte, rango, pdi }),
+    queryKey: ["cmi-dashboard", pdi, anioEfectivo, corte, rango, soloConReporte],
+    queryFn: () => fetchCMIDashboard({ anio: anioEfectivo, corte, rango, pdi, solo_con_reporte: soloConReporte }),
     enabled: isAuthenticated && anio != null,
   });
 
@@ -105,6 +106,7 @@ function CMIEstrategicoContent({ pdi }: { pdi: string }) {
       setAnio(filtrosQuery.data.anio_default);
       setCorte("Diciembre");
       setRango(false);
+      setSoloConReporte(false);
     }
   };
 
@@ -139,6 +141,8 @@ function CMIEstrategicoContent({ pdi }: { pdi: string }) {
           rango={rango}
           onSelectRango={tieneCierre ? () => setRango(true) : undefined}
           etiquetaCierre={filtrosQuery.data?.etiqueta_cierre ?? undefined}
+          soloConReporte={soloConReporte}
+          onToggleSoloConReporte={() => setSoloConReporte((v) => !v)}
         />
       )}
 
