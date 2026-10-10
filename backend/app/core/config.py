@@ -54,6 +54,11 @@ class Settings(BaseSettings):
     # Fase 4 del plan de remediación.
     gemini_api_key: str = ""
 
+    # Alertas de Seguimiento Operativo: genera borradores .eml (no envía correo).
+    # Activa el hilo que revisa cada 30 min si hay borradores por preparar; debe quedar
+    # en True en una sola instancia del backend.
+    alertas_scheduler_enabled: bool = False
+
     @property
     def cors_origins_list(self) -> list[str]:
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]

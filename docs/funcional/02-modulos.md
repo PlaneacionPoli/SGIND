@@ -9,7 +9,7 @@
 | **CMI por Procesos** | Lo mismo, pero organizado por proceso (ej. Admisiones, Bienestar, etc.), con opción de exportar a Excel. |
 | **Informe por Procesos** | Un informe más detallado por proceso, con pestañas de resumen, indicadores, calidad, auditoría y propuestas. |
 | **Plan de Mejoramiento** | Seguimiento a los indicadores y métricas del plan de mejoramiento institucional (el que se reporta a la CNA — Consejo Nacional de Acreditación), con sus metas 2026-2030 y su histórico de cumplimiento. |
-| **Seguimiento Operativo** | Vista de alertas y detalle de indicadores en riesgo, con exportación a Excel. |
+| **Seguimiento Operativo** | Control del cumplimiento de la **periodicidad de reporte** de cada indicador: por corte (año y mes) muestra cuántos están reportados, pendientes o sin reporte, el cumplimiento por proceso y las alertas de reportes vencidos y por vencer, con exportación a Excel. Muestra la evolución del cumplimiento por corte (con clic para saltar a un corte), un mapa de calor proceso × corte, el avance por frecuencia y los procesos con más pendientes; los filtros quedan en la dirección de la página para poder compartirla. Incluye la sección **Alertas por correo**, que prepara borradores de correo para Outlook (no envía nada) con el consolidado de indicadores que cada proceso debe reportar; mensaje, destinatarios y plazos son parametrizables. No evalúa el valor ni el semáforo del indicador. |
 | **Gestión de Oportunidades de Mejora (OM)** | Único módulo donde se **crea, edita y cierra** información directamente en el sistema (no solo se consulta). Solo los roles de Calidad y Desempeño pueden editar; el resto solo puede consultar. |
 
 ## Módulos que existen pero no aparecen en el menú

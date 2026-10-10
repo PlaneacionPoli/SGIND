@@ -15888,5 +15888,131 @@
       "registros_cierres": 1456,
       "total_nuevos": 3577
     }
+  },
+  {
+    "timestamp": "2026-10-10T10:18:58.422957",
+    "evento": "build_consolidado_cna",
+    "usuario": "sistema",
+    "exitoso": true,
+    "detalles": {
+      "registros_existentes": 8010,
+      "registros_nuevos_candidatos": 8378,
+      "registros_nuevos_insertados": 45,
+      "registros_totales": 8055,
+      "valores_cualitativos_no_convertidos": 685,
+      "totales_calculados_por_suma": 385,
+      "filas_sin_etiqueta_categoria": 0,
+      "totales_sin_etiqueta_reclasificados": 28,
+      "filas_sin_etiqueta_omitidas": 24,
+      "valores_separador_de_miles_corregidos": 40,
+      "filas_resumen_omitidas": 63,
+      "totales_multiples_omitidos": 111,
+      "archivo_salida": "C:\\Users\\ximen\\OneDrive\\Proyectos_DS\\SGING\\data\\output\\Resultados_Consolidados_CNA.xlsx",
+      "hojas_sin_catalogo": [
+        "Hoja1",
+        "Tabla 81"
+      ],
+      "catalogo_sin_hoja": []
+    }
+  },
+  {
+    "timestamp": "2026-10-10T10:19:30.270000",
+    "evento": "consolidacion_iniciada",
+    "usuario": "etl_script",
+    "exitoso": true,
+    "detalles": {
+      "a\u00f1o_cierre": 2026,
+      "timestamp_inicio": "2026-10-10T10:19:30.270000",
+      "registros_api": 13136
+    }
+  },
+  {
+    "timestamp": "2026-10-10T10:19:36.908563",
+    "evento": "cambio_datos_backup",
+    "usuario": "etl_script",
+    "exitoso": true,
+    "detalles": {
+      "tabla": "Resultados Consolidados",
+      "registros_afectados": 0,
+      "descripcion": "Versi\u00f3n de seguridad previa a consolidaci\u00f3n"
+    }
+  },
+  {
+    "timestamp": "2026-10-10T10:19:54.163248",
+    "evento": "cambio_datos_informaci\u00f3n",
+    "usuario": "etl_agent5",
+    "exitoso": true,
+    "detalles": {
+      "tabla": "Consolidado Historico",
+      "registros_afectados": "11",
+      "descripcion": "Ejecuci\u00f3n > 1.3 detectada (no se recorta, escala propia del indicador)"
+    }
+  },
+  {
+    "timestamp": "2026-10-10T10:19:54.205874",
+    "evento": "cambio_datos_validaci\u00f3n_cr\u00edtica",
+    "usuario": "etl_agent5",
+    "exitoso": true,
+    "detalles": {
+      "tabla": "Consolidado Historico",
+      "registros_afectados": "29",
+      "descripcion": "Detectados 29 registros con meta=0 (requiere revisi\u00f3n)"
+    }
+  },
+  {
+    "timestamp": "2026-10-10T10:19:54.260823",
+    "evento": "cambio_datos_informaci\u00f3n",
+    "usuario": "etl_agent5",
+    "exitoso": true,
+    "detalles": {
+      "tabla": "Consolidado Semestral",
+      "registros_afectados": "9",
+      "descripcion": "Ejecuci\u00f3n > 1.3 detectada (no se recorta, escala propia del indicador)"
+    }
+  },
+  {
+    "timestamp": "2026-10-10T10:19:54.297172",
+    "evento": "cambio_datos_validaci\u00f3n_cr\u00edtica",
+    "usuario": "etl_agent5",
+    "exitoso": true,
+    "detalles": {
+      "tabla": "Consolidado Semestral",
+      "registros_afectados": "1",
+      "descripcion": "Detectados 1 registros con meta=0 (requiere revisi\u00f3n)"
+    }
+  },
+  {
+    "timestamp": "2026-10-10T10:19:54.344302",
+    "evento": "cambio_datos_informaci\u00f3n",
+    "usuario": "etl_agent5",
+    "exitoso": true,
+    "detalles": {
+      "tabla": "Consolidado Cierres",
+      "registros_afectados": "735",
+      "descripcion": "Ejecuci\u00f3n > 1.3 detectada (no se recorta, escala propia del indicador)"
+    }
+  },
+  {
+    "timestamp": "2026-10-10T10:19:54.379763",
+    "evento": "cambio_datos_validaci\u00f3n_cr\u00edtica",
+    "usuario": "etl_agent5",
+    "exitoso": true,
+    "detalles": {
+      "tabla": "Consolidado Cierres",
+      "registros_afectados": "80",
+      "descripcion": "Detectados 80 registros con meta=0 (requiere revisi\u00f3n)"
+    }
+  },
+  {
+    "timestamp": "2026-10-10T14:56:56.160844",
+    "evento": "consolidacion_completada",
+    "usuario": "etl_script",
+    "exitoso": true,
+    "detalles": {
+      "registros_historico": 1454,
+      "registros_semestral": 712,
+      "registros_cierres": 1464,
+      "total_nuevos": 3630
+    }
   }
 ]

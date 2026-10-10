@@ -805,34 +805,185 @@ export interface ResumenLineaResponse {
   narrativa?: ResumenLineaNarrativa | null;
 }
 
+export interface SeguimientoFiltros {
+  anios: number[];
+  anio_default: number | null;
+  meses: number[];
+  /** Meses con datos por año (clave = año como texto). */
+  meses_por_anio: Record<string, number[]>;
+  mes_default: number;
+  meses_nombres: string[];
+  procesos: string[];
+  estados: string[];
+}
+
+export interface SeguimientoKpis {
+  registros: number;
+  reportados: number;
+  pendientes: number;
+  no_aplica: number;
+  /** reportados / (registros - no_aplica) en %, null si no hay registros exigibles. */
+  cumplimiento_pct: number | null;
+  procesos_con_pendientes: number;
+  /** Puntos porcentuales de cambio frente al corte anterior (null sin corte exacto). */
+  variacion_pp: number | null;
+}
+
+export interface SeguimientoTendenciaPunto {
+  anio: number;
+  mes: number;
+  corte: string;
+  reportados: number;
+  pendientes: number;
+  no_aplica: number;
+  total: number;
+  cumplimiento_pct: number | null;
+}
+
+export interface SeguimientoMatrizCalor {
+  cortes: Array<{ anio: number; mes: number; corte: string }>;
+  filas: Array<{
+    proceso: string;
+    /** null = el proceso no reporta en ese corte. */
+    celdas: Array<{ pct: number; pendientes: number } | null>;
+    promedio_pct: number | null;
+  }>;
+}
+
+export interface SeguimientoPorPeriodicidad {
+  periodicidad: string;
+  total: number;
+  reportados: number;
+  pendientes: number;
+  no_aplica: number;
+  cumplimiento_pct: number | null;
+}
+
+export interface SeguimientoAlertaFila {
+  Id: string;
+  Indicador: string;
+  Proceso: string;
+  Periodicidad: string;
+  /** Meses desde el último reporte; null = nunca ha reportado. */
+  diff_meses: number | null;
+  ultimo_reporte: string;
+}
+
+export interface SeguimientoProcesoCumplimiento {
+  proceso: string;
+  total: number;
+  reportados: number;
+  pendientes: number;
+  no_aplica: number;
+  cumplimiento_pct: number | null;
+  indicadores_pendientes: Array<{ Id: string; Indicador: string; Periodicidad: string; Corte: string }>;
+}
+
+export interface SeguimientoDetalleFila {
+  Id: string;
+  Indicador: string;
+  Proceso: string;
+  Periodicidad: string;
+  Corte: string;
+  Estado: string;
+}
+
 export interface SeguimientoDashboardResponse {
   error?: string;
-  filtros: {
-    anios: number[];
-    anio_default: number | null;
-    meses: number[];
-    mes_default: number;
-    meses_nombres: string[];
-    procesos: string[];
-    estados: string[];
-  };
+  filtros: SeguimientoFiltros;
   filtros_aplicados: Record<string, string | number | null>;
-  kpis: { registros: number; reportados: number; pendientes: number; no_aplica: number };
+  kpis: SeguimientoKpis;
   alertas: {
+    /** Fecha (ISO) contra la que se calculan vencidos y por vencer. */
+    referencia: string;
     vencidos_total: number;
     por_vencer_total: number;
-    vencidos: Array<Record<string, string | number | null>>;
-    por_vencer: Array<Record<string, string | number | null>>;
+    vencidos: SeguimientoAlertaFila[];
+    por_vencer: SeguimientoAlertaFila[];
   };
   estado_por_proceso: Array<{
     proceso: string;
     estados: Array<{ estado: string; cantidad: number; color: string }>;
   }>;
-  detalle: Array<Record<string, string | number | null>>;
+  cumplimiento_procesos: SeguimientoProcesoCumplimiento[];
+  tendencia: SeguimientoTendenciaPunto[];
+  matriz_calor: SeguimientoMatrizCalor;
+  por_periodicidad: SeguimientoPorPeriodicidad[];
+  detalle: SeguimientoDetalleFila[];
   detalle_total: number;
   detalle_limit: number;
   detalle_offset: number;
   estado_colores: Record<string, string>;
+}
+
+export type TipoAlerta = "recordatorio" | "apertura";
+
+export interface AlertaConfig {
+  activo: boolean;
+  dias_antes: number;
+  /** Plazo general (días tras cerrar el mes); cada proceso puede tener el suyo. */
+  plazo_dias: number;
+  hora_envio: number;
+  asunto: string;
+  cuerpo: string;
+  copia_a: string;
+  apertura_activo: boolean;
+  apertura_dias: number;
+  apertura_asunto: string;
+  apertura_cuerpo: string;
+  updated_by: string;
+  updated_at: string | null;
+}
+
+export interface AlertasConfigResponse {
+  config: AlertaConfig;
+  destinatarios: Record<string, string[]>;
+  /** De dónde sale cada lista: el directorio institucional (Correos.xlsx) o lo editado en pantalla. */
+  origen_destinatarios: Record<string, "directorio" | "manual">;
+  /** Plazos propios por proceso (los que no figuran usan el general). */
+  plazos: Record<string, number>;
+  procesos: string[];
+  placeholders: Record<string, string>;
+  scheduler_activo: boolean;
+  /** `fecha_limite` ya viene corrida al día hábil anterior, con el plazo general guardado. */
+  proximo_corte: { anio: number; mes: number; fecha_limite: string };
+}
+
+export interface AlertaVistaPrevia {
+  anio: number;
+  mes: number;
+  tipo: TipoAlerta;
+  plazo_dias: number;
+  fecha_limite: string;
+  total_indicadores: number;
+  asunto: string;
+  html: string;
+  texto: string;
+}
+
+export interface AlertaEnvio {
+  id: number;
+  proceso: string;
+  anio: number;
+  mes: number;
+  tipo: TipoAlerta;
+  /** listo = preparado por el programador; descargado = ya se bajó el borrador. */
+  estado: "listo" | "descargado";
+  destinatarios: string;
+  total_indicadores: number;
+  detalle: string | null;
+  origen: string;
+  enviado_at: string | null;
+}
+
+export interface AlertaNotificaciones {
+  listos: number;
+  items: Array<{ anio: number; mes: number; tipo: TipoAlerta; borradores: number }>;
+}
+
+export interface BorradoresDescarga {
+  total: number;
+  sinDestinatarios: number;
 }
 
 export interface PlanMejoramientoDashboardResponse {

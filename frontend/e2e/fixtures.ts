@@ -142,9 +142,13 @@ export async function mockAPI(page: Page) {
   await page.route(`**${API_BASE}/om/matriz**`, (r) =>
     r.fulfill({ json: { anio: 2025, mes: "Diciembre", filtros: { anios: ["2025"], anio_default: "2025", meses: [], mes_default: "Diciembre", procesos: [], subprocesos: [] }, filtros_aplicados: {}, kpis: { peligro: 0, alerta: 0, con_om: 0, total: 0, avance_om_promedio: null }, filas: [], tipo_accion_colores: {} } })
   );
+  const SEGUIMIENTO_FILTROS = { anios: [2026], anio_default: 2026, meses: [6], meses_por_anio: { "2026": [6] }, mes_default: 6, meses_nombres: ["Junio"], procesos: [], estados: [] };
   await page.route(`**${API_BASE}/seguimiento/**`, (r) =>
-    r.fulfill({ json: { error: null, filtros: { anios: [], anio_default: null, meses: [], mes_default: 12, meses_nombres: [], procesos: [], estados: [] }, filtros_aplicados: {}, kpis: { registros: 0, reportados: 0, pendientes: 0, no_aplica: 0 }, alertas: { vencidos_total: 0, por_vencer_total: 0, vencidos: [], por_vencer: [] }, estado_por_proceso: [], detalle: [], estado_colores: {} } })
+    r.fulfill({ json: { error: null, filtros: SEGUIMIENTO_FILTROS, filtros_aplicados: {}, kpis: { registros: 0, reportados: 0, pendientes: 0, no_aplica: 0, cumplimiento_pct: null, procesos_con_pendientes: 0, variacion_pp: null }, alertas: { referencia: "2026-10-09", vencidos_total: 0, por_vencer_total: 0, vencidos: [], por_vencer: [] }, estado_por_proceso: [], cumplimiento_procesos: [], tendencia: [], matriz_calor: { cortes: [], filas: [] }, por_periodicidad: [], detalle: [], detalle_total: 0, detalle_limit: 100, detalle_offset: 0, estado_colores: {} } })
   );
+  // Registradas después: Playwright da prioridad a la ruta más reciente.
+  await page.route(`**${API_BASE}/seguimiento/alertas/notificaciones**`, (r) => r.fulfill({ json: { listos: 0, items: [] } }));
+  await page.route(`**${API_BASE}/seguimiento/filtros**`, (r) => r.fulfill({ json: SEGUIMIENTO_FILTROS }));
   await page.route(`**${API_BASE}/plan-mejoramiento/**`, (r) =>
     r.fulfill({ json: { error: null, anio: 2025, mes: 12, corte: "Diciembre", filtros_corte: { anios: [2025], anio_default: 2025, corte_default: "Diciembre", cortes: ["Junio", "Diciembre"] }, filtros_cna: { factores: [], caracteristicas: [] }, filtros_aplicados: {}, kpis: { indicadores_cna: 0, factores_visibles: 0, caracteristicas_visibles: 0, con_cumplimiento: 0, promedio_cumplimiento: 0, catalogo_factores: 0, catalogo_caracteristicas: 0 }, graficos: { factor_bars: [], nivel_donut: [], factor_nivel_stacked: [], treemap: [] }, tabla_cna: [], acciones: { kpis: {}, avance_por_estado: [], tabla: [] }, total_indicadores: 0 } })
   );

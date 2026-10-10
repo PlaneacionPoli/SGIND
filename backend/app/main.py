@@ -51,7 +51,14 @@ async def _warm_caches() -> None:
 async def lifespan(_app: FastAPI):
     logging.info("SGIND v2 backend iniciado — entorno: %s", settings.environment)
     asyncio.create_task(_warm_caches())
+    scheduler = None
+    if settings.alertas_scheduler_enabled:
+        from app.services.alertas_service import scheduler_loop
+
+        scheduler = asyncio.create_task(scheduler_loop(settings))
     yield
+    if scheduler is not None:
+        scheduler.cancel()
     logging.info("SGIND v2 backend detenido")
 
 
@@ -98,6 +105,7 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["Content-Disposition", "X-Borradores-Total", "X-Borradores-Sin-Destinatarios"],
 )
 
 app.include_router(api_router, prefix="/api/v1")

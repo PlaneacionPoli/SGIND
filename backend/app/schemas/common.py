@@ -345,7 +345,9 @@ class SeguimientoFiltrosResponse(BaseModel):
     anios: list[int] = Field(default_factory=list)
     anio_default: int | None = None
     meses: list[int] = Field(default_factory=list)
+    meses_por_anio: dict[str, list[int]] = Field(default_factory=dict)
     mes_default: int | None = None
+    meses_nombres: list[str] = Field(default_factory=list)
     procesos: list[str] = Field(default_factory=list)
     estados: list[str] = Field(default_factory=list)
 
@@ -357,6 +359,10 @@ class SeguimientoDashboardResponse(BaseModel):
     kpis: dict[str, Any] = Field(default_factory=dict)
     alertas: dict[str, Any] = Field(default_factory=dict)
     estado_por_proceso: list[dict[str, Any]] = Field(default_factory=list)
+    cumplimiento_procesos: list[dict[str, Any]] = Field(default_factory=list)
+    tendencia: list[dict[str, Any]] = Field(default_factory=list)
+    matriz_calor: dict[str, Any] = Field(default_factory=dict)
+    por_periodicidad: list[dict[str, Any]] = Field(default_factory=list)
     detalle: list[dict[str, Any]] = Field(default_factory=list)
     detalle_total: int = 0
     detalle_limit: int = 500

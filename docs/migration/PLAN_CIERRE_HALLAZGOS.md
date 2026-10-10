@@ -273,7 +273,7 @@ Fase 8 (comparativos multi-año) — después de Fase 2 (depende de /yoy tipado)
 | 0 | Higiene base (lint backend + Vitest) | ⏳ Pendiente | 0% |
 | 1 | Paleta de semáforo consolidada | ⏳ Pendiente | 0% |
 | 2 | Tipado de endpoints + test PDI | ⏳ Pendiente | 0% |
-| 3 | Paginación Seguimiento Operativo | ⏳ Pendiente | 0% |
+| 3 | Paginación Seguimiento Operativo | ✅ Resuelta (`limit`/`offset` en backend, controles Anterior/Siguiente en frontend; revalidado 2026-09-29) | 100% |
 | 4 | Hook `useCascadingProcessFilters` | ⏳ Pendiente | 0% |
 | 5 | Visuales (exportación, limpieza) | ⏳ Pendiente | 0% |
 | 6 | Reactivación de módulos ocultos | ⏳ Pendiente | 0% |

@@ -32,7 +32,7 @@ El dashboard de indicadores **no lee Postgres**, lee archivos `.xlsx` en
 | `data/output/Resultados Consolidados VALORES.xlsx` | Fuente de verdad secundaria (fallback, fórmulas materializadas) | mismo pipeline | mismo backend, como 2º candidato |
 | `data/output/Resultados Consolidados.bak.xlsx` | Respaldo automático | `actualizar_consolidado.py` (`shutil.copy2`) | Nadie (solo respaldo) |
 | `data/output/Resultados_Consolidados_CNA.xlsx` | Fuente de verdad activa (subsistema CNA) | `scripts/cna_extraction/writer.py` | `domain/plan_mejoramiento_builders.py` |
-| `data/output/Seguimiento_Reporte.xlsx` | Fuente de verdad activa | Proceso no cubierto por `run_pipeline.py` (fecha de modificación más antigua que el resto — posible desactualización silenciosa) | `services/seguimiento_service.py` |
+| `data/output/Seguimiento_Reporte.xlsx` | Fuente de verdad activa | Lo regenera el paso `generar_seguimiento` de `run_pipeline.py` (Kawak anual + API, sin LMI); el orquestador avisa si queda atrasado | `services/seguimiento_service.py` |
 | `data/raw/Fuentes Consolidadas/Consolidado_API_Kawak.xlsx` / `Indicadores Kawak.xlsx` | Fuente intermedia activa | `scripts/consolidar_api.py` | Entrada de `actualizar_consolidado.py` |
 | `Resultados Consolidados - copia.xlsx`, `Resultados Consolidadoss - copia - copia.xlsx`, `Metricas CNA.xlsx`, `Metricas CNA - copia.xlsx`, `Resultados_Consolidados_CNA - copia.xlsx`, `revvv.xlsx` | **Obsoletos/residuales** | Copias manuales | Ninguno — no referenciados en código |
 | `.versiones/` | Infraestructura de respaldo activa | `scripts/etl/versioning.py::VersionManager` (rota 5 versiones) | — |

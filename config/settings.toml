@@ -40,6 +40,9 @@ out_api_consolidado = "data/raw/Fuentes Consolidadas/Consolidado_API_Kawak.xlsx"
 # Ficha_Tecnica_Indicadores.xlsx y, si esta presente, data/raw/Indicadores por
 # CMI.xlsx (copiado desde Sistema_Indicadores_Poli por el workflow de CI).
 # "cna_extraction" regenera data/output/Resultados_Consolidados_CNA.xlsx.
+# "generar_seguimiento" regenera data/output/Seguimiento_Reporte.xlsx desde los archivos
+# anuales de Kawak + el consolidado de la API (el LMI ya no se usa). Va despues de
+# actualizar_consolidado porque las hojas de cierres leen Resultados Consolidados.xlsx.
 # Nota: scripts/plan_mejoramiento/build_catalogo_indicadores.py NO esta en esta
 # lista a proposito -- solo se ejecuta manualmente (ver comentario en
 # scripts/run_pipeline.py).
@@ -49,6 +52,7 @@ steps = [
   "actualizar_directorio_maestro",
   "cna_extraction",
   "actualizar_consolidado",
+  "generar_seguimiento",
   "generar_reporte",
 ]
 
@@ -95,9 +99,11 @@ enable_hotfix = false
 # on.schedule del workflow debe ser literal) — si cambias el valor aqui,
 # actualiza tambien el workflow a mano.
 [schedule]
-# Expresión cron (GitHub Actions, en UTC): día 5 de cada mes a las 11:00 UTC
+# Expresión cron (GitHub Actions, en UTC): día 10 de cada mes a las 11:00 UTC
 # = 06:00 hora Colombia (UTC-5), horario laboral para poder reaccionar si falla.
-cron = "0 11 5 * *"
+# Día 10 (no 5): las fuentes de Kawak y la API se actualizan en los primeros días del mes
+# (en octubre de 2026, el día 7); a las 06:00 del día 5 el pipeline procesaba el mes anterior.
+cron = "0 11 10 * *"
 # Rama donde se hace commit de resultados
 branch = "main"
 # Archivos a incluir en el commit automático

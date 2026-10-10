@@ -1,5 +1,5 @@
 # Dependencias del pipeline ETL (scripts/run_pipeline.py y cadena que orquesta:
-# consolidar_api.py -> actualizar_consolidado.py -> generar_reporte.py).
+# consolidar_api.py -> actualizar_consolidado.py -> generar_seguimiento.py -> generar_reporte.py).
 # Version fijadas segun lo verificado localmente en backend/.venv312.
 pandas==3.0.5
 numpy==2.5.2

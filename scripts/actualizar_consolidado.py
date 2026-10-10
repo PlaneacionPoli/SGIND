@@ -62,7 +62,7 @@ from etl.fuentes import (                          # noqa: E402
     cargar_metadatos_kawak,
     cargar_metadatos_cmi,
     cargar_mapa_procesos,
-    cargar_lmi_reporte,
+    cargar_ids_metrica,
     cargar_ids_bienal,
     cargar_ids_inactivos_kawak,
     cargar_consolidado_api_kawak_lookup,
@@ -169,7 +169,7 @@ def apply_agent5_corrections_to_registros(
         # - _IDS_SUMA_VARIABLES_SERIES: su Meta/Ejecución son conteos
         #   brutos de variables (no una razón porcentual), p.ej. 274
         #   (suma de TEMS/TEP de sus series).
-        # - ids_metrica (lmi_reporte.xlsx): indicadores tipo "Métrica" son
+        # - ids_metrica (Kawak/<año>.xlsx): indicadores tipo "Métrica" son
         #   cálculos puros sin meta asociada por definición (p.ej. 239, 574);
         #   señalarlos como Meta=0 es un falso positivo.
         # - ids_inactivos (Ind_Act=0 en directorio maestro): indicadores
@@ -332,7 +332,7 @@ def main() -> None:
     metadatos_kawak = cargar_metadatos_kawak()
     metadatos_cmi   = cargar_metadatos_cmi()
     mapa_procesos   = cargar_mapa_procesos()
-    ids_metrica     = cargar_lmi_reporte()
+    ids_metrica     = cargar_ids_metrica()
     # Activo/inactivo se determina por año, con Kawak como fuente de verdad:
     # si un Id estaba en el Kawak del año anterior y ya no está en el del
     # año de cierre actual, se dio de baja. Se complementa (unión) con el

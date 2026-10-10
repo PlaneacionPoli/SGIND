@@ -50,6 +50,16 @@ nunca puede escribir en `/om`. Detalle de roles en
 | GET | `/api/v1/seguimiento/filtros` | Filtros de seguimiento | Sí | `require_operational` |
 | GET | `/api/v1/seguimiento/dashboard` | Dashboard de seguimiento | Sí | `require_operational` |
 | GET | `/api/v1/seguimiento/export` | Exporta a xlsx | No (binario) | `require_operational` |
+| GET / PUT | `/api/v1/seguimiento/alertas/config` | Lee / guarda parámetros y plantillas de los borradores | Sí | `require_operational` |
+| PUT | `/api/v1/seguimiento/alertas/destinatarios` | Reemplaza los correos de un proceso | Sí | `require_operational` |
+| PUT | `/api/v1/seguimiento/alertas/plazos` | Fija (o quita) el plazo propio de un proceso | Sí | `require_operational` |
+| GET | `/api/v1/seguimiento/alertas/vista-previa` | Mensaje renderizado para un proceso, tipo y corte | Sí | `require_operational` |
+| GET | `/api/v1/seguimiento/alertas/listado-outlook` | `Listado_de_indicadores.xlsx` para la automatización local Auto_Correo | No (binario) | `require_operational` |
+| GET | `/api/v1/seguimiento/alertas/borrador` | Un borrador `.eml` (X-Unsent) del proceso | No (binario) | `require_operational` |
+| POST | `/api/v1/seguimiento/alertas/borradores` | ZIP con un `.eml` por proceso para el corte | No (binario) | `require_operational` |
+| GET | `/api/v1/seguimiento/alertas/notificaciones` | Borradores que el programador dejó listos | Sí | `require_operational` |
+| POST | `/api/v1/seguimiento/alertas/descargar-pendientes` | ZIP con los borradores listos; los marca descargados | No (binario) | `require_operational` |
+| GET | `/api/v1/seguimiento/alertas/historial` | Últimos borradores preparados / descargados | Sí | `require_operational` |
 | GET | `/api/v1/plan-mejoramiento/filtros` | Filtros Plan de Mejoramiento | Sí | `require_reader` |
 | GET | `/api/v1/plan-mejoramiento/dashboard` | Dashboard Plan de Mejoramiento | Sí | `require_reader` |
 | GET | `/api/v1/plan-mejoramiento/indicadores` | Pestaña Indicadores | Sí | `require_reader` |

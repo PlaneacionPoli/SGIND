@@ -1,10 +1,11 @@
 name: Actualizar consolidado (mensual)
 
 # Cron sincronizado a mano con config/settings.toml [schedule].cron.
-# "0 11 5 * *" = dia 5 de cada mes, 11:00 UTC = 06:00 hora Colombia (UTC-5).
+# "0 11 10 * *" = dia 10 de cada mes, 11:00 UTC = 06:00 hora Colombia (UTC-5).
+# Dia 10 (no 5): las fuentes crudas se actualizan hacia el dia 7; el dia 5 se procesaba el mes anterior.
 on:
   schedule:
-    - cron: "0 11 5 * *"
+    - cron: "0 11 10 * *"
   workflow_dispatch:
     inputs:
       dry_run:

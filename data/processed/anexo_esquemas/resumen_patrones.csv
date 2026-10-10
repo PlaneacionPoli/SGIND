@@ -1,0 +1,170 @@
+﻿hoja,patron,nivel_sugerido,periodos_en,n_periodos,ultimo_periodo,filas_datos,n_dimensiones,marcas,fuente,responsable,enlace,nombre
+Tabla 1,matriz_periodo_columnas,B_plantilla,columnas,10,2026-1,11,2,celdas_combinadas;subtotales,DAC,Hector pérez,Sebastián Diaz,Evolución de la oferta académica de la Sede Bogotá en el quinquenio
+Tabla 2,matriz_sin_periodo,B_plantilla,,1,2026-1,6,1,celdas_combinadas;subtotales,DAC,Hector pérez,Sebastián Diaz,Distribución de la oferta académica por facultades
+Tabla 3,listado_registros,C_manual_formulario,,0,,28,7,bloques_multiples,DAC,Hector pérez,Sebastián Diaz,Programas acreditados en alta calidad en la Sede Bogotá
+Tabla 4,otro_manual,manual_adjunto,,0,,11,6,bloques_multiples,DAC,Hector pérez,Sebastián Diaz,Programas con informe de autoevaluación radicado en CNA
+Hoja1,otro_manual,manual_adjunto,,0,,1,6,,,,,
+Gráfico 1,grafico_ilustracion,B_plantilla,columnas,14,2026-1,4,1,grafico_o_imagen,Dirección de Docencia,Lina Giraldo,Ángela Ramírez,Profesores por dedicación 2019-2 a 2025-1
+Tabla 5,otro_manual,manual_adjunto,,0,,9,6,bloques_multiples,DAC,Hector pérez,Sebastián Diaz,Programas con condiciones iniciales aprobadas
+Tabla 6,matriz_periodo_columnas,B_plantilla,columnas,14,2026-1,13,1,celdas_combinadas;subtotales,Datos y Analítica,Javier Mendieta,Maylor Sabio,Matrícula de estudiantes 2019-2 a 2025-1
+Gráfico 2,grafico_ilustracion,B_plantilla,columnas,14,2026-1,5,1,grafico_o_imagen,Dirección de Docencia,Lina Giraldo,Ángela Ramírez,Profesores por nivel de formación
+Tabla 7,matriz_periodo_columnas,B_plantilla,columnas,14,2026-1,13,2,celdas_combinadas;subtotales,Datos y Analítica,Javier Mendieta,Maylor Sabio,Graduados por nivel de formación y modalidad 2019-2 a 2025-1
+Tabla 8,listado_registros,C_manual_formulario,,0,,17,3,celdas_combinadas,Dir Investigación,Jenny Hernández,David Ricciulli,"Grupos de investigación categorizados en Ministerio de Ciencias, Tecnología e Innovación Minciencias"
+Tabla 9,otro_manual,manual_adjunto,,0,,8,0,subtotales,Dir Investigación,Jenny Hernández,David Ricciulli,Investigadores categorizados Minciencias
+Tabla 10,matriz_periodo_columnas,B_plantilla,columnas,8,2026-1,4,1,subtotales,Dir Investigación,Jenny Hernández,David Ricciulli,Semilleros por facultad 2019-2- a 2025-1
+Tabla 23,matriz_periodo_columnas,B_plantilla,columnas,8,2026-1,10,2,celdas_combinadas,DAC,Hector pérez,Carlos Rincón,Resultados de las acciones de formación integral
+Tabla 29,serie_periodo_filas,B_plantilla,filas,1,2019,5,1,,Gerencia de Planeación y Gestión,Liliana Bernal,Camilo Chacón,Visualizaciones del informe de sostenibilidad anual
+Tabla 32,matriz_periodo_columnas,B_plantilla,columnas,14,2026-1,2,1,formulas_complejas,Gerencia Talento HUmano,Andrea Carmona,Francy Lineth Castrillón,Personal administrativo beneficiado con políticas de estímulos 2019-2 a 2025-1
+Tabla 33,matriz_periodo_columnas,B_plantilla,columnas,14,2026-1,8,1,subtotales,Gerencia Talento HUmano,Andrea Carmona,Francy Lineth Castrillón,Participación de administrativos en formación
+Tabla 34,serie_periodo_filas,B_plantilla,filas,1,2019,9,1,formulas_complejas;subtotales,Gerencia Talento HUmano,Mónica Avendaño,Mónica Avendaño,Ascensos en la planta administrativa
+Ilustración 20,grafico_ilustracion,B_plantilla,columnas,75,2026,4,1,,Gerencia de Mercadeo / Estudio Brand equity Kanta,Nestor Ivan Moreno,Laura Barrera,Frecuencia de uso de medios de comunicación para informarse
+Ilustración 21,grafico_ilustracion,B_plantilla,,0,,13,11,,Gerencia de Mercadeo / Estudio Brand equity,Nestor Ivan Moreno,Laura Barrera,Medios destacados para el Poli
+Ilustración 22,grafico_ilustracion,B_plantilla,filas,1,2019-2,13,1,,Dirección de marca,Nestor Ivan Moreno,Laura Barrera,Alcance de personas en Redes sociales cuentas del Poli
+Tabla 36,matriz_periodo_columnas,B_plantilla,columnas,10,2026-1,10,1,formulas_complejas;subtotales,Dirección de marca,Nestor Ivan Moreno,Natalia Rincón,Leads obtenidos año a año por canal en el Poli
+Tabla 39,matriz_periodo_columnas,B_plantilla,columnas,2,2026-1,7,1,celdas_combinadas,Dirección de Bibliotecas,Carmen Romero,Elizabeth Rodríguez Mora,Tipología de recursos documentales en la Biblioteca 2025-1
+Tabla 40,matriz_periodo_columnas,B_plantilla,columnas,2,2026,12,1,celdas_combinadas;subtotales,Dirección de Bibliotecas,Carmen Romero,Elizabeth Rodríguez Mora,Libros por área de conocimiento
+Tabla 41,matriz_sin_periodo,B_plantilla,,1,2025-1,17,2,bloques_multiples;subtotales,Dirección de Bibliotecas,Carmen Romero,Elizabeth Rodríguez Mora,Revistas por área de conocimiento
+Tabla 42,matriz_periodo_columnas,B_plantilla,columnas,13,2026-1,10,1,celdas_combinadas,Dirección de Bibliotecas,Carmen Romero,Elizabeth Rodríguez Mora,Recursos bibliográficos 2019-2 a 2025-1
+Tabla 43,matriz_periodo_columnas,B_plantilla,columnas,14,2026-1,14,1,,Dirección de Bibliotecas,Carmen Romero,Elizabeth Rodríguez Mora,Uso de los Recursos Bibliográficos 2019-2 a 2025-1
+Tabla 44,matriz_periodo_columnas,B_plantilla,columnas,10,2026-1,24,3,celdas_combinadas,Editorial,Guillermo Alberto González,Guillermo Alberto González,Divulgación periódica revistas
+Gráfico 3,grafico_ilustracion,B_plantilla,,0,,16,0,grafico_o_imagen;bloques_multiples,Secretaría Académica y de Extensión,Luis Martín Trujillo,Luis Martín Trujillo,Estado de los ambientes inmersivos
+Tabla 45,otro_manual,manual_adjunto,,0,,5,4,bloques_multiples,Secretaría Académica y de Extensión,Luis Martín Trujillo,Luis Martín Trujillo,Ambientes inmersivos registrados a nombre del Politécnico Grancolombiano
+Tabla 46,matriz_periodo_columnas,B_plantilla,columnas,8,2026-1,2,1,,Secretaría Académica y de Extensión,Luis Martín Trujillo,Luis Martín Trujillo,Histórico de la salida a los estudiantes de los diferentes ambientes
+Tabla 47,matriz_sin_periodo,B_plantilla,,1,2040,14,5,celdas_combinadas;subtotales,Secretaría Académica y de Extensión,Luis Martín Trujillo,Luis Martín Trujillo,Uso de los ambientes inmersivos por los estudiantes Poli
+Tabla 48,matriz_sin_periodo,B_plantilla,,0,,2,5,,Secretaría Académica y de Extensión,Luis Martín Trujillo,Luis Martín Trujillo,Distribución de los MI-Books por facultades
+Tabla 49,matriz_periodo_columnas,B_plantilla,columnas,5,2026-1,14,1,celdas_combinadas;subtotales,Secretaría Académica y de Extensión,Luis Martín Trujillo,Luis Martín Trujillo,Visitas MI-Books por país
+Gráfico 4,grafico_ilustracion,B_plantilla,columnas,4,2026-1,38,1,subtotales,Secretaría Académica y de Extensión,Luis Martín Trujillo,Luis Martín Trujillo,Medición uso recorridos
+Tabla 53,matriz_periodo_columnas,B_plantilla,columnas,2,2026,50,1,celdas_combinadas,Dirección de Infraestructura,Raul Ricardo Cortes Rincón,Edith marthza Nino,Talleres y laboratorios de la Institución
+Gráfico 5,grafico_ilustracion,B_plantilla,,1,2019-2,13,1,grafico_o_imagen,Dir Graduados y Proyección Empresarial,Luis Miguel Corredor,Luis Miguel Corredor,Sitios de práctica
+Tabla 55,matriz_periodo_columnas,B_plantilla,columnas,2,2026,14,1,celdas_combinadas;subtotales,Dirección de Infraestructura,Raul Ricardo Cortes Rincón,Edith marthza Nino,Infraestructura física del Poli
+Tabla 57,matriz_periodo_columnas,B_plantilla,columnas,14,2026-1,12,1,,Dirección de Infraestructura,Raul Ricardo Cortes Rincón,Edith marthza Nino,Infraestructura física 2019-2 a 2025-1
+Tabla 58,matriz_periodo_columnas,B_plantilla,columnas,14,2026-1,9,1,,Dirección de Infraestructura,Uriel Mejia Terán,Iván Diaz / Diana García,Infraestructura Tecnológica 2019-2 a 2025-1
+Tabla 61,matriz_periodo_columnas,B_plantilla,columnas,8,2026,3,1,subtotales,Planeación Financiera,Diana Baquero,Diana Baquero,Ingresos operacionales de la Institución
+Tabla 62,matriz_periodo_columnas,B_plantilla,columnas,8,2026,3,1,,Planeación Financiera,Diana Baquero,Diana Baquero,Fuentes de financiamiento internas y externas de la Institución
+Tabla 63,matriz_periodo_columnas,B_plantilla,columnas,8,2026,9,1,,Planeación Financiera,Diana Baquero,Diana Baquero,Comportamiento de excedentes operacional y neto
+Tabla 64,matriz_periodo_columnas,B_plantilla,columnas,8,2026,4,1,subtotales,Planeación Financiera,Diana Baquero,Diana Baquero,Evolución y composición del patrimonio
+Tabla 65,matriz_periodo_columnas,B_plantilla,columnas,8,2026,5,1,subtotales,Planeación Financiera,Diana Baquero,Diana Baquero,Evolución y composición del activo
+Tabla 66,matriz_periodo_columnas,B_plantilla,columnas,8,2026,7,1,subtotales,Planeación Financiera,Diana Baquero,Diana Baquero,Evolución del estado de la situación financiera
+Gráfico 6,grafico_ilustracion,B_plantilla,,1,2019,7,1,grafico_o_imagen,Planeación Financiera,Diana Baquero,Diana Baquero,Liquidez y Capital de Trabajo
+Tabla 67,matriz_periodo_columnas,B_plantilla,columnas,8,2026,8,1,grafico_o_imagen;formulas_complejas,Planeación Financiera,Diana Baquero,Diana Baquero,inversiones realizadas en torno al plan de mejoramiento
+Tabla 68,matriz_periodo_columnas,B_plantilla,columnas,8,2026,7,1,subtotales,Planeación Financiera,Diana Baquero,Diana Baquero,Inversiones misionales de la Institución
+Tabla 69,matriz_periodo_columnas,B_plantilla,columnas,8,2026,8,1,subtotales,Planeación Financiera,Diana Baquero,Diana Baquero,Inversiones en bienestar
+Tabla 70,matriz_periodo_columnas,B_plantilla,columnas,8,2026,8,1,formulas_complejas;subtotales,Planeación Financiera,Diana Baquero,Diana Baquero,Inversiones en proyección social
+Tabla 71,matriz_periodo_columnas,B_plantilla,columnas,8,2026,5,1,subtotales,Planeación Financiera,Diana Baquero,Diana Baquero,Inversión en investigación
+Tabla 72,matriz_periodo_columnas,B_plantilla,columnas,9,2026,5,1,subtotales,Planeación Financiera,Diana Baquero,Diana Baquero,Inversión en internacionalización
+Tabla 73,matriz_periodo_columnas,B_plantilla,columnas,8,2026,1,1,,Planeación Financiera,Diana Baquero,Diana Baquero,Inversión en Docencia
+Gráfico 8,grafico_ilustracion,B_plantilla,,1,2019,7,1,grafico_o_imagen,Planeación Financiera,Diana Baquero,Diana Baquero,Ingresos Por extensión
+Tabla 74,matriz_periodo_columnas,B_plantilla,columnas,8,2026,3,1,,Planeación Financiera,Diana Baquero,Diana Baquero,Inversión en Infraestructura
+Tabla 75,matriz_periodo_columnas,B_plantilla,columnas,8,2026,3,1,,Planeación Financiera,Diana Baquero,Diana Baquero,Inversión en Infraestructura tecnológica
+Tabla 76,matriz_periodo_columnas,B_plantilla,columnas,8,2026,3,1,,Planeación Financiera,Diana Baquero,Diana Baquero,Inversión en contenidos virtuales
+Tabla 77,matriz_periodo_columnas,B_plantilla,columnas,8,2026,3,1,,Planeación Financiera,Diana Baquero,Diana Baquero,Inversión en Medios Audiovisuales y Biblioteca
+Tabla 82,listado_registros,C_manual_formulario,,0,,23,5,celdas_combinadas,Gerencia de Planeación y Gestión,Liliana Bernal,Rubén Dario Gelvez,Proyectos finalizados
+Tabla 83,listado_registros,C_manual_formulario,,0,,18,4,celdas_combinadas,Gerencia de Planeación y Gestión,Liliana Bernal,Rubén Dario Gelvez,Proyectos en ejecución
+Tabla 85,serie_periodo_filas,B_plantilla,filas,1,2020,12,1,,DAC,Hector pérez,Sebastián Diaz,Procesos formación permanente desarrollados desde el SIAC
+Gráfico 9,grafico_ilustracion,B_plantilla,filas,1,2019-2,13,1,grafico_o_imagen,Dirección de Formación,Lina Giraldo,Ángela Ramírez,Resultados de la evaluación de profesores
+Tabla 87,matriz_sin_periodo,B_plantilla,,0,,1,6,,Dirección de Formación,Andrea Carmona,Francy Lineth Castrillón,Resultados de la evaluación de administrativos
+Tabla 98,listado_registros,C_manual_formulario,,0,,18,3,celdas_combinadas,Dirección de currículo,Maria Isabel Cortes,Diana Shirley Velasquez,Formación a equipos curriculares encargados de la declaración y formulación de resultados de aprendizaje
+Tabla 99,listado_registros,C_manual_formulario,,0,,43,3,celdas_combinadas,Dirección de currículo,Maria Isabel Cortes,Diana Shirley Velasquez,Formación para declarar indicadores de logro
+Tabla 100,matriz_periodo_columnas,B_plantilla,columnas,8,2026-1,4,1,subtotales,Dirección de currículo,Maria Isabel Cortes,Diana Shirley Velasquez,Participación de profesores formación del Modelo Institucional de Resultados de Aprendizaje
+Tabla 199,matriz_periodo_columnas,B_plantilla,columnas,10,2026-1,4,1,subtotales,Datos y Analítica,Maria Isabel Cortes,Mary Natalia Ortegón,Profesores T.C en estrategias Resultados de Aprendizaje 2021 a 2025-1
+Tabla 101,matriz_periodo_columnas,B_plantilla,columnas,14,2026-1,4,1,,Dirección de currículo,Andrea Carmona,Francy Lineth Castrillón,Participación de profesores en el plan de cualificación institucional
+Tabla 105,matriz_periodo_columnas,B_plantilla,columnas,8,2026 -1,5,1,celdas_combinadas;subtotales,DAC,Hector pérez,Sebastián Diaz,Evolución de la nueva oferta 2019-2025-1
+Tabla 108,matriz_periodo_columnas,B_plantilla,columnas,8,2026-1,13,1,subtotales,Dir Investigación,Jenny Hernández,David Ricciulli,Estudiantes en actividades de investigación 2019 a 2025-1
+Tabla 110,matriz_periodo_columnas,B_plantilla,columnas,6,2026,18,2,,Dir Investigación,Jenny Hernández,David Ricciulli,Resultado de los grupos institucionales en la Convocatoria de Medición de Grupos e Investigadores 957
+Tabla 111,matriz_sin_periodo,B_plantilla,,0,,20,2,subtotales,Dir Investigación,Jenny Hernández,David Ricciulli,Investigadores categorizados por área en la Convocatoria de Medición de Grupos e Investigadores 957
+Tabla 112,serie_periodo_filas,B_plantilla,filas,1,2019,7,1,,Dir Investigación,Jenny Hernández,David Ricciulli,Profesores en capacitaciones de investigación durante el quinquenio
+Tabla 113,serie_periodo_filas,B_plantilla,filas,1,2019,8,1,subtotales,Dir Investigación,Jenny Hernández,David Ricciulli,Estímulos por productividad de alto impacto entregados a profesores
+Tabla 114,matriz_periodo_columnas,B_plantilla,columnas,7,2026-1,20,1,celdas_combinadas;subtotales,Dir Investigación,Jenny Hernández,David Ricciulli,Número de Proyectos de investigación 2019-2025-1
+Tabla 115,serie_periodo_filas,B_plantilla,filas,1,2019,8,1,subtotales,Dir Investigación,Jenny Hernández,David Ricciulli,Número de Proyectos con obtención de recursos externos
+Tabla 116,matriz_periodo_columnas,B_plantilla,columnas,8,2026-1,18,1,subtotales,Dir Investigación,Jenny Hernández,David Ricciulli,Productividad académica por tipología entre 2019-2025-1
+Tabla 137,serie_periodo_filas,B_plantilla,filas,1,2020,9,1,celdas_combinadas,Escuela de Educación e Innovación,Gerardo Machuca,Gerardo Machuca,Actividad y población impactada entre 2020-2025-1
+Tabla 121,matriz_periodo_columnas,B_plantilla,columnas,8,2026-1,2,1,,Director del CREA,Luis Martín Trujillo,Luis Martín Trujillo,Histórico de producción del Laboratorio de Experiencias de Aprendizaje Inmersivo (LEAI y MI-Book) 2019-2025-1
+Tabla 122,matriz_periodo_columnas,B_plantilla,columnas,8,2026-1,6,1,,Director del CREA,Luis Martín Trujillo,Luis Martín Trujillo,Histórico de uso de los ambientes inmersivos por parte de los estudiantes 2019-2025-1
+Tabla 123,serie_periodo_filas,B_plantilla,filas,1,2019,77,1,,Dir Investigación,Jenny Hernández,David Ricciulli,Proyectos con aliados regionales
+Tabla 126,matriz_periodo_columnas,B_plantilla,columnas,14,2026-1,4,1,,Servicios corporativos,John Jaime Marín,John Jaime Marín,Capacitación y actualización profesional entre 2019-2 a 2025-1
+Tabla 127,matriz_periodo_columnas,B_plantilla,columnas,14,2026-1,6,2,celdas_combinadas;subtotales,,,,Estudiantes que realizan práctica profesional de acuerdo con los tipos de vinculación 2019-2 a 2026-1
+Gráfico 13,grafico_ilustracion,B_plantilla,columnas,9,2026-1,3,1,grafico_o_imagen,Dir Graduados y Proyección Empresarial,Luis Miguel Corredor,Luis Miguel Corredor,Estudiantes modalidad virtual que han realizado practicas pedagógicas entre 2019-2025-1
+Tabla 131,matriz_periodo_columnas,B_plantilla,columnas,10,2026-1,1,1,,Dir Graduados y Proyección Empresarial,Luis Miguel Corredor,Luis Miguel Corredor,Estudiantes modalidad presencial y virtual que han realizado prácticas educativas del programa de Psicología entre 2019-2025-1
+Tabla 132,matriz_periodo_columnas,B_plantilla,columnas,10,2026-1,1,1,,Consultorio Tributario y Empresarial,Luis Miguel Corredor,Luis Miguel Corredor,Estudiantes modalidad presencial y virtual que han realizado prácticas en el consultorio tributario y empresarial entre 2019-2025-1
+Tabla 133,matriz_periodo_columnas,B_plantilla,columnas,10,2026-1,2,2,,Dir Graduados y Proyección Empresarial,Luis Miguel Corredor,Luis Miguel Corredor,Estudiantes en modalidad presencial que han realizado prácticas entre 2019-2025-1
+Tabla 134,matriz_periodo_columnas,B_plantilla,columnas,10,2026-1,1,1,,Dir Graduados y Proyección Empresarial,Luis Miguel Corredor,Luis Miguel Corredor,Estudiantes de modalidad presencial que han realizado prácticas en la Agencia Trompo entre 2019-2025-1
+Tabla 135,matriz_periodo_columnas,B_plantilla,columnas,4,2026-1,23,11,formulas_complejas;subtotales,Dirección de Bienestar,Juan Carlos Rivera,Lina Vanessa gonzález,Histórico de Becas otorgadas por el Poli entre 2019-2 y 2025-1
+Gráfico 15,grafico_ilustracion,B_plantilla,columnas,9,2026-1,1,1,grafico_o_imagen,Servicios Administrativos,Gustavo Espinel,Gustavo Espinel,Usuarios que han tomado el servicio de transporte desde 2019 a 2025-1
+Tabla 136,serie_periodo_filas,B_plantilla,filas,1,2019,8,1,subtotales,Dir Investigación,Jenny Hernández,David Ricciulli,Investigación asociada a proyección social 2019-1 a 2025-1
+Tabla 138,matriz_periodo_columnas,B_plantilla,columnas,8,2026-1,3,1,subtotales,Dir Investigación,Jenny Hernández,David Ricciulli /Maria alejandra Tequia,Semilleros asociados a proyección social 2019-2025-1
+Tabla 139,matriz_periodo_columnas,B_plantilla,columnas,8,2026-1,1,1,celdas_combinadas,****,Carlos Augusto García,Mary Natalia Ortegón,Trabajos de grado que han aportado a la solución de problemas en el entorno
+Tabla 144,matriz_periodo_columnas,B_plantilla,columnas,2,2026,29,1,celdas_combinadas;subtotales,Dirección de Relaciones Internacionales e Interinstitucionales,Raquel Breton,Raquel Breton,Convenios por países
+Tabla 145,matriz_periodo_columnas,B_plantilla,columnas,14,2026-1,2,1,,Dirección de Relaciones Internacionales e Interinstitucionales,Raquel Breton,Raquel Breton,Número de clases espejo y estudiantes que participaron en estos espacios
+Tabla 147,matriz_periodo_columnas,B_plantilla,columnas,14,2026-1,4,1,subtotales,Dirección de Relaciones Internacionales e Interinstitucionales,Raquel Breton,Raquel Breton,"Número de estudiantes con reconocimientos académicos por medio de seminarios internacionales virtuales, doble titulación, intercambio virtual"
+Tabla 148,matriz_periodo_columnas,B_plantilla,columnas,14,2026-1,3,1,subtotales,Dirección de Relaciones Internacionales e Interinstitucionales,Raquel Breton,Raquel Breton,Número de profesores y expertos invitados
+Tabla 149,serie_periodo_filas,B_plantilla,filas,1,2019-2,14,1,subtotales,Dirección de Relaciones Internacionales e Interinstitucionales,Raquel Breton,Raquel Breton,Número de estudiantes en internacionalización en casa
+Tabla 150,matriz_periodo_columnas,B_plantilla,columnas,14,2026-1,7,1,subtotales,Dirección de Relaciones Internacionales e Interinstitucionales,Raquel Breton,Raquel Breton,Número de estudiantes en cursos de idiomas
+Tabla 151,listado_registros,C_manual_formulario,,0,,18,4,celdas_combinadas;subtotales,Dirección de Relaciones Internacionales e Interinstitucionales,Raquel Breton,Raquel Breton,Número de convenios con ICETEX para asistentes extranjeros
+Gráfico 16,grafico_ilustracion,B_plantilla,filas,1,2019,7,1,grafico_o_imagen,Dirección de Formación,Raquel Breton,Raquel Breton,Evolución bilingüismo profesores
+Tabla 152,matriz_periodo_columnas,B_plantilla,columnas,14,2026-1,3,1,subtotales,Dirección de Relaciones Internacionales e Interinstitucionales,Raquel Breton,Raquel Breton,Número de eventos académicos desde y para la academia
+Tabla 153,matriz_periodo_columnas,B_plantilla,columnas,11,2026-1,2,1,,Dirección de Relaciones Internacionales e Interinstitucionales,Raquel Breton,Raquel Breton,Contenido del Poli para otros
+Tabla 154,serie_periodo_filas,B_plantilla,filas,1,2019,18,1,,Dirección de Relaciones Internacionales e Interinstitucionales,Raquel Breton,Raquel Breton,Actividades en las regiones
+Tabla 156,matriz_periodo_columnas,B_plantilla,columnas,14,2026-1,4,1,,Dirección de Relaciones Internacionales e Interinstitucionales,Raquel Breton,Raquel Breton,Cifras de movilidad saliente y entrante de estudiantes y profesores
+Tabla 157,matriz_periodo_columnas,B_plantilla,columnas,2,2026,61,1,celdas_combinadas;subtotales,Dirección de Relaciones Internacionales e Interinstitucionales,Raquel Breton,Raquel Breton,Países de destino y origen para movilidad
+Tabla 159,serie_periodo_filas,B_plantilla,filas,1,2019-2,78,1,,Dirección de Relaciones Internacionales e Interinstitucionales,Raquel Breton,Raquel Breton,Reconocimientos
+Tabla 161,matriz_periodo_columnas,B_plantilla,columnas,2,2026,25,1,subtotales,Dirección de Relaciones Internacionales e Interinstitucionales,Raquel Breton,Raquel Breton,Número de publicaciones internacionales
+Tabla 164,matriz_periodo_columnas,B_plantilla,columnas,14,2026-1,1,1,,Dirección de Bienestar,Natalia Turriago,Raquel Breton,Atención Centro de Psicológica
+Tabla 165,matriz_periodo_columnas,B_plantilla,columnas,13,2026-1,4,2,subtotales,Dirección de Bienestar,Juan Carlos Rivera,Lina Vanessa González,Participación de la comunidad en actividades artísticas y culturales
+Tabla 166,matriz_periodo_columnas,B_plantilla,columnas,14,2026-1,4,1,subtotales,Dirección de Bienestar,Juan Carlos Rivera,Lina Vanessa González,Participación de la comunidad en actividades deportivas
+Tabla 167,matriz_periodo_columnas,B_plantilla,columnas,9,2026-1,3,1,subtotales,Dirección de Bienestar,Juan Carlos Rivera,Lina Vanessa González,Participación de la comunidad en Moocs
+Tabla 168,matriz_periodo_columnas,B_plantilla,columnas,14,2026-1,10,1,subtotales,Sistema de Gestión de Seguridad y Salud en el Trabajo,Sandra Milena Sánchez,Sandra Milena Sánchez,Información de Estrategias de prevención de Riesgo ocupacional
+Tabla 169,serie_periodo_filas,B_plantilla,filas,1,2019-2,26,1,celdas_combinadas,Dirección de Bienestar,Eloina Durán,Eloina Durán,Participación de la comunidad en los programas de prevención de riesgo
+Tabla 170,matriz_periodo_columnas,B_plantilla,columnas,10,2026-1,5,1,subtotales,Dirección de Bienestar,Juan Carlos Rivera,Lina Vanessa gonzález,Atención a la comunidad en Enfermería
+Tabla 171,matriz_periodo_columnas,B_plantilla,columnas,10,2026-1,1,1,,Dirección de Bienestar,Juan Carlos Rivera,Lina Vanessa gonzález,Participación en actividades de promoción y cuidado de la salud
+Tabla 172,serie_periodo_filas,B_plantilla,filas,1,2019-2,76,1,celdas_combinadas,Dirección de Bienestar,Sandra Milena Sánchez,Sandra Milena Sánchez,Actividades tendientes a prevenir desastres y atender emergencias
+Tabla 173,matriz_periodo_columnas,B_plantilla,columnas,8,2026-1,3,1,subtotales,Dirección de Bienestar,Eloina Durán,Eloina Durán,Participación en Estrategias de Bienestar de administrativos
+Tabla 174,matriz_periodo_columnas,B_plantilla,columnas,8,2026-1,3,1,subtotales,Dirección de Bienestar,Eloina Durán,Eloina Durán,Participación en Estrategias de Bienestar de profesores
+Tabla 175,matriz_periodo_columnas,B_plantilla,columnas,8,2026-1,1,1,,Dirección de Bienestar,Eloina Durán,Eloina Durán,Porcentajes de satisfacción de las actividades de bienestar _ Administrativos y Profesores
+Tabla 179,matriz_periodo_columnas,B_plantilla,columnas,8,2026,5,1,subtotales,Dirección de Docencia,Andrea Carmona,Andrea Carmona,Ascenso de profesores en el Escalafón profesoral en el quinquenio
+Gráfico 17,grafico_ilustracion,B_plantilla,filas,1,2019-2,13,1,grafico_o_imagen,Dirección de Docencia,Lina Giraldo,Ángela Ramírez,Planta profesoral distribuida por categoría en el escalafón durante el quinquenio
+Tabla 181,matriz_periodo_columnas,B_plantilla,columnas,14,2026-1,4,1,subtotales,Dirección de Docencia,Lina Giraldo,Ángela Ramírez,Distribución de profesores por dedicación
+Gráfico 18,grafico_ilustracion,B_plantilla,columnas,14,2026-1,8,1,grafico_o_imagen;subtotales,Dirección de Docencia,Lina Giraldo,Ángela Ramírez,Distribución de profesores por dedicación
+Tabla 182,matriz_periodo_columnas,manual_adjunto,columnas,14,2026-1,6,2,celdas_combinadas;formulas_complejas;subtotales,Dirección de Docencia,Lina Giraldo,Ángela Ramírez,Histórico profesores tiempo completo y medio tiempo anuales e indefinidos
+Tabla 183,matriz_periodo_columnas,B_plantilla,columnas,14,2026-2,10,2,celdas_combinadas;subtotales,Dirección de Docencia,Lina Giraldo,Ángela Ramírez,Profesores por Facultad
+Gráfico 19,grafico_ilustracion,manual_adjunto,columnas,14,2026-1,6,2,celdas_combinadas;formulas_complejas;subtotales,Dirección de Docencia,Lina Giraldo,Ángela Ramírez,Proporción por tipo de contrato
+Tabla 184,matriz_periodo_columnas,B_plantilla,columnas,14,2026-1,1,1,,Dirección de Docencia,Lina Giraldo,Ángela Ramírez,Relación Profesor/ Estudiante con contrato indefinido y anual
+Tabla 185,matriz_periodo_columnas,B_plantilla,columnas,14,2026-1,1,1,,Dirección de Docencia,Lina Giraldo,Ángela Ramírez,Relación Profesor/Estudiante  total duraciones
+Tabla 186,matriz_periodo_columnas,B_plantilla,columnas,14,2026-1,5,1,subtotales,Dirección de Docencia,Lina Giraldo,Ángela Ramírez,Profesores por nivel de formación
+Tabla 187,matriz_periodo_columnas,B_plantilla,columnas,14,2026-1,13,2,celdas_combinadas;subtotales,Dirección de Docencia,Lina Giraldo,Ángela Ramírez,Evolución de profesores por dedicación y nivel de formación
+Tabla 188,matriz_sin_periodo,B_plantilla,,0,,4,2,subtotales,Dirección de Docencia,Andrea Carmona,Diana Baquero - Andrea Carmona,Recursos invertidos en formación a profesores
+Tabla 189,otro_manual,manual_adjunto,,0,,9,3,celdas_combinadas,Dirección de Docencia,Andrea Carmona,Diana Baquero - Andrea Carmona,Recursos Invertidos por Nivel de Formación
+Tabla 190,matriz_periodo_columnas,B_plantilla,columnas,2,2010,6,11,formulas_complejas;subtotales,Dirección de Docencia,Lina Giraldo,Ángela Ramírez,Distribución de la Labor profesoral semanal-histórica
+Tabla 191,matriz_periodo_columnas,B_plantilla,columnas,3,2026-1,6,11,subtotales,Dirección de Docencia,Lina Giraldo,Ángela Ramírez,"Planes de trabajo, horas semanales profesores de planta"
+Tabla 193,matriz_periodo_columnas,B_plantilla,columnas,14,2026-1,4,1,,Dirección de Formación y desarrollo.,Lina Giraldo,Ángela Ramírez,Resultados de la Evaluación 360° a profesores en el quinquenio
+Tabla 194,matriz_periodo_columnas,B_plantilla,columnas,14,2026-1,4,1,subtotales,Dirección de Formación y desarrollo.,Lina Giraldo,Ángela Ramírez,Resultados Evaluación Integral de Desempeño profesoral 360° por actores
+Gráfico 20,grafico_ilustracion,B_plantilla,filas,1,2019-2,13,1,grafico_o_imagen,Dirección de Formación y desarrollo.,Lina Giraldo,Ángela Ramírez,Estudio comparado: Resultados Evaluación Integral de Desempeño profesoral
+Gráfico 21,grafico_ilustracion,B_plantilla,columnas,9,2026-1,9,1,subtotales,,,,Evolución Bilingüismo Profesores en el Quinquenio
+Tabla 196,matriz_periodo_columnas,B_plantilla,columnas,14,2026-1,8,1,subtotales,Dirección de Formación y desarrollo.,Andrea Carmona,Andrea Carmona,Formación de profesores en el quinquenio 2019-2 a 2025-1
+Tabla 197,serie_periodo_filas,B_plantilla,filas,1,2019-2,14,1,subtotales,Dirección de Formación y desarrollo.,Andrea Carmona,Andrea Carmona - Diana Baquero,Inversión en formación de profesores durante el quinquenio
+Tabla 198,serie_periodo_filas,B_plantilla,filas,1,2019-2,14,1,subtotales,Dirección de Formación y desarrollo.,Andrea Carmona,Andrea Carmona,Número de apoyos a profesores durante el quinquenio
+Tabla 201,matriz_periodo_columnas,B_plantilla,columnas,14,2026-1,9,1,subtotales,Datos y Analítica,Mary Natalia Ortegón,Mary Natalia Ortegón,"Consolidado del último quinquenio frente a la participación de la Institución en distintos escenarios que le ha otorgado algún reconocimiento por su gestión, participación y/o resultado"
+Tabla 204,matriz_periodo_columnas,B_plantilla,columnas,14,2026-1,11,1,subtotales,Datos y Analítica,Javier Mendieta,Maylor Sabio,Estudiantes en condición de discapacidad matriculados 2019 a 2025-1
+Tabla 205,matriz_periodo_columnas,B_plantilla,columnas,3,2026-1,6,2,subtotales,Dirección de Experiencia e Inclusión,Carolina Jurado,Carolina Jurado,Caracterización poblacional estudiantes sede Bogotá
+Tabla 206,matriz_periodo_columnas,B_plantilla,columnas,3,2026-1,6,2,subtotales,Dirección de Experiencia e Inclusión,Carolina Jurado,Carolina Jurado,Caracterización poblacional estudiantes sede Virtual
+Tabla 208,matriz_periodo_columnas,B_plantilla,columnas,10,2026-1,5,1,subtotales,Dirección de Experiencia e Inclusión,Carolina Jurado,Carolina Jurado,Estudiantes en seguimiento a 2025-1
+Tabla 209,matriz_periodo_columnas,B_plantilla,columnas,10,2026-1,1,1,,Dirección de Experiencia e Inclusión,Carolina Jurado,Carolina Jurado,Capacitación Fortalecimiento de Cultura Inclusiva
+Tabla 210,matriz_periodo_columnas,B_plantilla,columnas,2,2026-1,4,4,formulas_complejas;subtotales,Dirección de Experiencia e Inclusión,Carolina Jurado,Carolina Jurado,Recaudo Fondo de inclusión
+Tabla 212,serie_periodo_filas,B_plantilla,filas,1,2022,5,1,subtotales,Dirección de Experiencia e Inclusión,Carolina Jurado,Carolina Jurado,Ruta de atención de casos de violencia basada en género
+Tabla 214,matriz_periodo_columnas,B_plantilla,columnas,14,2026-1,13,2,celdas_combinadas;subtotales,Datos y Analítica,Javier Mendieta,Maylor Sabio,Estudiantes Admitidos durante el quinquenio 2019-2 a 2025-1
+Tabla 215,serie_periodo_filas,B_plantilla,filas,1,2019-2,147,1,celdas_combinadas,Datos y Analítica,Javier Mendieta,Maylor Sabio,Población Estudiantes 2019-2 a 2025-1
+Tabla 216,matriz_periodo_columnas,B_plantilla,columnas,14,2026-1,13,1,celdas_combinadas;subtotales,Datos y Analítica,Javier Mendieta,Maylor Sabio,Comunidad de estudiantes por modalidad 2019-2 a 2025-1
+Tabla 217,matriz_sin_periodo,B_plantilla,,0,,13,14,celdas_combinadas,DAC,SPADIES,,Tasa de deserción cohorte promedio SPADIES quinquenio 2019-2023
+Tabla 218,matriz_periodo_columnas,B_plantilla,columnas,11,2024-2,13,1,celdas_combinadas,DAC,SPADIES,,Deserción anual SPADIES 2019 a 2023
+Tabla 219,matriz_periodo_columnas,B_plantilla,columnas,12,2026-1,7,1,celdas_combinadas,Dirección de permanencia,Andrés Felipe Correa,Diana Leticia Guerrero - Erika Lizeth Alzate,Tasa de deserción Poli
+Tabla 221,matriz_periodo_columnas,B_plantilla,columnas,14,2026-1,9,2,celdas_combinadas;subtotales,Dirección de permanencia,Andrés Felipe Correa,Diana Leticia Guerrero - Erika Lizeth Alzate,Beneficios a estudiantes durante el quinquenio
+Tabla 224,matriz_periodo_columnas,B_plantilla,columnas,7,2025,11,1,celdas_combinadas,Dirección de Graduados.,Cristina Forero,Nidia Lucero Rueda,Graduados que han diligenciado los instrumentos de seguimiento
+Tabla 225,matriz_periodo_columnas,B_plantilla,columnas,8,2023,6,1,,Observatorio Laboral MEN,,Carlos Rincón,Vinculación laboral - recién graduados
+Tabla 226,matriz_sin_periodo,B_plantilla,,0,,4,5,,Observatorio Laboral MEN,,Carlos Rincón,Ingresos salariales (IBC) Nivel de estudios: Poli vs País
+Tabla 227,matriz_sin_periodo,B_plantilla,,1,2024,14,1,,Observatorio Laboral MEN,,Carlos Rincón,Sector empleabilidad de graduados Poli
+Tabla 228,matriz_periodo_columnas,B_plantilla,columnas,14,2026-1,9,2,celdas_combinadas,Dirección de Graduados.,Cristina Forero,Nidia Lucero Rueda,Qué tan relacionado se encuentra su trabajo con el programa de formación ?
+Tabla 229,matriz_periodo_columnas,B_plantilla,columnas,8,2026-1,14,1,subtotales,Dirección de Graduados.,Cristina Forero,Nidia Lucero Rueda,Relación de programas de formación con participación de graduados
+Tabla 231,matriz_periodo_columnas,B_plantilla,columnas,14,2026-1,11,2,celdas_combinadas,Dirección de Graduados.,Cristina Forero,Nidia Lucero Rueda,Nivel de Satisfacción con la Institución
+Tabla 232,matriz_periodo_columnas,B_plantilla,columnas,14,2026-1,1,1,,Datos y Analítica,,Javier Mendieta,Graduados que continúan sus estudios de posgrado Poli 2019-2 a 2025-1
+Tabla 239,matriz_periodo_columnas,B_plantilla,columnas,8,2026-1,5,2,celdas_combinadas;subtotales,Dirección de Graduados.,Cristina Forero,Nidia Lucero Rueda,Contribuciones académicas de los graduados
+Tabla 240,serie_periodo_filas,B_plantilla,filas,1,2021,6,1,subtotales,Centro de Emprendimiento – Reporte SNIES,Cristina Forero,Nidia Lucero Rueda,Relación de graduados participantes de las actividades del Centro Emprendimiento
+Tabla 81,matriz_sin_periodo,B_plantilla,,0,,27,4,celdas_combinadas;subtotales,,,,Indicadores institucionales por tipología

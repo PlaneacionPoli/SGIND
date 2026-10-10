@@ -77,7 +77,7 @@ que el backend lee. Detalle completo en
 **No tiene automatización real.** `.github/workflows/` solo contiene
 `backend-lint.yml` (ruff en CI) y `keep-alive.yml` (ping de salud cada 10
 min a Render). La sección `[schedule]` de `config/settings.toml` (cron
-mensual día 5) está declarada pero **ningún workflow la implementa** — el
+mensual día 10) está declarada pero **ningún workflow la implementa** — el
 pipeline de indicadores es 100% manual hoy.
 
 ## Base de datos (`database/`)

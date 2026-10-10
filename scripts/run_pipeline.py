@@ -5,7 +5,8 @@ Orquestador del pipeline (Fase 1).
 Ejecuta, en orden:
   1) scripts/consolidar_api.py
   2) scripts/actualizar_consolidado.py
-  3) generar_reporte.py
+  3) generar_seguimiento.py  (Seguimiento_Reporte.xlsx: Kawak anual + API, sin LMI)
+  4) generar_reporte.py
 
 Genera artefactos en ./artifacts:
   - pipeline_run_YYYYmmdd_HHMMSS.json
@@ -28,7 +29,7 @@ import traceback
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 
 def _load_toml(path: Path) -> dict:
@@ -213,6 +214,52 @@ def _check_required_sheets(path: Path, required: List[str]) -> Tuple[bool, List[
     return len(missing) == 0, sheets, missing
 
 
+def _frescura_seguimiento(base_dir: Path, settings: dict, hoy: Optional[datetime] = None) -> List[str]:
+    """Avisos si Seguimiento_Reporte.xlsx quedo desfasado respecto de las fuentes o del calendario.
+
+    Hueco G-06: el archivo llego a estar 2 meses atrasado sin que nadie lo notara. Se avisa si
+    (1) su ultimo corte no es el mes anterior a hoy, o (2) es anterior a la ultima
+    actualizacion de data/raw/Kawak o data/raw/API.
+    """
+    avisos: List[str] = []
+    rel = settings.get("paths", {}).get("out_seguimiento_reporte", "data/output/Seguimiento_Reporte.xlsx")
+    path = base_dir / rel
+    if not path.exists():
+        return avisos
+    hoy = hoy or datetime.now()
+    try:
+        import pandas as pd
+
+        df = pd.read_excel(path, sheet_name="Tracking Mensual", engine="openpyxl")
+        df.columns = [str(c).strip() for c in df.columns]
+        col_anio = next(c for c in df.columns if c.startswith("A") and len(c) == 3)
+        ym = (pd.to_numeric(df[col_anio], errors="coerce") * 12 + pd.to_numeric(df["Mes"], errors="coerce")).dropna()
+        ultimo = int(ym.max()) if not ym.empty else 0
+        esperado = hoy.year * 12 + (hoy.month - 1)  # mes anterior: 12*anio + (mes - 1)
+        if ultimo < esperado:
+            def _txt(v: int) -> str:
+                return f"{((v - 1) % 12) + 1:02d}/{(v - 1) // 12}"
+
+            avisos.append(
+                f"[AVISO] Seguimiento_Reporte.xlsx llega hasta {_txt(ultimo)} pero se esperaba {_txt(esperado)}: "
+                "regenerarlo con scripts/generar_seguimiento.py."
+            )
+    except Exception as exc:  # no debe tumbar el pipeline: es solo una validacion
+        avisos.append(f"[AVISO] No se pudo validar la frescura de Seguimiento_Reporte.xlsx: {exc}")
+        return avisos
+
+    fuentes = [
+        p.stat().st_mtime
+        for carpeta in ("Kawak", "API")
+        for p in (base_dir / "data" / "raw" / carpeta).glob("*.xlsx")
+    ]
+    if fuentes and path.stat().st_mtime < max(fuentes):
+        avisos.append(
+            "[AVISO] Seguimiento_Reporte.xlsx es anterior a la ultima actualizacion de data/raw/Kawak o data/raw/API."
+        )
+    return avisos
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description="Orquestador del pipeline (Fase 1).")
     ap.add_argument(
@@ -265,6 +312,7 @@ def main() -> int:
         "cna_extraction": [sys.executable, "-m", "scripts.cna_extraction.build_cli", "--write"],
         "consolidar_api": [sys.executable, str(base_dir / "scripts" / "consolidar_api.py")],
         "actualizar_consolidado": [sys.executable, str(base_dir / "scripts" / "actualizar_consolidado.py")],
+        "generar_seguimiento": [sys.executable, str(base_dir / "scripts" / "generar_seguimiento.py")],
         "generar_reporte": [sys.executable, str(base_dir / "scripts" / "generar_reporte.py")],
     }
     # Nota: scripts/plan_mejoramiento/build_catalogo_indicadores.py NO se incluye
@@ -548,6 +596,7 @@ def main() -> int:
             for line in r.stdout_tail.splitlines():
                 if "[AVISO]" in line:
                     avisos.append(line.strip())
+    avisos.extend(_frescura_seguimiento(base_dir, settings))
 
     ok_steps = True if args.no_exec else (all(r.ok for r in results) and (len(results) == len(steps_cfg)))
     ok_outputs = len(missing_outputs) == 0

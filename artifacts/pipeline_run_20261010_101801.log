@@ -1,0 +1,447 @@
+Pipeline run: 20261010_101801
+Settings: config\settings.toml
+Base: C:\Users\ximen\OneDrive\Proyectos_DS\SGING
+
+---
+[STEP] consolidar_api
+CMD: C:\Users\ximen\OneDrive\Proyectos_DS\SGING\backend\.venv312\Scripts\python.exe C:\Users\ximen\OneDrive\Proyectos_DS\SGING\scripts\consolidar_api.py
+CWD: C:\Users\ximen\OneDrive\Proyectos_DS\SGING
+[EXIT] 0  elapsed_s=23.23
+
+[STDOUT]
+
+============================================================
+PARTE 1: Catálogo Kawak -> Indicadores Kawak.xlsx
+============================================================
+  2022.xlsx: 152 indicadores
+  2023.xlsx: 289 indicadores
+  2024.xlsx: 315 indicadores
+  2025.xlsx: 785 indicadores
+  2026.xlsx: 837 indicadores
+  -----------------------------------------------------
+  Total filas     : 2,378
+  IDs únicos      : 544
+  Años cubiertos  : [2022, 2023, 2024, 2025, 2026]
+  [OK] data\raw\Fuentes Consolidadas\Indicadores Kawak.xlsx
+
+============================================================
+PARTE 2: Consolidado API -> Consolidado_API_Kawak.xlsx
+============================================================
+  Procesando 2022.xlsx ...
+  [2022] NaN reales: 2942 | String 'N/A': 1273
+  2022.xlsx: 4,511 filas -> 1,569 (eliminados 2,942 sin fecha)
+  Procesando 2023.xlsx ...
+  [2023] NaN reales: 2747 | String 'N/A': 8702
+  2023.xlsx: 11,997 filas -> 9,252 (eliminados 2,745 sin fecha)
+  Procesando 2024.xlsx ...
+  [2024] NaN reales: 2810 | String 'N/A': 424
+  2024.xlsx: 3,873 filas -> 1,068 (eliminados 2,805 sin fecha)
+  Procesando 2025.xlsx ...
+  [2025] NaN reales: 2792 | String 'N/A': 47
+  2025.xlsx: 3,580 filas -> 800 (eliminados 2,780 sin fecha)
+  Procesando 2026.xlsx ...
+  [2026] NaN reales: 2779 | String 'N/A': 52
+  2026.xlsx: 3,179 filas -> 447 (eliminados 2,732 sin fecha)
+  -----------------------------------------------------
+  Total registros : 13,136
+  IDs únicos      : 359
+  Rango fechas    : 2022-01-31 -> 2026-09-30
+  [OK] data\raw\Fuentes Consolidadas\Consolidado_API_Kawak.xlsx
+  [OK] data\raw\Fuentes Consolidadas\Consolidado_API_Kawak.csv (caché CSV)
+
+[COMPLETADO]
+
+
+---
+[STEP] sincronizar_directorio_indicadores
+CMD: C:\Users\ximen\OneDrive\Proyectos_DS\SGING\backend\.venv312\Scripts\python.exe C:\Users\ximen\OneDrive\Proyectos_DS\SGING\scripts\sincronizar_directorio_indicadores.py
+CWD: C:\Users\ximen\OneDrive\Proyectos_DS\SGING
+[EXIT] 0  elapsed_s=12.27
+
+[STDOUT]
+[sincronizar_directorio] Fuentes vigentes (Kawak+API): 400 Ids | catálogo: 724 | nuevos: 17 | históricos sin catalogar (no se agregan): 48
+  Nuevos: 642 (Nivel de Satisfacción Servicios Prestado), 643 (Aprovechamiento de Residuos), 644 (Disminución del Consumo de Agua per Cápi), 645 (Generación de  Gases de Efecto Invernade), 646 (Compensación de Gases de Efecto Invernad), 647 (Participación en Eventos de Formación Am), 648 (Participación en Eventos de Formación Am), 649 (Consumo de Agua per Cápita Semestral), 650 (Consumo de Energía Eléctrica per Cápita ), 651 (Generación de Residuos Sólidos per Cápit), 652 (Generación de Residuos Peligrosos per Cá), 653 (Disminución de la Generación de Residuos), 654 (Impacto de las Comunicaciones Correo Ele), 655 (Impacto de las Comunicaciones en Materia), 656 (Índice de Cumplimiento del Sprint (ICS)), 657 (Índice de Autogestión Implementado (IAI)), 658 (Índice de madurez tecnológica)
+  PDI_2026_2030 (PDI 2026-2030): 15 indicadores activos por agregar
+  PDI_2026_2030: 15 agregadas, 15 pendientes de asignar
+  Respaldo: Catalogo de Indicadores.20261010_101835.pre_sync.xlsx
+[AVISO] 15 asignación(es) de línea estratégica pendientes en PDI-2026-2030 (Ids: 642, 643, 644, 645, 646, 647, 648, 649, 650, 651, 652, 653, 654, 655, 656). Complétalas en las hojas PDI_* de 'Catalogo de Indicadores.xlsx' (filas con Origen «Indicador nuevo (Kawak/API)»; columnas PDI/Linea/Objetivo/Meta) o corre este script en una terminal.
+
+
+[STDERR]
+C:\Users\ximen\OneDrive\Proyectos_DS\SGING\backend\.venv312\Lib\site-packages\openpyxl\worksheet\_reader.py:329: UserWarning: Data Validation extension is not supported and will be removed
+  warn(msg)
+
+
+---
+[STEP] actualizar_directorio_maestro
+CMD: C:\Users\ximen\OneDrive\Proyectos_DS\SGING\backend\.venv312\Scripts\python.exe C:\Users\ximen\OneDrive\Proyectos_DS\SGING\scripts\actualizar_directorio_maestro.py
+CWD: C:\Users\ximen\OneDrive\Proyectos_DS\SGING
+[EXIT] 0  elapsed_s=4.94
+
+[STDOUT]
+[actualizar_directorio_maestro] Ficha Tecnica: 533 ids. CMI externo: 660 ids.
+[actualizar_directorio_maestro] Celdas llenadas: {'periodicidad': 0, 'sentido': 0, 'clasificacion': 0}
+[actualizar_directorio_maestro] 11 ids siguen con Periodicidad/Sentido/Clasificacion incompletos tras el merge (ninguna fuente los cubre): 108.2, 108.4, 325.1, 325.2, 416.7, 416.8, 420.6, 1015, 1016, 520, 521
+
+
+---
+[STEP] cna_extraction
+CMD: C:\Users\ximen\OneDrive\Proyectos_DS\SGING\backend\.venv312\Scripts\python.exe -m scripts.cna_extraction.build_cli --write
+CWD: C:\Users\ximen\OneDrive\Proyectos_DS\SGING
+[EXIT] 0  elapsed_s=17.04
+
+[STDOUT]
+Archivo de salida: C:\Users\ximen\OneDrive\Proyectos_DS\SGING\data\output\Resultados_Consolidados_CNA.xlsx
+Registros existentes antes de esta corrida: 8010
+Registros nuevos insertados: 45
+Registros totales tras la corrida: 8055
+Valores cualitativos no convertidos: 685
+Totales calculados por suma de subdivisiones: 385
+Filas sin etiqueta de categoría (desambiguadas, revisar manualmente): 0
+Filas sin etiqueta que eran el Total (reclasificadas/omitidas): 28
+Filas sin etiqueta que no eran el Total (omitidas): 24
+Filas de resumen (%Part/Ingreso, Subtotal) omitidas en tablas de inversión: 63
+Valores con separador de miles leído como decimal (corregidos, validados con el Total): 40
+
+[AVISO] 2 hoja(s) del workbook SIN registro en el catálogo 'Índice Tablas' (no se extrajeron sus datos): Hoja1, Tabla 81
+
+
+---
+[STEP] actualizar_consolidado
+CMD: C:\Users\ximen\OneDrive\Proyectos_DS\SGING\backend\.venv312\Scripts\python.exe C:\Users\ximen\OneDrive\Proyectos_DS\SGING\scripts\actualizar_consolidado.py
+CWD: C:\Users\ximen\OneDrive\Proyectos_DS\SGING
+[EXIT] 0  elapsed_s=16679.19
+
+[STDOUT]
+
+============================================================
+PARTE 1: Catálogo Kawak -> Indicadores Kawak.xlsx
+============================================================
+  2022.xlsx: 152 indicadores
+  2023.xlsx: 289 indicadores
+  2024.xlsx: 315 indicadores
+  2025.xlsx: 785 indicadores
+  2026.xlsx: 837 indicadores
+  -----------------------------------------------------
+  Total filas     : 2,378
+  IDs únicos      : 544
+  Años cubiertos  : [2022, 2023, 2024, 2025, 2026]
+  [OK] data\raw\Fuentes Consolidadas\Indicadores Kawak.xlsx
+
+============================================================
+PARTE 2: Consolidado API -> Consolidado_API_Kawak.xlsx
+============================================================
+  Procesando 2022.xlsx ...
+  [2022] NaN reales: 2942 | String 'N/A': 1273
+  2022.xlsx: 4,511 filas -> 1,569 (eliminados 2,942 sin fecha)
+  Procesando 2023.xlsx ...
+  [2023] NaN reales: 2747 | String 'N/A': 8702
+  2023.xlsx: 11,997 filas -> 9,252 (eliminados 2,745 sin fecha)
+  Procesando 2024.xlsx ...
+  [2024] NaN reales: 2810 | String 'N/A': 424
+  2024.xlsx: 3,873 filas -> 1,068 (eliminados 2,805 sin fecha)
+  Procesando 2025.xlsx ...
+  [2025] NaN reales: 2792 | String 'N/A': 47
+  2025.xlsx: 3,580 filas -> 800 (eliminados 2,780 sin fecha)
+  Procesando 2026.xlsx ...
+  [2026] NaN reales: 2779 | String 'N/A': 52
+  2026.xlsx: 3,179 filas -> 447 (eliminados 2,732 sin fecha)
+  -----------------------------------------------------
+  Total registros : 13,136
+  IDs únicos      : 359
+  Rango fechas    : 2022-01-31 -> 2026-09-30
+  [OK] data\raw\Fuentes Consolidadas\Consolidado_API_Kawak.xlsx
+  [OK] data\raw\Fuentes Consolidadas\Consolidado_API_Kawak.csv (caché CSV)
+
+
+[STDERR]
+10:19:00  INFO      =================================================================
+10:19:00  INFO        ACTUALIZAR CONSOLIDADO  —  Año cierre: 2026
+10:19:00  INFO      =================================================================
+10:19:00  INFO      🚀 Pipeline SGIND_ETL iniciado
+10:19:00  INFO      0.5 Regenerando consolidados intermedios (Kawak/API)…
+10:19:20  INFO      1. Cargando fuente consolidada API/Kawak…
+10:19:20  INFO        📏 Paso 'cargar_fuente' iniciado
+10:19:20  INFO         Leyendo desde caché CSV: Consolidado_API_Kawak.csv
+10:19:20  INFO         13136 registros fuente
+10:19:20  INFO        ✅ Paso 'cargar_fuente' completado (0.299s, 13136→13136 filas)
+10:19:20  INFO      1.5 Validando contrato de datos (LAYER 1)…
+10:19:20  WARNING   ⚠️ Validación con warnings (3):
+10:19:20  WARNING      201 combinaciones ID-fecha duplicadas (se procesa primera)
+10:19:20  WARNING      18 resultados negativos en 'resultado' (mínimo: -732.08)
+10:19:20  WARNING      2058 resultados > 1.3 (130%) en 'resultado' (máximo: 47183249653.789)
+10:19:20  INFO      ✅ Gate 1 OK: datos listos para procesar
+10:19:20  INFO      2. Cargando catálogo…
+10:19:20  WARNING     'Variables' no está en Resultados_Consolidados_Fuente.xlsx: se usó la de Resultados Consolidados.xlsx (210 indicadores)
+10:19:20  INFO        Catálogo unificado: Tipo1=234 Tipo2=165 | TipoCalculo=553 | Variables/Campo=210
+10:19:20  INFO      3. Cargando metadatos y catálogos auxiliares…
+10:19:21  INFO        kawak_validos: +373 entradas de sub-indicadores agregadas.
+10:19:22  INFO        kawak_validos: +75 entradas de proyectos cronograma agregadas.
+10:19:22  INFO        kawak_validos: +648 entradas de proyectos manuales (sin generador) agregadas.
+10:19:26  INFO         ids_inactivos: 390 entradas (Kawak: 194, Ind_Act=0: 289)
+10:19:27  INFO         ids_bienal (Frecuencia=Bienal): 3 entradas
+10:19:28  INFO         kawak_por_año: 1403 entradas (Id, Año)
+10:19:28  INFO         Leyendo desde caché CSV: Consolidado_API_Kawak.csv
+10:19:30  INFO        Lookup Consolidado_API_Kawak: 3,409 registros (0 series-ext, 70 fallback-suma)
+10:19:30  INFO         api_kawak_lookup: 3409 entradas
+10:19:30  INFO      4. Cargando config_patrones…
+10:19:30  INFO         0 patrones configurados
+10:19:30  INFO      4.5 Inicializando versionado y auditoría…
+10:19:30  WARNING   ⚠️  Email notifications deshabilitado: falta configuración SMTP. Configure SMTP_SERVER, SENDER_EMAIL, RECIPIENT_EMAILS y SENDER_PASSWORD.
+10:19:30  INFO         💬 Email notifications deshabilitado
+10:19:30  INFO      [AUDIT] consolidacion_iniciada | usuario=etl_script | ok=True
+10:19:30  INFO      5. Abriendo workbook Resultados Consolidados.xlsx…
+10:19:36  INFO      5.5 Creando versión de seguridad…
+10:19:36  INFO        ✅ Versión guardada: Resultados Consolidados_v20261010_101936_pre_consolidacion.xlsx
+10:19:36  INFO        Versión antigua eliminada: Resultados Consolidados_v20260918_192857_pre_consolidacion.xlsx
+10:19:36  INFO      [AUDIT] cambio_datos_backup | usuario=etl_script | ok=True
+10:19:36  INFO      6. Leyendo hojas existentes…
+10:19:40  INFO         Formato_Valores (catálogo): 553 indicadores
+10:19:41  INFO         701 indicadores con signo
+10:19:41  INFO      7. Purgando filas inválidas…
+10:19:42  INFO         Fecha Desde (ficha técnica): 399 indicadores
+10:19:43  INFO        [Historico] Sin filas anteriores a Fecha Desde para purgar.
+10:19:43  INFO        [Semestral] Sin filas anteriores a Fecha Desde para purgar.
+10:19:44  INFO        [Cierres] Sin filas anteriores a Fecha Desde para purgar.
+10:19:46  INFO        limpiar_cierres: 23 filas eliminadas.
+10:19:46  INFO      8. Construyendo escalas históricas…
+10:19:46  INFO      9. Preparando fuentes para builders…
+10:19:47  INFO      9.5 Forzando regeneración de 136 IDs (sub-indicadores + proyectos)
+10:19:47  INFO      10. Construyendo nuevos registros…
+10:19:47  INFO         Histórico: 84 nuevos, 10360 omitidos, 36 NA
+10:19:49  INFO         Semestral: 29 nuevos, 6329 omitidos, 4 NA
+10:19:54  INFO         Cierres:   1051 nuevos, 10311 omitidos, 19 NA
+10:19:54  INFO      🔧 Aplicando correcciones AGENT 5 (hallazgos críticos)…
+10:19:54  INFO      ╔════════════════════════════════════════════════════════════════╗
+10:19:54  INFO      ║  APLICANDO CORRECCIONES DE AGENT 5                             ║
+10:19:54  INFO      ║  Hallazgos Críticos: Ejecución y Meta                          ║
+10:19:54  INFO      ╚════════════════════════════════════════════════════════════════╝
+10:19:54  INFO      
+✓ CORRECCIÓN 1: Señalar Ejecucion > 1.3 (sin capping)
+10:19:54  INFO      ℹ️  11 valores de Ejecucion > 1.3 (no se capan: son ejecuciones reales en su propia escala)
+10:19:54  INFO      
+✓ CORRECCIÓN 2: Validar Meta = 0/NULL
+10:19:54  WARNING   🔴 CRÍTICO: 29 valores de Meta = 0 o NULL. Requiere revisión...
+10:19:54  WARNING      IDs afectados: [432, 485, 488, 529]
+10:19:54  WARNING      RECOMENDACIÓN: Revisar meta de estos indicadores
+10:19:54  INFO      
+======================================================================
+10:19:54  INFO      RESUMEN DE CORRECCIONES
+10:19:54  INFO      ======================================================================
+10:19:54  INFO      ℹ️  Ejecucion > 1.3 (sin tocar): 11
+10:19:54  INFO      ⚠️  Meta = 0 detectados: 29
+10:19:54  INFO      📊 TOTAL CORRECCIONES: 29
+10:19:54  INFO      ======================================================================
+10:19:54  INFO      [AUDIT] cambio_datos_información | usuario=etl_agent5 | ok=True
+10:19:54  INFO      [AUDIT] cambio_datos_validación_crítica | usuario=etl_agent5 | ok=True
+10:19:54  ERROR        🔴 Historico: 29 registros con META=0 detectados (revisar manualmente)
+10:19:54  INFO      ╔════════════════════════════════════════════════════════════════╗
+10:19:54  INFO      ║  APLICANDO CORRECCIONES DE AGENT 5                             ║
+10:19:54  INFO      ║  Hallazgos Críticos: Ejecución y Meta                          ║
+10:19:54  INFO      ╚════════════════════════════════════════════════════════════════╝
+10:19:54  INFO      
+✓ CORRECCIÓN 1: Señalar Ejecucion > 1.3 (sin capping)
+10:19:54  INFO      ℹ️  9 valores de Ejecucion > 1.3 (no se capan: son ejecuciones reales en su propia escala)
+10:19:54  INFO      
+✓ CORRECCIÓN 2: Validar Meta = 0/NULL
+10:19:54  WARNING   🔴 CRÍTICO: 1 valores de Meta = 0 o NULL. Requiere revisión...
+10:19:54  WARNING      IDs afectados: [159]
+10:19:54  WARNING      RECOMENDACIÓN: Revisar meta de estos indicadores
+10:19:54  INFO      
+======================================================================
+10:19:54  INFO      RESUMEN DE CORRECCIONES
+10:19:54  INFO      ======================================================================
+10:19:54  INFO      ℹ️  Ejecucion > 1.3 (sin tocar): 9
+10:19:54  INFO      ⚠️  Meta = 0 detectados: 1
+10:19:54  INFO      📊 TOTAL CORRECCIONES: 1
+10:19:54  INFO      ======================================================================
+10:19:54  INFO      [AUDIT] cambio_datos_información | usuario=etl_agent5 | ok=True
+10:19:54  INFO      [AUDIT] cambio_datos_validación_crítica | usuario=etl_agent5 | ok=True
+10:19:54  ERROR        🔴 Semestral: 1 registros con META=0 detectados (revisar manualmente)
+10:19:54  INFO      ╔════════════════════════════════════════════════════════════════╗
+10:19:54  INFO      ║  APLICANDO CORRECCIONES DE AGENT 5                             ║
+10:19:54  INFO      ║  Hallazgos Críticos: Ejecución y Meta                          ║
+10:19:54  INFO      ╚════════════════════════════════════════════════════════════════╝
+10:19:54  INFO      
+✓ CORRECCIÓN 1: Señalar Ejecucion > 1.3 (sin capping)
+10:19:54  INFO      ℹ️  735 valores de Ejecucion > 1.3 (no se capan: son ejecuciones reales en su propia escala)
+10:19:54  INFO      
+✓ CORRECCIÓN 2: Validar Meta = 0/NULL
+10:19:54  WARNING   🔴 CRÍTICO: 80 valores de Meta = 0 o NULL. Requiere revisión...
+10:19:54  WARNING      IDs afectados: [68, 73, 77, 86, 111]
+10:19:54  WARNING      RECOMENDACIÓN: Revisar meta de estos indicadores
+10:19:54  INFO      
+======================================================================
+10:19:54  INFO      RESUMEN DE CORRECCIONES
+10:19:54  INFO      ======================================================================
+10:19:54  INFO      ℹ️  Ejecucion > 1.3 (sin tocar): 735
+10:19:54  INFO      ⚠️  Meta = 0 detectados: 80
+10:19:54  INFO      📊 TOTAL CORRECCIONES: 80
+10:19:54  INFO      ======================================================================
+10:19:54  INFO      [AUDIT] cambio_datos_información | usuario=etl_agent5 | ok=True
+10:19:54  INFO      [AUDIT] cambio_datos_validación_crítica | usuario=etl_agent5 | ok=True
+10:19:54  ERROR        🔴 Cierres: 80 registros con META=0 detectados (revisar manualmente)
+10:19:54  INFO      ✅ Correcciones AGENT 5 aplicadas
+10:19:54  INFO      10.4 Expandiendo series como sub-indicadores…
+10:19:54  INFO         Sub-indicadores: +1125 histórico, +609 semestral, +367 cierres
+10:19:54  INFO      10.45 Extrayendo proyectos cronograma (441/509/603)…
+10:19:55  INFO         Proyectos cronograma: +210 histórico, +39 semestral (jun), +26 cierres (dic/último)
+10:19:55  INFO      10.46 Construyendo Total Población (14, 14.1-14.4)…
+10:19:55  INFO         Total Población: +35 histórico, +35 semestral, +20 cierres
+10:19:55  INFO      10.6 Validación intermedia post-construcción…
+10:19:55  INFO      ⚠️ Validación post_build_Historico: WARNING
+10:19:55  INFO         Checks pasados: 2
+10:19:55  WARNING      Warnings (3):
+10:19:55  WARNING        - 69 llaves duplicadas
+10:19:55  WARNING        - Valores > 1.3 en 'Meta'
+10:19:55  WARNING        - Valores negativos en 'Ejecucion'
+10:19:55  INFO         Métricas: {'total_registros': 1454, 'llaves_unicas': 1385, 'Meta_min': 0.0, 'Meta_max': 7633001463.0, 'Ejecucion_min': -6.46, 'Ejecucion_max': 7383847983.0}
+10:19:55  INFO      ⚠️ Validación post_build_Semestral: WARNING
+10:19:55  INFO         Checks pasados: 2
+10:19:55  WARNING      Warnings (3):
+10:19:55  WARNING        - 22 llaves duplicadas
+10:19:55  WARNING        - Valores > 1.3 en 'Meta'
+10:19:55  WARNING        - Valores negativos en 'Ejecucion'
+10:19:55  INFO         Métricas: {'total_registros': 712, 'llaves_unicas': 690, 'Meta_min': 0.0, 'Meta_max': 7633001463.0, 'Ejecucion_min': -6.46, 'Ejecucion_max': 7383847983.0}
+10:19:55  INFO      ⚠️ Validación post_build_Cierres: WARNING
+10:19:55  INFO         Checks pasados: 2
+10:19:55  WARNING      Warnings (3):
+10:19:55  WARNING        - 15 llaves duplicadas
+10:19:55  WARNING        - Valores > 1.3 en 'Meta'
+10:19:55  WARNING        - Valores negativos en 'Ejecucion'
+10:19:55  INFO         Métricas: {'total_registros': 1464, 'llaves_unicas': 1449, 'Meta_min': 0.0, 'Meta_max': 309304697288.0, 'Ejecucion_min': -317.995, 'Ejecucion_max': 344352259762.0}
+10:19:55  INFO      10.7 Validación pre-escritura…
+10:19:55  INFO      ⚠️ Validación pre_write_Historico: WARNING
+10:19:55  INFO         Checks pasados: 4
+10:19:55  WARNING      Warnings (1):
+10:19:55  WARNING        - 69 filas duplicadas exactas
+10:19:55  INFO         Métricas: {'total_registros': 1454}
+10:19:55  INFO      ⚠️ Validación pre_write_Semestral: WARNING
+10:19:55  INFO         Checks pasados: 4
+10:19:55  WARNING      Warnings (1):
+10:19:55  WARNING        - 22 filas duplicadas exactas
+10:19:55  INFO         Métricas: {'total_registros': 712}
+10:19:55  INFO      ⚠️ Validación pre_write_Cierres: WARNING
+10:19:55  INFO         Checks pasados: 4
+10:19:55  WARNING      Warnings (1):
+10:19:55  WARNING        - 15 filas duplicadas exactas
+10:19:55  INFO         Métricas: {'total_registros': 1464}
+10:19:55  INFO      11. Escribiendo nuevas filas…
+10:19:56  INFO      12. Reparando valores y recalculando…
+10:19:56  INFO        [Historico] Meta reparada: 7 | Ejecucion reparada: 0
+10:19:58  INFO        [Historico] Meta corregida (capping AGENT5 obsoleto): 9
+10:19:59  INFO        [Historico] Sin Ejecucion=1.3 residual de AGENT5.
+10:19:59  INFO        [Historico] Signos ya sincronizados con el catálogo.
+10:20:00  INFO        [Historico] Multiserie corregida: Meta=0 Ejec=10
+10:20:00  INFO        [Semestral] Meta reparada: 5 | Ejecucion reparada: 0
+10:20:02  INFO        [Semestral] Meta corregida (capping AGENT5 obsoleto): 8
+10:20:03  INFO        [Semestral] Sin Ejecucion=1.3 residual de AGENT5.
+10:20:03  INFO        [Semestral] Signos ya sincronizados con el catálogo.
+10:20:04  INFO        [Semestral] Multiserie corregida: Meta=58 Ejec=193
+10:20:04  INFO        [Cierres] Meta reparada: 77 | Ejecucion reparada: 3
+10:20:05  INFO        [Cierres] Meta corregida (capping AGENT5 obsoleto): 4
+10:20:07  INFO        [Cierres] Sin Ejecucion=1.3 residual de AGENT5.
+10:20:07  INFO        [Cierres] Signos ya sincronizados con el catálogo.
+10:20:07  INFO        [Cierres] Multiserie corregida: Meta=110 Ejec=361
+10:20:10  INFO        [Semestral] Promedio/Acumulado recalculados: 209 filas
+10:20:12  INFO        [Cierres] Promedio/Acumulado recalculados: 388 filas
+10:20:14  INFO        [Historico] Desglose Variables corregido: Meta=10 Ejec=0
+10:20:15  INFO        [Semestral] Desglose Variables: sin correcciones.
+10:20:17  INFO        [Cierres] Desglose Variables corregido: Meta=0 Ejec=13
+10:20:26  INFO        [Historico] 49 filas eliminadas por ser anteriores a Fecha Desde (ficha técnica) sin dato real.
+10:20:27  INFO        [Semestral] 4 filas eliminadas por ser anteriores a Fecha Desde (ficha técnica) sin dato real.
+10:20:27  INFO        [Cierres] 4 filas eliminadas por ser anteriores a Fecha Desde (ficha técnica) sin dato real.
+10:20:27  INFO      13. Deduplicando y reescribiendo fórmulas…
+10:24:52  INFO        [Historico] 1381 duplicados eliminados.
+10:25:47  INFO          [Consolidado Historico] Fórmulas reescritas en 4,621 filas.
+10:25:48  WARNING   [Consolidado Historico] Filas con Meta y Ejecución pero Cumplimiento vacío: [576, 1814, 1928]
+10:26:44  INFO        [Semestral] 693 duplicados eliminados.
+10:27:21  INFO          [Consolidado Semestral] Fórmulas reescritas en 2,804 filas.
+10:27:22  WARNING   [Consolidado Semestral] Filas con Meta y Ejecución pero Cumplimiento vacío: [234, 1035, 1121]
+10:31:04  INFO        [Cierres] 1413 duplicados eliminados.
+10:31:27  INFO          [Consolidado Cierres] Fórmulas reescritas en 1,761 filas.
+10:31:27  WARNING   [Consolidado Cierres] Filas con Meta y Ejecución pero Cumplimiento vacío: [179, 180, 181, 182, 183, 427, 428, 466, 467, 468, 469, 470, 471, 472, 473, 474, 613, 614, 615, 616, 617, 618, 619, 620, 621, 622, 623, 642, 643, 644, 645, 646, 647, 648, 649, 695, 696, 697, 698]
+10:31:27  INFO      14. Actualizando Catálogo Indicadores…
+10:31:28  WARNING     'Variables' no está en Resultados_Consolidados_Fuente.xlsx: se usó la de Resultados Consolidados.xlsx (210 indicadores)
+10:31:28  INFO        Catálogo unificado: Tipo1=234 Tipo2=165 | TipoCalculo=553 | Variables/Campo=210
+10:31:29  INFO        Catálogo unificado: Tipo1=0 Tipo2=0 | TipoCalculo=565 | Variables/Campo=210
+10:31:30  INFO         751 indicadores en catálogo
+10:31:30  INFO      15. Guardando Resultados Consolidados.xlsx…
+14:56:17  INFO          [Consolidado Historico] Cumplimiento recalculado: 4303 con valor, 315 vacíos.
+14:56:18  INFO          [Consolidado Semestral] Cumplimiento recalculado: 2622 con valor, 182 vacíos.
+14:56:19  INFO          [Consolidado Cierres] Cumplimiento recalculado: 1652 con valor, 108 vacíos.
+14:56:19  INFO          [Cierre PDI] Cumplimiento recalculado: 90 con valor, 6 vacíos.
+14:56:56  INFO         Guardado correctamente.
+14:56:56  INFO         Copia solo valores guardada en: C:\Users\ximen\OneDrive\Proyectos_DS\SGING\data\output\Resultados Consolidados VALORES.xlsx
+14:56:56  INFO      [AUDIT] consolidacion_completada | usuario=etl_script | ok=True
+14:56:56  INFO      =================================================================
+14:56:56  INFO        COMPLETADO — 3630 registros nuevos totales
+14:56:56  INFO      =================================================================
+14:56:56  INFO      AUDITORÍA: 1784 eventos registrados | 1384 exitosos | 400 errores
+14:56:56  INFO      Archivo de auditoría: C:\Users\ximen\OneDrive\Proyectos_DS\SGING\data\audit\consolidaciones.json
+14:56:56  INFO      ✅ Pipeline SGIND_ETL completado
+14:56:56  INFO         Duración total: 16675.682s
+14:56:56  INFO         Pasos ejecutados: 1
+14:56:56  INFO         Filas procesadas: 13136 → 13136
+14:56:56  INFO      📊 Métricas guardadas en C:\Users\ximen\OneDrive\Proyectos_DS\SGING\data\artifacts\pipeline_metrics_20261010_145656.json
+14:56:56  INFO      📊 Métricas de rendimiento guardadas
+
+
+---
+[STEP] generar_seguimiento
+CMD: C:\Users\ximen\OneDrive\Proyectos_DS\SGING\backend\.venv312\Scripts\python.exe C:\Users\ximen\OneDrive\Proyectos_DS\SGING\scripts\generar_seguimiento.py
+CWD: C:\Users\ximen\OneDrive\Proyectos_DS\SGING
+[EXIT] 0  elapsed_s=28.66
+
+[STDOUT]
+==================================================================
+  generar_seguimiento.py → Seguimiento_Reporte.xlsx  (fuente: Kawak anual + API)
+==================================================================
+  Fecha de ejecución : 10/10/2026
+  Fecha de referencia: 30/09/2026
+  Inicio calendario  : 01/2025
+
+[1] Calendario: 1/2025 → 9/2026  (21 meses)
+
+[2] Catálogos anuales de Kawak (indicadores activos y periodicidad)...
+    Kawak 2025: 297 indicadores activos.
+    Kawak 2026: 350 indicadores activos.
+
+[3] Resultados: API de Kawak + periodos fechados de los archivos anuales...
+    Kawak API cargado: 3346 registros (Id × período).
+    Kawak 2025: periodos con resultado hasta ninguno
+    Kawak 2026: periodos con resultado hasta 2026-08-31
+    API (normalizada a mes de cierre): 3002 | archivos anuales: 190
+
+[4] Tracking Mensual...
+    Filas: 1,307 (378 indicadores) | estados: {'Reportado': 1136, 'Pendiente': 160, 'No aplica': 11} | fuente: {'Kawak': 1128, '—': 171, 'Kawak anual': 8}
+
+[5] Hojas de cierres históricos...
+    Consolidado Cierres: 1126 registros | Matriz Calor OK
+
+[6] Guardado: C:\Users\ximen\OneDrive\Proyectos_DS\SGING\data\output\Seguimiento_Reporte.xlsx
+==================================================================
+  Proceso completado exitosamente.
+==================================================================
+
+
+---
+[STEP] generar_reporte
+CMD: C:\Users\ximen\OneDrive\Proyectos_DS\SGING\backend\.venv312\Scripts\python.exe C:\Users\ximen\OneDrive\Proyectos_DS\SGING\scripts\generar_reporte.py
+CWD: C:\Users\ximen\OneDrive\Proyectos_DS\SGING
+[EXIT] 0  elapsed_s=10.69
+
+[STDERR]
+14:57:27  INFO        Leyendo Resultados Consolidados.xlsx…
+14:57:31  INFO          Consolidado Historico                4621 filas
+14:57:33  INFO          Consolidado Semestral                2804 filas
+14:57:34  INFO          Consolidado Cierres                  1761 filas
+14:57:35  INFO          Catalogo Indicadores                 751 filas
+14:57:35  INFO        Leyendo Seguimiento_Reporte.xlsx…
+14:57:36  INFO          Tracking Mensual                     1307 filas
+14:57:36  INFO          Consolidado Cierres                  1126 filas
+14:57:37  INFO          Matriz Calor                         358 filas
+14:57:37  INFO      Reporte JSON: artifacts\reporte_20261010.json
+14:57:37  INFO      Reporte CSV:  artifacts\reporte_20261010.csv
+14:57:37  INFO      Generación completada.
+

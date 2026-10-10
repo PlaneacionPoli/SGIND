@@ -13,8 +13,9 @@ cuando algo no va bien.
 - **Responsables de calidad y desempeño**: además de consultar, pueden
   crear, editar y cerrar "Oportunidades de Mejora" (acciones correctivas
   frente a un indicador que no cumple su meta).
-- **Equipo de procesos**: consulta el seguimiento operativo y el plan de
-  mejoramiento de su área.
+- **Equipo de procesos**: consulta el plan de mejoramiento, el CMI y los
+  informes de su área. No accede a Seguimiento Operativo; recibe por correo
+  los avisos de reporte que Desempeño envía a partir de los borradores que genera ese módulo.
 
 ## ¿Qué hace hoy, en la práctica?
 

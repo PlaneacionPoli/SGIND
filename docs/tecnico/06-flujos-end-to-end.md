@@ -22,7 +22,11 @@ scripts/run_pipeline.py (o agent_runner.py)
        (carga, valida "Gate 1", construye registros, aplica correcciones
         AGENT5, valida "Gate 2/3", escribe, repara, respalda con rollback)
        → data/output/Resultados Consolidados.xlsx (+ .bak.xlsx + VALORES.xlsx)
-  3) scripts/generar_reporte.py
+  3) scripts/generar_seguimiento.py
+       fuente: data/raw/Kawak/<año>.xlsx (indicadores activos, periodicidad y columnas
+       fechadas con resultado) + Consolidado_API_Kawak. El LMI ya NO se usa.
+       → data/output/Seguimiento_Reporte.xlsx (hoja Tracking Mensual + cierres)
+  4) scripts/generar_reporte.py
        → artifacts/reporte_YYYYMMDD.json (métricas de calidad del run)
 
 [proceso separado, también manual]
@@ -31,7 +35,7 @@ python -m scripts.cna_extraction.build_cli --write
 ```
 
 Orden real de `config/settings.toml`: `consolidar_api`, `sincronizar_directorio_indicadores`,
-`actualizar_directorio_maestro`, `cna_extraction`, `actualizar_consolidado`, `generar_reporte`.
+`actualizar_directorio_maestro`, `cna_extraction`, `actualizar_consolidado`, `generar_seguimiento`, `generar_reporte`.
 Herramientas del catálogo que **no** forman parte del pipeline (se ejecutan a mano):
 `scripts/importar_taxonomia_pdi.py` (RN-26), `scripts/agregar_hojas_marco_catalogo.py` (RN-24)
 y `scripts/asociar_preliminar_pdi.py` (RN-29).

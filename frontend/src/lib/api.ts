@@ -1,5 +1,12 @@
 import axios from "axios";
 import type {
+  AlertaConfig,
+  AlertaEnvio,
+  AlertaNotificaciones,
+  AlertaVistaPrevia,
+  AlertasConfigResponse,
+  BorradoresDescarga,
+  TipoAlerta,
   CMIAlertasResponse,
   CMIDashboardResponse,
   CMIEstrategicoResponse,
@@ -32,6 +39,7 @@ import type {
   RegistroOMCreate,
   RegistroOMUpdate,
   SeguimientoDashboardResponse,
+  SeguimientoFiltros,
   ResumenCompletoResponse,
   ResumenLineaResponse,
   SemaphoreItem,
@@ -372,11 +380,127 @@ export async function deleteOM(id: number): Promise<void> {
   await api.delete(`/om/${id}`);
 }
 
+export async function fetchSeguimientoFiltros(): Promise<SeguimientoFiltros> {
+  const { data } = await api.get<SeguimientoFiltros>("/seguimiento/filtros");
+  return data;
+}
+
+export async function fetchAlertasConfig(): Promise<AlertasConfigResponse> {
+  const { data } = await api.get<AlertasConfigResponse>("/seguimiento/alertas/config");
+  return data;
+}
+
+export async function updateAlertasConfig(payload: Partial<Omit<AlertaConfig, "updated_by" | "updated_at">>): Promise<AlertaConfig> {
+  const { data } = await api.put<AlertaConfig>("/seguimiento/alertas/config", payload);
+  return data;
+}
+
+export async function updateAlertasDestinatarios(payload: {
+  proceso: string;
+  emails: string[];
+}): Promise<Record<string, string[]>> {
+  const { data } = await api.put<Record<string, string[]>>("/seguimiento/alertas/destinatarios", payload);
+  return data;
+}
+
+export async function fetchAlertasVistaPrevia(params: {
+  proceso: string;
+  tipo: TipoAlerta;
+  anio?: number;
+  mes?: number;
+}): Promise<AlertaVistaPrevia> {
+  const { data } = await api.get<AlertaVistaPrevia>("/seguimiento/alertas/vista-previa", { params });
+  return data;
+}
+
+export async function updateAlertasPlazo(payload: {
+  proceso: string;
+  plazo_dias: number | null;
+}): Promise<Record<string, number>> {
+  const { data } = await api.put<Record<string, number>>("/seguimiento/alertas/plazos", payload);
+  return data;
+}
+
+function guardarArchivo(data: BlobPart, tipo: string, nombre: string) {
+  const url = URL.createObjectURL(new Blob([data], { type: tipo }));
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = nombre;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+function nombreDeCabecera(cabecera: unknown, porDefecto: string): string {
+  const m = /filename="?([^";]+)"?/.exec(String(cabecera ?? ""));
+  return m ? m[1] : porDefecto;
+}
+
+function resumenZip(headers: Record<string, unknown>): BorradoresDescarga {
+  return {
+    total: Number(headers["x-borradores-total"] ?? 0),
+    sinDestinatarios: Number(headers["x-borradores-sin-destinatarios"] ?? 0),
+  };
+}
+
+/** Descarga el .eml de un proceso (Outlook lo abre como borrador sin enviar). */
+export async function descargarBorradorProceso(params: {
+  proceso: string;
+  tipo: TipoAlerta;
+  anio?: number;
+  mes?: number;
+}): Promise<void> {
+  const r = await api.get("/seguimiento/alertas/borrador", { params, responseType: "blob" });
+  guardarArchivo(r.data, "message/rfc822", nombreDeCabecera(r.headers["content-disposition"], "borrador.eml"));
+}
+
+/** ZIP con un borrador .eml por proceso para el corte. */
+export async function descargarBorradores(payload: {
+  tipo: TipoAlerta;
+  anio?: number;
+  mes?: number;
+}): Promise<BorradoresDescarga> {
+  const r = await api.post("/seguimiento/alertas/borradores", payload, { responseType: "blob" });
+  guardarArchivo(r.data, "application/zip", nombreDeCabecera(r.headers["content-disposition"], "borradores.zip"));
+  return resumenZip(r.headers as Record<string, unknown>);
+}
+
+/** Listado_de_indicadores.xlsx con el formato de la automatización local Auto_Correo. */
+export async function descargarListadoOutlook(params: { tipo: TipoAlerta; anio?: number; mes?: number }): Promise<void> {
+  const r = await api.get("/seguimiento/alertas/listado-outlook", { params, responseType: "blob" });
+  guardarArchivo(
+    r.data,
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    nombreDeCabecera(r.headers["content-disposition"], "Listado_de_indicadores.xlsx"),
+  );
+}
+
+export async function fetchAlertasNotificaciones(): Promise<AlertaNotificaciones> {
+  const { data } = await api.get<AlertaNotificaciones>("/seguimiento/alertas/notificaciones");
+  return data;
+}
+
+/** ZIP con los borradores que dejó listos el programador; los marca como descargados. */
+export async function descargarBorradoresPendientes(): Promise<BorradoresDescarga> {
+  const r = await api.post("/seguimiento/alertas/descargar-pendientes", null, { responseType: "blob" });
+  guardarArchivo(r.data, "application/zip", nombreDeCabecera(r.headers["content-disposition"], "borradores_pendientes.zip"));
+  return resumenZip(r.headers as Record<string, unknown>);
+}
+
+export async function fetchAlertasHistorial(): Promise<AlertaEnvio[]> {
+  const { data } = await api.get<AlertaEnvio[]>("/seguimiento/alertas/historial");
+  return data;
+}
+
+export type SeguimientoColumna = "Id" | "Indicador" | "Proceso" | "Periodicidad" | "Corte" | "Estado";
+
 export async function fetchSeguimientoDashboard(params?: {
   anio?: number;
   mes?: number;
   proceso?: string;
   estado?: string;
+  busqueda?: string;
+  orden_por?: SeguimientoColumna;
+  orden_dir?: "asc" | "desc";
   limit?: number;
   offset?: number;
 }): Promise<SeguimientoDashboardResponse> {
@@ -389,6 +513,7 @@ export async function downloadSeguimientoExport(params?: {
   mes?: number;
   proceso?: string;
   estado?: string;
+  busqueda?: string;
 }): Promise<void> {
   const response = await api.get("/seguimiento/export", { params, responseType: "blob" });
   const blob = new Blob([response.data], {

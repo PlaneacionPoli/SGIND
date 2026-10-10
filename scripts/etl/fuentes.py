@@ -186,39 +186,46 @@ def cargar_kawak_old(years: tuple = (2021,)) -> pd.DataFrame:
 
 # ── Catálogo Kawak ────────────────────────────────────────────────
 
-def cargar_lmi_reporte() -> Set[str]:
-    """Retorna set de IDs (str) cuyo Tipo == 'Metrica' o cuyo nombre contiene 'metrica'."""
-    path = BASE_PATH / "lmi_reporte.xlsx"
-    if not path.exists():
-        logger.info(f"  No se encontró {path.name}; ids_metrica = vacío")
+def cargar_ids_metrica() -> Set[str]:
+    """IDs (str) de indicadores de tipo "Métrica": cálculos puros sin meta por definición.
+
+    Se toman de los archivos anuales de Kawak (data/raw/Kawak/<año>.xlsx), uniendo todos los
+    años: un indicador puede haberse dado de baja (p. ej. 268-271 y 302 solo figuran en 2025)
+    y su histórico sigue siendo de tipo Métrica. Criterio: Tipo == "Metrica" o nombre que
+    contiene "metrica". Reemplaza al antiguo lmi_reporte.xlsx, que ya no se usa.
+    """
+    kawak_dir = BASE_PATH / "Kawak"
+    archivos = sorted(kawak_dir.glob("[0-9][0-9][0-9][0-9].xlsx")) if kawak_dir.exists() else []
+    if not archivos:
+        logger.info(f"  No hay archivos anuales en {kawak_dir}; ids_metrica = vacío")
         return set()
-    try:
-        df = pd.read_excel(path)
-        df.columns = [str(c).strip() for c in df.columns]
-        col_tipo = next(
-            (c for c in df.columns
-             if c.lower().startswith("tipo")
-             and "variable" not in c.lower()
-             and "calculo" not in c.lower()),
-            None,
-        )
-        col_ind = next(
-            (c for c in df.columns if c.lower().startswith("indicador")), None
-        )
-        col_id = next((c for c in df.columns if c.lower() == "id"), "Id")
-        mask = pd.Series(False, index=df.index)
-        if col_tipo:
-            mask |= df[col_tipo].astype(str).str.strip().str.lower() == "metrica"
-        if col_ind:
-            mask |= df[col_ind].astype(str).str.lower().str.contains("metrica", na=False)
-        ids: Set[str] = set()
-        for val in df.loc[mask, col_id].dropna():
-            s = str(val).strip()
-            ids.add(s[:-2] if s.endswith(".0") else s)
-        return ids
-    except Exception as e:
-        logger.warning(f"  Error leyendo lmi_reporte.xlsx: {e}")
-        return set()
+    ids: Set[str] = set()
+    for path in archivos:
+        try:
+            df = pd.read_excel(path)
+            df.columns = [str(c).strip() for c in df.columns]
+            col_tipo = next(
+                (c for c in df.columns
+                 if c.lower().startswith("tipo")
+                 and "variable" not in c.lower()
+                 and "calculo" not in c.lower()),
+                None,
+            )
+            col_ind = next(
+                (c for c in df.columns if c.lower().startswith("indicador")), None
+            )
+            col_id = next((c for c in df.columns if c.lower() == "id"), "Id")
+            mask = pd.Series(False, index=df.index)
+            if col_tipo:
+                mask |= df[col_tipo].astype(str).str.strip().str.lower() == "metrica"
+            if col_ind:
+                mask |= df[col_ind].astype(str).str.lower().str.contains("metrica", na=False)
+            for val in df.loc[mask, col_id].dropna():
+                s = str(val).strip()
+                ids.add(s[:-2] if s.endswith(".0") else s)
+        except Exception as e:
+            logger.warning(f"  Error leyendo {path.name} para ids_metrica: {e}")
+    return ids
 
 
 def cargar_kawak_validos() -> Optional[Set[Tuple[str, int]]]:

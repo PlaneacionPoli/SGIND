@@ -29,6 +29,7 @@ Seguimiento Operativo y Gestión OM **no** son visibles ni accesibles para `proc
 | `GET /api/v1/plan-mejoramiento/*` | ✅ | ✅ | ✅ | ✅ | ✅ |
 | `GET /api/v1/reports/*` | ✅ | ✅ | ✅ | ✅ | ✅ |
 | `GET /api/v1/seguimiento/*` (incluye `export`) | ❌ | ✅ | ✅ | ✅ | ❌ |
+| `/api/v1/seguimiento/alertas/*` (config, destinatarios, plazos, borradores, historial) | ❌ | ✅ | ✅ | ✅ | ❌ |
 | `GET /api/v1/om`, `/om/matriz`, `/om/plan-accion` | ❌ | ✅ | ✅ | ✅ | ❌ |
 | `POST /api/v1/om` | ❌ | ✅ | ✅ | ✅ | ❌ |
 | `PUT /api/v1/om/{id}` | ❌ | ✅ | ✅ | ✅ | ❌ |
