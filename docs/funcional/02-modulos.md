@@ -32,6 +32,22 @@ Solo el módulo de **Gestión de Oportunidades de Mejora** permite crear o
 modificar datos, y solo pueden hacerlo los usuarios con rol
 **Administrador**, **Calidad** o **Desempeño**.
 
+### Cómo se usa Gestión OM
+
+1. Abre en el corte más reciente con datos (hoy, septiembre de 2026); cambia el año y el mes si lo necesitas y, si quieres, un proceso, un subproceso o una
+   búsqueda por Id, nombre u OM. El enlace de la página conserva esos filtros.
+2. Los cuatro indicadores de arriba responden «¿cuánto falta?»: **Sin OM**,
+   **En gestión**, **Cerradas** y la **Cobertura** (indicadores en riesgo con
+   una OM activa). El gráfico de barras muestra por proceso cuántos tienen y
+   cuántos no tienen OM; un clic en una barra filtra la tabla.
+3. La tabla abre en **Pendientes de OM**. Cada fila muestra el resultado
+   frente a la meta y, si no hay OM, el botón **Registrar OM**. Se abre un
+   panel lateral con el contexto del indicador (meta, ejecución e historial de
+   los últimos periodos). Para una OM de Kawak el número es obligatorio.
+4. Con una OM registrada, el menú «⋯» de la fila permite editar, cerrar o (solo
+   Administrador) eliminar, siempre con confirmación. Una OM cerrada puede
+   reabrirse editando su registro.
+
 ## Quién ve qué
 
 - **Procesos** (el rol por defecto): ve cinco pantallas — Resumen General,

@@ -8,7 +8,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.domain.om_builders import (
     build_filtros,
+    build_historial,
     build_kpis_matriz,
+    build_por_proceso,
     filter_indicadores_riesgo,
     load_avance_om,
     matriz_to_records,
@@ -31,8 +33,8 @@ class OMMatrizService:
         self,
         db: AsyncSession,
         *,
-        anio: int,
-        mes: str,
+        anio: int | None = None,
+        mes: str | None = None,
         proceso: str | None = None,
         subproceso: str | None = None,
         mostrar_alerta: bool = False,
@@ -51,6 +53,12 @@ class OMMatrizService:
             df_riesgo["Categoria"] = df_riesgo["Nivel de cumplimiento"]
 
         filtros = build_filtros(df_riesgo)
+        # Sin corte explícito se usa el más reciente con datos (hoy, 2026).
+        if anio is None:
+            anio = int(filtros["anio_default"])
+        if not mes:
+            meses = filtros["meses_por_anio"].get(str(anio)) or [filtros["mes_default"]]
+            mes = meses[-1]
         registros_orm = await self._om.list_registros(db, anio=anio, periodo=mes)
         registros = [
             {
@@ -75,7 +83,16 @@ class OMMatrizService:
             mostrar_alerta=mostrar_alerta,
         )
         df_tabla = merge_om_registros(df_filtrado, registros, avances)
+        # El gráfico por proceso ignora el filtro de proceso/subproceso: muestra el contexto completo.
+        df_universo = merge_om_registros(
+            filter_indicadores_riesgo(df_riesgo, anio=anio, mes=mes, mostrar_alerta=mostrar_alerta),
+            registros,
+            avances,
+        )
+        ids_tabla = df_tabla["id"].astype(str).tolist() if not df_tabla.empty else []
         return {
+            "por_proceso": build_por_proceso(df_universo),
+            "historial": build_historial(df_riesgo, ids_tabla, anio=anio, mes=mes),
             "anio": anio,
             "mes": mes,
             "filtros": filtros,

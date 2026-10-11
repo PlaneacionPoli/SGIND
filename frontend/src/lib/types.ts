@@ -1229,6 +1229,8 @@ export interface OMMatrizResponse {
     anio_default: string;
     meses: string[];
     mes_default: string;
+    /** Meses con indicadores evaluados, por año. */
+    meses_por_anio?: Record<string, string[]>;
     procesos: string[];
     subprocesos: string[];
   };
@@ -1261,7 +1263,28 @@ export interface OMMatrizResponse {
     row_bg: string;
   }>;
   tipo_accion_colores: Record<string, string>;
+  /** Contexto del corte completo (ignora el filtro de proceso): barras por proceso. */
+  por_proceso?: OMPorProceso[];
+  /** Últimos periodos de cada indicador de la tabla, indexados por Id. */
+  historial?: Record<string, OMHistorialPunto[]>;
 }
+
+export interface OMPorProceso {
+  proceso: string;
+  total: number;
+  con_om: number;
+  sin_om: number;
+}
+
+export interface OMHistorialPunto {
+  periodo: string;
+  cumplimiento_pct: number | null;
+  ejecucion: number | null;
+  meta: number | null;
+  categoria: string;
+}
+
+export type OMFila = OMMatrizResponse["filas"][number];
 
 export interface InformeDashboardResponse extends CMIProcesosDashboardResponse {
   resumen_ejecutivo: {

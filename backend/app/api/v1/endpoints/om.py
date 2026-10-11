@@ -35,8 +35,8 @@ def _matriz_service(excel: ExcelReaderService = Depends(_excel)) -> OMMatrizServ
 
 @router.get("/matriz", response_model=OMMatrizResponse)
 async def om_matriz(
-    anio: int = Query(...),
-    mes: str = Query("Diciembre"),
+    anio: int | None = Query(None, description="Por defecto, el año más reciente con datos"),
+    mes: str | None = Query(None, description="Por defecto, el último mes con datos del año"),
     proceso: str | None = Query(None),
     subproceso: str | None = Query(None),
     mostrar_alerta: bool = Query(False),

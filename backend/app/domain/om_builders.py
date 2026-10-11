@@ -298,6 +298,16 @@ def filter_indicadores_riesgo(
     return out
 
 
+def _cumplimiento_pct(row: Any) -> float | None:
+    """Cumplimiento en %: usa `Cumplimiento_pct` si existe; si no, `Cumplimiento_norm` (fracción 0–1)."""
+    for col, factor in (("Cumplimiento_pct", 1.0), ("cumplimiento_pct", 1.0), ("Cumplimiento_norm", 100.0)):
+        if col in row.index:
+            x = pd.to_numeric(row[col], errors="coerce")
+            if pd.notna(x):
+                return round(float(x) * factor, 1)
+    return None
+
+
 def merge_om_registros(
     df_riesgo: pd.DataFrame,
     registros: list[dict[str, Any]],
@@ -318,14 +328,7 @@ def merge_om_registros(
     for _, row in df.iterrows():
         rid = id_a_str(row.get("Id", ""))
         om = om_by_id.get(rid, {})
-        if "Cumplimiento_pct" in row.index and pd.notna(row.get("Cumplimiento_pct")):
-            cumpl = pd.to_numeric(row["Cumplimiento_pct"], errors="coerce")
-            cumpl_pct = round(float(cumpl), 1) if pd.notna(cumpl) else None
-        elif "cumplimiento_pct" in row.index:
-            cumpl = pd.to_numeric(row["cumplimiento_pct"], errors="coerce")
-            cumpl_pct = round(float(cumpl), 1) if pd.notna(cumpl) else None
-        else:
-            cumpl_pct = None
+        cumpl_pct = _cumplimiento_pct(row)
 
         cat = str(row.get("Categoria", row.get("Nivel de cumplimiento", "Sin dato")))
         tipo_accion = om.get("tipo_accion") or "Sin acción"
@@ -365,23 +368,30 @@ def merge_om_registros(
     return pd.DataFrame(rows)
 
 
+def _cortes_con_dato(df: pd.DataFrame) -> dict[int, list[str]]:
+    """Meses (nombre) con al menos un indicador evaluado, por año. «Sin dato» no cuenta."""
+    if df.empty or "Anio" not in df.columns or "Mes" not in df.columns:
+        return {}
+    d = pd.DataFrame(
+        {
+            "anio": pd.to_numeric(df["Anio"], errors="coerce"),
+            "mes": df["Mes"].apply(lambda x: MES_A_NUM.get(_mes_a_nombre(x))),
+        }
+    )
+    cat_col = "Categoria" if "Categoria" in df.columns else "Nivel de cumplimiento"
+    if cat_col in df.columns:
+        d = d[df[cat_col].astype(str).str.strip().ne("Sin dato").to_numpy()]
+    d = d.dropna()
+    out: dict[int, list[str]] = {}
+    for anio, g in d.groupby("anio"):
+        out[int(anio)] = [MESES_NOMBRES[int(m) - 1] for m in sorted(g["mes"].unique())]
+    return out
+
+
 def build_filtros(df: pd.DataFrame) -> dict[str, Any]:
-    # 2026 pertenece al siguiente ciclo del PDI y aun no tiene datos completos —
-    # se excluye de los filtros de anio por ahora.
-    anios = ["2025"]
-    if "Anio" in df.columns:
-        available = sorted(
-            y
-            for y in pd.to_numeric(df["Anio"], errors="coerce")
-            .dropna()
-            .astype(int)
-            .unique()
-            .tolist()
-            if y <= 2025
-        )
-        anios = [str(y) for y in available] or anios
-        if 2025 in available and "2025" not in anios:
-            anios = ["2025"] + [a for a in anios if a != "2025"]
+    cortes = _cortes_con_dato(df)
+    anios = sorted(cortes) or [2025]
+    anio_default = anios[-1]
     procesos = (
         sorted(df["Proceso"].dropna().astype(str).unique().tolist())
         if "Proceso" in df.columns
@@ -397,10 +407,11 @@ def build_filtros(df: pd.DataFrame) -> dict[str, Any]:
     if not subprocesos and "Subproceso_final" in df.columns:
         subprocesos = sorted(df["Subproceso_final"].dropna().astype(str).unique().tolist())
     return {
-        "anios": anios,
-        "anio_default": "2025" if "2025" in anios else (anios[0] if anios else "2025"),
+        "anios": [str(y) for y in anios],
+        "anio_default": str(anio_default),
         "meses": MESES_NOMBRES,
-        "mes_default": "Diciembre",
+        "meses_por_anio": {str(y): m for y, m in cortes.items()},
+        "mes_default": (cortes.get(anio_default) or ["Diciembre"])[-1],
         "procesos": procesos,
         "subprocesos": subprocesos,
     }
@@ -426,6 +437,65 @@ def build_kpis_matriz(df_tabla: pd.DataFrame) -> dict[str, Any]:
         "total": total,
         "avance_om_promedio": avance_prom,
     }
+
+
+def build_por_proceso(df_tabla: pd.DataFrame) -> list[dict[str, Any]]:
+    """Indicadores en riesgo por proceso, con y sin OM (más pendientes primero)."""
+    if df_tabla.empty or "proceso" not in df_tabla.columns:
+        return []
+    out: list[dict[str, Any]] = []
+    for proceso, g in df_tabla.groupby(df_tabla["proceso"].replace("", "Sin proceso")):
+        con_om = int((g["tiene_om"] == 1).sum())
+        out.append(
+            {
+                "proceso": str(proceso),
+                "total": int(len(g)),
+                "con_om": con_om,
+                "sin_om": int(len(g)) - con_om,
+            }
+        )
+    return sorted(out, key=lambda r: (-r["sin_om"], -r["total"], r["proceso"]))
+
+
+def build_historial(
+    df_historico: pd.DataFrame, ids: list[str], *, anio: int, mes: str, n: int = 6
+) -> dict[str, list[dict[str, Any]]]:
+    """Últimos `n` periodos (hasta el corte) de cada indicador, para el contexto del registro."""
+    mes_num = MES_A_NUM.get(mes)
+    if df_historico.empty or not ids or not mes_num or "Id" not in df_historico.columns:
+        return {}
+    df = df_historico.copy()
+    df["_id"] = df["Id"].apply(id_a_str)
+    df = df[df["_id"].isin(set(ids))]
+    if df.empty or "Anio" not in df.columns or "Mes" not in df.columns:
+        return {}
+    df["_anio"] = pd.to_numeric(df["Anio"], errors="coerce")
+    df["_mes"] = df["Mes"].apply(
+        lambda x: MES_A_NUM.get(_mes_a_nombre(x), pd.to_numeric(x, errors="coerce"))
+    )
+    df["_mes"] = pd.to_numeric(df["_mes"], errors="coerce")
+    df = df.dropna(subset=["_anio", "_mes"])
+    df = df[(df["_anio"] * 100 + df["_mes"]) <= anio * 100 + mes_num]
+    cat_col = "Categoria" if "Categoria" in df.columns else "Nivel de cumplimiento"
+
+    def _num(v: Any) -> float | None:
+        x = pd.to_numeric(v, errors="coerce")
+        return None if pd.isna(x) else float(x)
+
+    out: dict[str, list[dict[str, Any]]] = {}
+    for rid, g in df.groupby("_id"):
+        g = g.sort_values(["_anio", "_mes"]).drop_duplicates(["_anio", "_mes"], keep="last").tail(n)
+        out[str(rid)] = [
+            {
+                "periodo": f"{MESES_NOMBRES[int(r['_mes']) - 1][:3]} {int(r['_anio'])}",
+                "cumplimiento_pct": _cumplimiento_pct(r),
+                "ejecucion": _num(r.get("Ejecucion")),
+                "meta": _num(r.get("Meta")),
+                "categoria": str(r.get(cat_col, "")) if cat_col in g.columns else "",
+            }
+            for _, r in g.iterrows()
+        ]
+    return out
 
 
 def matriz_to_records(df: pd.DataFrame) -> list[dict[str, Any]]:

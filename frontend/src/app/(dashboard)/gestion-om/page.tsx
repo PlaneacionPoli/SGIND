@@ -1,25 +1,44 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { KPICard } from "@/components/ui/KPICard";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { BarChart3, PieChart as PieIcon } from "lucide-react";
+import { ConfirmDialog } from "@/components/gestion-om/ConfirmDialog";
+import { FiltrosOM, type FiltrosOMState } from "@/components/gestion-om/FiltrosOM";
+import { ProcesoChart, TipoAccionDona } from "@/components/gestion-om/GraficosOM";
+import { KpisOM } from "@/components/gestion-om/KpisOM";
+import { PanelRegistro, type DatosRegistro } from "@/components/gestion-om/PanelRegistro";
+import { PlanAccionModal } from "@/components/gestion-om/PlanAccionModal";
+import { TablaOM } from "@/components/gestion-om/TablaOM";
+import { contarPorEstado, type Pestana } from "@/components/gestion-om/utils";
+import { Panel } from "@/components/seguimiento/Panel";
+import { errorMessage } from "@/components/seguimiento/constants";
 import { cerrarOM, createOM, deleteOM, fetchOMMatriz, fetchOMPlanAccion, updateOM } from "@/lib/api";
+import type { OMFila } from "@/lib/types";
 import { useAuthReady, useAuthStore } from "@/stores/auth-store";
 
-const MESES = [
-  "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
-  "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre",
-];
+const PESTANAS: Pestana[] = ["pendientes", "en_gestion", "cerradas", "todos"];
+const FILTROS_INICIALES: FiltrosOMState = { anio: null, mes: null, proceso: "Todos", subproceso: "Todos", mostrarAlerta: false, busqueda: "" };
 
-const TIPOS_ACCION = ["OM Kawak", "Reto Plan Anual", "Proyecto Institucional", "Otro"];
+/** Lee los filtros de la URL (compartibles y sobreviven al recargar). */
+function leerUrl(): { filtros: FiltrosOMState; pestana: Pestana } {
+  const q = new URLSearchParams(window.location.search);
+  const anio = Number(q.get("anio"));
+  const tab = q.get("vista") as Pestana | null;
+  return {
+    filtros: {
+      anio: Number.isInteger(anio) && anio > 2000 ? anio : null,
+      mes: q.get("mes"),
+      proceso: q.get("proceso") ?? "Todos",
+      subproceso: q.get("subproceso") ?? "Todos",
+      mostrarAlerta: q.get("alerta") === "1",
+      busqueda: q.get("q") ?? "",
+    },
+    pestana: tab && PESTANAS.includes(tab) ? tab : "pendientes",
+  };
+}
 
-// Placeholder contextual por tipo de acción — paridad con streamlit_app/pages/gestion_om.py
-const PLACEHOLDERS_TIPO_ACCION: Record<string, string> = {
-  "OM Kawak": "N° OM Kawak",
-  "Reto Plan Anual": "Nombre del reto",
-  "Proyecto Institucional": "Nombre del proyecto",
-  Otro: "Descripción de la acción",
-};
+type Confirmacion = { tipo: "cerrar" | "eliminar"; fila: OMFila } | null;
 
 export default function GestionOMPage() {
   const { isAuthenticated } = useAuthReady();
@@ -29,508 +48,236 @@ export default function GestionOMPage() {
   const canDelete = role === "administrador";
   const queryClient = useQueryClient();
 
-  const [anio, setAnio] = useState(2025);
-  const [mes, setMes] = useState("Diciembre");
-  const [proceso, setProceso] = useState("Todos");
-  const [subproceso, setSubproceso] = useState("Todos");
-  const [mostrarAlerta, setMostrarAlerta] = useState(false);
-  const [formOpen, setFormOpen] = useState(false);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [editingOmId, setEditingOmId] = useState<number | null>(null);
-  const [tipoAccion, setTipoAccion] = useState("OM Kawak");
-  const [numeroOm, setNumeroOm] = useState("");
-  const [observacion, setObservacion] = useState("");
-  const [verMasOmId, setVerMasOmId] = useState<string | null>(null);
+  const [f, setF] = useState<FiltrosOMState>(FILTROS_INICIALES);
+  const [busquedaAplicada, setBusquedaAplicada] = useState("");
+  const [pestana, setPestana] = useState<Pestana>("pendientes");
+  const [urlLista, setUrlLista] = useState(false);
+  const [registro, setRegistro] = useState<OMFila | null>(null);
+  const [confirmacion, setConfirmacion] = useState<Confirmacion>(null);
+  const [verPlanOm, setVerPlanOm] = useState<string | null>(null);
+  const [aviso, setAviso] = useState<string | null>(null);
 
-  const planAccionQuery = useQuery({
-    queryKey: ["om-plan-accion", verMasOmId],
-    queryFn: () => fetchOMPlanAccion(verMasOmId as string),
-    enabled: isAuthenticated && !!verMasOmId,
-  });
+  // Estado inicial desde la URL (una sola vez, en el cliente).
+  useEffect(() => {
+    const u = leerUrl();
+    setF(u.filtros);
+    setBusquedaAplicada(u.filtros.busqueda);
+    setPestana(u.pestana);
+    setUrlLista(true);
+  }, []);
+
+  // Búsqueda con retardo para no refiltrar en cada tecla.
+  useEffect(() => {
+    const t = setTimeout(() => setBusquedaAplicada(f.busqueda.trim()), 250);
+    return () => clearTimeout(t);
+  }, [f.busqueda]);
+
+  // Escribe el estado en la URL.
+  useEffect(() => {
+    if (!urlLista) return;
+    const q = new URLSearchParams();
+    if (f.anio != null) q.set("anio", String(f.anio));
+    if (f.mes != null) q.set("mes", f.mes);
+    if (f.proceso !== "Todos") q.set("proceso", f.proceso);
+    if (f.subproceso !== "Todos") q.set("subproceso", f.subproceso);
+    if (f.mostrarAlerta) q.set("alerta", "1");
+    if (busquedaAplicada) q.set("q", busquedaAplicada);
+    if (pestana !== "pendientes") q.set("vista", pestana);
+    window.history.replaceState(null, "", `${window.location.pathname}?${q.toString()}`);
+  }, [urlLista, f, busquedaAplicada, pestana]);
 
   const query = useQuery({
-    queryKey: ["om-matriz", anio, mes, proceso, subproceso, mostrarAlerta],
+    queryKey: ["om-matriz", f.anio, f.mes, f.proceso, f.subproceso, f.mostrarAlerta],
     queryFn: () =>
       fetchOMMatriz({
-        anio,
-        mes,
-        ...(proceso !== "Todos" ? { proceso } : {}),
-        ...(subproceso !== "Todos" ? { subproceso } : {}),
-        mostrar_alerta: mostrarAlerta,
+        ...(f.anio != null ? { anio: f.anio } : {}),
+        ...(f.mes != null ? { mes: f.mes } : {}),
+        ...(f.proceso !== "Todos" ? { proceso: f.proceso } : {}),
+        ...(f.subproceso !== "Todos" ? { subproceso: f.subproceso } : {}),
+        mostrar_alerta: f.mostrarAlerta,
       }),
-    enabled: isAuthenticated,
+    enabled: isAuthenticated && urlLista,
+    placeholderData: keepPreviousData,
   });
-
-  useEffect(() => {
-    if (query.data?.filtros) {
-      const defAnio = Number(query.data.filtros.anio_default) || 2025;
-      if (!Number.isNaN(defAnio)) setAnio(defAnio);
-      setMes(query.data.filtros.mes_default ?? "Diciembre");
-    }
-  }, [query.data?.filtros]);
-
-  const resetForm = () => {
-    setFormOpen(false);
-    setSelectedId(null);
-    setEditingOmId(null);
-    setTipoAccion("OM Kawak");
-    setNumeroOm("");
-    setObservacion("");
-  };
-
-  const createMutation = useMutation({
-    mutationFn: createOM,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["om-matriz"] });
-      resetForm();
-    },
-  });
-
-  const updateMutation = useMutation({
-    mutationFn: ({
-      id,
-      tipo_accion,
-      numero_om,
-      comentario,
-    }: { id: number; tipo_accion: string; numero_om?: string; comentario?: string }) =>
-      updateOM(id, { tipo_accion, numero_om, comentario }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["om-matriz"] });
-      resetForm();
-    },
-  });
-
-  const cerrarMutation = useMutation({
-    mutationFn: (id: number) => cerrarOM(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["om-matriz"] });
-    },
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: (id: number) => deleteOM(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["om-matriz"] });
-    },
-  });
-
   const data = query.data;
-  const selectedRow = data?.filas.find((f) => f.id === selectedId);
 
-  const handleEditar = (row: NonNullable<typeof data>["filas"][number]) => {
-    setSelectedId(row.id);
-    setEditingOmId(row.om_id);
-    setTipoAccion(row.tipo_accion !== "Sin acción" ? row.tipo_accion : "OM Kawak");
-    setNumeroOm(row.numero_om);
-    setObservacion(row.comentario ?? "");
-    setFormOpen(true);
-  };
-
-  const handleSubmit = () => {
-    if (!selectedRow) return;
-    if (editingOmId != null) {
-      updateMutation.mutate({
-        id: editingOmId,
-        tipo_accion: tipoAccion,
-        numero_om: numeroOm || undefined,
-        comentario: observacion || undefined,
-      });
-      return;
+  // Sin corte en la URL, se adopta el que resolvió el servidor (el más reciente con datos, hoy 2026).
+  useEffect(() => {
+    if (data && !data.error && (f.anio == null || f.mes == null)) {
+      setF((p) => ({ ...p, anio: p.anio ?? data.anio, mes: p.mes ?? data.mes }));
     }
-    createMutation.mutate({
-      id_indicador: selectedRow.id,
-      nombre_indicador: selectedRow.indicador,
-      proceso: selectedRow.proceso,
-      periodo: mes,
-      anio,
-      tiene_om: 1,
-      tipo_accion: tipoAccion,
-      numero_om: numeroOm || undefined,
-      comentario: observacion || undefined,
-    });
+  }, [data, f.anio, f.mes]);
+
+  // Si el año de la URL ya no existe en el servidor, se usa el que este propone. Solo si es inválido:
+  // un cambio manual de año o mes nunca se revierte.
+  useEffect(() => {
+    const anios = data?.filtros?.anios;
+    if (f.anio != null && anios?.length && !anios.includes(String(f.anio))) {
+      setF((p) => ({ ...p, anio: Number(data?.filtros.anio_default) || Number(anios[anios.length - 1]) }));
+    }
+  }, [data?.filtros, f.anio]);
+
+  const planQuery = useQuery({
+    queryKey: ["om-plan-accion", verPlanOm],
+    queryFn: () => fetchOMPlanAccion(verPlanOm as string),
+    enabled: isAuthenticated && !!verPlanOm,
+  });
+
+  const filas = useMemo(() => data?.filas ?? [], [data?.filas]);
+  const conteo = useMemo(() => contarPorEstado(filas), [filas]);
+  const anioCorte = f.anio ?? data?.anio ?? 0;
+  const mesCorte = f.mes ?? data?.mes ?? "";
+  const periodo = `${mesCorte} ${anioCorte}`;
+
+  const cambiar = useCallback((c: Partial<FiltrosOMState>) => setF((p) => ({ ...p, ...c })), []);
+  const limpiar = useCallback(() => setF((p) => ({ ...p, proceso: "Todos", subproceso: "Todos", busqueda: "" })), []);
+
+  const refrescar = () => queryClient.invalidateQueries({ queryKey: ["om-matriz"] });
+  const exito = (texto: string) => {
+    setAviso(texto);
+    setTimeout(() => setAviso(null), 4000);
   };
+
+  const guardarMutation = useMutation({
+    mutationFn: ({ fila, datos }: { fila: OMFila; datos: DatosRegistro }) => {
+      const comun = {
+        tipo_accion: datos.tipo_accion,
+        numero_om: datos.numero_om || undefined,
+        comentario: datos.comentario || undefined,
+      };
+      if (fila.om_id != null) return updateOM(fila.om_id, { ...comun, tiene_om: 1 });
+      return createOM({
+        id_indicador: fila.id,
+        nombre_indicador: fila.indicador,
+        proceso: fila.proceso,
+        periodo: mesCorte,
+        anio: anioCorte,
+        tiene_om: 1,
+        ...comun,
+      });
+    },
+    onSuccess: (_r, { fila }) => {
+      refrescar();
+      setRegistro(null);
+      exito(`OM del indicador ${fila.id} guardada.`);
+    },
+  });
+
+  const confirmarMutation = useMutation({
+    mutationFn: async ({ tipo, fila }: NonNullable<Confirmacion>): Promise<void> => {
+      if (tipo === "cerrar") await cerrarOM(fila.om_id as number);
+      else await deleteOM(fila.om_id as number);
+    },
+    onSuccess: (_r, { tipo, fila }) => {
+      refrescar();
+      setConfirmacion(null);
+      exito(tipo === "cerrar" ? `OM del indicador ${fila.id} cerrada.` : `Registro OM del indicador ${fila.id} eliminado.`);
+    },
+  });
+
+  const historial = registro ? (data?.historial?.[registro.id] ?? []) : [];
 
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-slate-900">Gestión OM</h2>
+        <h2 className="text-2xl font-bold tracking-tight text-slate-900">Gestión OM</h2>
         <p className="mt-1 text-slate-600">
-          Indicadores en Peligro/Alerta con registro de oportunidades de mejora. Fuente: Consolidado Histórico.
+          Indicadores en Peligro{f.mostrarAlerta ? " y Alerta" : ""} y su oportunidad de mejora registrada. Fuente: Consolidado Histórico.
         </p>
       </div>
 
       {!isAuthenticated ? (
         <p className="text-sm text-amber-700">Inicie sesión para ver la matriz OM.</p>
-      ) : query.isLoading ? (
-        <div className="h-40 animate-pulse rounded-lg bg-slate-200" />
-      ) : data?.error ? (
-        <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">{data.error}</div>
+      ) : query.isError ? (
+        <div role="alert" className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800">
+          No se pudo cargar la matriz OM: {errorMessage(query.error)}
+        </div>
+      ) : !data ? (
+        <div className="space-y-4" aria-busy="true">
+          <div className="h-40 animate-pulse rounded-2xl bg-slate-200" />
+          <div className="h-64 animate-pulse rounded-2xl bg-slate-200" />
+        </div>
+      ) : data.error ? (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">{data.error}</div>
       ) : (
         <>
-          <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              <div>
-                <p className="mb-1 text-xs text-slate-500">Año</p>
-                <div className="flex flex-wrap gap-1">
-                  {(data?.filtros.anios ?? ["2025"]).map((y) => (
-                    <button
-                      key={y}
-                      type="button"
-                      onClick={() => setAnio(Number(y))}
-                      className={`rounded-lg px-3 py-1.5 text-sm font-semibold ${
-                        String(anio) === String(y) ? "bg-poli-navy text-white" : "bg-slate-100"
-                      }`}
-                    >
-                      {y}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <p className="mb-1 text-xs text-slate-500">Mes</p>
-                <select
-                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
-                  value={mes}
-                  onChange={(e) => setMes(e.target.value)}
-                >
-                  {MESES.map((m) => (
-                    <option key={m} value={m}>
-                      {m}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <p className="mb-1 text-xs text-slate-500">Proceso</p>
-                <select
-                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
-                  value={proceso}
-                  onChange={(e) => setProceso(e.target.value)}
-                >
-                  <option value="Todos">Todos</option>
-                  {(data?.filtros.procesos ?? []).map((p) => (
-                    <option key={p} value={p}>
-                      {p}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <p className="mb-1 text-xs text-slate-500">Subproceso</p>
-                <select
-                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
-                  value={subproceso}
-                  onChange={(e) => setSubproceso(e.target.value)}
-                >
-                  <option value="Todos">Todos</option>
-                  {(data?.filtros.subprocesos ?? []).map((s) => (
-                    <option key={s} value={s}>
-                      {s}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-            <label className="mt-3 flex items-center gap-2 text-sm text-slate-700">
-              <input
-                type="checkbox"
-                checked={mostrarAlerta}
-                onChange={(e) => setMostrarAlerta(e.target.checked)}
-              />
-              Mostrar también indicadores en Alerta
-            </label>
+          <FiltrosOM anios={data.filtros.anios ?? []} mesesPorAnio={data.filtros.meses_por_anio} procesos={data.filtros.procesos ?? []} subprocesos={data.filtros.subprocesos ?? []} valor={f} onChange={cambiar} onLimpiar={limpiar} />
+
+          <div className="flex items-center justify-between gap-3">
+            <h3 className="text-lg font-semibold text-slate-800">Indicadores en riesgo — {periodo}</h3>
+            {query.isFetching && <span className="text-xs text-slate-400">Actualizando…</span>}
           </div>
 
-          <h3 className="text-lg font-semibold text-slate-800">
-            📊 Indicadores en Riesgo — {mes} {anio}
-          </h3>
-
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <KPICard label="🔴 Peligro" value={data?.kpis.peligro ?? 0} />
-            <KPICard label="🟡 Alerta" value={data?.kpis.alerta ?? 0} />
-            <KPICard label="📋 Con OM" value={`${data?.kpis.con_om ?? 0} / ${data?.kpis.total ?? 0}`} />
-            <KPICard
-              label="📊 Avance OM"
-              value={
-                data?.kpis.avance_om_promedio != null ? `${data.kpis.avance_om_promedio}%` : "—"
-              }
-            />
+          <div role="status" aria-live="polite" className={aviso ? "rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm text-emerald-800" : "sr-only"}>
+            {aviso}
           </div>
 
-          {canEdit && (
-            <div className="flex flex-wrap items-end gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4">
-              <div className="min-w-[200px] flex-1">
-                <p className="mb-1 text-xs text-slate-500">Indicador</p>
-                <select
-                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
-                  value={selectedId ?? ""}
-                  onChange={(e) => {
-                    setSelectedId(e.target.value || null);
-                    setEditingOmId(null);
-                    setTipoAccion("OM Kawak");
-                    setNumeroOm("");
-                    setFormOpen(!!e.target.value);
-                  }}
-                >
-                  <option value="">Seleccionar indicador…</option>
-                  {(data?.filas ?? []).map((f) => (
-                    <option key={f.id} value={f.id}>
-                      {f.id} — {f.indicador.slice(0, 60)}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              {formOpen && selectedRow ? (
-                <>
-                  <div>
-                    <p className="mb-1 text-xs text-slate-500">Tipo de acción</p>
-                    <select
-                      className="rounded-lg border border-slate-200 px-3 py-2 text-sm"
-                      value={tipoAccion}
-                      onChange={(e) => setTipoAccion(e.target.value)}
-                    >
-                      {TIPOS_ACCION.map((t) => (
-                        <option key={t} value={t}>
-                          {t}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <p className="mb-1 text-xs text-slate-500">Nº OM / Identificador</p>
-                    <input
-                      className="rounded-lg border border-slate-200 px-3 py-2 text-sm"
-                      value={numeroOm}
-                      onChange={(e) => setNumeroOm(e.target.value)}
-                      placeholder={PLACEHOLDERS_TIPO_ACCION[tipoAccion] ?? "Identificador OM"}
-                    />
-                  </div>
-                  <div className="min-w-[240px] flex-1">
-                    <p className="mb-1 text-xs text-slate-500">Observación</p>
-                    <textarea
-                      className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
-                      rows={2}
-                      value={observacion}
-                      onChange={(e) => setObservacion(e.target.value)}
-                      placeholder="Describe la situación o justificación…"
-                    />
-                  </div>
-                  <button
-                    type="button"
-                    onClick={handleSubmit}
-                    disabled={createMutation.isPending || updateMutation.isPending}
-                    className="rounded-lg bg-poli-navy px-4 py-2 text-sm font-semibold text-white hover:bg-poli-navy/90 disabled:opacity-50"
-                  >
-                    {createMutation.isPending || updateMutation.isPending
-                      ? "Guardando…"
-                      : editingOmId != null
-                        ? "Guardar cambios"
-                        : "Asociar nueva OM"}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={resetForm}
-                    className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-white"
-                  >
-                    Cancelar
-                  </button>
-                </>
-              ) : null}
-            </div>
-          )}
+          <KpisOM kpis={data.kpis} conteo={conteo} />
 
-          {!data?.filas.length ? (
-            <div className="rounded-lg border border-dashed border-slate-300 p-8 text-center text-sm text-slate-500">
-              No hay indicadores en Peligro con los filtros seleccionados.
-            </div>
-          ) : (
-            <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
-              <table className="min-w-full text-left text-base">
-                <thead className="bg-slate-800 text-sm uppercase text-white">
-                  <tr>
-                    {[
-                      "Id",
-                      "Indicador",
-                      "Subproceso",
-                      "Periodicidad",
-                      "Meta",
-                      "Ejecución",
-                      "Cumplimiento",
-                      "Categoría",
-                      "Tipo de Acción",
-                      "OM",
-                      "Avance OM",
-                      "Plan de Acción",
-                      ...(canEdit ? ["Acciones"] : []),
-                    ].map((h) => (
-                      <th key={h} className="whitespace-nowrap px-3 py-2">
-                        {h}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {data.filas.map((row) => (
-                    <tr key={row.id} style={{ backgroundColor: row.row_bg }}>
-                      <td className="px-3 py-2 font-mono text-sm">{row.id}</td>
-                      <td className="max-w-[200px] truncate px-3 py-2" title={row.indicador}>
-                        {row.indicador}
-                      </td>
-                      <td className="px-3 py-2">{row.subproceso}</td>
-                      <td className="px-3 py-2">{row.periodicidad}</td>
-                      <td className="px-3 py-2 text-right">{row.meta != null ? String(row.meta) : "—"}</td>
-                      <td className="px-3 py-2 text-right">{row.ejecucion != null ? String(row.ejecucion) : "—"}</td>
-                      <td className="px-3 py-2 text-right">
-                        {row.cumplimiento_pct != null ? `${row.cumplimiento_pct}%` : "—"}
-                      </td>
-                      <td className="px-3 py-2">
-                        <span
-                          className="rounded px-1.5 py-0.5 text-xs font-medium text-white"
-                          style={{ backgroundColor: row.categoria_color }}
-                        >
-                          {row.categoria}
-                        </span>
-                      </td>
-                      <td className="px-3 py-2">
-                        <span
-                          className="rounded-full px-2 py-0.5 text-xs font-medium text-white"
-                          style={{ backgroundColor: row.tipo_accion_color }}
-                        >
-                          {row.tipo_accion}
-                        </span>
-                      </td>
-                      <td className="px-3 py-2">{row.numero_om || "—"}</td>
-                      <td className="px-3 py-2">
-                        {row.avance_om != null ? (
-                          <div className="flex items-center gap-2">
-                            <div className="h-2 w-16 overflow-hidden rounded-full bg-slate-200">
-                              <div
-                                className="h-full rounded-full bg-emerald-500"
-                                style={{ width: `${Math.min(100, row.avance_om)}%` }}
-                              />
-                            </div>
-                            <span className="text-xs">{row.avance_om}%</span>
-                          </div>
-                        ) : (
-                          "—"
-                        )}
-                      </td>
-                      <td className="whitespace-nowrap px-3 py-2">
-                        {row.tiene_om === 1 && row.numero_om ? (
-                          <button
-                            type="button"
-                            onClick={() => setVerMasOmId(row.numero_om)}
-                            className="rounded border border-slate-300 px-2 py-1 text-xs font-medium text-slate-700 hover:bg-slate-100"
-                          >
-                            Ver más
-                          </button>
-                        ) : (
-                          "—"
-                        )}
-                      </td>
-                      {canEdit && (
-                        <td className="whitespace-nowrap px-3 py-2">
-                          <div className="flex gap-2">
-                            <button
-                              type="button"
-                              onClick={() => handleEditar(row)}
-                              className="rounded border border-slate-300 px-2 py-1 text-xs font-medium text-slate-700 hover:bg-slate-100"
-                            >
-                              {row.tiene_om ? "Editar" : "Registrar"}
-                            </button>
-                            {row.tiene_om === 1 && row.om_id != null && (
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  if (window.confirm(`¿Cerrar la OM del indicador ${row.id}?`)) {
-                                    cerrarMutation.mutate(row.om_id as number);
-                                  }
-                                }}
-                                disabled={cerrarMutation.isPending}
-                                className="rounded border border-amber-300 px-2 py-1 text-xs font-medium text-amber-700 hover:bg-amber-50 disabled:opacity-50"
-                              >
-                                Cerrar
-                              </button>
-                            )}
-                            {canDelete && row.om_id != null && (
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  if (
-                                    window.confirm(
-                                      `¿Eliminar definitivamente el registro OM del indicador ${row.id}` +
-                                        `${row.numero_om ? ` (OM ${row.numero_om})` : ""}? Esta acción no se puede deshacer.`,
-                                    )
-                                  ) {
-                                    deleteMutation.mutate(row.om_id as number);
-                                  }
-                                }}
-                                disabled={deleteMutation.isPending}
-                                className="rounded border border-red-300 px-2 py-1 text-xs font-medium text-red-700 hover:bg-red-50 disabled:opacity-50"
-                              >
-                                Eliminar
-                              </button>
-                            )}
-                          </div>
-                        </td>
-                      )}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+          <div className="grid gap-4 xl:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
+            <Panel titulo="Indicadores en riesgo por proceso" subtitulo="Rojo: sin OM · Azul: con OM. Clic en una barra para filtrar la tabla." icono={BarChart3}>
+              <ProcesoChart datos={data.por_proceso ?? []} seleccionado={f.proceso} onSeleccionar={(p) => cambiar({ proceso: p })} />
+            </Panel>
+            <Panel titulo="OM por tipo de acción" subtitulo="Solo indicadores con registro en este corte." icono={PieIcon}>
+              <TipoAccionDona filas={filas} colores={data.tipo_accion_colores ?? {}} textoVacio={canEdit ? "Aún no hay OM registradas. Usa «Registrar OM» en la tabla." : "Aún no hay OM registradas en este corte."} />
+            </Panel>
+          </div>
+
+          <TablaOM
+            filas={filas}
+            busqueda={busquedaAplicada}
+            pestana={pestana}
+            onPestana={setPestana}
+            canEdit={canEdit}
+            canDelete={canDelete}
+            onRegistrar={(fila) => {
+              guardarMutation.reset();
+              setRegistro(fila);
+            }}
+            onVerPlan={setVerPlanOm}
+            onCerrar={(fila) => {
+              confirmarMutation.reset();
+              setConfirmacion({ tipo: "cerrar", fila });
+            }}
+            onEliminar={(fila) => {
+              confirmarMutation.reset();
+              setConfirmacion({ tipo: "eliminar", fila });
+            }}
+          />
         </>
       )}
 
-      {verMasOmId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="max-h-[80vh] w-full max-w-3xl overflow-y-auto rounded-xl bg-white p-5 shadow-xl">
-            <div className="mb-3 flex items-center justify-between">
-              <h4 className="text-lg font-semibold text-slate-900">
-                Plan de Acción — OM {verMasOmId}
-              </h4>
-              <button
-                type="button"
-                onClick={() => setVerMasOmId(null)}
-                className="rounded border border-slate-300 px-2 py-1 text-xs font-medium text-slate-600 hover:bg-slate-100"
-              >
-                Cerrar
-              </button>
-            </div>
-            {planAccionQuery.isLoading ? (
-              <div className="h-24 animate-pulse rounded-lg bg-slate-200" />
-            ) : !planAccionQuery.data?.length ? (
-              <p className="text-sm text-slate-500">OM {verMasOmId} sin actividades asociadas.</p>
-            ) : (
-              <div className="overflow-x-auto rounded-lg border border-slate-200">
-                <table className="min-w-full text-left text-sm">
-                  <thead className="bg-slate-100 text-xs uppercase text-slate-600">
-                    <tr>
-                      <th className="px-3 py-2">Acción</th>
-                      <th className="px-3 py-2">Responsable</th>
-                      <th className="px-3 py-2">Avance</th>
-                      <th className="px-3 py-2">Estado (Plan)</th>
-                      <th className="px-3 py-2">Estado (OM)</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {planAccionQuery.data.map((act, idx) => (
-                      <tr key={act.id_accion || idx} className="border-t border-slate-200">
-                        <td className="px-3 py-2">{act.accion || "—"}</td>
-                        <td className="px-3 py-2">{act.responsable || "—"}</td>
-                        <td className="px-3 py-2">{act.avance || "—"}</td>
-                        <td className="px-3 py-2">{act.estado_plan || "—"}</td>
-                        <td className="px-3 py-2">{act.estado_om || "—"}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-        </div>
+      {registro && (
+        <PanelRegistro
+          key={registro.id}
+          fila={registro}
+          periodo={periodo}
+          historial={historial}
+          pendiente={guardarMutation.isPending}
+          error={guardarMutation.isError ? errorMessage(guardarMutation.error) : null}
+          onGuardar={(datos) => guardarMutation.mutate({ fila: registro, datos })}
+          onCerrar={() => setRegistro(null)}
+        />
       )}
+
+      {confirmacion && (
+        <ConfirmDialog
+          titulo={confirmacion.tipo === "cerrar" ? `¿Cerrar la OM del indicador ${confirmacion.fila.id}?` : `¿Eliminar el registro OM del indicador ${confirmacion.fila.id}?`}
+          mensaje={
+            confirmacion.tipo === "cerrar"
+              ? "La OM dejará de contar como activa. Podrás reabrirla editando el registro."
+              : `${confirmacion.fila.numero_om ? `Se eliminará la OM ${confirmacion.fila.numero_om}. ` : ""}Esta acción no se puede deshacer.`
+          }
+          confirmar={confirmacion.tipo === "cerrar" ? "Cerrar OM" : "Eliminar"}
+          tono={confirmacion.tipo === "eliminar" ? "peligro" : "normal"}
+          cargando={confirmarMutation.isPending}
+          error={confirmarMutation.isError ? errorMessage(confirmarMutation.error) : null}
+          onConfirmar={() => confirmarMutation.mutate(confirmacion)}
+          onCancelar={() => setConfirmacion(null)}
+        />
+      )}
+
+      {verPlanOm && <PlanAccionModal numeroOm={verPlanOm} cargando={planQuery.isLoading} actividades={planQuery.data} onCerrar={() => setVerPlanOm(null)} />}
     </div>
   );
 }

@@ -344,7 +344,8 @@ export async function fetchOM(params?: {
 }
 
 export async function fetchOMMatriz(params: {
-  anio: number;
+  /** Sin año ni mes, el servidor usa el corte más reciente con datos. */
+  anio?: number;
   mes?: string;
   proceso?: string;
   subproceso?: string;
