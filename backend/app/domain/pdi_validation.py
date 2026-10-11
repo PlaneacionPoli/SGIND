@@ -10,7 +10,7 @@ variables reales, V10 subtotales de población, Opex/CAPEX) se dejan como
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
 
 from app.domain.pdi_measurement import (

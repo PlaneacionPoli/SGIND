@@ -8,6 +8,7 @@ from typing import Any
 import pandas as pd
 
 from app.core.ttl_cache import cache_get
+from app.domain.asociaciones import asociaciones_ficha, ids_de_linea
 from app.domain.calidad_builders import build_calidad_dashboard, filter_calidad, load_calidad_data
 from app.domain.cmi_builders import (
     CORTE_POR_MES,
@@ -28,10 +29,8 @@ from app.domain.cmi_builders import (
 )
 from app.domain.cmi_filters import CMIFilterService
 from app.domain.linea_order import linea_sort_key
-from app.domain.asociaciones import asociaciones_ficha, ids_de_linea
 from app.domain.marcos import Marco, get_marco, marco_por_defecto
 from app.domain.marcos import get_marcos as _get_marcos
-from app.domain.taxonomia import load_taxonomia
 from app.domain.procesos_builders import (
     MESES_OPCIONES,
     TIPO_PROCESO_COLORS,
@@ -66,6 +65,7 @@ from app.domain.procesos_builders import (
 from app.domain.procesos_loaders import load_process_map
 from app.domain.resumen_builders import ensure_nivel_cumplimiento
 from app.domain.strategic_processors import StrategicProcessors
+from app.domain.taxonomia import load_taxonomia
 from app.services.excel_reader import ExcelReaderService
 from app.services.indicator_service import IndicatorService
 from app.services.narrativa_ia_service import generar_narrativa_ficha

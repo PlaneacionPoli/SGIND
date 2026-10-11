@@ -726,7 +726,7 @@ def build_pdi_mindmap(
         )
 
     alcance_global = (
-        round(sum(l["cumplimiento"] for l in lineas) / len(lineas), 1) if lineas else 0.0
+        round(sum(linea["cumplimiento"] for linea in lineas) / len(lineas), 1) if lineas else 0.0
     )
 
     return {"alcance_global": alcance_global, "lineas": lineas}
@@ -1182,7 +1182,7 @@ def generate_narrative_retos(
             )
             alerta_lineas = (
                 (
-                    f"1 línea está por debajo del umbral de cumplimiento "
+                    "1 línea está por debajo del umbral de cumplimiento "
                     if len(bajo_umbral) == 1
                     else f"{len(bajo_umbral)} líneas están por debajo del umbral de cumplimiento "
                 )
@@ -1663,7 +1663,7 @@ def build_informe_ejecutivo_lineas(
         # ── CMI Estratégico (objetivo → indicadores) ──
         objetivos: list[dict[str, Any]] = []
         if has_pdi:
-            sub = pdi_work[pdi_work["Linea"].apply(lambda v: norm_key(str(v)) == key)]
+            sub = pdi_work[pdi_work["Linea"].apply(lambda v, k=key: norm_key(str(v)) == k)]
             for objetivo_nombre in sub["Objetivo"].dropna().unique():
                 obj_sub = sub[sub["Objetivo"] == objetivo_nombre]
                 indicadores = []

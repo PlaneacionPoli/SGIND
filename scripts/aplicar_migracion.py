@@ -19,6 +19,9 @@ import asyncpg
 
 def _dsn(url: str) -> str:
     url = re.sub(r"^postgres(ql)?(\+asyncpg)?://", "postgresql://", url)
+    # Neon agrega channel_binding=require, que asyncpg no entiende (lo tomaría como setting del servidor).
+    url = re.sub(r"([?&])channel_binding=[^&]*&?", r"\1", url).rstrip("?&")
+    url = url.replace("ssl=require", "sslmode=require")
     # Render externo exige TLS; localhost no.
     host = re.search(r"@([^:/]+)", url)
     if host and host.group(1) not in ("localhost", "127.0.0.1") and "sslmode" not in url:

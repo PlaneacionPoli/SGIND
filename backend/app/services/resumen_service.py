@@ -28,7 +28,6 @@ from app.domain.resumen_builders import (
     build_proyectos_tabla,
     build_retos_tabla,
     build_strategy_cards,
-    build_sunburst_plotly,
     compute_trends,
     ensure_nivel_cumplimiento,
     generate_narrative_consolidado,

@@ -65,7 +65,7 @@ def test_sin_terminal_agrega_y_deja_pendiente(catalogo, monkeypatch, capsys):
     assert _fila(wb, "Catalogo Indicadores", "9001")["Fuente"] == sync.FUENTE_NUEVO
     fila = _fila(wb, "PDI_2026_2030", "9001")
     assert fila["Origen"] == sync.ORIGEN_NUEVO and fila["PDI"] == 0 and fila["Linea"] is None
-    aviso = next(l for l in capsys.readouterr().out.splitlines() if l.startswith("[AVISO]") and "asignación" in l)
+    aviso = next(ln for ln in capsys.readouterr().out.splitlines() if ln.startswith("[AVISO]") and "asignación" in ln)
     assert "9001" in aviso and "9002" in aviso
     # El PDI cerrado no se toca
     assert _fila(wb, "PDI_2022_2026", "9001") == {}
@@ -87,7 +87,7 @@ def test_con_terminal_solicita_la_asignacion_y_respeta_la_regla_de_meta(catalogo
     b = _fila(wb, "PDI_2026_2030", "9002")
     assert b["PDI"] == 0 and b["Linea"] is None  # por defecto 0 (de proceso)
     out = capsys.readouterr().out
-    aviso = next(l for l in out.splitlines() if l.startswith("[AVISO]") and "asignación" in l)
+    aviso = next(ln for ln in out.splitlines() if ln.startswith("[AVISO]") and "asignación" in ln)
     assert "9002" in aviso and "9001" not in aviso  # solo queda pendiente el omitido
     assert "Regla de meta" not in out
 
