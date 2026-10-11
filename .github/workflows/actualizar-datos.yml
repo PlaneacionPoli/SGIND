@@ -27,12 +27,12 @@ jobs:
     timeout-minutes: 30
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
       - name: Checkout Sistema_Indicadores_Poli (fuente de respaldo del catalogo CMI)
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: Ximena5745/Sistema_Indicadores_Poli
           path: _fuente_externa_poli
@@ -52,7 +52,7 @@ jobs:
           rm -rf _fuente_externa_poli
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
@@ -96,7 +96,7 @@ jobs:
 
       - name: Subir artifacts como evidencia
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: pipeline-run-${{ github.run_id }}
           path: |
@@ -107,7 +107,7 @@ jobs:
 
       - name: Abrir Issue si el pipeline fallo
         if: steps.run_pipeline.outcome == 'failure'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const fs = require("fs");
@@ -151,7 +151,7 @@ jobs:
 
       - name: Abrir Issue informativo si hay avisos (hoja nueva sin catalogo, etc.)
         if: always()
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const fs = require("fs");
