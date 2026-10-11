@@ -15,11 +15,12 @@ import { test, expect, type Page } from "@playwright/test";
 import { mockAPI, devLogin } from "./fixtures";
 
 const PAGINAS = [
-  { ruta: "/resumen-general", titulo: /resumen general/i },
-  { ruta: "/cmi-estrategico", titulo: /cmi estratégico/i },
-  { ruta: "/cmi-procesos", titulo: /cmi por procesos/i },
+  // Resumen General y los CMI exigen ?pdi= (si falta, redirigen a /seleccion-pdi).
+  { ruta: "/resumen-general?pdi=PDI-2022-2026", titulo: /plan de desarrollo institucional/i },
+  { ruta: "/cmi-estrategico?pdi=PDI-2022-2026", titulo: /cmi estratégico/i },
+  { ruta: "/cmi-procesos?pdi=PDI-2022-2026", titulo: /cmi por procesos/i },
   { ruta: "/gestion-om", titulo: /gestión.*om|om.*gestión/i },
-  { ruta: "/plan-mejoramiento", titulo: /plan de mejoramiento/i },
+  { ruta: "/plan-mejoramiento", titulo: /evaluación de indicadores y métricas/i },
   { ruta: "/seguimiento-operativo", titulo: /seguimiento operativo/i },
   { ruta: "/informe-procesos", titulo: /informe.*procesos/i },
 ];
@@ -85,8 +86,8 @@ test.describe("Navegación — selección de PDI", () => {
   test("entrar a un módulo sin PDI muestra el selector con ambos ciclos", async ({ page }) => {
     await page.goto("/cmi-estrategico");
     await page.waitForURL(/\/seleccion-pdi\?destino=%2Fcmi-estrategico/);
-    await expect(page.getByText("PDI 2022-2026")).toBeVisible();
-    await expect(page.getByText("PDI 2026-2030")).toBeVisible();
+    await expect(page.getByRole("link", { name: /PDI 2022-2026/ })).toBeVisible();
+    await expect(page.getByRole("link", { name: /PDI 2026-2030/ })).toBeVisible();
 
     await page.getByRole("link", { name: /PDI 2022-2026/ }).click();
     await page.waitForURL(/\/cmi-estrategico\?pdi=PDI-2022-2026/);

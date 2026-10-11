@@ -43,6 +43,11 @@ class EmailLoginRequest(BaseModel):
     email: EmailStr
 
 
+class EmailOtpVerify(BaseModel):
+    email: EmailStr
+    code: str = Field(pattern=r"^\d{6}$")
+
+
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"

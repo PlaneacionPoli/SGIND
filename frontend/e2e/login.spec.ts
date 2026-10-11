@@ -9,12 +9,23 @@
  * - Tras el dev-login, el usuario queda autenticado
  */
 
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
 import { mockAPI, devLogin } from "./fixtures";
 
 test.beforeEach(async ({ page }) => {
   await mockAPI(page);
 });
+
+/**
+ * Con NEXT_PUBLIC_ENABLE_DEV_LOGIN=true, Providers hace auto-login de desarrollo
+ * al cargar. Para probar el flujo "sin sesión" se hace fallar el dev-token:
+ * el auto-login no prospera y el usuario permanece sin autenticar.
+ */
+async function sinSesion(page: Page) {
+  await page.route("**/api/v1/auth/dev-token**", (r) =>
+    r.fulfill({ status: 503, json: { detail: "sin backend" } })
+  );
+}
 
 test("página /login carga sin errores", async ({ page }) => {
   await page.goto("/login");
@@ -24,6 +35,7 @@ test("página /login carga sin errores", async ({ page }) => {
 });
 
 test("botón 'Iniciar sesión con Microsoft' visible en /login", async ({ page }) => {
+  await sinSesion(page);
   await page.goto("/login");
   await page.waitForLoadState("networkidle");
   const msBtn = page.getByRole("link", { name: /iniciar sesión con microsoft/i });
@@ -31,6 +43,7 @@ test("botón 'Iniciar sesión con Microsoft' visible en /login", async ({ page }
 });
 
 test("botón 'Acceso de desarrollo' visible en modo dev", async ({ page }) => {
+  await sinSesion(page);
   await page.goto("/login");
   await page.waitForLoadState("networkidle");
   const devBtn = page.getByRole("button", { name: /acceso de desarrollo/i });
@@ -38,6 +51,7 @@ test("botón 'Acceso de desarrollo' visible en modo dev", async ({ page }) => {
 });
 
 test("AuthGuard redirige a /login cuando no hay sesión", async ({ page }) => {
+  await sinSesion(page);
   // Ir directamente al dashboard sin autenticarse
   await page.goto("/resumen-general");
   await page.waitForLoadState("networkidle");
@@ -58,10 +72,10 @@ test("después del dev-login el usuario queda autenticado", async ({ page }) => 
 });
 
 test("página raíz redirige a /login si no autenticado", async ({ page }) => {
+  await sinSesion(page);
   await page.goto("/");
   await page.waitForLoadState("networkidle");
   await page.waitForTimeout(800);
 
-  // Debe redirigir a /login o /resumen-general
-  expect(page.url()).toMatch(/\/(login|resumen-general)/);
+  expect(page.url()).toContain("/login");
 });

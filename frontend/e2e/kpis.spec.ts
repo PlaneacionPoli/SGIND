@@ -78,7 +78,7 @@ test("Plan de Mejoramiento — sección de filtros y KPIs visible", async ({ pag
   await page.waitForLoadState("networkidle");
   await page.waitForTimeout(1_000);
 
-  const heading = page.getByRole("heading", { name: /plan de mejoramiento/i });
+  const heading = page.getByRole("heading", { name: /evaluación de indicadores y métricas/i });
   await expect(heading).toBeVisible({ timeout: 8_000 });
 });
 

@@ -100,8 +100,12 @@ export async function fetchDevToken(
   return data;
 }
 
-export async function fetchEmailLogin(email: string): Promise<DevTokenResponse> {
-  const { data } = await api.post<DevTokenResponse>("/auth/email-login", { email });
+export async function requestEmailOtp(email: string): Promise<void> {
+  await api.post("/auth/email-login/request", { email });
+}
+
+export async function verifyEmailOtp(email: string, code: string): Promise<DevTokenResponse> {
+  const { data } = await api.post<DevTokenResponse>("/auth/email-login/verify", { email, code });
   return data;
 }
 

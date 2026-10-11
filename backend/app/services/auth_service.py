@@ -1,3 +1,7 @@
+import hashlib
+import hmac
+import secrets
+from datetime import UTC, datetime, timedelta
 from urllib.parse import urlencode
 
 import httpx
@@ -8,8 +12,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.core.config import RoleName, Settings
-from app.core.security import create_access_token
+from app.core.security import create_access_token, decode_token
+from app.models.login_otp import LoginOtp
 from app.models.user import Role, User
+from app.services.otp_mailer import send_otp
 
 # Mismas descripciones que database/migrations/001 y 004.
 _ROLE_DESCRIPTIONS: dict[str, str] = {
@@ -20,7 +26,8 @@ _ROLE_DESCRIPTIONS: dict[str, str] = {
     "auditor_ia": "Auditoria y publicacion de narrativas IA",
 }
 
-SCOPES = ["openid", "profile", "email", "User.Read"]
+# MSAL añade openid/profile por su cuenta y rechaza pasarlos (son scopes reservados).
+SCOPES = ["User.Read"]
 
 
 class AuthService:
@@ -46,12 +53,23 @@ class AuthService:
             )
         return self._msal_app
 
-    def get_login_url(self, state: str = "sgind") -> str:
+    def get_login_url(self) -> str:
+        # state firmado y con vencimiento: el callback solo acepta flujos que iniciamos nosotros
+        state = create_access_token(
+            secrets.token_urlsafe(16),
+            settings=self.settings,
+            extra={"typ": "oauth_state"},
+        )
         return self._get_msal_app().get_authorization_request_url(
             scopes=SCOPES,
             redirect_uri=self.settings.azure_redirect_uri,
             state=state,
         )
+
+    def verify_state(self, state: str | None) -> None:
+        payload = decode_token(state or "", self.settings)
+        if payload.get("typ") != "oauth_state":
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="State inválido")
 
     async def handle_callback(self, code: str, db: AsyncSession) -> tuple[str, User]:
         result = self._get_msal_app().acquire_token_by_authorization_code(
@@ -77,6 +95,9 @@ class AuthService:
         name = profile.get("displayName")
         azure_oid = profile.get("id")
 
+        # Con AZURE_TENANT_ID=organizations entra cualquier organización: el dominio
+        # institucional ya no lo garantiza el tenant, hay que exigirlo aquí.
+        self._check_domain(email)
         if self.settings.allowed_emails_set and email not in self.settings.allowed_emails_set:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
@@ -144,15 +165,73 @@ class AuthService:
             await db.flush()
         return role
 
-    async def email_login(self, db: AsyncSession, *, email: str) -> tuple[str, User]:
-        """Login sin OIDC: cualquier correo del dominio institucional entra con rol de lectura."""
-        email = email.lower().strip()
+    def _otp_hash(self, email: str, code: str) -> str:
+        return hmac.new(
+            self.settings.secret_key.encode(), f"{email}:{code}".encode(), hashlib.sha256
+        ).hexdigest()
+
+    def _check_domain(self, email: str) -> None:
         if not email.endswith(f"@{self.settings.email_login_domain}"):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail=f"Solo se permiten correos @{self.settings.email_login_domain}",
             )
 
+    async def request_otp(self, db: AsyncSession, *, email: str) -> None:
+        """Genera y envía un OTP. Responde igual para correos no autorizados (sin enumeración)."""
+        email = email.lower().strip()
+        self._check_domain(email)
+        allowed = self.settings.allowed_emails_set
+        if allowed and email not in allowed and email not in self.settings.admin_emails_set:
+            return
+
+        now = datetime.now(UTC)
+        current = await db.get(LoginOtp, email)
+        if current is not None:
+            elapsed = (now - current.created_at).total_seconds()
+            if elapsed < self.settings.otp_resend_seconds:
+                raise HTTPException(
+                    status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                    detail="Espera un momento antes de solicitar otro código.",
+                )
+
+        code = f"{secrets.randbelow(1_000_000):06d}"
+        expires = now + timedelta(minutes=self.settings.otp_ttl_minutes)
+        if current is None:
+            db.add(
+                LoginOtp(
+                    email=email,
+                    code_hash=self._otp_hash(email, code),
+                    expires_at=expires,
+                    attempts=0,
+                    created_at=now,
+                )
+            )
+        else:
+            current.code_hash = self._otp_hash(email, code)
+            current.expires_at = expires
+            current.attempts = 0
+            current.created_at = now
+        await db.flush()
+        await send_otp(self.settings, email, code)
+
+    async def verify_otp(self, db: AsyncSession, *, email: str, code: str) -> tuple[str, User]:
+        email = email.lower().strip()
+        self._check_domain(email)
+        invalid = HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Código inválido o vencido"
+        )
+        otp = await db.get(LoginOtp, email)
+        if otp is None or otp.expires_at < datetime.now(UTC):
+            raise invalid
+        if otp.attempts >= self.settings.otp_max_attempts:
+            raise invalid
+        if not hmac.compare_digest(otp.code_hash, self._otp_hash(email, code)):
+            otp.attempts += 1
+            await db.commit()  # persistir el intento fallido pese al HTTPException
+            raise invalid
+
+        await db.delete(otp)  # un solo uso
         user = await self._get_or_create_user(db, email=email, name=None, azure_oid=None)
         token = create_access_token(
             email,

@@ -8,6 +8,7 @@ from app.core.security import get_current_user, require_reader
 from app.models.user import User
 from app.schemas.common import (
     EmailLoginRequest,
+    EmailOtpVerify,
     LoginResponse,
     MessageResponse,
     TokenResponse,
@@ -40,27 +41,44 @@ async def login_url(
 
 @router.get("/callback")
 async def callback(
-    code: str = Query(...),
+    code: str | None = Query(None),
+    state: str | None = Query(None),
+    error: str | None = Query(None),
     db: AsyncSession = Depends(get_db),
     auth: AuthService = Depends(_auth_service),
     settings: Settings = Depends(get_settings),
 ):
-    token, _user = await auth.handle_callback(code, db)
     frontend = (
         settings.cors_origins_list[0] if settings.cors_origins_list else "http://localhost:3000"
     )
+    if error or not code:
+        # p. ej. el usuario canceló, o el admin del tenant no permite el consentimiento
+        return RedirectResponse(url=f"{frontend}/login?error=access_denied")
+    auth.verify_state(state)
+    token, _user = await auth.handle_callback(code, db)
     return RedirectResponse(url=f"{frontend}/auth/callback?token={token}")
 
 
-@router.post("/email-login", response_model=TokenResponse)
-async def email_login(
+@router.post("/email-login/request", response_model=MessageResponse)
+async def email_login_request(
     payload: EmailLoginRequest,
+    db: AsyncSession = Depends(get_db),
+    auth: AuthService = Depends(_auth_service),
+) -> MessageResponse:
+    """Paso 1: envía un código de 6 dígitos al correo institucional."""
+    await auth.request_otp(db, email=payload.email)
+    return MessageResponse(message="Si el correo está autorizado, recibirás un código.")
+
+
+@router.post("/email-login/verify", response_model=TokenResponse)
+async def email_login_verify(
+    payload: EmailOtpVerify,
     db: AsyncSession = Depends(get_db),
     auth: AuthService = Depends(_auth_service),
     settings: Settings = Depends(get_settings),
 ) -> TokenResponse:
-    """Login temporal sin Azure AD: valida solo el dominio del correo institucional."""
-    token, _user = await auth.email_login(db, email=payload.email)
+    """Paso 2: valida el código (un solo uso) y emite el JWT."""
+    token, _user = await auth.verify_otp(db, email=payload.email, code=payload.code)
     return TokenResponse(access_token=token, expires_in=settings.jwt_expire_minutes * 60)
 
 

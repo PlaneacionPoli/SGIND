@@ -84,6 +84,23 @@ export const MOCK_MARCOS_PDI = [
   },
 ];
 
+export const MOCK_PROCESOS_DASHBOARD = { anio: 2025, mes: 12, mes_nombre: "Diciembre", anios_disponibles: [2025], meses_disponibles: [12], filtros_aplicados: {}, total_indicadores: 0, kpis: { total: 0, con_dato: 0, promedio: 0, top_nivel: "Sin dato", en_riesgo: 0, conteo_estados: {}, n_procesos: 0, n_subprocesos: 0, n_unidades: 0 }, banner: { titulo: "", anio: 2025, mes: "Diciembre", cumplimiento_global: null, cumplimiento_base_anio: null, base_anio: 2024, base_mes: null, variacion_pp: null, total_indicadores: 0, en_riesgo: 0 }, distribucion_nivel: [], tipo_proceso_cards: [], proceso_bars: [], catalog_charts: { periodicidad: [], clasificacion: [] }, procesos_detalle: [], unidades_detalle: [], indicadores_summary: {}, indicadores: [], alertas: { peligro: 0, alerta: 0, items: [] }, variacion: { mejoraron: [], empeoraron: [], top_riesgo_procesos: [] }, meta: { base_anio: 2024, base_mes: null, latest_month_global: 12 }, analisis_avanzado: { propuesta_accion: { proceso: "", plan_mejoramiento: "", pdi: "", sga: "", retos: "", top_criticos: [] }, variacion_procesos: { mejoraron: [], empeoraron: [] }, insights: { mejora_proceso: "", riesgo_proceso: "" }, narrativa_proceso: { titulo: "", estado_color: "#22c55e", foco_urgente: "", directrices: [], texto_html: "", fuente: "" }, variacion_indicadores: { mejoraron: [], empeoraron: [], top_riesgo_procesos: [] }, historico_indicadores: [] }, calidad: { disponible: false, mensaje: null, score_global: null, dim_scores: {}, dim_colors: {}, kpis: { total_registros: 0, total_subprocesos: 0, promedio: null }, por_proceso: [], por_subproceso: [], alertas_dim: [], registros: [] }, vista_global: { mes_corte: 12, mes_nombre: "Diciembre", kpis: { total: 0, con_dato: 0, promedio: 0, top_nivel: "Sin dato", en_riesgo: 0, conteo_estados: {}, n_procesos: 0, n_subprocesos: 0, n_unidades: 0 }, banner: { titulo: "", anio: 2025, mes: "Diciembre", cumplimiento_global: null, cumplimiento_base_anio: null, base_anio: 2024, base_mes: null, variacion_pp: null, total_indicadores: 0, en_riesgo: 0 }, distribucion_nivel: [], tipo_proceso_cards: [], proceso_bars: [], catalog_charts: { periodicidad: [], clasificacion: [] }, procesos_detalle: [], unidades_detalle: [], comparativa_procesos: [], variacion: { mejoraron: [], empeoraron: [], top_riesgo_procesos: [] }, alertas_criticas: [] }, ejecucion_variacion: { positiva: [], negativa: [] } };
+
+export const MOCK_INFORME_DASHBOARD = {
+  ...MOCK_PROCESOS_DASHBOARD,
+  resumen_ejecutivo: { score: 0, avg: 0, label: "Sin dato", total_indicadores: 0, cumple: 0, alerta: 0, peligro: 0, sin_dato: 0, delta: null },
+  comparativa_interanual: [],
+  criticos: [],
+  distribucion_estado: { cumple: 0, alerta: 0, critico: 0, sin_dato: 0 },
+  propuestas: [],
+  propuestas_error: null,
+  auditoria: [],
+  auditoria_error: null,
+  analisis_ia: { conteos: { peligro: 0, alerta: 0, saludables: 0 }, top_peligro: [], top_alerta: [], mostrados_peligro: 0, mostrados_alerta: 0 },
+  narrativa_ia_proceso: null,
+  narrativa_ia_pendiente: false,
+};
+
 // ─── Helper: intercepta todas las llamadas a /api/v1/* ───────────────────────
 
 export async function mockAPI(page: Page) {
@@ -109,7 +126,7 @@ export async function mockAPI(page: Page) {
     r.fulfill({ json: [] })
   );
   await page.route(`**${API_BASE}/dashboard/resumen-completo**`, (r) =>
-    r.fulfill({ json: { anio: 2025, vista: "general", chips: [], fichas: [], sunburst: { labels: [], parents: [], values: [], colors: [], text: [] }, narrativa: { texto: "", estado_color: "#22c55e", estado_icon: "✓" }, mejoraron: [], en_riesgo: [], periodo_comparacion: "2024", total_indicadores: 120 } })
+    r.fulfill({ json: { anio: 2025, vista: "general", chips: [{ value: 120, label: "Total indicadores", color: "#1e40af" }], fichas: [], mindmap: { alcance_global: 0, lineas: [] }, narrativa: { texto: "", estado_color: "#22c55e", estado_icon: "✓" }, mejoraron: [], en_riesgo: [], periodo_comparacion: "2024", total_indicadores: 120 } })
   );
   await page.route(`**${API_BASE}/cmi/filtros**`, (r) =>
     r.fulfill({ json: MOCK_FILTROS })
@@ -134,7 +151,7 @@ export async function mockAPI(page: Page) {
     })
   );
   await page.route(`**${API_BASE}/cmi/procesos-dashboard**`, (r) =>
-    r.fulfill({ json: { anio: 2025, mes: 12, mes_nombre: "Diciembre", anios_disponibles: [2025], meses_disponibles: [12], filtros_aplicados: {}, total_indicadores: 0, kpis: { total: 0, con_dato: 0, promedio: 0, top_nivel: "Sin dato", en_riesgo: 0, conteo_estados: {}, n_procesos: 0, n_subprocesos: 0, n_unidades: 0 }, banner: { titulo: "", anio: 2025, mes: "Diciembre", cumplimiento_global: null, cumplimiento_base_anio: null, base_anio: 2024, base_mes: null, variacion_pp: null, total_indicadores: 0, en_riesgo: 0 }, distribucion_nivel: [], tipo_proceso_cards: [], proceso_bars: [], catalog_charts: { periodicidad: [], clasificacion: [] }, procesos_detalle: [], unidades_detalle: [], indicadores_summary: {}, indicadores: [], alertas: { peligro: 0, alerta: 0, items: [] }, variacion: { mejoraron: [], empeoraron: [], top_riesgo_procesos: [] }, meta: { base_anio: 2024, base_mes: null, latest_month_global: 12 }, analisis_avanzado: { propuesta_accion: { proceso: "", plan_mejoramiento: "", pdi: "", sga: "", retos: "", top_criticos: [] }, variacion_procesos: { mejoraron: [], empeoraron: [] }, insights: { mejora_proceso: "", riesgo_proceso: "" }, narrativa_proceso: { titulo: "", estado_color: "#22c55e", foco_urgente: "", directrices: [], texto_html: "", fuente: "" }, variacion_indicadores: { mejoraron: [], empeoraron: [], top_riesgo_procesos: [] }, historico_indicadores: [] }, calidad: { disponible: false, mensaje: null, score_global: null, dim_scores: {}, dim_colors: {}, kpis: { total_registros: 0, total_subprocesos: 0, promedio: null }, por_proceso: [], por_subproceso: [], alertas_dim: [], registros: [] }, vista_global: { mes_corte: 12, mes_nombre: "Diciembre", kpis: { total: 0, con_dato: 0, promedio: 0, top_nivel: "Sin dato", en_riesgo: 0, conteo_estados: {}, n_procesos: 0, n_subprocesos: 0, n_unidades: 0 }, banner: { titulo: "", anio: 2025, mes: "Diciembre", cumplimiento_global: null, cumplimiento_base_anio: null, base_anio: 2024, base_mes: null, variacion_pp: null, total_indicadores: 0, en_riesgo: 0 }, distribucion_nivel: [], tipo_proceso_cards: [], proceso_bars: [], catalog_charts: { periodicidad: [], clasificacion: [] }, procesos_detalle: [], unidades_detalle: [], comparativa_procesos: [], variacion: { mejoraron: [], empeoraron: [], top_riesgo_procesos: [] }, alertas_criticas: [] }, ejecucion_variacion: { positiva: [], negativa: [] } } })
+    r.fulfill({ json: MOCK_PROCESOS_DASHBOARD })
   );
   await page.route(`**${API_BASE}/om**`, (r) =>
     r.fulfill({ json: MOCK_OM_LIST })
@@ -152,8 +169,19 @@ export async function mockAPI(page: Page) {
   await page.route(`**${API_BASE}/plan-mejoramiento/**`, (r) =>
     r.fulfill({ json: { error: null, anio: 2025, mes: 12, corte: "Diciembre", filtros_corte: { anios: [2025], anio_default: 2025, corte_default: "Diciembre", cortes: ["Junio", "Diciembre"] }, filtros_cna: { factores: [], caracteristicas: [] }, filtros_aplicados: {}, kpis: { indicadores_cna: 0, factores_visibles: 0, caracteristicas_visibles: 0, con_cumplimiento: 0, promedio_cumplimiento: 0, catalogo_factores: 0, catalogo_caracteristicas: 0 }, graficos: { factor_bars: [], nivel_donut: [], factor_nivel_stacked: [], treemap: [] }, tabla_cna: [], acciones: { kpis: {}, avance_por_estado: [], tabla: [] }, total_indicadores: 0 } })
   );
+  // Plan de Mejoramiento actual: 2 vistas (Indicadores / Métricas). Registradas
+  // después de `/plan-mejoramiento/**` para tener prioridad.
+  await page.route(`**${API_BASE}/plan-mejoramiento/indicadores**`, (r) =>
+    r.fulfill({ json: { kpis: { total: 0, con_meta_futura: 0, con_cumplimiento_historico: 0, aprobados: 0, pct_aprobados: 0 }, filtros: { factores: [], caracteristicas: [], tipos: [] }, tabla: [], total: 0 } })
+  );
+  await page.route(`**${API_BASE}/plan-mejoramiento/metricas**`, (r) =>
+    r.fulfill({ json: { kpis: { total: 0, factores_cubiertos: 0, n_creciente: 0, n_estable: 0, n_decreciente: 0, n_sin_tendencia: 0, pct_creciente: 0, pct_estable: 0, pct_decreciente: 0 }, filtros: { factores: [], caracteristicas: [], tendencias: [] }, tabla: [], total: 0 } })
+  );
   await page.route(`**${API_BASE}/informe/**`, (r) =>
     r.fulfill({ json: {} })
+  );
+  await page.route(`**${API_BASE}/informe/dashboard**`, (r) =>
+    r.fulfill({ json: MOCK_INFORME_DASHBOARD })
   );
 }
 

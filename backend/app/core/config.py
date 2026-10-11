@@ -45,6 +45,16 @@ class Settings(BaseSettings):
 
     email_login_domain: str = "poligran.edu.co"
 
+    # Login por OTP: código de 6 dígitos enviado al correo institucional.
+    otp_ttl_minutes: int = 10
+    otp_max_attempts: int = 5
+    otp_resend_seconds: int = 60
+    smtp_host: str = ""
+    smtp_port: int = 587
+    smtp_user: str = ""
+    smtp_password: str = ""
+    smtp_from: str = ""
+
     sgind_data_path: str = "../data"
     excel_cache_ttl_seconds: int = 21600
 
