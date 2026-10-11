@@ -17,8 +17,15 @@ sync = importlib.import_module("sincronizar_directorio_indicadores")
 
 
 def _fuente(nombre: str) -> dict:
-    return {"Indicador": nombre, "Proceso": "DATOS Y ANALÍTICA", "Clasificacion": "Estratégico",
-            "Periodicidad": "Semestral", "Sentido": "Positivo", "Tipo_API": "Eficacia", "Estado": "Activo"}
+    return {
+        "Indicador": nombre,
+        "Proceso": "DATOS Y ANALÍTICA",
+        "Clasificacion": "Estratégico",
+        "Periodicidad": "Semestral",
+        "Sentido": "Positivo",
+        "Tipo_API": "Eficacia",
+        "Estado": "Activo",
+    }
 
 
 def test_detectar_nuevos_solo_lo_que_el_catalogo_no_tiene():
@@ -40,10 +47,17 @@ def catalogo(tmp_path, monkeypatch):
     ws = wb["PDI_2026_2030"]
     cols = [c.value for c in ws[1]]
     for r in ws.iter_rows(min_row=2):
-        if r[cols.index("Origen")].value == sync.ORIGEN_NUEVO and r[cols.index("Linea")].value in (None, ""):
+        if r[cols.index("Origen")].value == sync.ORIGEN_NUEVO and r[cols.index("Linea")].value in (
+            None,
+            "",
+        ):
             r[cols.index("Linea")].value = "x"  # ya "asignado": que no interfiera
     wb.save(copia)
-    monkeypatch.setattr(sync, "leer_kawak", lambda: ({"9001": _fuente("Nuevo A"), "9002": _fuente("Nuevo B")}, set()))
+    monkeypatch.setattr(
+        sync,
+        "leer_kawak",
+        lambda: ({"9001": _fuente("Nuevo A"), "9002": _fuente("Nuevo B")}, set()),
+    )
     monkeypatch.setattr(sync, "leer_api", lambda: {})
     monkeypatch.setattr(sync, "BACKUPS_DIR", tmp_path / "bak")
     return copia
@@ -65,7 +79,11 @@ def test_sin_terminal_agrega_y_deja_pendiente(catalogo, monkeypatch, capsys):
     assert _fila(wb, "Catalogo Indicadores", "9001")["Fuente"] == sync.FUENTE_NUEVO
     fila = _fila(wb, "PDI_2026_2030", "9001")
     assert fila["Origen"] == sync.ORIGEN_NUEVO and fila["PDI"] == 0 and fila["Linea"] is None
-    aviso = next(ln for ln in capsys.readouterr().out.splitlines() if ln.startswith("[AVISO]") and "asignación" in ln)
+    aviso = next(
+        ln
+        for ln in capsys.readouterr().out.splitlines()
+        if ln.startswith("[AVISO]") and "asignación" in ln
+    )
     assert "9001" in aviso and "9002" in aviso
     # El PDI cerrado no se toca
     assert _fila(wb, "PDI_2022_2026", "9001") == {}
@@ -75,7 +93,9 @@ def test_sin_terminal_agrega_y_deja_pendiente(catalogo, monkeypatch, capsys):
     assert sum(1 for r in ws.iter_rows(min_row=2, values_only=True) if str(r[0]) == "9001") == 1
 
 
-def test_con_terminal_solicita_la_asignacion_y_respeta_la_regla_de_meta(catalogo, monkeypatch, capsys):
+def test_con_terminal_solicita_la_asignacion_y_respeta_la_regla_de_meta(
+    catalogo, monkeypatch, capsys
+):
     monkeypatch.setattr(sync, "hay_terminal", lambda: True)
     # 9001: estratégico (1) → línea 1 → objetivo 1 → meta 1.  9002: Enter = omitir.
     respuestas = iter(["1", "1", "1", "1", ""])

@@ -100,9 +100,7 @@ require_operational = require_roles("administrador", "calidad", "desempeno")
 # Eliminar registros OM (irreversible): solo "administrador". Crear, editar y cerrar
 # siguen con require_admin (administrador, calidad, desempeno).
 require_om_deleter = require_roles("administrador")
-require_reader = require_roles(
-    "procesos", "administrador", "calidad", "desempeno", "auditor_ia"
-)
+require_reader = require_roles("procesos", "administrador", "calidad", "desempeno", "auditor_ia")
 # Auditoría y publicación de narrativas generadas por IA (Análisis por Procesos):
 # rol dedicado, separado de quienes gestionan planes de mejoramiento — asignado a
 # mano en users.role_id, igual que "calidad"/"desempeno" (ver RBAC_MATRIX.md).

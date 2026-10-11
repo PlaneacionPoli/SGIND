@@ -246,7 +246,9 @@ async def alertas_listado_outlook(
     return Response(
         content=contenido,
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        headers={"Content-Disposition": f"attachment; filename=Listado_de_indicadores_{a}-{m:02d}.xlsx"},
+        headers={
+            "Content-Disposition": f"attachment; filename=Listado_de_indicadores_{a}-{m:02d}.xlsx"
+        },
     )
 
 

@@ -73,18 +73,16 @@ _ALIAS_PMO_NOMBRE: dict[str, str] = {
     _norm("Innovación curricular - Fase I"): _norm("Innovación Curricular"),
     _norm("Portal Universitario"): _norm("Portal Web Universitario"),
     _norm("Data Lake Institucional"): _norm("Datalake"),
-    _norm(
-        "Acreditación Institucional Sede Bogotá - Fase II - Condiciones iniciales"
-    ): _norm("Acreditación Institucional Fase II"),
+    _norm("Acreditación Institucional Sede Bogotá - Fase II - Condiciones iniciales"): _norm(
+        "Acreditación Institucional Fase II"
+    ),
     _norm("Acreditación Institucional - Fase I"): _norm(
         "Acreditación Institucional Sede Bogotá-Fase I"
     ),
     _norm(
         "Creación del Instituto de Educación para el trabajo y el desarrollo humano - Stand By"
     ): _norm("Institución de educación para el trabajo y desarrollo humano IETDH"),
-    _norm("Creación del colegio de educación media virtual  - Stand By"): _norm(
-        "Colegio Virtual"
-    ),
+    _norm("Creación del colegio de educación media virtual  - Stand By"): _norm("Colegio Virtual"),
     _norm("Diseño del Modelo de Experiencia Institucional - Fase 2"): _norm(
         "Experiencia Institucional Fase II"
     ),
@@ -95,18 +93,14 @@ _ALIAS_PMO_NOMBRE: dict[str, str] = {
         "Experiencia Institucional fase III - Hub de Experiencia y agilismo"
     ),
     _norm("Centro de Idiomas Fase I - Stand By"): _norm("Centro de Idiomas POLI"),
-    _norm(
-        "Acreditación Institucional  Fase III - Etapa de evaluación externa"
-    ): _norm(
+    _norm("Acreditación Institucional  Fase III - Etapa de evaluación externa"): _norm(
         "Acreditación Institucional fase III – Etapa de evaluación externa o evaluación por pares"
     ),
     _norm("Plataforma de gestión de la información curricular Fase I"): _norm(
         "Plataforma de gestión de información curricular Fase 1"
     ),
     _norm("Ilumno Self Service S&P"): _norm("Proyectos Ilumno Self Service S&P"),
-    _norm(
-        "SOPHIA Sistema de optimización y programación horaria institucional"
-    ): _norm(
+    _norm("SOPHIA Sistema de optimización y programación horaria institucional"): _norm(
         "SOPHIA Sistema de Optimización y Programación Horaria Institucional Académica  I Fase"
     ),
     _norm("Modelo de seguimiento al graduado"): _norm(
@@ -149,12 +143,8 @@ class ProyectosOficialesService:
 
         cierre_pdi = self._strategic_loaders.load_cierre_pdi_final()
         cierre_pdi["_norm"] = cierre_pdi["Indicador"].apply(_norm)
-        cierre_con_dato = cierre_pdi[
-            cierre_pdi["Meta"].notna() | cierre_pdi["Ejecucion"].notna()
-        ]
-        cierre_by_norm = cierre_con_dato.drop_duplicates("_norm", keep="last").set_index(
-            "_norm"
-        )
+        cierre_con_dato = cierre_pdi[cierre_pdi["Meta"].notna() | cierre_pdi["Ejecucion"].notna()]
+        cierre_by_norm = cierre_con_dato.drop_duplicates("_norm", keep="last").set_index("_norm")
         cierre_by_id = cierre_con_dato.drop_duplicates("Id", keep="last").set_index("Id")
 
         cons = self._etl.leer_cierres()
@@ -214,9 +204,7 @@ class ProyectosOficialesService:
 
             pmo_key = _ALIAS_PMO_NOMBRE.get(norm_nombre, norm_nombre)
             gantt_row = pmo_by_norm.loc[pmo_key] if pmo_key in pmo_by_norm.index else None
-            qual_row = (
-                pmo_qual_by_norm.loc[pmo_key] if pmo_key in pmo_qual_by_norm.index else None
-            )
+            qual_row = pmo_qual_by_norm.loc[pmo_key] if pmo_key in pmo_qual_by_norm.index else None
 
             if estado_manual:
                 estado = estado_manual

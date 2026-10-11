@@ -127,8 +127,7 @@ CANONICAL_OBJETIVOS: dict[str, list[str]] = {
     "sostenibilidad": [
         "Promover una cultura de optimización de recursos financieros como "
         "apalancador de la estrategia",
-        "Contribuir a la inclusión, la proyección social y el cuidado del "
-        "medio ambiente",
+        "Contribuir a la inclusión, la proyección social y el cuidado del " "medio ambiente",
     ],
 }
 
@@ -250,7 +249,6 @@ def ensure_nivel_cumplimiento(df: pd.DataFrame, regimen: str | None = None) -> p
     if "cumplimiento_pct" not in out.columns and "cumplimiento_dec" in out.columns:
         out["cumplimiento_pct"] = pd.to_numeric(out["cumplimiento_dec"], errors="coerce") * 100
     if "cumplimiento_pct" in out.columns:
-
         es_metrica = mask_metrica(out)
         # Una métrica sin porcentaje no está "pendiente de reporte": no lleva meta.
         sin_pct = "Pendiente de reporte"
@@ -597,13 +595,15 @@ def build_sunburst_plotly(
         else:
             parent_name = id_to_label.get(parent_id, "")
             wrapped = _wrap_sunburst_label(_objective_display_label(lab, parent_name), width=32)
-        line_key = lab_key if parent_id == "" else _sunburst_norm_key(id_to_label.get(parent_id, ""))
+        line_key = (
+            lab_key if parent_id == "" else _sunburst_norm_key(id_to_label.get(parent_id, ""))
+        )
         # Solo la cifra: blanca, salvo Transformación Organizacional (cian claro) en azul oscuro.
         color = "#0B2A5B" if "transformacion organizacional" in line_key else "#FFFFFF"
         html_label = f"<b>{str(wrapped).replace(chr(10), '<br>')}</b>"
         size = 16 if parent_id == "" else 14
         text.append(
-            f'{html_label}<br>'
+            f"{html_label}<br>"
             f'<span style="font-size:{size}px;color:{color}"><b>{pct:.0f}%</b></span>'
         )
 
@@ -1181,13 +1181,10 @@ def generate_narrative_retos(
                 f"<strong>{row['Linea']}</strong>" for _, row in bajo_umbral.iterrows()
             )
             alerta_lineas = (
-                (
-                    "1 línea está por debajo del umbral de cumplimiento "
-                    if len(bajo_umbral) == 1
-                    else f"{len(bajo_umbral)} líneas están por debajo del umbral de cumplimiento "
-                )
-                + f"({RETOS_UMBRAL_CUMPLIMIENTO:.0f}%): {nombres}. "
-            )
+                "1 línea está por debajo del umbral de cumplimiento "
+                if len(bajo_umbral) == 1
+                else f"{len(bajo_umbral)} líneas están por debajo del umbral de cumplimiento "
+            ) + f"({RETOS_UMBRAL_CUMPLIMIENTO:.0f}%): {nombres}. "
         else:
             alerta_lineas = (
                 f"Todas las líneas estratégicas superan el umbral de cumplimiento "
@@ -1238,7 +1235,6 @@ def generate_narrative_consolidado(
                         f"La mayor brecha se observa frente a <strong>{worst['Linea']}</strong> "
                         f"(<strong>{float(worst['Cumpl_Promedio']):.1f}%</strong>). "
                     )
-
 
     texto = (
         f"La visión consolidada del PDI <strong>{anio}</strong> muestra un desempeño institucional "
@@ -1603,9 +1599,11 @@ def build_informe_ejecutivo_lineas(
     (cronograma por año, reusa build_proyectos_gantt) e Indicadores CMI
     (objetivo → indicadores, meta/ejecución/cumplimiento)."""
     retos_summary = build_linea_summary_retos(ret_linea_df, ret_obj_df, ret_planes_df)
-    retos_by_key = {
-        norm_key(str(row["Linea"])): row for _, row in retos_summary.iterrows()
-    } if not retos_summary.empty else {}
+    retos_by_key = (
+        {norm_key(str(row["Linea"])): row for _, row in retos_summary.iterrows()}
+        if not retos_summary.empty
+        else {}
+    )
 
     proyectos_by_key: dict[str, list[dict]] = {}
     for item in proy_gantt.get("items", []):
@@ -1630,7 +1628,9 @@ def build_informe_ejecutivo_lineas(
                     retos_row = retos_by_key[matches[0]]
                     break
         avance_real = (
-            _safe_pct(retos_row.get("Cumpl_Promedio"), default=0.0) if retos_row is not None else 0.0
+            _safe_pct(retos_row.get("Cumpl_Promedio"), default=0.0)
+            if retos_row is not None
+            else 0.0
         ) or 0.0
         # Nota: el conteo de la hoja "Planes" es # Áreas por línea, no # Retos
         # (confirmado con negocio, 2026-09-27) — no existe un conteo de
@@ -1713,7 +1713,8 @@ def build_informe_ejecutivo_lineas(
         proy_cumpl_vals = [
             min(p["cumplimiento"], TOPE_PROYECTO)
             for p in proyectos_items
-            if p.get("cumplimiento") is not None and p.get("estado") not in ESTADOS_EXCLUIDOS_PROMEDIO
+            if p.get("cumplimiento") is not None
+            and p.get("estado") not in ESTADOS_EXCLUIDOS_PROMEDIO
         ]
         proyectos_cumplimiento_promedio = (
             round(sum(proy_cumpl_vals) / len(proy_cumpl_vals), 1) if proy_cumpl_vals else None
@@ -1766,7 +1767,9 @@ def build_retos_tabla(linea_df: pd.DataFrame) -> list[dict]:
     if linea_df.empty or "Linea" not in linea_df.columns:
         return []
     promedios = (
-        linea_df.assign(cumplimiento_pct=pd.to_numeric(linea_df["cumplimiento_pct"], errors="coerce"))
+        linea_df.assign(
+            cumplimiento_pct=pd.to_numeric(linea_df["cumplimiento_pct"], errors="coerce")
+        )
         .groupby("Linea", sort=False, dropna=False)["cumplimiento_pct"]
         .mean()
     )

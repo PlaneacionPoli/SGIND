@@ -36,6 +36,7 @@ def _portada_data_uri() -> str:
     incluidos en la imagen) — assets/Portada.png del repo."""
     return _image_data_uri("portada.png")
 
+
 # STRATEGIC_LINE_DEFS["icon"] (resumen_builders.py) → glifo del encabezado
 # de cada página de línea en el Informe Ejecutivo.
 _ICON_GLYPHS = {
@@ -103,7 +104,9 @@ def _enrich_lineas(data: dict[str, Any]) -> None:
             if v is not None
         ]
         li["formula_partes"] = partes
-        li["formula_texto"] = f"({' + '.join(f'{v:g}' for v in partes)}) / {len(partes)}" if partes else "N/A"
+        li["formula_texto"] = (
+            f"({' + '.join(f'{v:g}' for v in partes)}) / {len(partes)}" if partes else "N/A"
+        )
 
 
 def _build_verificacion(data: dict[str, Any]) -> list[dict[str, Any]]:

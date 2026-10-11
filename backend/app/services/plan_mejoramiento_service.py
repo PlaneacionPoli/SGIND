@@ -149,10 +149,15 @@ class PlanMejoramientoService:
             if subvista == "historico"
             else build_plan_indicadores_tabla_metas(rows)
         )
-        factores = sort_factores(df["Factor"].dropna().unique().tolist()) if "Factor" in df.columns else []
+        factores = (
+            sort_factores(df["Factor"].dropna().unique().tolist()) if "Factor" in df.columns else []
+        )
         caracteristicas = build_caracteristicas_cascade(df, factor)
         tipos = (
-            sorted(df["Tipo"].dropna().unique().tolist(), key=lambda t: TIPO_ORDEN.get(t, len(TIPO_ORDEN)))
+            sorted(
+                df["Tipo"].dropna().unique().tolist(),
+                key=lambda t: TIPO_ORDEN.get(t, len(TIPO_ORDEN)),
+            )
             if "Tipo" in df.columns
             else []
         )
@@ -268,7 +273,9 @@ class PlanMejoramientoService:
         )
         tabla = build_metricas_tabla_agrupada(rows)
         kpis = build_metricas_kpis(tabla)  # sobre lo filtrado, igual que la tabla
-        factores = sort_factores(df["Factor"].dropna().unique().tolist()) if "Factor" in df.columns else []
+        factores = (
+            sort_factores(df["Factor"].dropna().unique().tolist()) if "Factor" in df.columns else []
+        )
         caracteristicas = build_caracteristicas_cascade(df, factor)
 
         return {
@@ -299,7 +306,11 @@ class PlanMejoramientoService:
             prefijo = f"{grupo.strip()} - ".casefold()
             mask &= df["Subindicador"].astype(str).str.casefold().str.startswith(prefijo)
             match = df[mask]
-            return build_metrica_detalle(match, consolidado=True, grupo=grupo.strip()) if not match.empty else None
+            return (
+                build_metrica_detalle(match, consolidado=True, grupo=grupo.strip())
+                if not match.empty
+                else None
+            )
         if subindicador is not None and "Subindicador" in df.columns:
             mask &= df["Subindicador"] == subindicador.strip()
         match = df[mask]

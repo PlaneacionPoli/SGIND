@@ -42,14 +42,19 @@ async def cmi_estrategico_dashboard(
     anio: int | None = Query(None),
     mes: int | None = Query(None, ge=1, le=12),
     corte: str | None = Query(None, description="Junio o Diciembre"),
-    rango: bool = Query(False, description="Cierre del PDI elegido (resultado final por indicador)"),
-    solo_con_reporte: bool = Query(False, description="Oculta los indicadores pendientes de medición"),
+    rango: bool = Query(
+        False, description="Cierre del PDI elegido (resultado final por indicador)"
+    ),
+    solo_con_reporte: bool = Query(
+        False, description="Oculta los indicadores pendientes de medición"
+    ),
     marco: Marco = Depends(get_pdi_marco),
     _user: User = Depends(require_reader),
     service: CMIService = Depends(_cmi_service),
 ) -> CMIDashboardResponse:
     return CMIDashboardResponse(
-        **await run_sync(service.get_dashboard,
+        **await run_sync(
+            service.get_dashboard,
             anio=anio,
             mes=mes,
             corte=corte,
@@ -107,9 +112,7 @@ async def cmi_procesos_filtros(
     service: CMIService = Depends(_cmi_service),
 ) -> CMIProcesosFiltrosResponse:
     return CMIProcesosFiltrosResponse(
-        **await run_sync(
-            service.get_procesos_filtros, anio=anio, mes=mes, pdi=marco.version_id
-        )
+        **await run_sync(service.get_procesos_filtros, anio=anio, mes=mes, pdi=marco.version_id)
     )
 
 

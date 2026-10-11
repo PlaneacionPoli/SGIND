@@ -300,7 +300,11 @@ def filter_indicadores_riesgo(
 
 def _cumplimiento_pct(row: Any) -> float | None:
     """Cumplimiento en %: usa `Cumplimiento_pct` si existe; si no, `Cumplimiento_norm` (fracción 0–1)."""
-    for col, factor in (("Cumplimiento_pct", 1.0), ("cumplimiento_pct", 1.0), ("Cumplimiento_norm", 100.0)):
+    for col, factor in (
+        ("Cumplimiento_pct", 1.0),
+        ("cumplimiento_pct", 1.0),
+        ("Cumplimiento_norm", 100.0),
+    ):
         if col in row.index:
             x = pd.to_numeric(row[col], errors="coerce")
             if pd.notna(x):

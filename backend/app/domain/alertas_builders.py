@@ -69,7 +69,9 @@ def fecha_limite(anio: int, mes: int, plazo_dias: int) -> date:
 
     Si cae en fin de semana o festivo se adelanta (nunca se da más plazo del anunciado).
     """
-    return habil_anterior(date(anio, mes, calendar.monthrange(anio, mes)[1]) + timedelta(days=plazo_dias))
+    return habil_anterior(
+        date(anio, mes, calendar.monthrange(anio, mes)[1]) + timedelta(days=plazo_dias)
+    )
 
 
 def nombre_corte(anio: int, mes: int) -> str:
@@ -147,7 +149,9 @@ def indicadores_a_reportar(
     meta = meta[meta["Periodicidad"].apply(lambda p: mes in meses_de_reporte(str(p)))]
 
     del_corte = work[(work["_ym"] == corte_ym)]
-    ya_reportados = set(del_corte.loc[del_corte["Estado"].astype(str).str.strip() == "Reportado", "Id"])
+    ya_reportados = set(
+        del_corte.loc[del_corte["Estado"].astype(str).str.strip() == "Reportado", "Id"]
+    )
     en_tracking = set(del_corte["Id"])
 
     out = meta[~meta["Id"].isin(ya_reportados)].copy()
@@ -320,7 +324,11 @@ def construir_listado_outlook(
     cols = ["Id", "Indicador", "Proceso", "Subproceso", "Periodicidad", "Estado", "FechaMaxima"]
     indicadores = pd.DataFrame(filas, columns=cols)
     dest = pd.DataFrame(
-        [{"Proceso": p, "Correo": c} for p in sorted(consolidado) for c in destinatarios.get(p, [])],
+        [
+            {"Proceso": p, "Correo": c}
+            for p in sorted(consolidado)
+            for c in destinatarios.get(p, [])
+        ],
         columns=["Proceso", "Correo"],
     )
     fin_corte = date(anio, mes, calendar.monthrange(anio, mes)[1])

@@ -25,6 +25,7 @@ def _raw(**overrides):
 
 # ── Registro real (app/data/marcos.toml) ─────────────────────────────
 
+
 def test_registro_tiene_ambos_pdi():
     ids = [m.version_id for m in get_marcos("PDI")]
     assert ids == ["PDI-2022-2026", "PDI-2026-2030"]
@@ -63,6 +64,7 @@ def test_get_marco_desconocido():
 
 # ── Regla de la ficha (D7): traslape por fecha de inicio ─────────────
 
+
 def test_indicador_iniciado_2023_aplica_a_ambos_pdi():
     ids = [m.version_id for m in marcos_traslapados("PDI", 2023)]
     assert ids == ["PDI-2022-2026", "PDI-2026-2030"]
@@ -80,12 +82,17 @@ def test_indicador_finalizado_2024_solo_pdi_2022_2026():
 
 # ── Validaciones de parse_marcos ─────────────────────────────────────
 
+
 def test_rechaza_dos_activos_del_mismo_tipo():
     with pytest.raises(ValueError, match="activo"):
-        parse_marcos({"marco": [
-            _raw(version_id="A", estado="activo"),
-            _raw(version_id="B", estado="activo"),
-        ]})
+        parse_marcos(
+            {
+                "marco": [
+                    _raw(version_id="A", estado="activo"),
+                    _raw(version_id="B", estado="activo"),
+                ]
+            }
+        )
 
 
 def test_rechaza_version_duplicada():
@@ -110,6 +117,7 @@ def test_marco_sin_fin_incluye_anios_futuros():
 
 
 # ── Endpoint ─────────────────────────────────────────────────────────
+
 
 @pytest.mark.asyncio
 async def test_endpoint_lista_pdi(client, auth_as_procesos):
@@ -143,8 +151,10 @@ async def test_endpoint_requiere_auth(client):
 
 # ── Aislamiento del PDI en la API y en las cachés ────────────────────
 
+
 def test_marco_por_defecto_es_el_vigente_con_datos():
     from app.domain.marcos import marco_por_defecto
+
     # Hoy solo el 2022-2026 tiene datos; el 2026-2030 está bloqueado.
     assert marco_por_defecto("PDI").version_id == "PDI-2022-2026"
 
@@ -153,6 +163,7 @@ def test_anios_del_marco_2022_igualan_la_constante_historica():
     # Guard de regresión: el registro debe reproducir el rango que antes
     # estaba hardcodeado en resumen_service.ANIOS_RANGO.
     from app.services.resumen_service import ANIOS_RANGO
+
     assert get_marco("PDI-2022-2026").anios == ANIOS_RANGO
 
 
@@ -188,10 +199,24 @@ def test_cache_de_resumen_se_separa_por_pdi(monkeypatch):
     from app.domain import marcos as m
     from app.services import resumen_service as rs
 
-    marcos = parse_marcos({"marco": [
-        _raw(version_id="PDI-A", anio_datos_desde=2022, anio_datos_hasta=2025, datos_disponibles=True),
-        _raw(version_id="PDI-B", anio_datos_desde=2026, anio_datos_hasta=2030, datos_disponibles=True),
-    ]})
+    marcos = parse_marcos(
+        {
+            "marco": [
+                _raw(
+                    version_id="PDI-A",
+                    anio_datos_desde=2022,
+                    anio_datos_hasta=2025,
+                    datos_disponibles=True,
+                ),
+                _raw(
+                    version_id="PDI-B",
+                    anio_datos_desde=2026,
+                    anio_datos_hasta=2030,
+                    datos_disponibles=True,
+                ),
+            ]
+        }
+    )
     monkeypatch.setattr(m, "load_marcos", lambda *a, **k: tuple(marcos))
     monkeypatch.setattr(rs, "get_marco", m.get_marco)
 
@@ -207,9 +232,15 @@ def test_cache_de_resumen_se_separa_por_pdi(monkeypatch):
 
     rs._RESUMEN_COMPLETO_CACHE.clear()
     svc = Fake()
-    assert svc.get_resumen_completo(anio=2026, vista="indicadores", rango=True, pdi="PDI-A") == {"pdi": "PDI-A"}
-    assert svc.get_resumen_completo(anio=2026, vista="indicadores", rango=True, pdi="PDI-B") == {"pdi": "PDI-B"}
-    assert svc.get_resumen_completo(anio=2026, vista="indicadores", rango=True, pdi="PDI-A") == {"pdi": "PDI-A"}
+    assert svc.get_resumen_completo(anio=2026, vista="indicadores", rango=True, pdi="PDI-A") == {
+        "pdi": "PDI-A"
+    }
+    assert svc.get_resumen_completo(anio=2026, vista="indicadores", rango=True, pdi="PDI-B") == {
+        "pdi": "PDI-B"
+    }
+    assert svc.get_resumen_completo(anio=2026, vista="indicadores", rango=True, pdi="PDI-A") == {
+        "pdi": "PDI-A"
+    }
     assert llamadas == ["PDI-A", "PDI-B"]  # la 3.ª llamada salió de caché
     rs._RESUMEN_COMPLETO_CACHE.clear()
 
@@ -223,6 +254,7 @@ def test_default_sigue_siendo_el_pdi_que_sirve_a_todos_los_modulos():
 
 # ── RN-21: solo POLISIGS arrastra el último dato anual ───────────────
 
+
 @pytest.mark.asyncio
 async def test_cmi_estrategico_2026_2030_no_arrastra_datos_de_2025(client, auth_as_procesos):
     r = await client.get(
@@ -230,15 +262,24 @@ async def test_cmi_estrategico_2026_2030_no_arrastra_datos_de_2025(client, auth_
         params={"pdi": "PDI-2026-2030", "anio": 2026, "corte": "Diciembre"},
     )
     assert r.status_code == 200
-    pendientes = [i for i in r.json()["indicadores"] if i["Nivel de cumplimiento"] == "Pendiente de reporte"]
+    pendientes = [
+        i for i in r.json()["indicadores"] if i["Nivel de cumplimiento"] == "Pendiente de reporte"
+    ]
     for i in pendientes:
         assert i.get("Meta") is None and i.get("Ejecucion") is None, i["Id"]
 
     solo = await client.get(
         "/api/v1/cmi/estrategico-dashboard",
-        params={"pdi": "PDI-2026-2030", "anio": 2026, "corte": "Diciembre", "solo_con_reporte": True},
+        params={
+            "pdi": "PDI-2026-2030",
+            "anio": 2026,
+            "corte": "Diciembre",
+            "solo_con_reporte": True,
+        },
     )
-    assert all(i["Nivel de cumplimiento"] != "Pendiente de reporte" for i in solo.json()["indicadores"])
+    assert all(
+        i["Nivel de cumplimiento"] != "Pendiente de reporte" for i in solo.json()["indicadores"]
+    )
     assert solo.json()["total_indicadores"] == r.json()["total_indicadores"] - len(pendientes)
 
 

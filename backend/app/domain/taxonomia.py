@@ -114,7 +114,10 @@ def parse_taxonomia(data: dict) -> Taxonomia:
         for ln in data["lineas"]
     )
     tax = Taxonomia(
-        version_id=data["version_id"], tipo=data.get("tipo", "PDI"), lineas=lineas, fuente=data.get("fuente", "")
+        version_id=data["version_id"],
+        tipo=data.get("tipo", "PDI"),
+        lineas=lineas,
+        fuente=data.get("fuente", ""),
     )
     ids = [ln.id for ln in lineas] + [o.id for ln in lineas for o in ln.objetivos]
     ids += [m.id for _, _, m in tax.iter_metas()]
@@ -185,7 +188,9 @@ def resolver_asociaciones(
             continue
 
         def err(motivo: str, _ctx=(fila, ind, ver)) -> None:
-            errores.append({"fila": _ctx[0], "Id": _ctx[1], "version_id": _ctx[2], "motivo": motivo})
+            errores.append(
+                {"fila": _ctx[0], "Id": _ctx[1], "version_id": _ctx[2], "motivo": motivo}
+            )
 
         if not ind:
             err("Id vacío")
@@ -214,17 +219,25 @@ def resolver_asociaciones(
             meta = next((m for m in objetivo.metas if norm_texto(m.nombre) == meta_t), None)
             if meta is None and meta_tolerante:
                 advertencias.append(
-                    {"fila": fila, "Id": ind, "version_id": ver,
-                     "motivo": f"Meta no coincide con la taxonomía: {str(row['Meta'])[:80]!r}"}
+                    {
+                        "fila": fila,
+                        "Id": ind,
+                        "version_id": ver,
+                        "motivo": f"Meta no coincide con la taxonomía: {str(row['Meta'])[:80]!r}",
+                    }
                 )
             elif meta is None:
                 err(f"Meta no pertenece al objetivo {objetivo.id!r}: {row['Meta']!r}")
                 continue
 
         if "PDI" in df.columns:
-            motivo = regla_meta(parse_flag01(row["PDI"]) or 0, bool(meta_t), ver)  # PDI vacío = 0 (de proceso)
+            motivo = regla_meta(
+                parse_flag01(row["PDI"]) or 0, bool(meta_t), ver
+            )  # PDI vacío = 0 (de proceso)
             if motivo:
-                incumplimientos.append({"fila": fila, "Id": ind, "version_id": ver, "motivo": motivo})
+                incumplimientos.append(
+                    {"fila": fila, "Id": ind, "version_id": ver, "motivo": motivo}
+                )
 
         clave = (ind, ver, meta.id if meta else (objetivo.id if objetivo else linea.id))
         if clave in vistos:

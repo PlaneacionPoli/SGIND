@@ -88,7 +88,9 @@ class ExcelReaderService:
         return df.copy()
 
     @staticmethod
-    def _read_excel_via_copy(path: Path, *, sheet_name: str | int | None, header: int | None) -> pd.DataFrame:
+    def _read_excel_via_copy(
+        path: Path, *, sheet_name: str | int | None, header: int | None
+    ) -> pd.DataFrame:
         with tempfile.TemporaryDirectory(prefix="sgind_xlsx_") as tmp:
             local = Path(tmp) / path.name
             shutil.copy2(path, local)  # si tampoco se puede copiar, se propaga el PermissionError

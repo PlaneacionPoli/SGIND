@@ -110,7 +110,9 @@ def _ultimo_fallback_anual(excel: ExcelReaderService, anio: int) -> dict[str, di
     año en curso todavía no tienen ejecución, así que se muestra el último
     dato anual reportado, p. ej. diciembre 2025, marcando ese corte real)."""
     tracking = get_tracking_dataframe(excel, historico=True)
-    if tracking.empty or not {"Anio", "Mes", "Ejecucion", "Periodicidad", "Id"}.issubset(tracking.columns):
+    if tracking.empty or not {"Anio", "Mes", "Ejecucion", "Periodicidad", "Id"}.issubset(
+        tracking.columns
+    ):
         return {}
     df = tracking.copy()
     df["_anio_num"] = pd.to_numeric(df["Anio"], errors="coerce")

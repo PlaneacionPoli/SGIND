@@ -88,7 +88,11 @@ def test_greenmetric_menor_mejor_con_tope():
     # meta 25, ejecucion 13 (menor es mejor) -> cumplimiento ya resuelto
     # aguas arriba como 25/13*100 = 192.3, el módulo solo aplica el tope 130.
     indicador = IndicadorInput(
-        "GreenMetric", "sostenibilidad", meta=25, ejecucion=13, direccion="menor_mejor",
+        "GreenMetric",
+        "sostenibilidad",
+        meta=25,
+        ejecucion=13,
+        direccion="menor_mejor",
         cumplimiento_pct=round(25 / 13 * 100, 1),
     )
     res = calcular_perspectiva_indicadores([indicador])

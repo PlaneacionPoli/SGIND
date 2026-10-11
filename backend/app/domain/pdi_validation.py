@@ -49,7 +49,9 @@ def validar_consolidados_linea(lineas: list[ConsolidadoLinea]) -> list[Hallazgo]
         ]
         esperado = round(sum(partes) / len(partes), 2) if partes else None
         if (li.consolidado is None) != (esperado is None) or (
-            li.consolidado is not None and esperado is not None and not _tol(li.consolidado, esperado)
+            li.consolidado is not None
+            and esperado is not None
+            and not _tol(li.consolidado, esperado)
         ):
             hallazgos.append(
                 Hallazgo(
@@ -146,7 +148,9 @@ def validar_global(
     (FORMULA_GLOBAL en pdi_measurement.py)."""
     esperado = calcular_global(consolidados_linea)
     if (global_reportado is None) != (esperado is None) or (
-        global_reportado is not None and esperado is not None and not _tol(global_reportado, esperado)
+        global_reportado is not None
+        and esperado is not None
+        and not _tol(global_reportado, esperado)
     ):
         return [
             Hallazgo(

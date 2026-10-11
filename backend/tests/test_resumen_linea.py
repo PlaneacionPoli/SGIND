@@ -30,12 +30,21 @@ def test_get_resumen_linea_shape(resumen_service: ResumenService, key: str, anio
     assert set(retos) == {"avance_real", "avance_esperado", "cumplimiento", "n_areas"}
 
     for item in result["proyectos"]:
-        assert {"id", "nombre", "linea", "anio_inicio", "anio_fin", "estado", "stand_by"}.issubset(item)
+        assert {"id", "nombre", "linea", "anio_inicio", "anio_fin", "estado", "stand_by"}.issubset(
+            item
+        )
 
     for objetivo in result["objetivos"]:
         assert objetivo["objetivo"]
         for ind in objetivo["indicadores"]:
-            assert {"indicador", "meta", "ejecucion", "cumplimiento", "nivel", "nivel_color"}.issubset(ind)
+            assert {
+                "indicador",
+                "meta",
+                "ejecucion",
+                "cumplimiento",
+                "nivel",
+                "nivel_color",
+            }.issubset(ind)
 
 
 def test_get_resumen_linea_key_desconocida(resumen_service: ResumenService):

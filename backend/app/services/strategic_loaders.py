@@ -169,7 +169,9 @@ class StrategicLoaders:
             df.columns = [str(c).strip() for c in df.columns]
             df["version_id"] = version_id
             try:
-                return resolver_asociaciones(df, version_id, meta_tolerante=marco.estado == "cerrado")
+                return resolver_asociaciones(
+                    df, version_id, meta_tolerante=marco.estado == "cerrado"
+                )
             except ValueError:
                 return vacio
 
@@ -190,7 +192,9 @@ class StrategicLoaders:
             hoja = self._excel.read_excel(path, sheet_name=marco.hoja_asociacion)
             hoja.columns = [str(c).strip() for c in hoja.columns]
             hoja["Id"] = hoja["Id"].astype(str).str.strip()
-            hoja["PDI"] = hoja["PDI"].map(parse_flag01).fillna(0) if "PDI" in hoja.columns else 0  # vacío = 0 (de proceso)
+            hoja["PDI"] = (
+                hoja["PDI"].map(parse_flag01).fillna(0) if "PDI" in hoja.columns else 0
+            )  # vacío = 0 (de proceso)
             tax = load_taxonomia(marco.taxonomia)
             n_lin = {ln.id: ln.nombre for ln in tax.lineas}
             n_obj = {o.id: o.nombre for ln in tax.lineas for o in ln.objetivos}
@@ -429,7 +433,11 @@ class StrategicLoaders:
                 (find_col(df, ["Objetivo"]), "Objetivo", lambda s: s.astype(str).str.strip()),
                 # Unidad de medida: sin estas columnas la pantalla asume "%" para todo
                 # (p. ej. $ de Caja/EBITDA o ENT de GreenMetric se mostraban como %).
-                (find_col(df, ["Meta_Signo", "Meta s"]), "Meta_Signo", lambda s: s.astype(str).str.strip()),
+                (
+                    find_col(df, ["Meta_Signo", "Meta s"]),
+                    "Meta_Signo",
+                    lambda s: s.astype(str).str.strip(),
+                ),
                 (
                     find_col(df, ["Ejecucion_Signo", "Ejecucion_s"]),
                     "Ejecucion_s",

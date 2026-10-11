@@ -57,7 +57,7 @@ def _svc(**kw) -> AuthService:
 async def test_flujo_completo_y_un_solo_uso(sent):
     db, svc = FakeDb(), _svc()
     await svc.request_otp(db, email="Ana@poligran.edu.co")
-    (to, code), = sent
+    ((to, code),) = sent
     assert to == "ana@poligran.edu.co"
 
     token, user = await svc.verify_otp(db, email="ana@poligran.edu.co", code=code)
@@ -87,7 +87,7 @@ async def test_correo_fuera_de_lista_no_envia_ni_revela(sent):
 async def test_codigo_incorrecto_bloquea_tras_max_intentos(sent):
     db, svc = FakeDb(), _svc(otp_max_attempts=3)
     await svc.request_otp(db, email="a@poligran.edu.co")
-    (_, code), = sent
+    ((_, code),) = sent
     wrong = "000000" if code != "000000" else "111111"
     for _ in range(3):
         with pytest.raises(HTTPException):
@@ -101,7 +101,7 @@ async def test_codigo_incorrecto_bloquea_tras_max_intentos(sent):
 async def test_codigo_vencido(sent):
     db, svc = FakeDb(), _svc()
     await svc.request_otp(db, email="a@poligran.edu.co")
-    (_, code), = sent
+    ((_, code),) = sent
     db.rows["a@poligran.edu.co"].expires_at = datetime.now(UTC) - timedelta(seconds=1)
     with pytest.raises(HTTPException) as exc:
         await svc.verify_otp(db, email="a@poligran.edu.co", code=code)

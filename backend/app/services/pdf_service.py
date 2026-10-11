@@ -755,9 +755,12 @@ def generar_ficha_indicador(
             rows.append(
                 [
                     Paragraph(str(item.get("periodo", "")), styles["cell"]),
-                    Paragraph(_fmt_valor_signo(item.get("meta"), meta_signo, meta_dec), styles["cell"]),
                     Paragraph(
-                        _fmt_valor_signo(item.get("ejecucion"), ejec_signo, ejec_dec), styles["cell"]
+                        _fmt_valor_signo(item.get("meta"), meta_signo, meta_dec), styles["cell"]
+                    ),
+                    Paragraph(
+                        _fmt_valor_signo(item.get("ejecucion"), ejec_signo, ejec_dec),
+                        styles["cell"],
                     ),
                     Paragraph(cump_str, styles["cell"]),
                 ]

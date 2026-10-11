@@ -209,8 +209,8 @@ def _compute_scored_rows(df: pd.DataFrame) -> pd.DataFrame:
     for dim in _TAB_DIMS:
         crit = _LABEL_TO_CRIT[dim]
         if crit in df.columns:
-            work[dim] = df[crit].apply(_score_calidad).apply(
-                lambda v: None if v is None else v * 100
+            work[dim] = (
+                df[crit].apply(_score_calidad).apply(lambda v: None if v is None else v * 100)
             )
         else:
             work[dim] = None
@@ -242,9 +242,7 @@ def _build_alertas(scored: pd.DataFrame, dim_scores: dict[str, float]) -> list[d
         n_no_cumple = int((col == 0).sum())
         n_parcial = int((col == 50).sum())
         indicadores = [
-            str(v)
-            for v in scored.loc[col == 0, "Indicador"].tolist()
-            if str(v) not in ("nan", "")
+            str(v) for v in scored.loc[col == 0, "Indicador"].tolist() if str(v) not in ("nan", "")
         ]
         detalle = f"{n_no_cumple} NO CUMPLE"
         if n_parcial:
@@ -277,7 +275,9 @@ def _build_alertas(scored: pd.DataFrame, dim_scores: dict[str, float]) -> list[d
     return alertas
 
 
-def _build_recomendaciones(scored: pd.DataFrame, dim_scores: dict[str, float]) -> list[dict[str, Any]]:
+def _build_recomendaciones(
+    scored: pd.DataFrame, dim_scores: dict[str, float]
+) -> list[dict[str, Any]]:
     recs: list[dict[str, Any]] = []
 
     peores = scored.dropna(subset=["Score Total"]).copy()
@@ -385,7 +385,9 @@ def build_calidad_dashboard(
                 "dimensiones": {
                     dim: (None if pd.isna(row.get(dim)) else float(row[dim])) for dim in _TAB_DIMS
                 },
-                "score_total": None if pd.isna(row.get("Score Total")) else float(row["Score Total"]),
+                "score_total": None
+                if pd.isna(row.get("Score Total"))
+                else float(row["Score Total"]),
             }
         )
 

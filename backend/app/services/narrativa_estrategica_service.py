@@ -41,6 +41,7 @@ def _output_path() -> Path:
     # derivado vive junto a raw/ dentro de esa misma carpeta.
     return data_root / "derived" / "narrativa_estrategica_2022_2025.json"
 
+
 # Tarjetas del Consolidado (Balance / Logros en cifras / Retos priorizados):
 # mismos hechos de TEXTOS_CONSOLIDADO re-presentados como datos estructurados.
 # Viven aquí (no solo en el JSON generado) para que el dashboard las muestre

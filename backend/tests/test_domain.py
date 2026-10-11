@@ -233,4 +233,6 @@ def test_lectura_de_excel_bloqueado_usa_una_copia(tmp_path, monkeypatch):
     monkeypatch.setattr(pd, "read_excel", lectura)
     df = svc.read_excel("bloqueado.xlsx", sheet_name=0, use_cache=False)
     assert list(df["Id"]) == [1, 2]
-    assert len(llamadas) == 2 and llamadas[0] != llamadas[1]  # el segundo intento fue sobre la copia
+    assert (
+        len(llamadas) == 2 and llamadas[0] != llamadas[1]
+    )  # el segundo intento fue sobre la copia

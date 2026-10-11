@@ -36,7 +36,9 @@ def test_state_invalido_rechazado(state):
 
 def test_jwt_de_sesion_no_sirve_como_state():
     svc = _svc()
-    token = create_access_token("a@poligran.edu.co", settings=svc.settings, extra={"role": "procesos"})
+    token = create_access_token(
+        "a@poligran.edu.co", settings=svc.settings, extra={"role": "procesos"}
+    )
     with pytest.raises(HTTPException) as exc:
         svc.verify_state(token)
     assert exc.value.status_code == 400
@@ -44,9 +46,7 @@ def test_jwt_de_sesion_no_sirve_como_state():
 
 @pytest.mark.asyncio
 async def test_callback_con_error_redirige_a_login(client):
-    resp = await client.get(
-        "/api/v1/auth/callback?error=access_denied", follow_redirects=False
-    )
+    resp = await client.get("/api/v1/auth/callback?error=access_denied", follow_redirects=False)
     assert resp.status_code in (302, 307)
     assert resp.headers["location"].endswith("/login?error=access_denied")
 

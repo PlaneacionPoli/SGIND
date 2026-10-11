@@ -191,9 +191,7 @@ class AlertasService:
                     out[proceso_tracking].append(e)
         return out
 
-    async def listar_destinatarios(
-        self, db: AsyncSession, con_origen: bool = False
-    ) -> Any:
+    async def listar_destinatarios(self, db: AsyncSession, con_origen: bool = False) -> Any:
         """Destinatarios vigentes por proceso.
 
         Los correos editados en la pantalla (BD) reemplazan a los del directorio; si un
@@ -435,13 +433,21 @@ class AlertasService:
         consolidado = await run_sync(self.consolidado_por_proceso, anio, mes)
         plazo_por_proceso = {p: plazo_de(p, cfg.plazo_dias, plazos) for p in consolidado}
         contenido = await run_sync(
-            construir_listado_outlook, consolidado, destinatarios, plazo_por_proceso, anio, mes, tipo
+            construir_listado_outlook,
+            consolidado,
+            destinatarios,
+            plazo_por_proceso,
+            anio,
+            mes,
+            tipo,
         )
         return contenido, anio, mes
 
     # ── Notificación y preparación automática ────────────────────────────────
     async def notificaciones(self, db: AsyncSession) -> dict[str, Any]:
-        rows = (await db.execute(select(AlertaEnvio).where(AlertaEnvio.estado == "listo"))).scalars()
+        rows = (
+            await db.execute(select(AlertaEnvio).where(AlertaEnvio.estado == "listo"))
+        ).scalars()
         grupos: dict[tuple[int, int, str], int] = {}
         for r in rows:
             clave = (r.anio, r.mes, r.tipo)

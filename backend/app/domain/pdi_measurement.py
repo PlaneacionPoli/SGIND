@@ -185,7 +185,11 @@ def calcular_consolidado_linea(
     proy_res = calcular_perspectiva_proyectos(proyectos)
     ind_res = calcular_perspectiva_indicadores(indicadores)
 
-    partes = [r.promedio for r in (retos_res, proy_res, ind_res) if r.disponible and r.promedio is not None]
+    partes = [
+        r.promedio
+        for r in (retos_res, proy_res, ind_res)
+        if r.disponible and r.promedio is not None
+    ]
     consolidado = round(sum(partes) / len(partes), 2) if partes else None
 
     etiquetas = []

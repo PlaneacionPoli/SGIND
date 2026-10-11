@@ -159,7 +159,9 @@ class CMIService:
         if marco is not None and marco.indicadores_desde != "catalogo":
             if not marco.incluye_anio(int(anio)):
                 return pd.DataFrame()  # fuera del ciclo del PDI: no se muestran datos de otro ciclo
-            df = self._strategic.preparar_pdi_marco_con_cierre(int(anio), int(mes), marco.version_id)
+            df = self._strategic.preparar_pdi_marco_con_cierre(
+                int(anio), int(mes), marco.version_id
+            )
         else:
             df = self._strategic.preparar_pdi_con_cierre(int(anio), int(mes))
         if df.empty:
@@ -186,7 +188,9 @@ class CMIService:
             "corte_default": default_corte(anio_def),
             "cortes": list(CORTE_SEMESTRAL.keys()),
             # El botón de cierre solo se ofrece si el PDI ya tiene su hoja de cierre cargada.
-            "tiene_cierre": not self._loaders.load_cierre_pdi_final(marco.hoja_cierre or "Cierre PDI").empty,
+            "tiene_cierre": not self._loaders.load_cierre_pdi_final(
+                marco.hoja_cierre or "Cierre PDI"
+            ).empty,
             "etiqueta_cierre": marco.etiqueta_cierre,
         }
 
@@ -212,7 +216,9 @@ class CMIService:
             else self._prepare_df(anio=anio_eff, mes=mes_eff, marco=marco)
         )
         if solo_con_reporte and not df.empty and "Nivel de cumplimiento" in df.columns:
-            df = df[df["Nivel de cumplimiento"].fillna("Pendiente de reporte") != "Pendiente de reporte"].reset_index(drop=True)
+            df = df[
+                df["Nivel de cumplimiento"].fillna("Pendiente de reporte") != "Pendiente de reporte"
+            ].reset_index(drop=True)
         legacy = marco.indicadores_desde == "catalogo"
         pdi_catalog = (
             self._loaders.load_pdi_catalog()
@@ -294,8 +300,11 @@ class CMIService:
             hist = cierres[cierres["Id"].astype(str) == str(indicador_id)].copy()
             if marco.indicadores_desde != "catalogo" and "Anio" in hist.columns:
                 # Un PDI con hoja propia solo muestra su ciclo: el histórico de otros años va en POLISIGS.
-                hist = hist[pd.to_numeric(hist["Anio"], errors="coerce").map(
-                    lambda a: pd.notna(a) and marco.incluye_anio(int(a)))]
+                hist = hist[
+                    pd.to_numeric(hist["Anio"], errors="coerce").map(
+                        lambda a: pd.notna(a) and marco.incluye_anio(int(a))
+                    )
+                ]
             if not hist.empty:
                 hist = ensure_nivel_cumplimiento(hist)
             if not hist.empty and "Anio" in hist.columns:
@@ -441,7 +450,10 @@ class CMIService:
         marco = get_marco(pdi) if pdi else marco_por_defecto("PDI")
         if not marco.taxonomia:
             return []
-        return [ln.nombre for ln in sorted(load_taxonomia(marco.taxonomia).lineas, key=lambda x: x.orden)]
+        return [
+            ln.nombre
+            for ln in sorted(load_taxonomia(marco.taxonomia).lineas, key=lambda x: x.orden)
+        ]
 
     def get_procesos_indicators_light(
         self,

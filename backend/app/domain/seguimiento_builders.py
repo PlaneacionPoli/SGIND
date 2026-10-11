@@ -113,8 +113,8 @@ def detectar_vencidos(
         _ventana
     )
     merged["diff_meses"] = (ym_actual - merged["ultimo_ym"]).where(~merged["sin_reporte"])
-    merged["ultimo_reporte"] = merged["ultimo_ym"].apply(_ym_a_texto).where(
-        ~merged["sin_reporte"], "Sin reporte"
+    merged["ultimo_reporte"] = (
+        merged["ultimo_ym"].apply(_ym_a_texto).where(~merged["sin_reporte"], "Sin reporte")
     )
 
     vencidos = merged[merged["sin_reporte"] | (merged["diff_meses"] > merged["ventana"])].copy()

@@ -570,7 +570,9 @@ class ResumenService:
         return cache_get(
             _RESUMEN_COMPLETO_CACHE,
             key,
-            lambda: self._get_resumen_completo_uncached(anio=anio, vista=vista, rango=rango, marco=marco),
+            lambda: self._get_resumen_completo_uncached(
+                anio=anio, vista=vista, rango=rango, marco=marco
+            ),
             ttl=self._excel.ttl,
         )
 
@@ -596,7 +598,9 @@ class ResumenService:
 
         if vista_norm == "indicadores":
             pdi_df = (
-                ensure_nivel_cumplimiento(self._strategic.preparar_pdi_cierre_final(marco.hoja_cierre or "Cierre PDI"))
+                ensure_nivel_cumplimiento(
+                    self._strategic.preparar_pdi_cierre_final(marco.hoja_cierre or "Cierre PDI")
+                )
                 if rango
                 else ensure_nivel_cumplimiento(self._strategic.preparar_pdi_con_cierre(anio, 12))
             )
@@ -649,7 +653,9 @@ class ResumenService:
             )
             proy_df = self._pmo_items_to_df(pmo_gantt["items"])
 
-            estados = proy_df["estado_pmo"] if "estado_pmo" in proy_df.columns else pd.Series(dtype=str)
+            estados = (
+                proy_df["estado_pmo"] if "estado_pmo" in proy_df.columns else pd.Series(dtype=str)
+            )
             chips = [
                 {"value": len(proy_df), "label": "Total Proyectos", "color": "#0B5FFF"},
                 {
@@ -675,7 +681,9 @@ class ResumenService:
             # actual), así que las tarjetas no muestran tendencia histórica
             # para esta vista — antes venía de la fuente de Cierres.
             cards = build_strategy_cards(linea_summary, None, vista=vista_norm)
-            mindmap = build_pdi_mindmap(pd.DataFrame(), cards, regimen="plan_anual", solo_lineas=True)
+            mindmap = build_pdi_mindmap(
+                pd.DataFrame(), cards, regimen="plan_anual", solo_lineas=True
+            )
             narrativa = generate_narrative_proyectos(proy_df, linea_summary)
 
             return {
@@ -730,7 +738,9 @@ class ResumenService:
 
         if vista_norm == "consolidado":
             if rango:
-                pdi_df = ensure_nivel_cumplimiento(self._strategic.preparar_pdi_cierre_final(marco.hoja_cierre or "Cierre PDI"))
+                pdi_df = ensure_nivel_cumplimiento(
+                    self._strategic.preparar_pdi_cierre_final(marco.hoja_cierre or "Cierre PDI")
+                )
                 proy_df = self._proyectos_multi_anio(anios_rango)
                 ret_linea_df, ret_obj_df, ret_planes_df = self._retos_multi_anio(anios_rango)
             else:
@@ -785,7 +795,9 @@ class ResumenService:
             # fijo "Cierre PDI 2022-2025", que es sobre el que se redactó.
             narrativa_estrategica_data = leer_narrativa_estrategica() if rango else None
             narrativa_estrategica = (
-                narrativa_estrategica_data.get("consolidado") if narrativa_estrategica_data else None
+                narrativa_estrategica_data.get("consolidado")
+                if narrativa_estrategica_data
+                else None
             )
             tarjetas_consolidado = TARJETAS_CONSOLIDADO if rango else None
 
@@ -848,7 +860,9 @@ class ResumenService:
             return None
 
         anios = [anio] if anio is not None else marco.anios
-        pdi_df = ensure_nivel_cumplimiento(self._strategic.preparar_pdi_cierre_final(marco.hoja_cierre or "Cierre PDI"))
+        pdi_df = ensure_nivel_cumplimiento(
+            self._strategic.preparar_pdi_cierre_final(marco.hoja_cierre or "Cierre PDI")
+        )
         # Proyectos PMO: fuente real del Centro de Proyectos (Comienzo/Fin/%
         # completado por proyecto), no la derivada de Cierres/Consolidado
         # (build_proyectos_gantt) — esa solo tiene 33 filas totales y no
@@ -871,7 +885,9 @@ class ResumenService:
         # get_informe_ejecutivo/vista consolidado.
         if anio is None:
             narrativa_data = leer_narrativa_estrategica()
-            linea["narrativa"] = narrativa_data.get("lineas", {}).get(target) if narrativa_data else None
+            linea["narrativa"] = (
+                narrativa_data.get("lineas", {}).get(target) if narrativa_data else None
+            )
         return linea
 
     def _build_signo_lookup(self) -> dict[str, dict[str, Any]]:
@@ -951,7 +967,9 @@ class ResumenService:
         ]
         lineas.sort(key=lambda li: _ORDEN_PDI.index(norm_key(li["linea"])))
 
-        total_ind = int(pdi_df["Id"].nunique()) if not pdi_df.empty and "Id" in pdi_df.columns else 0
+        total_ind = (
+            int(pdi_df["Id"].nunique()) if not pdi_df.empty and "Id" in pdi_df.columns else 0
+        )
         nivel = (
             pdi_df.drop_duplicates("Id")["Nivel de cumplimiento"]
             if not pdi_df.empty and "Nivel de cumplimiento" in pdi_df.columns

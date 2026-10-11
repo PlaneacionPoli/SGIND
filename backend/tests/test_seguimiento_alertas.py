@@ -117,8 +117,14 @@ def test_indicadores_a_reportar_respeta_periodicidad_y_estado():
 
 
 def _ind(**extra) -> pd.DataFrame:
-    fila = {"Id": "1", "Indicador": "<b>Ind</b> & co", "Proceso": "P", "Subproceso": "Sub 1",
-            "Periodicidad": "Mensual", "Estado": "Pendiente"}
+    fila = {
+        "Id": "1",
+        "Indicador": "<b>Ind</b> & co",
+        "Proceso": "P",
+        "Subproceso": "Sub 1",
+        "Periodicidad": "Mensual",
+        "Estado": "Pendiente",
+    }
     return pd.DataFrame([fila | extra])
 
 
@@ -132,8 +138,25 @@ def test_plazos_por_proceso_ignoran_tildes_y_mayusculas():
 
 def test_festivos_colombia_2026():
     esperados = {
-        (1, 1), (1, 12), (3, 23), (4, 2), (4, 3), (5, 1), (5, 18), (6, 8), (6, 15), (6, 29),
-        (7, 13), (7, 20), (8, 7), (8, 17), (10, 12), (11, 2), (11, 16), (12, 8), (12, 25),
+        (1, 1),
+        (1, 12),
+        (3, 23),
+        (4, 2),
+        (4, 3),
+        (5, 1),
+        (5, 18),
+        (6, 8),
+        (6, 15),
+        (6, 29),
+        (7, 13),
+        (7, 20),
+        (8, 7),
+        (8, 17),
+        (10, 12),
+        (11, 2),
+        (11, 16),
+        (12, 8),
+        (12, 25),
     }
     assert {(d.month, d.day) for d in festivos(2026)} == esperados
 
@@ -142,12 +165,46 @@ def test_festivos_colombia_2027_y_2028():
     # Listas publicadas para 2027 y 2028. Incluyen el festivo de la Virgen de Chiquinquirá
     # (Ley 2578 de 2026): 9-jul trasladado al lunes -> 12-jul-2027 y 10-jul-2028.
     esperados_2027 = {
-        (1, 1), (1, 11), (3, 22), (3, 25), (3, 26), (5, 1), (5, 10), (5, 31), (6, 7), (7, 5),
-        (7, 12), (7, 20), (8, 7), (8, 16), (10, 18), (11, 1), (11, 15), (12, 8), (12, 25),
+        (1, 1),
+        (1, 11),
+        (3, 22),
+        (3, 25),
+        (3, 26),
+        (5, 1),
+        (5, 10),
+        (5, 31),
+        (6, 7),
+        (7, 5),
+        (7, 12),
+        (7, 20),
+        (8, 7),
+        (8, 16),
+        (10, 18),
+        (11, 1),
+        (11, 15),
+        (12, 8),
+        (12, 25),
     }
     esperados_2028 = {
-        (1, 1), (1, 10), (3, 20), (4, 13), (4, 14), (5, 1), (5, 29), (6, 19), (6, 26), (7, 3),
-        (7, 10), (7, 20), (8, 7), (8, 21), (10, 16), (11, 6), (11, 13), (12, 8), (12, 25),
+        (1, 1),
+        (1, 10),
+        (3, 20),
+        (4, 13),
+        (4, 14),
+        (5, 1),
+        (5, 29),
+        (6, 19),
+        (6, 26),
+        (7, 3),
+        (7, 10),
+        (7, 20),
+        (8, 7),
+        (8, 21),
+        (10, 16),
+        (11, 6),
+        (11, 13),
+        (12, 8),
+        (12, 25),
     }
     assert {(d.month, d.day) for d in festivos(2027)} == esperados_2027
     assert {(d.month, d.day) for d in festivos(2028)} == esperados_2028
@@ -211,8 +268,14 @@ def test_render_mensaje_html_escapa_valores_y_arma_tabla():
 
 def test_render_mensaje_texto_plano_se_convierte_a_html_seguro():
     msg = renderizar_mensaje(
-        "A", "Hola {proceso}\n{tabla_indicadores}", proceso="<i>P</i>", anio=2026, mes=6,
-        plazo_dias=15, hoy=date(2026, 7, 1), indicadores=_ind(),
+        "A",
+        "Hola {proceso}\n{tabla_indicadores}",
+        proceso="<i>P</i>",
+        anio=2026,
+        mes=6,
+        plazo_dias=15,
+        hoy=date(2026, 7, 1),
+        indicadores=_ind(),
     )
     assert "&lt;i&gt;P&lt;/i&gt;" in msg.html and "<br>" in msg.html
 
@@ -221,8 +284,14 @@ def test_eml_es_borrador_sin_enviar():
     from email import message_from_bytes
 
     msg = renderizar_mensaje(
-        "Asunto ñ", "<p>Hola</p>{tabla_html}", proceso="P", anio=2026, mes=6,
-        plazo_dias=15, hoy=date(2026, 7, 1), indicadores=_ind(),
+        "Asunto ñ",
+        "<p>Hola</p>{tabla_html}",
+        proceso="P",
+        anio=2026,
+        mes=6,
+        plazo_dias=15,
+        hoy=date(2026, 7, 1),
+        indicadores=_ind(),
     )
     raw = construir_eml(msg, para=["a@x.co", "b@x.co"], cc=["c@x.co"])
     em = message_from_bytes(raw)
@@ -231,7 +300,10 @@ def test_eml_es_borrador_sin_enviar():
     assert {p.get_content_type() for p in em.walk()} >= {"text/plain", "text/html"}
     # Sin destinatarios también es válido (se completan en Outlook)
     assert message_from_bytes(construir_eml(msg, para=[]))["To"] is None
-    assert nombre_archivo("apertura", 2026, 6, "GESTIÓN AMBIENTAL") == "apertura_2026-06_gestion_ambiental.eml"
+    assert (
+        nombre_archivo("apertura", 2026, 6, "GESTIÓN AMBIENTAL")
+        == "apertura_2026-06_gestion_ambiental.eml"
+    )
 
 
 def test_normalizar_emails():
@@ -290,7 +362,9 @@ def test_variacion_y_orden_del_detalle():
     assert base["kpis"]["variacion_pp"] == pytest.approx(-33.3, abs=0.1)
     por_id = build_dashboard(_tracking(), anio=2026, mes=6, orden_por="Id", orden_dir="desc")
     assert [d["Id"] for d in por_id["detalle"]] == ["5", "2", "1"]
-    por_estado = build_dashboard(_tracking(), anio=2026, mes=6, orden_por="Estado", orden_dir="desc")
+    por_estado = build_dashboard(
+        _tracking(), anio=2026, mes=6, orden_por="Estado", orden_dir="desc"
+    )
     assert por_estado["detalle"][0]["Estado"] == "Reportado"
 
 
@@ -314,10 +388,28 @@ def test_listado_outlook_tiene_el_formato_que_lee_auto_correo():
     from app.domain.alertas_builders import construir_listado_outlook
 
     df = pd.DataFrame(
-        [{"Id": "1", "Indicador": "Ind A", "Proceso": "Calidad", "Subproceso": "Sub", "Periodicidad": "Mensual", "Estado": "Pendiente"}]
+        [
+            {
+                "Id": "1",
+                "Indicador": "Ind A",
+                "Proceso": "Calidad",
+                "Subproceso": "Sub",
+                "Periodicidad": "Mensual",
+                "Estado": "Pendiente",
+            }
+        ]
     )
     fin = pd.DataFrame(
-        [{"Id": "9", "Indicador": "Ind F", "Proceso": "Tesorería", "Subproceso": "", "Periodicidad": "Trimestral", "Estado": "Por reportar"}]
+        [
+            {
+                "Id": "9",
+                "Indicador": "Ind F",
+                "Proceso": "Tesorería",
+                "Subproceso": "",
+                "Periodicidad": "Trimestral",
+                "Estado": "Por reportar",
+            }
+        ]
     )
     xl = construir_listado_outlook(
         {"Calidad": df, "Tesorería": fin},
@@ -333,9 +425,15 @@ def test_listado_outlook_tiene_el_formato_que_lee_auto_correo():
     # columnas que exige leer_datos_excel() de Auto_Correo
     assert {"Id", "Indicador", "Proceso", "Periodicidad"} <= set(ind.columns)
     assert {"Proceso", "Correo"} <= set(dest.columns)
-    assert dest.to_dict("records") == [{"Proceso": "Calidad", "Correo": "a@x.co"}, {"Proceso": "Calidad", "Correo": "b@x.co"}]
+    assert dest.to_dict("records") == [
+        {"Proceso": "Calidad", "Correo": "a@x.co"},
+        {"Proceso": "Calidad", "Correo": "b@x.co"},
+    ]
     fechas = dict(zip(ind["Proceso"], ind["FechaMaxima"], strict=True))
     assert fechas["Calidad"] == "15 de octubre de 2026"  # jueves hábil
     assert fechas["Tesorería"] == "23 de octubre de 2026"  # 25-oct es domingo → viernes 23
     params = dict(libro.parse("Parametros", dtype=str).values.tolist())
-    assert params["CORTE_TEXTO"] == "30 de septiembre de 2026" and params["CORTE_ASUNTO"] == "Corte septiembre 2026"
+    assert (
+        params["CORTE_TEXTO"] == "30 de septiembre de 2026"
+        and params["CORTE_ASUNTO"] == "Corte septiembre 2026"
+    )
