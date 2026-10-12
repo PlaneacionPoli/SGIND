@@ -41,17 +41,10 @@ const SUB_W = 280;
 // un SUB_H fijo.
 const SUB_MIN_H = 76;
 const SUB_LABEL_FONT = "600 13px Inter, ui-sans-serif, system-ui, sans-serif";
-// Cada objetivo cuelga directamente de su línea (no en cadena) y todos los
-// objetivos de un mismo eje se ubican al MISMO radio (un abanico parejo, no
-// una espiral) para que se vean alineados entre sí — el radio de cada eje se
-// calcula para que sus propios ítems no choquen entre sí dado el ángulo
-// disponible, con un mínimo que deja SUB_LINE_GAP px libres entre la caja y el
-// círculo de su línea (medido en la dirección del eje) para que los conectores
-// queden lo más cortos posible.
-const SUB_LINE_GAP = 28;
-const SUB_LOCAL_R_MARGIN = 20;
-const SUB_LOCAL_R_SAFETY = 1;
-const SUB_ANGLE_GAP = 60;
+// Cada objetivo cuelga directamente de su línea (no en cadena). Todos los
+// conectores miden lo mismo: el radio y la apertura angular se buscan en el
+// useMemo del layout como los más cortos que no solapan ninguna caja.
+const SUB_ANGLE_GAP = 60; // valor por defecto; el layout elige el definitivo
 const PADDING = 60;
 
 let measureCanvasCtx: CanvasRenderingContext2D | null | undefined;
@@ -85,36 +78,6 @@ function estimateSubHeight(label: string): number {
   const usableWidth = SUB_W - 56; // padding interno + columna del badge de código
   const lines = countWrappedLines(label, usableWidth, SUB_LABEL_FONT);
   return Math.max(SUB_MIN_H, lines * 18 + 30 + 18);
-}
-
-function halfDiagonal(width: number, height: number): number {
-  return Math.sqrt((width / 2) ** 2 + (height / 2) ** 2);
-}
-
-// Radio común para todos los objetivos de un mismo eje: el mínimo que evita
-// que dos objetivos consecutivos (al ángulo disponible) se solapen.
-function computeAxisRadius(heights: number[], angleDeg: number): number {
-  // Distancia mínima para que la caja no pise el círculo de su línea: se mide
-  // en la dirección del eje (una caja ancha necesita más hueco en horizontal
-  // que en vertical), en vez de un radio fijo para todos los ejes.
-  const rad = toRad(angleDeg);
-  const cos = Math.abs(Math.cos(rad));
-  const sin = Math.abs(Math.sin(rad));
-  let needed = 0;
-  for (const h of heights.length ? heights : [SUB_MIN_H]) {
-    const reach = Math.min(cos > 1e-6 ? SUB_W / 2 / cos : Infinity, sin > 1e-6 ? h / 2 / sin : Infinity);
-    needed = Math.max(needed, reach + LINE_R + SUB_LINE_GAP);
-  }
-  if (heights.length > 1) {
-    const gapRad = toRad(SUB_ANGLE_GAP);
-    for (let j = 0; j < heights.length - 1; j++) {
-      const pairNeed =
-        (halfDiagonal(SUB_W, heights[j]) + halfDiagonal(SUB_W, heights[j + 1]) + SUB_LOCAL_R_MARGIN) /
-        (2 * Math.sin(gapRad / 2));
-      needed = Math.max(needed, pairNeed);
-    }
-  }
-  return needed * SUB_LOCAL_R_SAFETY;
 }
 
 // Curva Bézier cuadrática que arquea el conector hacia afuera del centro
@@ -198,12 +161,55 @@ export function PdiMindmap({ data, selectedSlug = null, onSelectLinea }: PdiMind
   const layout = useMemo(() => {
     const lineas = orderLineas(data?.lineas ?? []);
     const n = Math.max(lineas.length, 1);
-    // Un único radio para todos los conectores (el mayor que necesite algún
-    // eje), así todas las líneas miden lo mismo.
     const allHeights = lineas.map((l) => (l.sublineas ?? []).map((s) => estimateSubHeight(s.label)));
-    const radius = Math.max(
-      ...lineas.map((_, i) => computeAxisRadius(allHeights[i], -90 + (360 / n) * i)),
-    );
+
+    // Un único radio para todos los conectores (así miden lo mismo): el menor
+    // para el que ninguna caja choca con otra caja, con un círculo de línea ni
+    // con el centro. Se prueban varios ángulos de apertura y se elige el que
+    // permite el radio más corto.
+    type Rect = { x: number; y: number; w: number; h: number };
+    const COLLIDE_MARGIN = 14;
+    const rectsFor = (gap: number, r: number): Rect[] => {
+      const rects: Rect[] = [{ x: 0, y: 0, w: CENTER_R * 2, h: CENTER_R * 2 }];
+      lineas.forEach((_, i) => {
+        const ang = -90 + (360 / n) * i;
+        const lx = Math.cos(toRad(ang)) * LINE_ORBIT;
+        const ly = Math.sin(toRad(ang)) * LINE_ORBIT;
+        rects.push({ x: lx, y: ly, w: LINE_R * 2, h: LINE_R * 2 });
+        allHeights[i].forEach((h, j) => {
+          const a = toRad(ang + (j - (allHeights[i].length - 1) / 2) * gap);
+          rects.push({ x: lx + r * Math.cos(a), y: ly + r * Math.sin(a), w: SUB_W, h });
+        });
+      });
+      return rects;
+    };
+    const collides = (rects: Rect[]): boolean => {
+      for (let a = 0; a < rects.length; a++) {
+        for (let b = a + 1; b < rects.length; b++) {
+          const A = rects[a];
+          const B = rects[b];
+          if (
+            Math.abs(A.x - B.x) < (A.w + B.w) / 2 + COLLIDE_MARGIN &&
+            Math.abs(A.y - B.y) < (A.h + B.h) / 2 + COLLIDE_MARGIN
+          ) {
+            return true;
+          }
+        }
+      }
+      return false;
+    };
+    let radius = Infinity;
+    let angleGap = SUB_ANGLE_GAP;
+    for (const gap of [30, 40, 50, 60, 70]) {
+      for (let r = LINE_R + 60; r < radius && r <= 700; r += 5) {
+        if (!collides(rectsFor(gap, r))) {
+          radius = r;
+          angleGap = gap;
+          break;
+        }
+      }
+    }
+    if (!Number.isFinite(radius)) radius = 700;
     const nodes: LineNode[] = lineas.map((linea, i) => {
       const angleDeg = -90 + (360 / n) * i;
       const rad = toRad(angleDeg);
@@ -214,7 +220,7 @@ export function PdiMindmap({ data, selectedSlug = null, onSelectLinea }: PdiMind
       const items = linea.sublineas ?? [];
       const heights = allHeights[i];
       const subs: SubNode[] = items.map((sub, j) => {
-        const offsetDeg = (j - (items.length - 1) / 2) * SUB_ANGLE_GAP;
+        const offsetDeg = (j - (items.length - 1) / 2) * angleGap;
         const a = toRad(angleDeg + offsetDeg);
         return {
           sub,
