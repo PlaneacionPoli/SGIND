@@ -58,3 +58,16 @@ def test_get_resumen_linea_slug_con_guiones_normaliza_igual_que_espacios(
     con_espacios = resumen_service.get_resumen_linea(key="transformacion organizacional")
     assert con_guiones is not None
     assert con_guiones["linea"] == con_espacios["linea"]
+
+
+def test_ensure_nivel_cumplimiento_df_vacio_no_falla():
+    """Un año sin proyectos llega como DataFrame vacío con cumplimiento_pct: no debe dar 500."""
+    import pandas as pd
+
+    from app.domain.resumen_builders import ensure_nivel_cumplimiento
+
+    out = ensure_nivel_cumplimiento(
+        pd.DataFrame({"Id": [], "cumplimiento_pct": []}), regimen="plan_anual"
+    )
+    assert out.empty
+    assert "Nivel de cumplimiento" in out.columns

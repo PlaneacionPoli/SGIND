@@ -266,6 +266,11 @@ def ensure_nivel_cumplimiento(df: pd.DataFrame, regimen: str | None = None) -> p
                 pct / 100.0, id_indicador=row.get("Id"), regimen=regimen
             )
 
+        if out.empty:
+            # apply(axis=1) sobre un DataFrame vacío devuelve otro DataFrame, no una
+            # Serie, y la asignación a una sola columna lanza ValueError (500).
+            out["Nivel de cumplimiento"] = pd.Series(dtype="object")
+            return out
         out["Nivel de cumplimiento"] = out.apply(_map_level, axis=1)
         return out
     if "Nivel de cumplimiento" not in out.columns:
