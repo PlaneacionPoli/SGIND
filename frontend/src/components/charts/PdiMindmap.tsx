@@ -46,6 +46,9 @@ const SUB_LABEL_FONT = "600 13px Inter, ui-sans-serif, system-ui, sans-serif";
 // useMemo del layout como los más cortos que no solapan ninguna caja.
 const SUB_ANGLE_GAP = 60; // valor por defecto; el layout elige el definitivo
 const PADDING = 60;
+// Escala máxima de render (≈ la que ya tiene el mapa con objetivos en el
+// ancho típico del panel).
+const MAX_RENDER_SCALE = 0.9;
 
 let measureCanvasCtx: CanvasRenderingContext2D | null | undefined;
 
@@ -304,7 +307,16 @@ export function PdiMindmap({ data, selectedSlug = null, onSelectLinea }: PdiMind
       <div ref={containerRef} className="relative">
         <svg
           viewBox={`${layout.minX} ${layout.minY} ${layout.width} ${layout.height}`}
-          style={{ display: "block", margin: "0 auto", width: "100%", height: "auto" }}
+          // Sin objetivos (vistas Proyectos/Indicadores) el lienzo es mucho más
+          // chico: tope de tamaño para que los nodos no se agranden al ocupar
+          // todo el ancho; con objetivos (Consolidado) el tope no se alcanza.
+          style={{
+            display: "block",
+            margin: "0 auto",
+            width: "100%",
+            maxWidth: layout.width * MAX_RENDER_SCALE,
+            height: "auto",
+          }}
           onMouseLeave={() => setTooltip(null)}
         >
           <circle cx={0} cy={0} r={LINE_ORBIT - 30} fill="none" stroke="#E2E8F0" strokeWidth={1.5} />
