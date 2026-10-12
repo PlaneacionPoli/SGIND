@@ -45,10 +45,10 @@ const SUB_LABEL_FONT = "600 13px Inter, ui-sans-serif, system-ui, sans-serif";
 // objetivos de un mismo eje se ubican al MISMO radio (un abanico parejo, no
 // una espiral) para que se vean alineados entre sí — el radio de cada eje se
 // calcula para que sus propios ítems no choquen entre sí dado el ángulo
-// disponible, con un mínimo común (SUB_LOCAL_R_BASE) para los ejes de un solo
-// objetivo. Validado numéricamente contra los 11 objetivos oficiales del PDI
-// con >=30px de margen en cualquier par (eje-eje, eje-centro, eje-línea).
-const SUB_LOCAL_R_BASE = 240;
+// disponible, con un mínimo que deja SUB_LINE_GAP px libres entre la caja y el
+// círculo de su línea (medido en la dirección del eje) para que los conectores
+// queden lo más cortos posible.
+const SUB_LINE_GAP = 28;
 const SUB_LOCAL_R_MARGIN = 20;
 const SUB_LOCAL_R_SAFETY = 1.05;
 const SUB_ANGLE_GAP = 32;
@@ -93,8 +93,18 @@ function halfDiagonal(width: number, height: number): number {
 
 // Radio común para todos los objetivos de un mismo eje: el mínimo que evita
 // que dos objetivos consecutivos (al ángulo disponible) se solapen.
-function computeAxisRadius(heights: number[]): number {
-  let needed = SUB_LOCAL_R_BASE;
+function computeAxisRadius(heights: number[], angleDeg: number): number {
+  // Distancia mínima para que la caja no pise el círculo de su línea: se mide
+  // en la dirección del eje (una caja ancha necesita más hueco en horizontal
+  // que en vertical), en vez de un radio fijo para todos los ejes.
+  const rad = toRad(angleDeg);
+  const cos = Math.abs(Math.cos(rad));
+  const sin = Math.abs(Math.sin(rad));
+  let needed = 0;
+  for (const h of heights.length ? heights : [SUB_MIN_H]) {
+    const reach = Math.min(cos > 1e-6 ? SUB_W / 2 / cos : Infinity, sin > 1e-6 ? h / 2 / sin : Infinity);
+    needed = Math.max(needed, reach + LINE_R + SUB_LINE_GAP);
+  }
   if (heights.length > 1) {
     const gapRad = toRad(SUB_ANGLE_GAP);
     for (let j = 0; j < heights.length - 1; j++) {
@@ -197,7 +207,7 @@ export function PdiMindmap({ data, selectedSlug = null, onSelectLinea }: PdiMind
 
       const items = linea.sublineas ?? [];
       const heights = items.map((sub) => estimateSubHeight(sub.label));
-      const radius = computeAxisRadius(heights);
+      const radius = computeAxisRadius(heights, angleDeg);
       const subs: SubNode[] = items.map((sub, j) => {
         const offsetDeg = (j - (items.length - 1) / 2) * SUB_ANGLE_GAP;
         const a = toRad(angleDeg + offsetDeg);
