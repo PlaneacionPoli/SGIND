@@ -52,8 +52,6 @@ function LoginPageContent() {
   const { login, loading, error: devLoginError } = useDevLogin();
   const emailLogin = useEmailLogin();
   const [email, setEmail] = useState("");
-  const [code, setCode] = useState("");
-  const [codeSent, setCodeSent] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
   const showDevLogin = isDevLoginEnabled();
@@ -87,16 +85,8 @@ function LoginPageContent() {
 
   async function handleEmailLogin(e: React.FormEvent) {
     e.preventDefault();
-    if (!codeSent) {
-      if (await emailLogin.requestCode(email)) setCodeSent(true);
-      return;
-    }
-    if (await emailLogin.verifyCode(email, code)) router.replace("/menu");
-  }
-
-  function handleChangeEmail() {
-    setCodeSent(false);
-    setCode("");
+    const ok = await emailLogin.login(email);
+    if (ok) router.replace("/menu");
   }
 
   return (
@@ -134,45 +124,14 @@ function LoginPageContent() {
               placeholder="nombre@poligran.edu.co"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              disabled={codeSent}
               className="w-full rounded-lg border border-white/15 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-poli-blue focus:outline-none focus:ring-2 focus:ring-poli-blue/40"
             />
-            {codeSent && (
-              <>
-                <label htmlFor="code" className="mb-1 mt-3 block text-xs font-medium text-slate-300">
-                  Código de 6 dígitos enviado a tu correo
-                </label>
-                <input
-                  id="code"
-                  inputMode="numeric"
-                  autoComplete="one-time-code"
-                  pattern="\d{6}"
-                  maxLength={6}
-                  required
-                  autoFocus
-                  value={code}
-                  onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
-                  className="w-full rounded-lg border border-white/15 bg-white/5 px-4 py-3 text-center text-lg tracking-[0.5em] text-white focus:border-poli-blue focus:outline-none focus:ring-2 focus:ring-poli-blue/40"
-                />
-                <button
-                  type="button"
-                  onClick={handleChangeEmail}
-                  className="mt-2 text-xs text-slate-400 underline hover:text-slate-200"
-                >
-                  Usar otro correo
-                </button>
-              </>
-            )}
             <button
               type="submit"
               disabled={emailLogin.loading}
               className="mt-3 flex w-full items-center justify-center gap-3 rounded-lg bg-poli-blue px-4 py-3 text-sm font-medium text-white shadow-lg shadow-poli-blue/25 transition hover:bg-poli-blue-dark focus:outline-none focus:ring-2 focus:ring-poli-blue focus:ring-offset-2 focus:ring-offset-slate-950 disabled:opacity-50"
             >
-              {emailLogin.loading
-                ? "Procesando…"
-                : codeSent
-                  ? "Ingresar"
-                  : "Enviar código"}
+              {emailLogin.loading ? "Ingresando…" : "Ingresar"}
             </button>
             {emailLogin.error && (
               <p className="mt-2 text-center text-xs text-red-400">{emailLogin.error}</p>

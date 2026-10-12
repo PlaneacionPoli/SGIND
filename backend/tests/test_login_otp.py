@@ -116,3 +116,43 @@ async def test_reenvio_antes_del_cooldown_da_429(sent):
         await svc.request_otp(db, email="a@poligran.edu.co")
     assert exc.value.status_code == 429
     assert len(sent) == 1
+
+
+# ── Login directo por correo, restringido a ALLOWED_EMAILS (modo en uso) ──────
+
+
+@pytest.mark.asyncio
+async def test_email_login_permite_correo_de_la_lista(sent):
+    svc = _svc(allowed_emails="ana@poligran.edu.co")
+    token, user = await svc.email_login(FakeDb(), email="Ana@poligran.edu.co")
+    assert token and user.email == "ana@poligran.edu.co"
+
+
+@pytest.mark.asyncio
+async def test_email_login_rechaza_correo_fuera_de_la_lista(sent):
+    svc = _svc(allowed_emails="ana@poligran.edu.co")
+    with pytest.raises(HTTPException) as exc:
+        await svc.email_login(FakeDb(), email="otro@poligran.edu.co")
+    assert exc.value.status_code == 403
+
+
+@pytest.mark.asyncio
+async def test_email_login_sin_lista_falla_cerrado(sent):
+    with pytest.raises(HTTPException) as exc:
+        await _svc().email_login(FakeDb(), email="ana@poligran.edu.co")
+    assert exc.value.status_code == 403
+
+
+@pytest.mark.asyncio
+async def test_email_login_rechaza_dominio_ajeno(sent):
+    svc = _svc(allowed_emails="x@gmail.com")
+    with pytest.raises(HTTPException) as exc:
+        await svc.email_login(FakeDb(), email="x@gmail.com")
+    assert exc.value.status_code == 403
+
+
+@pytest.mark.asyncio
+async def test_email_login_admin_entra_sin_estar_en_la_lista(sent):
+    svc = _svc(admin_emails="jefe@poligran.edu.co")
+    token, _ = await svc.email_login(FakeDb(), email="jefe@poligran.edu.co")
+    assert token

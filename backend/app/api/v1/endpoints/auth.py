@@ -8,7 +8,6 @@ from app.core.security import get_current_user, require_reader
 from app.models.user import User
 from app.schemas.common import (
     EmailLoginRequest,
-    EmailOtpVerify,
     LoginResponse,
     MessageResponse,
     TokenResponse,
@@ -59,26 +58,15 @@ async def callback(
     return RedirectResponse(url=f"{frontend}/auth/callback?token={token}")
 
 
-@router.post("/email-login/request", response_model=MessageResponse)
-async def email_login_request(
+@router.post("/email-login", response_model=TokenResponse)
+async def email_login(
     payload: EmailLoginRequest,
-    db: AsyncSession = Depends(get_db),
-    auth: AuthService = Depends(_auth_service),
-) -> MessageResponse:
-    """Paso 1: envía un código de 6 dígitos al correo institucional."""
-    await auth.request_otp(db, email=payload.email)
-    return MessageResponse(message="Si el correo está autorizado, recibirás un código.")
-
-
-@router.post("/email-login/verify", response_model=TokenResponse)
-async def email_login_verify(
-    payload: EmailOtpVerify,
     db: AsyncSession = Depends(get_db),
     auth: AuthService = Depends(_auth_service),
     settings: Settings = Depends(get_settings),
 ) -> TokenResponse:
-    """Paso 2: valida el código (un solo uso) y emite el JWT."""
-    token, _user = await auth.verify_otp(db, email=payload.email, code=payload.code)
+    """Login por correo institucional, restringido a ALLOWED_EMAILS / ADMIN_EMAILS."""
+    token, _user = await auth.email_login(db, email=payload.email)
     return TokenResponse(access_token=token, expires_in=settings.jwt_expire_minutes * 60)
 
 

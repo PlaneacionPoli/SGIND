@@ -240,6 +240,29 @@ class AuthService:
         )
         return token, user
 
+    async def email_login(self, db: AsyncSession, *, email: str) -> tuple[str, User]:
+        """Login por correo institucional: solo entran los correos de ALLOWED_EMAILS (o ADMIN_EMAILS).
+
+        No hay verificación de identidad: quien conozca un correo autorizado puede entrar con él.
+        Si ALLOWED_EMAILS está vacío nadie entra (falla cerrado), salvo los administradores.
+        """
+        email = email.lower().strip()
+        self._check_domain(email)
+        autorizados = self.settings.allowed_emails_set | self.settings.admin_emails_set
+        if email not in autorizados:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Correo no autorizado. Solicita acceso al administrador.",
+            )
+
+        user = await self._get_or_create_user(db, email=email, name=None, azure_oid=None)
+        token = create_access_token(
+            email,
+            settings=self.settings,
+            extra={"role": user.role.name, "name": user.name},
+        )
+        return token, user
+
     async def ensure_dev_user(
         self,
         db: AsyncSession,
