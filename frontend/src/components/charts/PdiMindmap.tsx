@@ -50,8 +50,8 @@ const SUB_LABEL_FONT = "600 13px Inter, ui-sans-serif, system-ui, sans-serif";
 // queden lo más cortos posible.
 const SUB_LINE_GAP = 28;
 const SUB_LOCAL_R_MARGIN = 20;
-const SUB_LOCAL_R_SAFETY = 1.05;
-const SUB_ANGLE_GAP = 32;
+const SUB_LOCAL_R_SAFETY = 1;
+const SUB_ANGLE_GAP = 60;
 const PADDING = 60;
 
 let measureCanvasCtx: CanvasRenderingContext2D | null | undefined;
@@ -198,6 +198,12 @@ export function PdiMindmap({ data, selectedSlug = null, onSelectLinea }: PdiMind
   const layout = useMemo(() => {
     const lineas = orderLineas(data?.lineas ?? []);
     const n = Math.max(lineas.length, 1);
+    // Un único radio para todos los conectores (el mayor que necesite algún
+    // eje), así todas las líneas miden lo mismo.
+    const allHeights = lineas.map((l) => (l.sublineas ?? []).map((s) => estimateSubHeight(s.label)));
+    const radius = Math.max(
+      ...lineas.map((_, i) => computeAxisRadius(allHeights[i], -90 + (360 / n) * i)),
+    );
     const nodes: LineNode[] = lineas.map((linea, i) => {
       const angleDeg = -90 + (360 / n) * i;
       const rad = toRad(angleDeg);
@@ -206,8 +212,7 @@ export function PdiMindmap({ data, selectedSlug = null, onSelectLinea }: PdiMind
       const y = dir.y * LINE_ORBIT;
 
       const items = linea.sublineas ?? [];
-      const heights = items.map((sub) => estimateSubHeight(sub.label));
-      const radius = computeAxisRadius(heights, angleDeg);
+      const heights = allHeights[i];
       const subs: SubNode[] = items.map((sub, j) => {
         const offsetDeg = (j - (items.length - 1) / 2) * SUB_ANGLE_GAP;
         const a = toRad(angleDeg + offsetDeg);
