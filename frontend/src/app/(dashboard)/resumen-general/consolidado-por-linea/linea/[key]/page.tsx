@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ProyectosPmoTimeline } from "@/components/charts/ProyectosPmoTimeline";
 import { CmiEstrategicoTable } from "@/components/tables/CmiEstrategicoTable";
 import { RetosBadges } from "@/components/ui/RetosBadges";
+import { STRATEGIC_ICON_MAP } from "@/lib/strategic-icons";
 import { findStrategicLine } from "@/lib/strategic-lines";
 import { fetchDashboardFiltros, fetchResumenLinea } from "@/lib/api";
 import { PDI_VISTAS_POR_LINEA } from "@/lib/pdi";
@@ -42,6 +43,7 @@ export default function HojaLineaPage({ params }: { params: { key: string } }) {
   const data = lineaQuery.data;
   const color = data?.color ?? lineDef?.color ?? "#0F385A";
   const label = data?.linea ?? lineDef?.label ?? key;
+  const HeaderIcon = STRATEGIC_ICON_MAP[data?.icon ?? lineDef?.icon ?? ""];
 
   function volver() {
     router.push("/resumen-general/consolidado-por-linea");
@@ -57,7 +59,7 @@ export default function HojaLineaPage({ params }: { params: { key: string } }) {
         style={{ backgroundColor: color }}
       >
         <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-2 border-dashed border-white/60 text-2xl">
-          🎯
+          {HeaderIcon ? <HeaderIcon size={24} className="text-white" strokeWidth={2} /> : "🎯"}
         </div>
         <h1 className="flex-1 text-lg font-black uppercase tracking-wide text-white sm:text-2xl">
           {label}
