@@ -5,9 +5,7 @@ import Image from "next/image";
 import { ArrowLeft, Wrench } from "lucide-react";
 import {
   NAV_ITEM_META,
-  NAV_ITEMS,
   OPERATIVE_HREFS,
-  canAccessHref,
   navItemsForRole,
   splitIntoRows,
 } from "@/config/navigation";
@@ -46,11 +44,9 @@ export function LauncherScreen() {
   const [seccion, setSeccion] = useState<"principal" | "operativa">("principal");
   const items = navItemsForRole(role).filter((item) => Boolean(NAV_ITEM_META[item.href]));
   const principales = items.filter((item) => !OPERATIVE_HREFS.has(item.href));
-  // La sección operativa se ve siempre; los roles sin acceso (p. ej. "procesos") ven
-  // sus opciones atenuadas y sin enlace (el backend igualmente responde 403).
-  const operativos = NAV_ITEMS.filter(
-    (item) => OPERATIVE_HREFS.has(item.href) && Boolean(NAV_ITEM_META[item.href])
-  ).map((item) => ({ ...item, locked: !canAccessHref(role, item.href) }));
+  // El botón y las opciones operativas solo existen para administrador, calidad y
+  // desempeno; para "procesos" (u otro rol) no se muestran. El backend refuerza con 403.
+  const operativos = items.filter((item) => OPERATIVE_HREFS.has(item.href));
   const operativa = seccion === "operativa" && operativos.length > 0;
   const rows = splitIntoRows(operativa ? operativos : principales);
 
