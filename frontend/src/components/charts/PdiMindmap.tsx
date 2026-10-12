@@ -164,52 +164,58 @@ export function PdiMindmap({ data, selectedSlug = null, onSelectLinea }: PdiMind
     const allHeights = lineas.map((l) => (l.sublineas ?? []).map((s) => estimateSubHeight(s.label)));
 
     // Un único radio para todos los conectores (así miden lo mismo): el menor
-    // para el que ninguna caja choca con otra caja, con un círculo de línea ni
-    // con el centro. Se prueban varios ángulos de apertura y se elige el que
-    // permite el radio más corto.
+    // para el que se puede ubicar cada caja sin que choque con otra caja, con
+    // un círculo de línea ni con el centro. A ese radio cada caja puede girar
+    // alrededor de su línea (el ángulo preferido es un abanico simétrico) hasta
+    // encontrar un hueco libre.
     type Rect = { x: number; y: number; w: number; h: number };
     const COLLIDE_MARGIN = 14;
-    const rectsFor = (gap: number, r: number): Rect[] => {
-      const rects: Rect[] = [{ x: 0, y: 0, w: CENTER_R * 2, h: CENTER_R * 2 }];
-      lineas.forEach((_, i) => {
-        const ang = -90 + (360 / n) * i;
-        const lx = Math.cos(toRad(ang)) * LINE_ORBIT;
-        const ly = Math.sin(toRad(ang)) * LINE_ORBIT;
-        rects.push({ x: lx, y: ly, w: LINE_R * 2, h: LINE_R * 2 });
-        allHeights[i].forEach((h, j) => {
-          const a = toRad(ang + (j - (allHeights[i].length - 1) / 2) * gap);
-          rects.push({ x: lx + r * Math.cos(a), y: ly + r * Math.sin(a), w: SUB_W, h });
-        });
-      });
-      return rects;
-    };
-    const collides = (rects: Rect[]): boolean => {
-      for (let a = 0; a < rects.length; a++) {
-        for (let b = a + 1; b < rects.length; b++) {
-          const A = rects[a];
-          const B = rects[b];
-          if (
-            Math.abs(A.x - B.x) < (A.w + B.w) / 2 + COLLIDE_MARGIN &&
-            Math.abs(A.y - B.y) < (A.h + B.h) / 2 + COLLIDE_MARGIN
-          ) {
-            return true;
+    const hits = (A: Rect, B: Rect) =>
+      Math.abs(A.x - B.x) < (A.w + B.w) / 2 + COLLIDE_MARGIN && Math.abs(A.y - B.y) < (A.h + B.h) / 2 + COLLIDE_MARGIN;
+    const fixed: Rect[] = [{ x: 0, y: 0, w: CENTER_R * 2, h: CENTER_R * 2 }];
+    lineas.forEach((_, i) => {
+      const ang = toRad(-90 + (360 / n) * i);
+      fixed.push({ x: Math.cos(ang) * LINE_ORBIT, y: Math.sin(ang) * LINE_ORBIT, w: LINE_R * 2, h: LINE_R * 2 });
+    });
+    const OFFSETS = Array.from({ length: 37 }, (_, k) => -90 + k * 5);
+    const place = (r: number): number[][] | null => {
+      const placed: Rect[] = [];
+      const angles: number[][] = [];
+      for (let i = 0; i < lineas.length; i++) {
+        const base = -90 + (360 / n) * i;
+        const lx = Math.cos(toRad(base)) * LINE_ORBIT;
+        const ly = Math.sin(toRad(base)) * LINE_ORBIT;
+        const count = allHeights[i].length;
+        const row: number[] = [];
+        for (let j = 0; j < count; j++) {
+          const preferred = (j - (count - 1) / 2) * SUB_ANGLE_GAP;
+          const candidates = [...OFFSETS].sort((u, v) => Math.abs(u - preferred) - Math.abs(v - preferred));
+          let chosen: Rect | null = null;
+          let chosenOffset = 0;
+          for (const off of candidates) {
+            const a = toRad(base + off);
+            const rect = { x: lx + r * Math.cos(a), y: ly + r * Math.sin(a), w: SUB_W, h: allHeights[i][j] };
+            if (!fixed.some((f) => hits(f, rect)) && !placed.some((q) => hits(q, rect))) {
+              chosen = rect;
+              chosenOffset = off;
+              break;
+            }
           }
+          if (!chosen) return null;
+          placed.push(chosen);
+          row.push(chosenOffset);
         }
+        angles.push(row);
       }
-      return false;
+      return angles;
     };
-    let radius = Infinity;
-    let angleGap = SUB_ANGLE_GAP;
-    for (const gap of [30, 40, 50, 60, 70]) {
-      for (let r = LINE_R + 60; r < radius && r <= 700; r += 5) {
-        if (!collides(rectsFor(gap, r))) {
-          radius = r;
-          angleGap = gap;
-          break;
-        }
-      }
+    let radius = LINE_R + 60;
+    let offsets = place(radius);
+    while (!offsets && radius < 700) {
+      radius += 5;
+      offsets = place(radius);
     }
-    if (!Number.isFinite(radius)) radius = 700;
+    const subOffsets = offsets ?? lineas.map((_, i) => allHeights[i].map(() => 0));
     const nodes: LineNode[] = lineas.map((linea, i) => {
       const angleDeg = -90 + (360 / n) * i;
       const rad = toRad(angleDeg);
@@ -220,8 +226,7 @@ export function PdiMindmap({ data, selectedSlug = null, onSelectLinea }: PdiMind
       const items = linea.sublineas ?? [];
       const heights = allHeights[i];
       const subs: SubNode[] = items.map((sub, j) => {
-        const offsetDeg = (j - (items.length - 1) / 2) * angleGap;
-        const a = toRad(angleDeg + offsetDeg);
+        const a = toRad(angleDeg + subOffsets[i][j]);
         return {
           sub,
           codigo: `${i + 1}.${j + 1}`,
