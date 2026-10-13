@@ -30,11 +30,11 @@ from app.domain.cmi_builders import (
 from app.domain.cmi_filters import CMIFilterService
 from app.domain.escala_moneda import normalizar_pesos
 from app.domain.health_metrics import recalcular_cumplimiento_faltante
-from app.domain.periodicidad_especial import filtrar_por_anio
 from app.domain.linea_order import linea_sort_key, nombre_visible
-from app.domain.pdi_measurement import topar_proyectos_df
 from app.domain.marcos import Marco, get_marco, marco_por_defecto
 from app.domain.marcos import get_marcos as _get_marcos
+from app.domain.pdi_measurement import topar_proyectos_df
+from app.domain.periodicidad_especial import filtrar_por_anio
 from app.domain.procesos_builders import (
     MESES_OPCIONES,
     TIPO_PROCESO_COLORS,
@@ -372,6 +372,7 @@ class CMIService:
                     h.loc[faltante, "Ejecucion"],
                     h.loc[faltante].get("Sentido", pd.Series("Positivo", index=h.index[faltante])),
                     h.loc[faltante, "Id"],
+                    strict=False,
                 )
             ]
         nivelado = ensure_nivel_cumplimiento(

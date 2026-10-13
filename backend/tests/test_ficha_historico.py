@@ -36,7 +36,7 @@ def test_ficha_procesos_linea_y_objetivo_si_dependen_del_pdi(svc: CMIService):
 def test_ficha_historico_trae_variacion_entre_periodos_consecutivos(svc: CMIService):
     h = svc.get_procesos_indicador_ficha("69", anio=2026, mes=6)["historico"]
     assert h[0]["variacion_cumplimiento_pp"] is None
-    for prev, cur in zip(h, h[1:]):
+    for prev, cur in zip(h, h[1:], strict=False):
         if prev["cumplimiento"] is not None and cur["cumplimiento"] is not None:
             esperado = round(cur["cumplimiento"] - prev["cumplimiento"], 1)
             assert cur["variacion_cumplimiento_pp"] == pytest.approx(esperado, abs=0.11)
@@ -55,9 +55,9 @@ def test_resumen_cmi_procesos_solo_junio_y_diciembre(svc: CMIService):
 
 def test_vista_filtrada_responde_a_los_filtros_y_es_coherente(svc: CMIService):
     todas = svc.get_procesos_dashboard(anio=2026, mes=6)["vista_filtrada"]
-    una = svc.get_procesos_dashboard(anio=2026, mes=6, unidad=todas["unidades_detalle"][0]["unidad"])[
-        "vista_filtrada"
-    ]
+    una = svc.get_procesos_dashboard(
+        anio=2026, mes=6, unidad=todas["unidades_detalle"][0]["unidad"]
+    )["vista_filtrada"]
     assert len(una["unidades_detalle"]) == 1 < len(todas["unidades_detalle"])
     assert len(una["procesos_detalle"]) < len(todas["procesos_detalle"])
     # Jerarquía unidad → proceso → subproceso: todo proceso pertenece a una unidad listada.
@@ -73,4 +73,6 @@ def test_indicador_69_se_lee_como_porcentaje_del_api(svc: CMIService):
     # Meta 90% y resultado ~91% (no los conteos 1.249 / 1.137 con unidad %).
     assert ultimo["meta"] == pytest.approx(90.0)
     assert 80 < ultimo["ejecucion"] < 100
-    assert ultimo["cumplimiento"] == pytest.approx(ultimo["ejecucion"] / ultimo["meta"] * 100, abs=0.2)
+    assert ultimo["cumplimiento"] == pytest.approx(
+        ultimo["ejecucion"] / ultimo["meta"] * 100, abs=0.2
+    )

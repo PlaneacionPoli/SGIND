@@ -149,17 +149,29 @@ def test_clasificar_semaforo():
 
 # ── Tope de 100% por proyecto en TODAS las vistas (como Retos) ───────
 
+
 def test_topar_proyectos_df_solo_afecta_a_proyectos():
     import pandas as pd
 
-    from app.domain.pdi_measurement import es_proyecto, topar_cumplimiento_proyecto, topar_proyectos_df
+    from app.domain.pdi_measurement import (
+        es_proyecto,
+        topar_cumplimiento_proyecto,
+        topar_proyectos_df,
+    )
 
     assert es_proyecto("PRY-12") and not es_proyecto("323")
     assert topar_cumplimiento_proyecto(137.4) == 100.0 and topar_cumplimiento_proyecto(82.0) == 82.0
     assert topar_cumplimiento_proyecto(None) is None
 
-    df = pd.DataFrame({"Id": ["PRY-5", "PRY-6", "323", "276"], "cumplimiento_pct": [137.4, 80.0, 125.0, 90.0]})
+    df = pd.DataFrame(
+        {"Id": ["PRY-5", "PRY-6", "323", "276"], "cumplimiento_pct": [137.4, 80.0, 125.0, 90.0]}
+    )
     out = topar_proyectos_df(df)
-    assert out["cumplimiento_pct"].tolist() == [100.0, 80.0, 125.0, 90.0]  # los indicadores conservan hasta 130
+    assert out["cumplimiento_pct"].tolist() == [
+        100.0,
+        80.0,
+        125.0,
+        90.0,
+    ]  # los indicadores conservan hasta 130
     assert out.loc[0, "cumplimiento_bruto"] == 137.4
     assert df["cumplimiento_pct"].tolist() == [137.4, 80.0, 125.0, 90.0]  # no muta la entrada

@@ -392,10 +392,13 @@ def ordenar_indicadores(df: pd.DataFrame) -> pd.DataFrame:
     if df.empty or "Indicador" not in df.columns or "Linea" not in df.columns:
         return df
     rank = [
-        indicador_sort_key(str(ln), str(ind)) for ln, ind in zip(df["Linea"], df["Indicador"])
+        indicador_sort_key(str(ln), str(ind))
+        for ln, ind in zip(df["Linea"], df["Indicador"], strict=False)
     ]
-    return df.assign(_ind_order=rank).sort_values("_ind_order", kind="stable").drop(
-        columns="_ind_order"
+    return (
+        df.assign(_ind_order=rank)
+        .sort_values("_ind_order", kind="stable")
+        .drop(columns="_ind_order")
     )
 
 
@@ -408,7 +411,7 @@ def _rango_minimo(df: pd.DataFrame, col: str) -> dict[str, int]:
             "grupo": df[col].astype(str).str.strip(),
             "rango": [
                 indicador_sort_key(str(ln), str(ind))
-                for ln, ind in zip(df["Linea"], df["Indicador"])
+                for ln, ind in zip(df["Linea"], df["Indicador"], strict=False)
             ],
         }
     )

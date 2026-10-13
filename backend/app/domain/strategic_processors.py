@@ -10,8 +10,8 @@ import pandas as pd
 
 from app.domain.categorization import categorizar_cumplimiento
 from app.domain.cmi_filters import CMIFilterService
-from app.domain.metricas import marcar_metricas
 from app.domain.health_metrics import recalcular_cumplimiento_faltante
+from app.domain.metricas import marcar_metricas
 from app.services.excel_reader import ExcelReaderService
 from app.services.strategic_loaders import PENDIENTE, StrategicLoaders
 
@@ -196,12 +196,16 @@ class StrategicProcessors:
         result["Nivel de cumplimiento"] = result["Nivel de cumplimiento"].fillna(PENDIENTE_STR)
         return marcar_metricas(result.reset_index(drop=True))
 
-    def _acumular_ingresos_ciclo(self, cierre_pdi: pd.DataFrame, anios: Sequence[int]) -> pd.DataFrame:
+    def _acumular_ingresos_ciclo(
+        self, cierre_pdi: pd.DataFrame, anios: Sequence[int]
+    ) -> pd.DataFrame:
         """Reemplaza Meta/Ejecución de los indicadores de ingresos por la suma de los cierres de
         diciembre de cada año del ciclo (solo años con meta y ejecución reportadas) y recalcula
         su cumplimiento."""
         cierres = self._loaders.load_cierres()
-        if cierres.empty or not {"Id", "Anio", "Mes", "Meta", "Ejecucion"}.issubset(cierres.columns):
+        if cierres.empty or not {"Id", "Anio", "Mes", "Meta", "Ejecucion"}.issubset(
+            cierres.columns
+        ):
             return cierre_pdi
         c = cierres.copy()
         c["Id"] = c["Id"].apply(_normalize_id_value)
@@ -225,7 +229,9 @@ class StrategicProcessors:
             sentido = out.loc[m, "Sentido"].iloc[0] if "Sentido" in out.columns else "Positivo"
             dec = recalcular_cumplimiento_faltante(row["Meta"], row["Ejecucion"], sentido, id_)
             out.loc[m, "cumplimiento_dec"] = dec
-            out.loc[m, "cumplimiento_pct"] = dec * 100 if dec is not None and not pd.isna(dec) else pd.NA
+            out.loc[m, "cumplimiento_pct"] = (
+                dec * 100 if dec is not None and not pd.isna(dec) else pd.NA
+            )
             out.loc[m, "Nivel de cumplimiento"] = (
                 categorizar_cumplimiento(dec, id_indicador=id_)
                 if dec is not None and not pd.isna(dec)
@@ -253,7 +259,11 @@ class StrategicProcessors:
         out = cierre_pdi.copy()
         for regla in reglas:
             id_, vm, ve = regla["id"], regla["var_meta"], regla["var_ejec"]
-            if vm not in desglose.columns or ve not in desglose.columns or not (out["Id"] == id_).any():
+            if (
+                vm not in desglose.columns
+                or ve not in desglose.columns
+                or not (out["Id"] == id_).any()
+            ):
                 continue
             meta_tot = ejec_tot = 0.0
             for anio in anios:

@@ -600,8 +600,8 @@ class ResumenService:
             pdi_df = (
                 ensure_nivel_cumplimiento(
                     self._strategic.preparar_pdi_cierre_final(
-            marco.hoja_cierre or "Cierre PDI", marco.anios
-        )
+                        marco.hoja_cierre or "Cierre PDI", marco.anios
+                    )
                 )
                 if rango
                 else ensure_nivel_cumplimiento(self._strategic.preparar_pdi_con_cierre(anio, 12))
@@ -742,8 +742,8 @@ class ResumenService:
             if rango:
                 pdi_df = ensure_nivel_cumplimiento(
                     self._strategic.preparar_pdi_cierre_final(
-            marco.hoja_cierre or "Cierre PDI", marco.anios
-        )
+                        marco.hoja_cierre or "Cierre PDI", marco.anios
+                    )
                 )
                 proy_df = self._proyectos_multi_anio(anios_rango)
                 ret_linea_df, ret_obj_df, ret_planes_df = self._retos_multi_anio(anios_rango)
@@ -866,8 +866,8 @@ class ResumenService:
         anios = [anio] if anio is not None else marco.anios
         pdi_df = ensure_nivel_cumplimiento(
             self._strategic.preparar_pdi_cierre_final(
-            marco.hoja_cierre or "Cierre PDI", marco.anios
-        )
+                marco.hoja_cierre or "Cierre PDI", marco.anios
+            )
         )
         # Proyectos PMO: fuente real del Centro de Proyectos (Comienzo/Fin/%
         # completado por proyecto), no la derivada de Cierres/Consolidado
@@ -947,8 +947,8 @@ class ResumenService:
         marco = self._marco(pdi)
         pdi_df = ensure_nivel_cumplimiento(
             self._strategic.preparar_pdi_cierre_final(
-            marco.hoja_cierre or "Cierre PDI", marco.anios
-        )
+                marco.hoja_cierre or "Cierre PDI", marco.anios
+            )
         )
         if not pdi_df.empty and "Id" in pdi_df.columns:
             pdi_df = pdi_df[~pdi_df["Id"].astype(str).isin(_INDICADORES_EXCLUIDOS_PDF)]
