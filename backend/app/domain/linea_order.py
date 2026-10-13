@@ -71,7 +71,15 @@ INDICADORES_ORDER: dict[tuple[str, ...], list[str]] = {
     ],
 }
 # Variantes de escritura presentes en la fuente (ya normalizadas) -> nombre canónico normalizado.
-_ALIAS: dict[str, str] = {"cumplimiento ebidta": "cumplimiento ebitda"}
+_ALIAS: dict[str, str] = {
+    "cumplimiento ebidta": "cumplimiento ebitda",
+    "cumplimiento total estudiantes antiguos": "total estudiantes antiguos",
+}
+
+# Nombre con que se muestra un indicador cuyo nombre en la fuente no es el institucional.
+NOMBRE_VISIBLE: dict[str, str] = {
+    "cumplimiento total estudiantes antiguos": "Total estudiantes antiguos",
+}
 
 
 def _indicador_key(nombre: str) -> str:
@@ -93,3 +101,8 @@ def indicador_sort_key(linea: str, indicador: str) -> int:
         if linea_n.startswith(prefijos):
             return mapa.get(_indicador_key(indicador), n)
     return 0
+
+
+def nombre_visible(indicador: str) -> str:
+    """Nombre institucional para mostrar; si no hay renombre, el original."""
+    return NOMBRE_VISIBLE.get(" ".join(_normalize(indicador).split()), indicador)

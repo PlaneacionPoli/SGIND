@@ -5,6 +5,7 @@ from __future__ import annotations
 import pandas as pd
 
 from app.domain.categorization import categorizar_cumplimiento
+from app.domain.escala_moneda import normalizar_pesos
 from app.domain.health_metrics import recalcular_cumplimiento_faltante
 from app.domain.loader_utils import find_col, id_a_str, repair_linea_encoding
 from app.domain.marcos import get_marco
@@ -360,7 +361,7 @@ class StrategicLoaders:
             ]:
                 if src:
                     out[dst] = transform(df[src])
-            out = out[out["Id"] != ""].copy()
+            out = normalizar_pesos(out[out["Id"] != ""].copy())
             if "Fecha" in out.columns:
                 out.loc[out["Anio"].isna(), "Anio"] = out.loc[out["Anio"].isna(), "Fecha"].dt.year
                 out.loc[out["Mes"].isna(), "Mes"] = out.loc[out["Mes"].isna(), "Fecha"].dt.month
@@ -456,7 +457,7 @@ class StrategicLoaders:
             ]:
                 if src:
                     out[dst] = transform(df[src])
-            out = out[out["Id"] != ""].copy()
+            out = normalizar_pesos(out[out["Id"] != ""].copy())
 
             c_cumpl = find_col(df, ["Cumplimiento", "cumplimiento_dec"])
             out["cumplimiento_dec"] = (

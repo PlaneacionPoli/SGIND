@@ -28,7 +28,7 @@ from app.domain.cmi_builders import (
     previous_corte,
 )
 from app.domain.cmi_filters import CMIFilterService
-from app.domain.linea_order import linea_sort_key
+from app.domain.linea_order import linea_sort_key, nombre_visible
 from app.domain.pdi_measurement import topar_proyectos_df
 from app.domain.marcos import Marco, get_marco, marco_por_defecto
 from app.domain.marcos import get_marcos as _get_marcos
@@ -168,15 +168,29 @@ class CMIService:
         if df.empty:
             return df
         df = ensure_nivel_cumplimiento(topar_proyectos_df(df))
+        df = self._renombrar_indicadores(df)
         return self._enrich_ficha(df)
+
+    @staticmethod
+    def _renombrar_indicadores(df: pd.DataFrame) -> pd.DataFrame:
+        if "Indicador" not in df.columns:
+            return df
+        out = df.copy()
+        out["Indicador"] = out["Indicador"].map(
+            lambda x: nombre_visible(x) if isinstance(x, str) else x
+        )
+        return out
 
     def _prepare_df_cierre_pdi(self, marco: Marco) -> pd.DataFrame:
         """Rango "Cierre PDI": resultado final por indicador (hoja de cierre
         del marco, p. ej. 'Cierre PDI'), sin arrastrar valores de anios anteriores."""
-        df = self._strategic.preparar_pdi_cierre_final(marco.hoja_cierre or "Cierre PDI")
+        df = self._strategic.preparar_pdi_cierre_final(
+            marco.hoja_cierre or "Cierre PDI", marco.anios
+        )
         if df.empty:
             return df
         df = ensure_nivel_cumplimiento(topar_proyectos_df(df))
+        df = self._renombrar_indicadores(df)
         return self._enrich_ficha(df)
 
     def get_filtros(self, pdi: str | None = None) -> dict[str, Any]:

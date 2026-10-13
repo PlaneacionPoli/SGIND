@@ -1,0 +1,9 @@
+# Unidad de los indicadores en pesos ("$") en la fuente de cierres.
+#
+# Algunos cierres históricos (p. ej. 2022) vienen expresados en MILLONES de pesos y otros en pesos
+# completos. Para mostrarlos y sumarlos en la misma escala, toda fila con signo "$" cuya meta y
+# ejecución sean menores que `umbral_pesos` se considera expresada en millones y se multiplica por
+# `factor`. Meta y ejecución se escalan juntas, por lo que el % de cumplimiento no cambia.
+signos = ["$"]
+umbral_pesos = 100_000_000   # < $100 M en pesos = valor en millones
+factor = 1_000_000

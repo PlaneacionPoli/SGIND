@@ -2,13 +2,22 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
+
 import pandas as pd
 
+from app.domain.categorization import categorizar_cumplimiento
 from app.domain.cmi_filters import CMIFilterService
+from app.domain.health_metrics import recalcular_cumplimiento_faltante
 from app.services.excel_reader import ExcelReaderService
 from app.services.strategic_loaders import PENDIENTE, StrategicLoaders
 
 PENDIENTE_STR = PENDIENTE
+
+# Indicadores de ingresos (Sostenibilidad: Cumplimiento de Ingresos; Educación para toda la vida:
+# total y sus tres componentes). En el cierre del PDI se muestran como la SUMA de los años del
+# ciclo (meta y ejecución), no como el valor del último año.
+IDS_INGRESOS_ACUMULADOS = frozenset({"203", "385", "386.1", "386.2", "386.3"})
 
 
 def _normalize_flag_series(series: pd.Series) -> pd.Series:
@@ -179,7 +188,46 @@ class StrategicProcessors:
         result["Nivel de cumplimiento"] = result["Nivel de cumplimiento"].fillna(PENDIENTE_STR)
         return result.reset_index(drop=True)
 
-    def preparar_pdi_cierre_final(self, hoja: str = "Cierre PDI") -> pd.DataFrame:
+    def _acumular_ingresos_ciclo(self, cierre_pdi: pd.DataFrame, anios: Sequence[int]) -> pd.DataFrame:
+        """Reemplaza Meta/Ejecución de los indicadores de ingresos por la suma de los cierres de
+        diciembre de cada año del ciclo (solo años con meta y ejecución reportadas) y recalcula
+        su cumplimiento."""
+        cierres = self._loaders.load_cierres()
+        if cierres.empty or not {"Id", "Anio", "Mes", "Meta", "Ejecucion"}.issubset(cierres.columns):
+            return cierre_pdi
+        c = cierres.copy()
+        c["Id"] = c["Id"].apply(_normalize_id_value)
+        c = c[
+            c["Id"].isin(IDS_INGRESOS_ACUMULADOS)
+            & (pd.to_numeric(c["Mes"], errors="coerce") == 12)
+            & pd.to_numeric(c["Anio"], errors="coerce").isin([int(a) for a in anios])
+            & c["Meta"].notna()
+            & c["Ejecucion"].notna()
+        ].drop_duplicates(subset=["Id", "Anio"], keep="last")
+        if c.empty:
+            return cierre_pdi
+        sumas = c.groupby("Id")[["Meta", "Ejecucion"]].sum()
+        out = cierre_pdi.copy()
+        for id_, row in sumas.iterrows():
+            m = out["Id"] == id_
+            if not m.any():
+                continue
+            out.loc[m, "Meta"] = row["Meta"]
+            out.loc[m, "Ejecucion"] = row["Ejecucion"]
+            sentido = out.loc[m, "Sentido"].iloc[0] if "Sentido" in out.columns else "Positivo"
+            dec = recalcular_cumplimiento_faltante(row["Meta"], row["Ejecucion"], sentido, id_)
+            out.loc[m, "cumplimiento_dec"] = dec
+            out.loc[m, "cumplimiento_pct"] = dec * 100 if dec is not None and not pd.isna(dec) else pd.NA
+            out.loc[m, "Nivel de cumplimiento"] = (
+                categorizar_cumplimiento(dec, id_indicador=id_)
+                if dec is not None and not pd.isna(dec)
+                else PENDIENTE
+            )
+        return out
+
+    def preparar_pdi_cierre_final(
+        self, hoja: str = "Cierre PDI", anios: Sequence[int] | None = None
+    ) -> pd.DataFrame:
         """Resultado final por indicador (hoja 'Cierre PDI'), para el rango
         "Cierre PDI 2022-2025" — a diferencia de preparar_pdi_con_cierre, no
         arrastra el ultimo valor disponible de anios anteriores cuando un
@@ -209,6 +257,8 @@ class StrategicProcessors:
         indicators["Id"] = indicators["Id"].apply(_normalize_id_value)
         cierre_pdi = cierre_pdi.copy()
         cierre_pdi["Id"] = cierre_pdi["Id"].apply(_normalize_id_value)
+        if anios is not None and len(anios) > 1:
+            cierre_pdi = self._acumular_ingresos_ciclo(cierre_pdi, anios)
 
         # Solo indicadores con resultado final registrado en la hoja Cierre PDI
         # (inner join, no left) — evita mostrar indicadores sin cierre real.

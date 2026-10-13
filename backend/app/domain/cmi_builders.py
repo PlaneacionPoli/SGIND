@@ -399,13 +399,36 @@ def ordenar_indicadores(df: pd.DataFrame) -> pd.DataFrame:
     )
 
 
+def _rango_minimo(df: pd.DataFrame, col: str) -> dict[str, int]:
+    """Menor posición institucional de indicador dentro de cada valor de `col`."""
+    if "Indicador" not in df.columns or "Linea" not in df.columns or col not in df.columns:
+        return {}
+    work = pd.DataFrame(
+        {
+            "grupo": df[col].astype(str).str.strip(),
+            "rango": [
+                indicador_sort_key(str(ln), str(ind))
+                for ln, ind in zip(df["Linea"], df["Indicador"])
+            ],
+        }
+    )
+    return work.groupby("grupo")["rango"].min().to_dict()
+
+
 def build_objetivos_estructura(
     df_linea: pd.DataFrame,
     pdi_catalog: pd.DataFrame | None = None,
 ) -> list[dict[str, Any]]:
     if df_linea.empty or "Objetivo" not in df_linea.columns:
         return []
-    objetivos = sorted(df_linea["Objetivo"].dropna().astype(str).unique().tolist())
+    df_linea = ordenar_indicadores(df_linea)
+    # Objetivos y metas siguen la posición de sus indicadores en el orden institucional de la
+    # línea; sin orden definido (rango 0 para todos) se mantiene el orden alfabético.
+    rango_obj = _rango_minimo(df_linea, "Objetivo")
+    objetivos = sorted(
+        df_linea["Objetivo"].dropna().astype(str).unique().tolist(),
+        key=lambda o: (rango_obj.get(o, 0), o),
+    )
     result = []
     ind_cols = [
         c
@@ -431,8 +454,10 @@ def build_objetivos_estructura(
         df_obj = df_linea[df_linea["Objetivo"] == obj].copy()
         metas_block: list[dict[str, Any]] = []
         if "Meta_Estrategica" in df_obj.columns:
+            rango_meta = _rango_minimo(df_obj, "Meta_Estrategica")
             metas = sorted(
-                df_obj["Meta_Estrategica"].dropna().astype(str).str.strip().unique().tolist()
+                df_obj["Meta_Estrategica"].dropna().astype(str).str.strip().unique().tolist(),
+                key=lambda m: (rango_meta.get(m, 0), m),
             )
             metas = [m for m in metas if m]
             for meta in metas:
