@@ -227,9 +227,11 @@ function CMIProcesosContent({ pdi }: { pdi: string }) {
           Corte filtrado: {data.mes_nombre} {data.anio}
           {tab === "listado" || tab === "alertas"
             ? ` · ${data.filtros_aplicados.unidad} · ${data.filtros_aplicados.proceso}`
-            : data.vista_global?.mes_nombre
-              ? ` · Global: ${data.vista_global.mes_nombre}`
-              : ""}
+            : tab === "procesos"
+              ? ` · ${data.filtros_aplicados.unidad} · ${data.filtros_aplicados.proceso}`
+              : data.vista_global?.mes_nombre
+                ? ` · Global: ${data.vista_global.mes_nombre}`
+                : ""}
         </p>
       )}
 
@@ -284,18 +286,23 @@ function CMIProcesosContent({ pdi }: { pdi: string }) {
             )
           )}
           {tab === "procesos" && (
-            data.vista_global?.kpis ? (
-              <CmiProcesosUnidadesTab
-                unidades={data.vista_global.unidades_detalle}
-                procesoBars={data.vista_global.proceso_bars}
-                tipoCards={data.vista_global.tipo_proceso_cards}
-                procesos={data.vista_global.procesos_detalle}
-                comparativa={data.vista_global.comparativa_procesos ?? []}
-                baseAnio={data.meta.base_anio}
-              />
-            ) : (
-              <p className="text-sm text-slate-500">Sin datos globales de procesos.</p>
-            )
+            // Responde a los filtros del panel; vista_global (corte global sin filtros) solo es
+            // respaldo si el backend aún no envía vista_filtrada.
+            (() => {
+              const vista = data.vista_filtrada ?? data.vista_global;
+              return vista?.kpis ? (
+                <CmiProcesosUnidadesTab
+                  unidades={vista.unidades_detalle}
+                  procesoBars={vista.proceso_bars}
+                  tipoCards={vista.tipo_proceso_cards}
+                  procesos={vista.procesos_detalle}
+                  comparativa={vista.comparativa_procesos ?? []}
+                  baseAnio={data.meta.base_anio}
+                />
+              ) : (
+                <p className="text-sm text-slate-500">Sin datos de procesos para los filtros elegidos.</p>
+              );
+            })()
           )}
           {tab === "listado" && (
             <CmiProcesosListadoTab

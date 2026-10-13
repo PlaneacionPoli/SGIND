@@ -2,9 +2,9 @@
 
 import { useMemo, useState } from "react";
 import { BarChart3, Activity, Search, ExternalLink } from "lucide-react";
-import type { Indicator } from "@/lib/types";
+import type { CMIEjecucionVariacionItem, Indicator } from "@/lib/types";
 import { fmtPct, NivelBadge, SobreejecucionBadge } from "@/components/cmi/nivelUtils";
-import { fmtMeta, fmtEjecucion } from "@/lib/formatValor";
+import { fmtMeta, fmtEjecucion, fmtValorSigno } from "@/lib/formatValor";
 
 interface CmiProcesosListadoTabProps {
   indicadores: Indicator[];
@@ -368,18 +368,31 @@ function SummaryCard({
   );
 }
 
+/** Variación de ejecución con signo explícito y la unidad del indicador ("pp" si la unidad es %). */
+function fmtDelta(r: CMIEjecucionVariacionItem): string {
+  const signoNum = r.delta > 0 ? "+" : r.delta < 0 ? "−" : "";
+  const abs = Math.abs(r.delta);
+  if ((r.signo ?? "").trim() === "%") {
+    return `${signoNum}${abs.toFixed(r.decimales ?? 1)} pp`;
+  }
+  return `${signoNum}${fmtValorSigno(abs, r.signo, r.decimales)}`;
+}
+
 function EjecVarTable({
   title,
   rows,
   positive,
 }: {
   title: string;
-  rows: Array<{ indicador: string; ejecucion: number | null; delta: number; periodo: string }>;
+  rows: CMIEjecucionVariacionItem[];
   positive: boolean;
 }) {
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-      <h4 className="mb-3 text-sm font-bold text-slate-800">{title}</h4>
+      <h4 className="mb-1 text-sm font-bold text-slate-800">{title}</h4>
+      <p className="mb-3 text-[11px] text-slate-500">
+        Ordenado por la variación del % de cumplimiento (pp) frente al corte anterior, porque los indicadores tienen unidades y sentidos distintos.
+      </p>
       {rows.length === 0 ? (
         <p className="text-sm text-slate-500">Sin variación registrada.</p>
       ) : (
@@ -387,19 +400,31 @@ function EjecVarTable({
           <thead>
             <tr className="text-xs uppercase text-slate-500">
               <th className="py-2 text-left">Indicador</th>
-              <th className="py-2 text-right">Delta</th>
-              <th className="py-2 text-right">Periodo</th>
+              <th className="py-2 text-right">Ejecución anterior → actual</th>
+              <th className="py-2 text-right">Variación en ejecución</th>
+              <th className="py-2 text-right">Variación en cumplimiento</th>
             </tr>
           </thead>
           <tbody>
             {rows.map((r) => (
               <tr key={`${r.indicador}-${r.periodo}`} className="border-t border-slate-100">
-                <td className="py-2 text-slate-800">{r.indicador}</td>
-                <td className={`py-2 text-right font-bold ${positive ? "text-emerald-700" : "text-red-700"}`}>
-                  {r.delta > 0 ? "+" : ""}
-                  {r.delta}
+                <td className="py-2 text-slate-800">
+                  {r.indicador}
+                  <div className="text-[11px] text-slate-400">
+                    {r.periodo_previo ? `${r.periodo_previo} → ${r.periodo}` : r.periodo}
+                  </div>
                 </td>
-                <td className="py-2 text-right text-slate-500">{r.periodo}</td>
+                <td className="py-2 text-right text-slate-600">
+                  {r.ejecucion_previa != null ? fmtValorSigno(r.ejecucion_previa, r.signo, r.decimales) : "—"}
+                  {" → "}
+                  {fmtValorSigno(r.ejecucion, r.signo, r.decimales)}
+                </td>
+                <td className={`py-2 text-right font-bold ${positive ? "text-emerald-700" : "text-red-700"}`}>
+                  {fmtDelta(r)}
+                </td>
+                <td className={`py-2 text-right font-semibold ${positive ? "text-emerald-700" : "text-red-700"}`}>
+                  {r.delta_cumpl_pp != null ? `${r.delta_cumpl_pp > 0 ? "+" : "−"}${Math.abs(r.delta_cumpl_pp).toFixed(1)} pp` : "—"}
+                </td>
               </tr>
             ))}
           </tbody>

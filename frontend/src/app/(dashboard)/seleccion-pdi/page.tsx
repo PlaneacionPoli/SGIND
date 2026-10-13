@@ -55,14 +55,20 @@ function SeleccionPdiContent() {
 
       <div className="grid gap-5 sm:grid-cols-2">
         {marcos.map((m) => (
-          <PdiCard key={m.version_id} marco={m} href={moduloHref(destino, m.version_id)} />
+          <PdiCard
+            key={m.version_id}
+            marco={m}
+            href={moduloHref(destino, m.version_id)}
+            sinImagen={destino === "/cmi-procesos"}
+          />
         ))}
       </div>
     </div>
   );
 }
 
-function PdiCard({ marco, href }: { marco: Marco; href: string }) {
+// sinImagen: CMI por Procesos muestra la selección de PDI sin la imagen de cada ciclo.
+function PdiCard({ marco, href, sinImagen = false }: { marco: Marco; href: string; sinImagen?: boolean }) {
   const activo = marco.estado === "activo";
   const datos = marco.anio_datos_hasta
     ? `Datos ${marco.anio_datos_desde}–${marco.anio_datos_hasta}`
@@ -73,30 +79,43 @@ function PdiCard({ marco, href }: { marco: Marco; href: string }) {
       href={href}
       className="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
     >
-      <div className="relative bg-white">
-        {marco.imagen ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={marco.imagen} alt={marco.nombre} className="h-56 w-full object-contain p-3" />
-        ) : (
-          <div
-            className={`flex h-56 items-center justify-center text-3xl font-bold text-white ${
-              activo ? "bg-gradient-to-br from-[#1F6FB5] to-[#0a1a33]" : "bg-gradient-to-br from-slate-500 to-slate-800"
+      {!sinImagen && (
+        <div className="relative bg-white">
+          {marco.imagen ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={marco.imagen} alt={marco.nombre} className="h-56 w-full object-contain p-3" />
+          ) : (
+            <div
+              className={`flex h-56 items-center justify-center text-3xl font-bold text-white ${
+                activo ? "bg-gradient-to-br from-[#1F6FB5] to-[#0a1a33]" : "bg-gradient-to-br from-slate-500 to-slate-800"
+              }`}
+            >
+              {marco.nombre}
+            </div>
+          )}
+          <span
+            className={`absolute right-3 top-3 rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-wider ${
+              activo ? "bg-emerald-500 text-white" : "bg-slate-600 text-white"
             }`}
           >
-            {marco.nombre}
-          </div>
-        )}
-        <span
-          className={`absolute right-3 top-3 rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-wider ${
-            activo ? "bg-emerald-500 text-white" : "bg-slate-600 text-white"
-          }`}
-        >
-          {activo ? "Vigente" : "Cerrado"}
-        </span>
-      </div>
+            {activo ? "Vigente" : "Cerrado"}
+          </span>
+        </div>
+      )}
       <div className="flex items-center justify-between gap-4 p-5">
         <div>
-          <p className="text-base font-semibold text-slate-900">{marco.nombre}</p>
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="text-base font-semibold text-slate-900">{marco.nombre}</p>
+            {sinImagen && (
+              <span
+                className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wider ${
+                  activo ? "bg-emerald-500 text-white" : "bg-slate-600 text-white"
+                }`}
+              >
+                {activo ? "Vigente" : "Cerrado"}
+              </span>
+            )}
+          </div>
           <p className="text-sm text-slate-700">{marco.descripcion}</p>
           <p className="mt-1 text-xs text-slate-500">{datos}</p>
           {marco.modulos.length > 0 && (

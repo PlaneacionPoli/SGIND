@@ -753,34 +753,84 @@ def build_alertas_criticas(df: pd.DataFrame, *, limit: int = 6) -> list[dict[str
 def build_ejecucion_variacion(
     df: pd.DataFrame, df_prev: pd.DataFrame, *, limit: int = 8
 ) -> dict[str, list[dict[str, Any]]]:
-    if df.empty or df_prev.empty or "Id" not in df.columns or "Id" not in df_prev.columns:
-        return {"positiva": [], "negativa": []}
-    if "Ejecucion" not in df.columns or "Ejecucion" not in df_prev.columns:
-        return {"positiva": [], "negativa": []}
+    """Mayor variación de ejecución entre el corte anterior y el actual.
 
-    cur = df[["Id", "Indicador", "Ejecucion", "Mes", "Anio"]].drop_duplicates(
-        subset=["Id"], keep="last"
-    )
-    prev = df_prev[["Id", "Ejecucion"]].drop_duplicates(subset=["Id"], keep="last")
+    Los indicadores no comparten unidad ($, %, conteos, días…) ni sentido (mayor/menor es
+    mejor), por lo que NO se ordena por la diferencia absoluta de ejecución: se agrupa y ordena
+    por la variación del % de cumplimiento en puntos porcentuales (`delta_cumpl_pp`), que sí es
+    comparable y ya incorpora meta y sentido. Cada fila trae además el signo/unidad y los
+    decimales propios del indicador para formatear ejecución, ejecución previa y delta
+    (frontend: fmtValorSigno)."""
+    vacio: dict[str, list[dict[str, Any]]] = {"positiva": [], "negativa": []}
+    if df.empty or df_prev.empty or "Id" not in df.columns or "Id" not in df_prev.columns:
+        return vacio
+    if "Ejecucion" not in df.columns or "Ejecucion" not in df_prev.columns:
+        return vacio
+
+    extra = [
+        c
+        for c in ("Meta_Signo", "Ejecucion_s", "Decimales_Ejecucion", "Decimales_Meta")
+        if c in df.columns
+    ]
+    if "cumplimiento_pct" not in df.columns or "cumplimiento_pct" not in df_prev.columns:
+        return vacio
+    cur = df[
+        ["Id", "Indicador", "Ejecucion", "cumplimiento_pct", "Mes", "Anio", *extra]
+    ].drop_duplicates(subset=["Id"], keep="last")
+    prev_cols = ["Id", "Ejecucion", "cumplimiento_pct"] + [
+        c for c in ("Mes", "Anio") if c in df_prev.columns
+    ]
+    prev = df_prev[prev_cols].drop_duplicates(subset=["Id"], keep="last")
     merged = cur.merge(prev, on="Id", suffixes=("", "_prev"))
-    merged["delta"] = pd.to_numeric(merged["Ejecucion"], errors="coerce") - pd.to_numeric(
-        merged["Ejecucion_prev"], errors="coerce"
-    )
-    merged = merged.dropna(subset=["delta"])
+    ejec = pd.to_numeric(merged["Ejecucion"], errors="coerce")
+    ejec_prev = pd.to_numeric(merged["Ejecucion_prev"], errors="coerce")
+    merged["delta"] = ejec - ejec_prev
+    merged["delta_cumpl_pp"] = pd.to_numeric(
+        merged["cumplimiento_pct"], errors="coerce"
+    ) - pd.to_numeric(merged["cumplimiento_pct_prev"], errors="coerce")
+    merged = merged.dropna(subset=["delta", "delta_cumpl_pp"])
+    merged = merged[(merged["delta"] != 0) & (merged["delta_cumpl_pp"] != 0)]
     if merged.empty:
-        return {"positiva": [], "negativa": []}
+        return vacio
+
+    def _signo(r: pd.Series) -> str | None:
+        for col in ("Ejecucion_s", "Meta_Signo"):
+            v = r.get(col)
+            if isinstance(v, str) and v.strip() and v.strip().lower() != "nan":
+                return v.strip()
+        return None
+
+    def _periodo(mes: Any, anio: Any) -> str:
+        if pd.isna(mes) or pd.isna(anio):
+            return ""
+        # Mes llega como número o como nombre ("Junio"), según la fuente.
+        try:
+            nombre = mes_nombre(int(float(mes)))
+        except (TypeError, ValueError):
+            nombre = str(mes).strip()
+        return f"{nombre} {int(float(anio))}"
 
     def _row(r: pd.Series) -> dict[str, Any]:
-        periodo = f"{r.get('Mes', '')} {r.get('Anio', '')}".strip()
+        periodo = _periodo(r.get("Mes"), r.get("Anio"))
+        dec = r.get("Decimales_Ejecucion")
+        if pd.isna(dec):
+            dec = r.get("Decimales_Meta")
         return {
             "indicador": str(r.get("Indicador", r["Id"])),
             "ejecucion": _safe_float(r.get("Ejecucion")),
-            "delta": round(float(r["delta"]), 2),
+            "ejecucion_previa": _safe_float(r.get("Ejecucion_prev")),
+            "delta": round(float(r["delta"]), 4),
+            "delta_cumpl_pp": round(float(r["delta_cumpl_pp"]), 1),
+            "signo": _signo(r),
+            "decimales": None if pd.isna(dec) else int(float(dec)),
             "periodo": periodo or "—",
+            "periodo_previo": _periodo(r.get("Mes_prev"), r.get("Anio_prev")) or None,
         }
 
-    pos = merged[merged["delta"] > 0].sort_values("delta", ascending=False).head(limit)
-    neg = merged[merged["delta"] < 0].sort_values("delta").head(limit)
+    pos = (
+        merged[merged["delta_cumpl_pp"] > 0].sort_values("delta_cumpl_pp", ascending=False)
+    ).head(limit)
+    neg = merged[merged["delta_cumpl_pp"] < 0].sort_values("delta_cumpl_pp").head(limit)
     return {
         "positiva": [_row(r) for _, r in pos.iterrows()],
         "negativa": [_row(r) for _, r in neg.iterrows()],

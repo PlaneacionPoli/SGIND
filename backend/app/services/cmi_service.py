@@ -28,6 +28,8 @@ from app.domain.cmi_builders import (
     previous_corte,
 )
 from app.domain.cmi_filters import CMIFilterService
+from app.domain.escala_moneda import normalizar_pesos
+from app.domain.health_metrics import recalcular_cumplimiento_faltante
 from app.domain.periodicidad_especial import filtrar_por_anio
 from app.domain.linea_order import linea_sort_key, nombre_visible
 from app.domain.pdi_measurement import topar_proyectos_df
@@ -73,6 +75,16 @@ from app.services.indicator_service import IndicatorService
 from app.services.narrativa_ia_service import generar_narrativa_ficha
 from app.services.strategic_loaders import StrategicLoaders
 from app.services.tracking_cache import get_tracking_dataframe
+
+
+def _num_or_none(v: Any) -> float | None:
+    """float finito o None (NaN/None/texto no numérico)."""
+    try:
+        f = float(v)
+    except (TypeError, ValueError):
+        return None
+    return None if f != f or f in (float("inf"), float("-inf")) else f
+
 
 # Desde la fusión 2026-07-14, la ficha técnica vive en la hoja
 # "Ficha Tecnica Detalle" del directorio maestro dedicado (Catalogo de
@@ -311,37 +323,8 @@ class CMIService:
         if match.empty:
             return None
         row = match.iloc[0]
-        cierres = self._loaders.load_cierres()
-        historico: list[dict[str, Any]] = []
-        if not cierres.empty and "Id" in cierres.columns:
-            hist = cierres[cierres["Id"].astype(str) == str(indicador_id)].copy()
-            if marco.indicadores_desde != "catalogo" and "Anio" in hist.columns:
-                # Un PDI con hoja propia solo muestra su ciclo: el histórico de otros años va en POLISIGS.
-                hist = hist[
-                    pd.to_numeric(hist["Anio"], errors="coerce").map(
-                        lambda a: pd.notna(a) and marco.incluye_anio(int(a))
-                    )
-                ]
-            if not hist.empty:
-                hist = ensure_nivel_cumplimiento(hist)
-            if not hist.empty and "Anio" in hist.columns:
-                hist["Periodo"] = (
-                    hist["Anio"].astype(str)
-                    + "-"
-                    + hist.get("Mes", pd.Series([12] * len(hist)))
-                    .astype(int)
-                    .astype(str)
-                    .str.zfill(2)
-                )
-                for _, r in hist.sort_values("Periodo").iterrows():
-                    historico.append(
-                        {
-                            "periodo": str(r["Periodo"]),
-                            "meta": r.get("Meta"),
-                            "ejecucion": r.get("Ejecucion"),
-                            "cumplimiento": r.get("cumplimiento_pct"),
-                        }
-                    )
+        # El histórico NO depende del PDI/año elegidos; línea y objetivo (en `row`) sí.
+        historico = self._historico_indicador(indicador_id)
         record = df_to_records(match)[0]
         record["historico"] = historico
         record["linea_color"] = linea_color(str(row.get("Linea", "")))
@@ -358,17 +341,83 @@ class CMIService:
             cumplimiento=cump_f,
             proceso=str(row.get("Linea", "")) or None,
         )
-        tendencia = "Estable"
-        if len(historico) >= 2:
-            vals = [h["cumplimiento"] for h in historico if h.get("cumplimiento") is not None]
-            if len(vals) >= 2:
-                delta = float(vals[-1]) - float(vals[-2])
-                if delta > 2:
-                    tendencia = "Al alza"
-                elif delta < -2:
-                    tendencia = "A la baja"
+        tendencia = self._tendencia(historico)
         record["tendencia"] = tendencia
         return record
+
+    def _historico_indicador(self, indicador_id: str) -> list[dict[str, Any]]:
+        """Serie histórica COMPLETA del indicador (todos los años y cortes, incluidos los
+        intermedios), independiente del PDI y del año elegidos en los filtros: el PDI solo decide
+        línea/objetivo/meta. Cada punto trae la variación frente al corte anterior."""
+        tr = get_tracking_dataframe(self._excel, historico=True)
+        if tr.empty or "Id" not in tr.columns or "Fecha" not in tr.columns:
+            return []
+        h = tr[tr["Id"].astype(str).str.strip() == str(indicador_id).strip()].copy()
+        if h.empty:
+            return []
+        h = normalizar_pesos(h)
+        h["_fecha"] = pd.to_datetime(h["Fecha"], errors="coerce")
+        h = h.dropna(subset=["_fecha"]).sort_values("_fecha")
+        h = h.drop_duplicates(subset=["_fecha"], keep="last")
+        pct = pd.to_numeric(h.get("Cumplimiento"), errors="coerce") * 100
+        # El libro puede traer la fórmula de Cumplimiento sin valor calculado (nadie lo abrió en
+        # Excel tras el ETL): se recalcula con la misma regla del resto del sistema.
+        faltante = pct.isna() & pd.to_numeric(h["Meta"], errors="coerce").notna()
+        faltante &= pd.to_numeric(h["Ejecucion"], errors="coerce").notna()
+        if faltante.any():
+            pct.loc[faltante] = [
+                recalcular_cumplimiento_faltante(m, e, sen, i) * 100
+                for m, e, sen, i in zip(
+                    h.loc[faltante, "Meta"],
+                    h.loc[faltante, "Ejecucion"],
+                    h.loc[faltante].get("Sentido", pd.Series("Positivo", index=h.index[faltante])),
+                    h.loc[faltante, "Id"],
+                )
+            ]
+        nivelado = ensure_nivel_cumplimiento(
+            pd.DataFrame({"Id": h["Id"].astype(str).values, "cumplimiento_pct": pct.values})
+        )
+        h["_pct"] = nivelado["cumplimiento_pct"].values
+        puntos: list[dict[str, Any]] = []
+        prev_pct = prev_ejec = None
+        for _, r in h.iterrows():
+            ejec = _num_or_none(r.get("Ejecucion"))
+            meta = _num_or_none(r.get("Meta"))
+            cump = _num_or_none(r.get("_pct"))
+            signo = r.get("Meta_Signo")
+            dec = _num_or_none(r.get("Decimales_Meta"))
+            punto = {
+                "periodo": r["_fecha"].strftime("%Y-%m"),
+                "etiqueta": f"{mes_nombre(int(r['_fecha'].month))[:3]} {r['_fecha'].year}",
+                "meta": meta,
+                "ejecucion": ejec,
+                "cumplimiento": None if cump is None else round(cump, 1),
+                "signo": signo if isinstance(signo, str) and signo.strip() else None,
+                "decimales": None if dec is None else int(dec),
+                "variacion_cumplimiento_pp": (
+                    None if cump is None or prev_pct is None else round(cump - prev_pct, 1)
+                ),
+                "variacion_ejecucion": (
+                    None if ejec is None or prev_ejec is None else round(ejec - prev_ejec, 4)
+                ),
+            }
+            puntos.append(punto)
+            if cump is not None:
+                prev_pct = cump
+            if ejec is not None:
+                prev_ejec = ejec
+        return puntos
+
+    @staticmethod
+    def _tendencia(historico: list[dict[str, Any]]) -> str:
+        vals = [h["cumplimiento"] for h in historico if h.get("cumplimiento") is not None]
+        if len(vals) >= 2:
+            delta = float(vals[-1]) - float(vals[-2])
+            if delta > 2:
+                return "Al alza"
+            if delta < -2:
+                return "A la baja"
+        return "Estable"
 
     def _load_tracking(self) -> pd.DataFrame:
         return get_tracking_dataframe(self._excel, historico=False)
@@ -610,6 +659,7 @@ class CMIService:
             "analisis_avanzado": {},
             "calidad": build_calidad_dashboard(pd.DataFrame(), mensaje="Sin datos de tracking."),
             "vista_global": {},
+            "vista_filtrada": {},
             "ejecucion_variacion": {"positiva": [], "negativa": []},
             "meta": {"base_anio": anio_eff - 1, "base_mes": None, "latest_month_global": mes_eff},
         }
@@ -715,6 +765,17 @@ class CMIService:
             ids_linea=ids_linea,
         )
         latest = latest_per_indicator(filtered)
+        # "Procesos y Unidades" responde a los filtros del panel (año, mes, unidad, proceso, ...);
+        # `vista_global` (Resumen/Alertas) sigue siendo el corte global más reciente sin filtros.
+        vista_filtrada = build_vista_global(
+            filtered,
+            df_base_year,
+            cmi_catalog,
+            anio=anio_eff,
+            mes_corte=mes_eff,
+            base_year=base_year,
+            base_mes=base_mes,
+        )
 
         active_ids = (
             set(latest["Id"].astype(str).str.strip().tolist()) if "Id" in latest.columns else set()
@@ -813,6 +874,7 @@ class CMIService:
             "analisis_avanzado": analisis_avanzado,
             "calidad": calidad,
             "vista_global": vista_global,
+            "vista_filtrada": vista_filtrada,
             "ejecucion_variacion": ejecucion_variacion,
             "meta": {
                 "base_anio": base_year,
@@ -868,35 +930,36 @@ class CMIService:
         unidad: str | None = None,
         proceso: str | None = None,
         subproceso: str | None = None,
+        pdi: str | None = None,
     ) -> dict[str, Any] | None:
         tracking = self._load_tracking()
         map_df = load_process_map(self._excel)
         mes_eff = int(mes) if mes is not None else default_mes(tracking, int(anio))
         df = self._prepare_procesos_slice(tracking, map_df, anio=int(anio), mes=mes_eff)
         df = apply_ui_filters(df, unidad=unidad, proceso=proceso, subproceso=subproceso)
-        if df.empty or "Id" not in df.columns:
-            return None
-        match = df[df["Id"].astype(str) == str(indicador_id)]
+        match = (
+            df[df["Id"].astype(str) == str(indicador_id)]
+            if not df.empty and "Id" in df.columns
+            else pd.DataFrame()
+        )
+        if match.empty:
+            # El indicador no tiene registro en el corte/filtros elegidos: la ficha no debe
+            # desaparecer (el histórico es independiente de ellos); se muestra su último corte.
+            for h in reversed(self._historico_indicador(indicador_id)):
+                y, m = int(h["periodo"][:4]), int(h["periodo"][5:7])
+                cand = self._prepare_procesos_slice(tracking, map_df, anio=y, mes=m)
+                if cand.empty or "Id" not in cand.columns:
+                    continue
+                match = cand[cand["Id"].astype(str) == str(indicador_id)]
+                if not match.empty:
+                    df = cand
+                    break
         if match.empty:
             return None
         row = match.iloc[0]
 
-        historico: list[dict[str, Any]] = []
-        for m in range(1, 13):
-            sl = self._prepare_procesos_slice(tracking, map_df, anio=int(anio), mes=m)
-            if sl.empty or "Id" not in sl.columns:
-                continue
-            ind_sl = sl[sl["Id"].astype(str) == str(indicador_id)]
-            if not ind_sl.empty:
-                r = ind_sl.iloc[0]
-                historico.append(
-                    {
-                        "periodo": f"{anio}-{str(m).zfill(2)}",
-                        "meta": r.get("Meta"),
-                        "ejecucion": r.get("Ejecucion"),
-                        "cumplimiento": r.get("cumplimiento_pct"),
-                    }
-                )
+        # Todos los registros del indicador (todos los años y cortes), sin depender del PDI.
+        historico = self._historico_indicador(indicador_id)
 
         record = df_to_records(match)[0]
         record["historico"] = historico
@@ -922,18 +985,20 @@ class CMIService:
             cumplimiento=cump_f,
             proceso=proc_name,
         )
-        tendencia = "Estable"
-        if len(historico) >= 2:
-            vals = [h["cumplimiento"] for h in historico if h.get("cumplimiento") is not None]
-            if len(vals) >= 2:
-                delta = float(vals[-1]) - float(vals[-2])
-                if delta > 2:
-                    tendencia = "Al alza"
-                elif delta < -2:
-                    tendencia = "A la baja"
+        tendencia = self._tendencia(historico)
         record["tendencia"] = tendencia
         record.update(self._get_ficha_tecnica_extra(indicador_id))
-        record["asociaciones_pdi"] = self._asociaciones_pdi(indicador_id)
+        asociaciones = self._asociaciones_pdi(indicador_id)
+        # El PDI elegido solo decide línea/objetivo/meta mostrados; el histórico no depende de él.
+        sel = get_marco(pdi).version_id if pdi else None
+        for a in asociaciones:
+            a["seleccionado"] = sel is not None and a.get("version_id") == sel
+        asociaciones.sort(key=lambda a: not a["seleccionado"])
+        record["asociaciones_pdi"] = asociaciones
+        propia = next((a for a in asociaciones if a["seleccionado"]), None)
+        record["linea_estrategica"] = propia.get("linea") if propia else None
+        record["objetivo_estrategico"] = propia.get("objetivo") if propia else None
+        record["meta_estrategica"] = propia.get("meta") if propia else None
         return record
 
     def _asociaciones_pdi(self, indicador_id: str) -> list[dict[str, Any]]:

@@ -20,6 +20,7 @@ import pandas as pd
 from .normalizacion import (
     _es_vacio, _id_str, limpiar_html, nan2none, parse_json_safe,
 )
+from .config import IDS_DESGLOSE_VAR_DIRECTO
 from .no_aplica import SIGNO_NA, is_na_record
 
 logger = logging.getLogger(__name__)
@@ -43,7 +44,7 @@ _EXT_SERIES_TIPOS: FrozenSet[str] = frozenset([
     _EXT_SER_SUM_VAR, _EXT_SER_AVG_RES, _EXT_SER_AVG_VAR, _EXT_SER_SUM_RES,
 ])
 _EXT_DESGLOSE_SERIES = "Desglose Series"
-_IDS_DESGLOSE_VAR_DIRECTO: FrozenSet[str] = frozenset()
+_IDS_DESGLOSE_VAR_DIRECTO: FrozenSet[str] = IDS_DESGLOSE_VAR_DIRECTO
 
 # ── Metas fijas por regla de negocio (ignoran el valor reportado) ─────────
 _IDS_META_FIJA: Dict[str, float] = {"121": 100.0}

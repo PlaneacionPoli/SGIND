@@ -277,10 +277,26 @@ export interface CMIProcesosDashboardResponse {
   analisis_avanzado: CMIProcesosAnalisisAvanzado;
   calidad: CMICalidadDashboard;
   vista_global: CMIProcesosVistaGlobal;
+  /** Misma estructura que vista_global pero con el corte y los filtros elegidos en el panel. */
+  vista_filtrada?: CMIProcesosVistaGlobal;
   ejecucion_variacion: {
-    positiva: Array<{ indicador: string; ejecucion: number | null; delta: number; periodo: string }>;
-    negativa: Array<{ indicador: string; ejecucion: number | null; delta: number; periodo: string }>;
+    positiva: CMIEjecucionVariacionItem[];
+    negativa: CMIEjecucionVariacionItem[];
   };
+}
+
+/** Variación de ejecución entre el corte anterior y el actual (signo/unidad propios del indicador). */
+export interface CMIEjecucionVariacionItem {
+  indicador: string;
+  ejecucion: number | null;
+  ejecucion_previa?: number | null;
+  delta: number;
+  /** Variación del % de cumplimiento en puntos porcentuales: comparable entre unidades y sentidos. */
+  delta_cumpl_pp?: number | null;
+  signo?: string | null;
+  decimales?: number | null;
+  periodo: string;
+  periodo_previo?: string | null;
 }
 
 export interface CMICalidadDashboard {
@@ -386,11 +402,25 @@ export interface CMIProcesosAnalisisAvanzado {
 
 /** Línea/objetivo/meta del indicador en un PDI cuya vigencia cruza la del indicador. */
 export interface AsociacionPdi {
+  seleccionado?: boolean;
   version_id: string;
   pdi: string;
   linea: string | null;
   objetivo: string | null;
   meta: string | null;
+}
+
+/** Un corte del histórico completo del indicador, con su variación frente al corte anterior. */
+export interface FichaHistoricoPunto {
+  periodo: string;
+  etiqueta?: string;
+  meta?: number | null;
+  ejecucion?: number | null;
+  cumplimiento?: number | null;
+  signo?: string | null;
+  decimales?: number | null;
+  variacion_cumplimiento_pp?: number | null;
+  variacion_ejecucion?: number | null;
 }
 
 export interface CMIProcesosFichaIndicador extends Indicator {
@@ -409,12 +439,11 @@ export interface CMIProcesosFichaIndicador extends Indicator {
     texto_html: string;
     fuente: string;
   };
-  historico?: Array<{
-    periodo: string;
-    meta?: number;
-    ejecucion?: number;
-    cumplimiento?: number;
-  }>;
+  historico?: FichaHistoricoPunto[];
+  /** Línea/objetivo/meta del PDI seleccionado (el histórico NO depende del PDI). */
+  linea_estrategica?: string | null;
+  objetivo_estrategico?: string | null;
+  meta_estrategica?: string | null;
   Descripcion?: string;
   formula_calculo?: string;
   responsable?: string;
@@ -551,12 +580,7 @@ export interface CMIDashboardResponse {
 
 export interface CMIFichaIndicador extends Indicator {
   Descripcion?: string;
-  historico?: Array<{
-    periodo: string;
-    meta?: number;
-    ejecucion?: number;
-    cumplimiento?: number;
-  }>;
+  historico?: FichaHistoricoPunto[];
   linea_color?: string;
   tendencia?: string;
   "Responsable del calculo"?: string;

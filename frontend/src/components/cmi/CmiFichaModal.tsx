@@ -1,23 +1,18 @@
 "use client";
 
 import {
-  Bar,
-  CartesianGrid,
   Cell,
-  ComposedChart,
-  Legend,
   Line,
   LineChart,
   Pie,
   PieChart,
   ResponsiveContainer,
   Tooltip,
-  XAxis,
-  YAxis,
 } from "recharts";
 import type { CMIFichaIndicador } from "@/lib/types";
 import { fmtPct, NivelBadge, SobreejecucionBadge } from "@/components/cmi/nivelUtils";
 import { fmtMeta, fmtEjecucion } from "@/lib/formatValor";
+import { FichaHistoricoChart } from "@/components/cmi/FichaHistoricoChart";
 import { NIVEL_COLORS } from "@/components/cmi/cmiChartColors";
 
 interface CmiFichaModalProps {
@@ -52,14 +47,15 @@ export function CmiFichaModal({ ficha, loading, onClose, onDownloadPdf, download
 
   const historico = ficha?.historico ?? [];
   const sparkData = historico.slice(-8);
-  const multiYearData = historico.slice(-12);
   const { icon: tendIcon, color: tendColor } = tendenciaMeta(ficha?.tendencia);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
       <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-2xl bg-white shadow-xl">
         <div className="sticky top-0 flex items-center justify-between border-b border-slate-200 bg-white px-6 py-4">
-          <h3 className="text-lg font-bold text-poli-navy">Ficha del indicador</h3>
+          <h3 className="text-lg font-bold text-poli-navy">
+            {ficha ? `${ficha.Id} — ${ficha.Indicador}` : "Ficha del indicador"}
+          </h3>
           <div className="flex items-center gap-3">
             {onDownloadPdf && ficha && (
               <button
@@ -81,12 +77,17 @@ export function CmiFichaModal({ ficha, loading, onClose, onDownloadPdf, download
           <p className="p-6 text-sm text-slate-500">Cargando ficha...</p>
         ) : ficha ? (
           <div className="space-y-5 p-6">
+            {typeof ficha.Descripcion === "string" && ficha.Descripcion && (
+              <div>
+                <p className="text-xs font-semibold text-slate-500">Descripción</p>
+                <p className="text-sm text-slate-700">{ficha.Descripcion}</p>
+              </div>
+            )}
+
             <div>
-              <p className="text-xs text-slate-500">Código {ficha.Id}</p>
-              <h4 className="text-xl font-bold text-slate-900">{ficha.Indicador}</h4>
               {ficha.Linea && (
                 <span
-                  className="mt-2 inline-block rounded-full px-3 py-1 text-xs font-bold"
+                  className="inline-block rounded-full px-3 py-1 text-xs font-bold"
                   style={{
                     color: ficha.linea_color ?? "#1A3A5C",
                     backgroundColor: `${ficha.linea_color ?? "#1A3A5C"}22`,
@@ -96,7 +97,33 @@ export function CmiFichaModal({ ficha, loading, onClose, onDownloadPdf, download
                   {ficha.Linea}
                 </span>
               )}
+              {typeof ficha.Objetivo === "string" && ficha.Objetivo && (
+                <p className="mt-2 text-sm text-slate-700">
+                  <span className="font-semibold text-slate-600">Objetivo estratégico: </span>
+                  {ficha.Objetivo}
+                </p>
+              )}
             </div>
+
+            <div>
+              <p className="mb-2 text-sm font-semibold text-slate-700">
+                Evolución histórica (todos los periodos disponibles)
+              </p>
+              <FichaHistoricoChart historico={ficha.historico ?? []} />
+            </div>
+
+            {ficha.narrativa_ia && (
+              <div className="rounded-xl border border-blue-100 bg-blue-50/50 p-4">
+                <p className="mb-2 text-sm font-bold text-poli-navy">
+                  Análisis IA {ficha.narrativa_ia.fuente === "gemini" ? "" : "(heurístico)"}
+                </p>
+                <div
+                  className="prose prose-sm max-w-none text-slate-700"
+                  dangerouslySetInnerHTML={{ __html: ficha.narrativa_ia.texto_html }}
+                />
+                <p className="mt-2 text-[10px] text-slate-400">Fuente: {ficha.narrativa_ia.fuente}</p>
+              </div>
+            )}
 
             <div className="grid gap-4 sm:grid-cols-3">
               <Stat label="Meta" value={fmtMeta(ficha as Record<string, unknown>)} />
@@ -116,13 +143,6 @@ export function CmiFichaModal({ ficha, loading, onClose, onDownloadPdf, download
                 </span>
               )}
             </div>
-
-            {typeof ficha.Descripcion === "string" && ficha.Descripcion && (
-              <div>
-                <p className="text-xs font-semibold text-slate-500">Descripción</p>
-                <p className="text-sm text-slate-700">{ficha.Descripcion}</p>
-              </div>
-            )}
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="rounded-xl border border-slate-200 p-3">
@@ -186,37 +206,10 @@ export function CmiFichaModal({ ficha, loading, onClose, onDownloadPdf, download
               </div>
             </div>
 
-            {multiYearData.length > 0 && (
-              <div>
-                <p className="mb-2 text-sm font-semibold text-slate-700">Evolución histórica Meta / Ejecución / %</p>
-                <ResponsiveContainer width="100%" height={260}>
-                  <ComposedChart data={multiYearData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="periodo" tick={{ fontSize: 10 }} />
-                    <YAxis yAxisId="val" tick={{ fontSize: 10 }} />
-                    <YAxis yAxisId="pct" orientation="right" tick={{ fontSize: 10 }} />
-                    <Tooltip />
-                    <Legend wrapperStyle={{ fontSize: 11 }} />
-                    <Bar yAxisId="val" dataKey="meta" name="Meta" fill="#F59E0B" opacity={0.65} />
-                    <Bar yAxisId="val" dataKey="ejecucion" name="Ejecución" fill="#1A3A5C" opacity={0.85} />
-                    <Line
-                      yAxisId="pct"
-                      type="monotone"
-                      dataKey="cumplimiento"
-                      name="% Cumplimiento"
-                      stroke="#0EA5E9"
-                      strokeWidth={2}
-                      dot={{ r: 3 }}
-                    />
-                  </ComposedChart>
-                </ResponsiveContainer>
-              </div>
-            )}
 
             <div className="rounded-xl border border-slate-200 p-4">
               <p className="mb-3 text-sm font-semibold text-slate-700">Ficha de Identidad</p>
               <div className="grid gap-3 sm:grid-cols-2">
-                <IdentityField label="Objetivo" value={ficha.Objetivo as string | undefined} />
                 <IdentityField
                   label="Responsable"
                   value={ficha["Responsable del calculo"] as string | undefined}
@@ -231,19 +224,6 @@ export function CmiFichaModal({ ficha, loading, onClose, onDownloadPdf, download
                 />
               </div>
             </div>
-
-            {ficha.narrativa_ia && (
-              <div className="rounded-xl border border-blue-100 bg-blue-50/50 p-4">
-                <p className="mb-2 text-sm font-bold text-poli-navy">
-                  Análisis IA {ficha.narrativa_ia.fuente === "gemini" ? "" : "(heurístico)"}
-                </p>
-                <div
-                  className="prose prose-sm max-w-none text-slate-700"
-                  dangerouslySetInnerHTML={{ __html: ficha.narrativa_ia.texto_html }}
-                />
-                <p className="mt-2 text-[10px] text-slate-400">Fuente: {ficha.narrativa_ia.fuente}</p>
-              </div>
-            )}
           </div>
         ) : null}
       </div>

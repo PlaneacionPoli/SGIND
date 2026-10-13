@@ -1,12 +1,21 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { CMIProcesoBar, CMIProcesoComparativa, CMIProcesoDetalle, CMIProcesoTipoCard, CMIUnidadDetalle } from "@/lib/types";
 import { CmiCumplimientoHorizBarPlotly } from "@/components/cmi/CmiCumplimientoHorizBarPlotly";
 import { CmiProcesosBarPlotly } from "@/components/cmi/CmiProcesosBarPlotly";
+import { NIVEL_COLORS } from "@/components/cmi/cmiChartColors";
 import { fmtPct } from "@/components/cmi/nivelUtils";
 
 const PAGE_SIZE = 10;
+
+/** Color de semáforo por cumplimiento (< 80 peligro, < 100 alerta, < 105 cumplimiento). */
+function colorCumplimiento(v: number | null): string {
+  if (v == null) return NIVEL_COLORS["Pendiente de reporte"];
+  if (v < 80) return NIVEL_COLORS.Peligro;
+  if (v < 100) return NIVEL_COLORS.Alerta;
+  return v < 105 ? NIVEL_COLORS.Cumplimiento : NIVEL_COLORS.Sobrecumplimiento;
+}
 
 interface CmiProcesosUnidadesTabProps {
   unidades: CMIUnidadDetalle[];
@@ -28,6 +37,56 @@ export function CmiProcesosUnidadesTab({
   const [tipoFiltro, setTipoFiltro] = useState("Todos");
   const [page, setPage] = useState(0);
   const [expanded, setExpanded] = useState<string | null>(null);
+  // Desglose de la gráfica "Análisis por unidad": unidad → procesos → subprocesos.
+  const [unidadSel, setUnidadSel] = useState<string | null>(null);
+  const [procesoSel, setProcesoSel] = useState<string | null>(null);
+
+  // Si los filtros dejan de incluir la selección, se vuelve al nivel de unidades.
+  useEffect(() => {
+    if (unidadSel && !unidades.some((u) => u.unidad === unidadSel)) {
+      setUnidadSel(null);
+      setProcesoSel(null);
+    } else if (procesoSel && !procesos.some((p) => p.proceso === procesoSel)) {
+      setProcesoSel(null);
+    }
+  }, [unidades, procesos, unidadSel, procesoSel]);
+
+  const desglose = useMemo(() => {
+    if (unidadSel && procesoSel) {
+      const p = procesos.find((x) => x.proceso === procesoSel);
+      return {
+        titulo: "subprocesos",
+        items: (p?.subprocesos ?? []).map((s) => ({
+          label: s.subproceso,
+          value: s.cumplimiento,
+          color: colorCumplimiento(s.cumplimiento),
+        })),
+        onSelect: undefined as ((l: string) => void) | undefined,
+      };
+    }
+    if (unidadSel) {
+      return {
+        titulo: "procesos",
+        items: procesos
+          .filter((p) => p.unidad === unidadSel)
+          .map((p) => ({
+            label: p.proceso,
+            value: p.cumplimiento_promedio,
+            color: colorCumplimiento(p.cumplimiento_promedio),
+          })),
+        onSelect: (l: string) => setProcesoSel(l),
+      };
+    }
+    return {
+      titulo: "unidades",
+      items: unidades.map((u) => ({
+        label: u.unidad,
+        value: u.cumplimiento_promedio,
+        color: u.color ?? "#9E9E9E",
+      })),
+      onSelect: (l: string) => setUnidadSel(l),
+    };
+  }, [unidades, procesos, unidadSel, procesoSel]);
 
   const tipos = useMemo(() => {
     const set = new Set(comparativa.map((c) => c.tipo_proceso).filter(Boolean));
@@ -112,15 +171,47 @@ export function CmiProcesosUnidadesTab({
 
       <div className="grid gap-6 lg:grid-cols-2">
         <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_2px_12px_rgba(26,58,92,0.06)]">
-          <h4 className="mb-4 text-sm font-bold text-slate-800">Análisis por unidad</h4>
+          <h4 className="mb-2 text-sm font-bold text-slate-800">Análisis por unidad</h4>
+          <nav aria-label="Desglose" className="mb-3 flex flex-wrap items-center gap-1 text-xs">
+            <button
+              type="button"
+              onClick={() => {
+                setUnidadSel(null);
+                setProcesoSel(null);
+              }}
+              className={`rounded px-1.5 py-0.5 font-semibold ${unidadSel ? "text-blue-700 hover:underline" : "text-slate-700"}`}
+            >
+              Todas las unidades
+            </button>
+            {unidadSel && (
+              <>
+                <span className="text-slate-400">›</span>
+                <button
+                  type="button"
+                  onClick={() => setProcesoSel(null)}
+                  className={`rounded px-1.5 py-0.5 font-semibold ${procesoSel ? "text-blue-700 hover:underline" : "text-slate-700"}`}
+                >
+                  {unidadSel}
+                </button>
+              </>
+            )}
+            {procesoSel && (
+              <>
+                <span className="text-slate-400">›</span>
+                <span className="rounded px-1.5 py-0.5 font-semibold text-slate-700">{procesoSel}</span>
+              </>
+            )}
+          </nav>
           <CmiCumplimientoHorizBarPlotly
-            data={unidades.map((u) => ({
-              label: u.unidad,
-              value: u.cumplimiento_promedio,
-              color: u.color ?? "#9E9E9E",
-            }))}
-            emptyMessage="No hay unidades para el corte global"
+            data={desglose.items}
+            onSelect={desglose.onSelect}
+            emptyMessage={`No hay ${desglose.titulo} para los filtros elegidos`}
           />
+          <p className="mt-2 text-[11px] text-slate-500">
+            {desglose.onSelect
+              ? `Haz clic en una barra para ver sus ${unidadSel ? "subprocesos" : "procesos"}.`
+              : "Último nivel: subprocesos del proceso seleccionado."}
+          </p>
         </div>
         <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_2px_12px_rgba(26,58,92,0.06)]">
           <h4 className="mb-4 text-sm font-bold text-slate-800">

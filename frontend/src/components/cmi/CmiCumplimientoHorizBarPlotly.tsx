@@ -15,12 +15,15 @@ interface CmiCumplimientoHorizBarPlotlyProps {
   data: CumplimientoBarItem[];
   title?: string;
   emptyMessage?: string;
+  /** Si se pasa, las barras son clicables (desglose): recibe la etiqueta completa de la barra. */
+  onSelect?: (label: string) => void;
 }
 
 export function CmiCumplimientoHorizBarPlotly({
   data,
   title,
   emptyMessage = "Sin datos",
+  onSelect,
 }: CmiCumplimientoHorizBarPlotlyProps) {
   if (!data.length) {
     return (
@@ -39,7 +42,10 @@ export function CmiCumplimientoHorizBarPlotly({
     marker: { color: sorted.map((d) => d.color) },
     text: sorted.map((d) => (d.value != null ? `${d.value.toFixed(1)}%` : "—")),
     textposition: "outside" as const,
-    hovertemplate: "<b>%{y}</b><br>Cumplimiento: %{x:.1f}%<extra></extra>",
+    customdata: sorted.map((d) => d.label),
+    hovertemplate: onSelect
+      ? "<b>%{customdata}</b><br>Cumplimiento: %{x:.1f}%<br><i>Clic para desglosar</i><extra></extra>"
+      : "<b>%{customdata}</b><br>Cumplimiento: %{x:.1f}%<extra></extra>",
   };
 
   const layout: Partial<Layout> = {
@@ -59,8 +65,12 @@ export function CmiCumplimientoHorizBarPlotly({
       data={[trace]}
       layout={layout}
       config={{ displayModeBar: false, responsive: true }}
-      style={{ width: "100%" }}
+      style={{ width: "100%", cursor: onSelect ? "pointer" : undefined }}
       useResizeHandler
+      onClick={(e) => {
+        const label = e.points?.[0]?.customdata;
+        if (onSelect && typeof label === "string") onSelect(label);
+      }}
     />
   );
 }

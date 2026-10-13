@@ -269,3 +269,42 @@ def test_lectura_de_excel_bloqueado_usa_una_copia(tmp_path, monkeypatch):
     assert (
         len(llamadas) == 2 and llamadas[0] != llamadas[1]
     )  # el segundo intento fue sobre la copia
+
+
+def test_ejecucion_variacion_ordena_por_cumplimiento_pp_y_trae_unidad():
+    from app.domain.procesos_builders import build_ejecucion_variacion
+
+    cur = pd.DataFrame(
+        {
+            "Id": ["1", "2", "3", "4"],
+            "Indicador": ["Pesos", "Porcentaje", "Conteo", "Menor es mejor"],
+            "Ejecucion": [200_000_000_000.0, 55.0, 150.0, 20.0],
+            "cumplimiento_pct": [105.0, 92.0, 100.0, 110.0],
+            "Mes": ["Junio"] * 4,
+            "Anio": [2026] * 4,
+            "Meta_Signo": ["$", "%", "ENT", "DEC"],
+            "Decimales_Meta": [0, 1, 0, 0],
+        }
+    )
+    prev = pd.DataFrame(
+        {
+            "Id": ["1", "2", "3", "4"],
+            "Ejecucion": [190_000_000_000.0, 50.0, 100.0, 30.0],
+            "cumplimiento_pct": [100.0, 80.0, 90.0, 85.0],
+            "Mes": [5] * 4,
+            "Anio": [2026] * 4,
+        }
+    )
+    out = build_ejecucion_variacion(cur, prev)
+    # Se ordena por la mejora del % de cumplimiento (pp), no por la diferencia absoluta; el
+    # indicador "menor es mejor" bajó su ejecución (-10) pero MEJORÓ su cumplimiento (+25 pp).
+    assert [r["indicador"] for r in out["positiva"]] == [
+        "Menor es mejor",
+        "Porcentaje",
+        "Conteo",
+        "Pesos",
+    ]
+    assert out["positiva"][1]["signo"] == "%" and out["positiva"][1]["delta_cumpl_pp"] == 12.0
+    assert out["positiva"][0]["delta"] == -10.0
+    assert out["positiva"][0]["periodo_previo"] == "Mayo 2026"
+    assert out["negativa"] == []

@@ -154,6 +154,7 @@ async def cmi_procesos_indicador_ficha(
     unidad: str | None = Query(None),
     proceso: str | None = Query(None),
     subproceso: str | None = Query(None),
+    pdi: str | None = Query(None),
     _user: User = Depends(require_reader),
     service: CMIService = Depends(_cmi_service),
 ) -> FichaIndicadorResponse:
@@ -165,6 +166,7 @@ async def cmi_procesos_indicador_ficha(
         unidad=unidad,
         proceso=proceso,
         subproceso=subproceso,
+        pdi=pdi,
     )
     if ficha is None:
         raise HTTPException(status_code=404, detail="Indicador no encontrado para CMI por Procesos")

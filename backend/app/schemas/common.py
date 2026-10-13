@@ -194,6 +194,7 @@ class CMIProcesosDashboardResponse(BaseModel):
     analisis_avanzado: dict[str, Any] = Field(default_factory=dict)
     calidad: dict[str, Any] = Field(default_factory=dict)
     vista_global: dict[str, Any] = Field(default_factory=dict)
+    vista_filtrada: dict[str, Any] = Field(default_factory=dict)
     ejecucion_variacion: dict[str, Any] = Field(default_factory=dict)
     meta: dict[str, Any] = Field(default_factory=dict)
 

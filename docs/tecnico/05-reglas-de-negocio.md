@@ -103,7 +103,7 @@ cifras de un año anterior.
 | Sección | Indicador anual sin reporte del año | Dónde se implementa |
 |---|---|---|
 | Indicadores POLISIGS | Muestra el último dato anual, rotulando el corte real («Diciembre 2025») | `services/polisigs_service.py::_ultimo_fallback_anual` |
-| CMI Estratégico (PDI con hoja propia, p. ej. 2026-2030) | «Pendiente de medición» (nivel interno `Pendiente de reporte`); la ficha solo trae histórico de los años del ciclo | `domain/strategic_processors.py::preparar_pdi_marco_con_cierre`, `services/cmi_service.py::get_indicador_ficha` |
+| CMI Estratégico (PDI con hoja propia, p. ej. 2026-2030) | «Pendiente de medición» (nivel interno `Pendiente de reporte`). **La ficha del indicador trae TODO el histórico** (ver RN-Ficha); solo el valor del corte mostrado sigue la regla | `domain/strategic_processors.py::preparar_pdi_marco_con_cierre`, `services/cmi_service.py::get_indicador_ficha` |
 | CMI por Procesos (PDI con hoja propia) | Solo ofrece los años del ciclo del PDI | `services/cmi_service.py::get_procesos_filtros` |
 | Resto de secciones | No arrastran datos de otro año | — |
 
@@ -163,3 +163,6 @@ Anual" o "Negativo-Porcentual", que solo RN-03 conoce.
 | RN-Escala $ | Filas en "$" con meta/ejecución < $100 M en pesos se toman como millones (×1.000.000). | `app/data/escala_moneda.toml`, `domain/escala_moneda.py` |
 | RN-Ingresos ciclo | En el Cierre PDI 2022-2025, Ids 203, 385, 386.1-386.3 = suma de los años del ciclo. | `domain/strategic_processors.py::_acumular_ingresos_ciclo` |
 | RN-Variables | Id 228 (Compensación GEI): Meta/Ejecución = suma de variables tCO2eq / tCO2eqC del desglose. | `app/data/cierre_variables.toml` |
+| RN-Ficha | Las fichas de indicador (CMI Estratégico y CMI por Procesos) muestran el histórico COMPLETO (todos los años y cortes, incluidos los intermedios), independiente del PDI y del año/mes elegidos. El PDI solo decide línea, objetivo y meta mostrados. Cada punto trae la variación del % de cumplimiento (pp) frente al corte anterior. Si el corte elegido no tiene registro del indicador, la ficha muestra su último corte en vez de fallar. | `services/cmi_service.py::_historico_indicador`, `FichaHistoricoChart.tsx` |
+| RN-Resumen semestral | El resumen del CMI por Procesos solo ofrece los cortes de junio y diciembre (consolidado semestral); las fichas no se limitan a ellos. | `services/tracking_cache.py` (`historico=False`), `get_procesos_filtros` |
+| RN-Ratio % | Indicadores 'Tipo 2 / Desglose Variables' en % cuya fórmula es un cociente ×100 se leen directo del API (meta % y resultado %), no de los conteos de sus variables (Ids 69, 86, 88, 91, 235, 282, 344, 397, 426). Lista parametrizada; los demás conteos conservan «%» por decisión de negocio (ver `revision_indicadores_tipo2_porcentaje.md`). | `config/settings.toml` (`ids_desglose_var_directo`), `scripts/etl/extraccion.py` |

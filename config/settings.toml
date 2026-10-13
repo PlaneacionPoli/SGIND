@@ -7,6 +7,10 @@ name = "Indicadores_Oportunidad_Mejora"
 "año_cierre"    = 2026
 ids_plan_anual   = ["373","390","414","415","416","417","418","420","469","470","471"]
 ids_tope_100     = ["208","218","92","104","106","124","125","126","127","128","272"]
+# Indicadores 'Tipo 2 / Desglose Variables' con formato % cuya fórmula es un cociente ×100: el catálogo
+# guardaba como Meta/Ejecución los CONTEOS de las variables (p. ej. 69: 1.249 y 1.137 con unidad %).
+# Se toman directamente del API (meta % y resultado %), igual que los 'Tipo 1'.
+ids_desglose_var_directo = ["69","88","91","235","282","344","397","426","86"]
 # IDs que NO deben excluirse aunque no estén en el catálogo Kawak del año
 ids_siempre_validos = []
 

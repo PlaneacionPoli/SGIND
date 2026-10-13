@@ -70,6 +70,11 @@ else:
         str(x) for x in _BIZ.get("ids_tope_100", _DEFAULT_TOPE_100)
     )
 
+# Desglose Variables que se leen directo del API (meta/resultado en %), no de las variables.
+IDS_DESGLOSE_VAR_DIRECTO: FrozenSet[str] = frozenset(
+    str(x) for x in _BIZ.get("ids_desglose_var_directo", [])
+)
+
 # ── Series → sub-indicadores ──────────────────────────────────────
 def _cargar_series_subindicadores() -> Dict[str, str]:
     """Carga config/series_subindicadores.toml → {"420.1": "SGC", ...}"""
