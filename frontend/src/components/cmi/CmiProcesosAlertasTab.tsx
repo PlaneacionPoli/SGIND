@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import type { Data, Layout } from "plotly.js";
 import type { CMIAlertaCritica, Indicator } from "@/lib/types";
-import { fmtPct, NivelBadge } from "@/components/cmi/nivelUtils";
+import { fmtPct, NivelBadge, SobreejecucionBadge } from "@/components/cmi/nivelUtils";
 import { fmtMeta, fmtEjecucion } from "@/lib/formatValor";
 
 const Plot = dynamic(() => import("react-plotly.js"), { ssr: false });
@@ -264,6 +264,7 @@ export function CmiProcesosAlertasTab({
                         </td>
                         <td className="px-4 py-3">
                           <NivelBadge nivel={ind["Nivel de cumplimiento"] as string} />
+<SobreejecucionBadge nivel={ind["Nivel sobreejecucion"] as string | undefined} />
                         </td>
                       </tr>
                     );

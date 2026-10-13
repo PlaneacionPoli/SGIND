@@ -104,15 +104,17 @@ En proyectos, la línea completó la Fase I de sus tres iniciativas: el Institut
 ### Logros — Indicadores
 *(Actualizado 2026-09-29: se agrega el indicador agregado "Ingresos totales de educación para la vida" — ver nota ⚠️ abajo, mismo patrón que Cumplimiento de Ingresos de Sostenibilidad.)*
 
-El CMI promedia 107,8% de cumplimiento, resultado impulsado principalmente por el frente de educación continua: los ingresos B2B crecieron muy por encima de la meta, con un cumplimiento de 130%, lo que confirma que el relacionamiento con el sector empresarial logró resultados comerciales concretos en el ciclo. El indicador agregado de ingresos totales de educación para la vida cerró 2025 en 108,9% (meta $17.058, ejecución $18.570), consistente con el buen desempeño de sus componentes B2B, B2G y otros ingresos. El segundo objetivo de la línea aún no arrancó y será foco de atención en el próximo ciclo.
+El CMI promedia 99,2% de cumplimiento, el más bajo del portafolio. Sumando los ingresos de los cuatro años del ciclo, el indicador agregado de ingresos totales de educación para la vida llegó a 99,9% de su meta (meta $60.024 M, ejecución $59.956 M), prácticamente en meta. Por componente, los ingresos B2B sobrecumplieron (115,4%) y otros ingresos por cursos y opciones de grado también (107,0%), lo que confirma que el relacionamiento con el sector empresarial logró resultados comerciales concretos; en contraste, los ingresos B2G quedaron en 74,6% de la meta, el principal rezago de la línea. El segundo objetivo de la línea aún no arrancó y será foco de atención en el próximo ciclo.
+
+*(Actualizado 2026-10-12: cifras de ingresos = suma 2022-2025 y escala unificada a pesos — ver sección «Actualización 2026-10-12». La nota ⚠️ siguiente es histórica: hoy Id 385 y sus componentes sí cuentan en la tabla CMI.)*
 
 > ⚠️ **Hallazgo de calidad de dato:** "Ingresos totales de educación para la vida" (Id 385) tiene valores reales en "Consolidado Cierres" (108,9% en el cierre 2025: meta $17.058, ejecución $18.570) pero la hoja oficial "Cierre PDI" tiene esa fila vacía — mismo patrón exacto que "Cumplimiento de Ingresos" (Id 203, Sostenibilidad). Mientras "Cierre PDI" no se actualice, sigue sin contar en el total oficial de 48 indicadores (49 antes de retirar SNIES) ni aparece en la tabla CMI, solo en el texto. Revisé también el tercer indicador "sin medición" ("Nivel de empleabilidad del graduado", Id 331): ese es un caso distinto — no tiene Meta en ninguna hoja (ni Cierre PDI ni Consolidado Cierres), solo ejecución (81-83%), así que no hay cumplimiento que calcular en ningún lado.
 
 ### Logros — Consolidado
-El balance consolidado (retos 94,7%, indicadores 107,8%; proyectos N/A) promedia 101,2%, revela dos velocidades marcadamente distintas. El frente de educación continua (B2B/B2G) funciona y genera resultados comerciales reales, mientras la incursión en Educación Media y ETDH —comprometida en el PDI 2022-2026 con metas explícitas— ejecutó su Fase I pero sus 3 proyectos están en stand by a la espera de definiciones para continuar. Es la línea que más requiere una decisión estratégica explícita antes de iniciar el PDI 2026-2030.
+El balance consolidado (retos 94,7%, indicadores 99,2%; proyectos N/A) promedia 97,0%, revela dos velocidades marcadamente distintas. El frente de educación continua funciona y genera resultados comerciales reales (B2B y otros ingresos sobre meta, B2G por debajo), mientras la incursión en Educación Media y ETDH —comprometida en el PDI 2022-2026 con metas explícitas— ejecutó su Fase I pero sus 3 proyectos están en stand by a la espera de definiciones para continuar. Es la línea que más requiere una decisión estratégica explícita antes de iniciar el PDI 2026-2030.
 
 ### Pendientes y prioridades
-El principal foco estratégico de la línea es la incursión en Educación Media y ETDH, comprometida en el PDI 2022-2026 con metas explícitas: 10 programas ETDH con 750 estudiantes cada uno, y un colegio virtual de 100 estudiantes al 2026. La Fase I ya se completó, pero los tres proyectos siguen en pausa a la espera de las definiciones necesarias para continuar. Resolver esas definiciones es la decisión estratégica central para el PDI 2026-2030: avanzar a la siguiente fase con la viabilidad ya validada, redefinir su alcance, o descontinuar formalmente esta apuesta en favor de profundizar el frente de educación continua B2B/B2G, que sí demostró resultados comerciales. A esto se suman dos indicadores por seguir de cerca: ingresos B2G (97,4%) y otros ingresos por cursos y opciones de grado (96%), ambos levemente por debajo de meta.
+El principal foco estratégico de la línea es la incursión en Educación Media y ETDH, comprometida en el PDI 2022-2026 con metas explícitas: 10 programas ETDH con 750 estudiantes cada uno, y un colegio virtual de 100 estudiantes al 2026. La Fase I ya se completó, pero los tres proyectos siguen en pausa a la espera de las definiciones necesarias para continuar. Resolver esas definiciones es la decisión estratégica central para el PDI 2026-2030: avanzar a la siguiente fase con la viabilidad ya validada, redefinir su alcance, o descontinuar formalmente esta apuesta en favor de profundizar el frente de educación continua B2B/B2G, que sí demostró resultados comerciales. A esto se suma un indicador por seguir de cerca: los ingresos B2G, que acumulan 74,6% de la meta del ciclo y requieren un plan de recuperación comercial.
 ---
 
 ## 4. Experiencia
@@ -184,15 +186,15 @@ Es la línea con mejor ejecución de proyectos del portafolio: 99,3% de avance p
 ### Logros — Indicadores
 *(Actualizado: se reemplaza Caja por EBITDA/Utilidad Neta [ya corregido antes] y se agrega Cumplimiento de Ingresos, 111,3%, usando el cierre 2025 de la hoja "Consolidado Cierres" — ver nota ⚠️ abajo.)*
 
-El CMI promedia 112,6% de cumplimiento, el más alto del portafolio, apalancado en la ejecución financiera: EBITDA, Utilidad Neta y Cumplimiento de Ingresos sobrecumplieron meta (117,5%, 130% y 111,3% respectivamente). El componente social, en cambio, avanza más lento: el impacto de actividades de responsabilidad social llegó a 84,4% y la participación en voluntariados a 86,8%.
+El CMI promedia 110,6% de cumplimiento, el más alto del portafolio, apalancado en la ejecución financiera: EBITDA, Utilidad Neta y Cumplimiento de Ingresos sobrecumplieron meta (117,5%, 130% y 106,4% respectivamente, este último sobre la suma de los ingresos 2022-2025). El componente social, en cambio, avanza más lento: el impacto de actividades de responsabilidad social llegó a 84,4% y la participación en voluntariados a 86,8%.
 
 > ⚠️ **Hallazgo de calidad de dato:** "Cumplimiento de Ingresos" (Id 203, Sostenibilidad) tiene valores reales en la hoja "Consolidado Cierres" (111,3% en el cierre 2025), pero la hoja oficial **"Cierre PDI"** —de donde el Informe Ejecutivo toma Meta/Ejecución/Cumplimiento— tiene esa fila vacía (Meta/Ejecución en blanco, fecha "Avance" sin resolver). Usé el valor de "Consolidado Cierres" para el texto, pero mientras "Cierre PDI" no se actualice, este indicador **no aparece en el conteo oficial de indicadores del PDF** (el total de 48 indicadores, 49 antes de retirar SNIES / la tabla CMI de la línea no lo incluyen, porque esa tabla sale de un cruce que exige fila en "Cierre PDI"). Si confirman que 111,3% es el cierre correcto, hay que cargarlo también en "Cierre PDI" para que el indicador cuente en el total y aparezca en la tabla, no solo en el texto.
 
 ### Logros — Consolidado
-El balance consolidado (retos 97,9%, proyectos 99,3%, indicadores 112,6%) confirma que Sostenibilidad es, junto con Expansión, la línea de mejor desempeño integral del ciclo, con una ejecución de proyectos ejemplar y una gestión financiera sólida — con la salvedad de que el componente de proyección social y voluntariado avanza a un ritmo menor que el ambiental y el financiero, y debe fortalecerse en el siguiente ciclo.
+El balance consolidado (retos 97,9%, proyectos 99,3%, indicadores 110,6%) confirma que Sostenibilidad es, junto con Expansión, la línea de mejor desempeño integral del ciclo, con una ejecución de proyectos ejemplar y una gestión financiera sólida — con la salvedad de que el componente de proyección social y voluntariado avanza a un ritmo menor que el ambiental y el financiero, y debe fortalecerse en el siguiente ciclo.
 
 ### Pendientes y prioridades
-No hay proyectos pendientes de inicio en esta línea, pero cuatro indicadores requieren seguimiento gerencial: la ejecución de Opex (110,6%) y CAPEX (107,1%) supera lo presupuestado, lo que amerita revisar la disciplina de gasto frente a la planeación financiera, y el impacto de actividades de responsabilidad social (84,4%) y la participación en voluntariados (86,8%) quedan por debajo de meta, señal de que el componente de proyección social avanza más lento que el ambiental y el financiero. Para el PDI 2026-2030 la prioridad es doble: fortalecer el control de ejecución presupuestal y activar una estrategia específica de movilización de la comunidad hacia la proyección social, hoy el eslabón más débil de la línea.
+No hay proyectos pendientes de inicio en esta línea, pero tres indicadores requieren seguimiento gerencial: la ejecución de Opex (110,6%) supera en más de 10% lo presupuestado, lo que amerita revisar la disciplina de gasto frente a la planeación financiera (CAPEX, con 107,1%, se mantiene dentro del rango), y el impacto de actividades de responsabilidad social (84,4%) y la participación en voluntariados (86,8%) quedan por debajo de meta, señal de que el componente de proyección social avanza más lento que el ambiental y el financiero. Para el PDI 2026-2030 la prioridad es doble: fortalecer el control de ejecución presupuestal y activar una estrategia específica de movilización de la comunidad hacia la proyección social, hoy el eslabón más débil de la línea.
 
 > ⚠️ **Nota (Opex/CAPEX):** este párrafo trata Opex/CAPEX sobre-ejecutado como algo a "revisar", no como incumplimiento — coherente con tu decisión "mantener como está" (no se definió una regla de "dentro de presupuesto" separada). Señalado por transparencia, no requiere acción.
 
@@ -253,3 +255,30 @@ Casos resueltos a mano con el usuario (nombres que no coincidían entre hojas po
 - **PRY-17** "Centro de Idiomas Fase I": existe en Cierre PDI (Id 901) pero sin Meta/Ejecución — confirmado Stand by real, no un vacío de carga.
 - **PRY-33** "Ilumno Self Service S&P": sin cierre en ninguna hoja — confirmado Meta 100 / Ejecución 100.
 - **PRY-43/PRY-44**: sin cierre en ninguna hoja — confirmado que a cierre de 2025 estaban en Planeación (0% de avance).
+
+## Actualización 2026-10-12 — Cierre PDI: orden, ingresos acumulados, escala en pesos y variables
+
+Cambios de datos/presentación pedidos por negocio; el JSON de narrativa se regeneró y los textos de Educación para toda la vida y Sostenibilidad se reescribieron con las cifras nuevas.
+
+| Cambio | Detalle |
+|---|---|
+| Orden de indicadores | Expansión y Sostenibilidad (ambos PDI) siguen el orden institucional; objetivos y metas se ordenan por la posición de sus indicadores. "Cumplimiento total estudiantes antiguos" se muestra como "Total estudiantes antiguos". |
+| Solo el año correspondiente | El CMI Estratégico por año (PDI 2022-2026) ya no arrastra el último cierre de años anteriores (RN-21): 2025 pasa de 53 a 43 indicadores; "% de depuración histórico SNIES" (Id 465) solo existe en 2024. |
+| Ingresos acumulados en el Cierre PDI | Ids 203, 385, 386.1-386.3 = suma de los cierres de diciembre 2022-2025 (meta y ejecución). |
+| Escala en pesos | Filas "$" con meta/ejecución < $100 M en pesos se toman como millones y se ×1.000.000 (`app/data/escala_moneda.toml`); el % de cumplimiento no cambia. |
+| Compensación de GEI (Id 228) | Meta = tCO2e generadas y Ejecución = tCO2e compensadas (variables del desglose), por año (`app/data/cierre_variables.toml`). |
+
+| Indicador / línea | Antes | Ahora |
+|---|---|---|
+| Cumplimiento de Ingresos (Id 203) | 111,3% (solo 2025) | **106,4%** (suma 2022-2025: $1.088.228 M → $1.157.688 M) |
+| Ingresos totales educación para la vida (385) | 108,9% | **99,9%** ($60.024 M → $59.956 M) |
+| Total Ingresos B2B / B2G / Otros | 130% / 97,4% / 96% | **115,4% / 74,6% / 107,0%** |
+| Educación para toda la vida | ind. 107,8% → cons. 101,2% | ind. **99,2%** → cons. **97,0%** |
+| Sostenibilidad | ind. 112,6% → cons. 103,3% | ind. **110,6%** → cons. **102,6%** (incluye tope 100% en Opex/CAPEX) |
+| Consolidado global | 100,7% | **99,9%** |
+
+⚠️ **Hallazgos de calidad de dato**
+- B2B + B2G + Otros ($40.560 M) no cuadran con el total ($60.024 M): en 2023 B2B y B2G no tienen ejecución reportada y esas filas no entran a la suma.
+- Id 204 (Caja), 205 (Utilidad Neta) y 376 (EBITDA) también traían 2022 en millones; quedan normalizados en las vistas por año.
+- Id 228 no está en la hoja "Cierre PDI"; su meta de 2024 usa las tCO2e generadas del Id 226 (no hay desglose del 228 ese año).
+- El PDF se genera bajo demanda con estas cifras; no hay archivo PDF guardado que regenerar.

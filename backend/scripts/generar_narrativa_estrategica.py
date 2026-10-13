@@ -304,15 +304,16 @@ TEXTOS_LINEAS = {
                 "género quedó aprobada con líneas base definidas por vicerrectoría."
             ),
             "indicadores": (
-                "El CMI promedia 112,6% de cumplimiento, el más alto del portafolio, "
+                "El CMI promedia 110,6% de cumplimiento, el más alto del portafolio, "
                 "apalancado en la ejecución financiera: EBITDA, Utilidad Neta y Cumplimiento de "
-                "Ingresos sobrecumplieron meta (117,5%, 130% y 111,3% respectivamente). El "
+                "Ingresos sobrecumplieron meta (117,5%, 130% y 106,4% respectivamente, este último sobre "
+                "la suma de los ingresos 2022-2025). El "
                 "componente social, en cambio, avanza más lento: el impacto de actividades de "
                 "responsabilidad social llegó a 84,4% y la participación en voluntariados a "
                 "86,8%."
             ),
             "consolidado": (
-                "El balance consolidado (retos 97,9%, proyectos 99,3%, indicadores 112,6%) "
+                "El balance consolidado (retos 97,9%, proyectos 99,3%, indicadores 110,6%) "
                 "confirma que Sostenibilidad es, junto con Expansión, la línea de mejor "
                 "desempeño integral del ciclo, con una ejecución de proyectos ejemplar y una "
                 "gestión financiera sólida — con la salvedad de que el componente de "
@@ -321,10 +322,10 @@ TEXTOS_LINEAS = {
             ),
         },
         "pendientes": (
-            "No hay proyectos pendientes de inicio en esta línea, pero cuatro indicadores "
-            "requieren seguimiento gerencial: la ejecución de Opex (110,6%) y CAPEX (107,1%) "
-            "supera lo presupuestado, lo que amerita revisar la disciplina de gasto frente a la "
-            "planeación financiera, y el impacto de actividades de responsabilidad social "
+            "No hay proyectos pendientes de inicio en esta línea, pero tres indicadores "
+            "requieren seguimiento gerencial: la ejecución de Opex (110,6%) supera en más de "
+            "10% lo presupuestado, lo que amerita revisar la disciplina de gasto frente a la "
+            "planeación financiera (CAPEX, con 107,1%, se mantiene dentro del rango), y el impacto de actividades de responsabilidad social "
             "(84,4%) y la participación en voluntariados (86,8%) quedan por debajo de meta, "
             "señal de que el componente de proyección social avanza más lento que el ambiental "
             "y el financiero. Para el PDI 2026-2030 la prioridad es doble: fortalecer el "
@@ -351,19 +352,21 @@ TEXTOS_LINEAS = {
                 "listos para avanzar a su siguiente fase en el próximo ciclo del PDI."
             ),
             "indicadores": (
-                "El CMI promedia 107,8% de cumplimiento, resultado impulsado principalmente por "
-                "el frente de educación continua: los ingresos B2B crecieron muy por encima de "
-                "la meta, con un cumplimiento de 130%, lo que confirma que el relacionamiento "
-                "con el sector empresarial logró resultados comerciales concretos en el ciclo. El "
-                "indicador agregado de ingresos totales de educación para la vida cerró 2025 en "
-                "108,9% (meta $17.058, ejecución $18.570), consistente con el buen desempeño de "
-                "sus componentes B2B, B2G y otros ingresos. El segundo objetivo de la línea aún "
-                "no arrancó y será foco de atención en el próximo ciclo."
+                "El CMI promedia 99,2% de cumplimiento, el más bajo del portafolio. Sumando los "
+                "ingresos de los cuatro años del ciclo, el indicador agregado de ingresos totales "
+                "de educación para la vida llegó a 99,9% de su meta (meta $60.024 M, ejecución "
+                "$59.956 M), prácticamente en meta. Por componente, los ingresos B2B sobrecumplieron "
+                "(115,4%) y otros ingresos por cursos y opciones de grado también (107,0%), lo que "
+                "confirma que el relacionamiento con el sector empresarial logró resultados "
+                "comerciales concretos; en contraste, los ingresos B2G quedaron en 74,6% de la meta, "
+                "el principal rezago de la línea. El segundo objetivo de la línea aún no arrancó y "
+                "será foco de atención en el próximo ciclo."
             ),
             "consolidado": (
-                "El balance consolidado (retos 94,7%, indicadores 107,8%; proyectos N/A) "
-                "promedia 101,2%, revela dos velocidades marcadamente distintas. El frente de "
-                "educación continua (B2B/B2G) funciona y genera resultados comerciales reales, "
+                "El balance consolidado (retos 94,7%, indicadores 99,2%; proyectos N/A) "
+                "promedia 97,0%, revela dos velocidades marcadamente distintas. El frente de "
+                "educación continua funciona y genera resultados comerciales reales (B2B y otros "
+                "ingresos sobre meta, B2G por debajo), "
                 "mientras la incursión en Educación Media y ETDH —comprometida en el PDI "
                 "2022-2026 con metas explícitas— ejecutó su Fase I pero sus 3 proyectos están "
                 "en stand by a la espera de definiciones para continuar. Es la línea que más "
@@ -379,9 +382,9 @@ TEXTOS_LINEAS = {
             "estratégica central para el PDI 2026-2030: avanzar a la siguiente fase con la "
             "viabilidad ya validada, redefinir su alcance, o descontinuar formalmente esta "
             "apuesta en favor de profundizar el frente de educación continua B2B/B2G, que sí "
-            "demostró resultados comerciales. A esto se suman dos indicadores por seguir de cerca: ingresos "
-            "B2G (97,4%) y otros ingresos por cursos y opciones de grado (96%), ambos "
-            "levemente por debajo de meta."
+            "demostró resultados comerciales. A esto se suma un indicador por seguir de cerca: "
+            "los ingresos B2G, que acumulan 74,6% de la meta del ciclo y requieren un plan de "
+            "recuperación comercial."
         ),
     },
 }

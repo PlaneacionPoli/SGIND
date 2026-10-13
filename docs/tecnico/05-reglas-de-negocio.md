@@ -152,3 +152,14 @@ CMI Estratégico (que usan RN-03 correctamente) y con un color/estado
 distinto en Informe por Procesos o en las cards de línea estratégica (que
 usan RN-04/05/06/07), especialmente para indicadores bajo el régimen "Plan
 Anual" o "Negativo-Porcentual", que solo RN-03 conoce.
+
+## Reglas añadidas (octubre 2026)
+
+| Regla | Descripción | Dónde |
+|---|---|---|
+| RN-Presupuesto | CAPEX, Opex y ejecuciones presupuestales (Ids 121, 139, 207, 377, 999, Med 12, Med 13) tienen DOS semáforos. Normal: sobre el % topado en 100% (< 80% Peligro, 80-100% Alerta, 100% Cumplimiento). Sobreejecución: sobre el % real (> 110% Alerta, si no Normal), columna `Nivel sobreejecucion`. Reemplaza para 121/207/377 el régimen Negativo-Porcentual (queda solo el 561). | `domain/constants.py::IDS_PRESUPUESTO`, `domain/categorization.py::categorizar_sobreejecucion`, `domain/resumen_builders.py::ensure_nivel_cumplimiento`, `SobreejecucionBadge` (frontend) |
+| RN-Bienal | Indicadores que se miden cada N años (Índice de Inclusión, Id 361: 2023, 2025…) no aparecen en el CMI Estratégico del año no medido. | `app/data/periodicidad_especial.toml`, `domain/periodicidad_especial.py` |
+| RN-Métrica | Ids marcados como métrica (Nivel de empleabilidad del graduado, Id 331) se rotulan «Métrica», no «Pendiente de medición». | `app/data/metricas.toml`, `domain/metricas.py` |
+| RN-Escala $ | Filas en "$" con meta/ejecución < $100 M en pesos se toman como millones (×1.000.000). | `app/data/escala_moneda.toml`, `domain/escala_moneda.py` |
+| RN-Ingresos ciclo | En el Cierre PDI 2022-2025, Ids 203, 385, 386.1-386.3 = suma de los años del ciclo. | `domain/strategic_processors.py::_acumular_ingresos_ciclo` |
+| RN-Variables | Id 228 (Compensación GEI): Meta/Ejecución = suma de variables tCO2eq / tCO2eqC del desglose. | `app/data/cierre_variables.toml` |

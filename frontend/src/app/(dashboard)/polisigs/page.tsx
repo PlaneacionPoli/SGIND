@@ -5,7 +5,7 @@ import Image from "next/image";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronDown } from "lucide-react";
 import { DataFreshnessFooter } from "@/components/layout/DataFreshnessFooter";
-import { fmtPct } from "@/components/cmi/nivelUtils";
+import { fmtPct, SobreejecucionBadge } from "@/components/cmi/nivelUtils";
 import { fetchPolisigs } from "@/lib/api";
 import { fmtEjecucion, fmtMeta } from "@/lib/formatValor";
 import type { PolisigsConsolidado, PolisigsIndicador, PolisigsObjetivo } from "@/lib/types";
@@ -635,6 +635,11 @@ function FichaIndicador({
               <Medida k="Ejecución" v={fmtEjecucion(rec)} />
               <Medida k="Cumplimiento" v={fmtPct(ind.cumplimiento_pct)} fuerte color={c.text} />
             </dl>
+            {ind["Nivel sobreejecucion"] && (
+              <div className="text-center">
+                <SobreejecucionBadge nivel={ind["Nivel sobreejecucion"]} />
+              </div>
+            )}
             <div className="flex items-center gap-2">
               <div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-100">
                 <div

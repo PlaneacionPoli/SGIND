@@ -1,0 +1,11 @@
+# Indicadores que se miden cada N años (la fuente los declara "Anual").
+#
+# En los años intermedios el indicador NO aplica: no se muestra en el CMI Estratégico por año
+# (ni cuenta en totales) en lugar de aparecer como "Pendiente de medición".
+# Mide en los años: anio_base, anio_base + cada_anios, anio_base + 2*cada_anios, ...
+# (y hacia atrás desde anio_base con el mismo paso).
+
+[[indicador]]
+id = "361"            # Índice de Inclusión
+cada_anios = 2
+anio_base = 2023

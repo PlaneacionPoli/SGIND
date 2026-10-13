@@ -3,7 +3,7 @@
 import { useState } from "react";
 import type { CMILineaDetalle } from "@/lib/types";
 import { CmiLineaAnalisisPanel } from "@/components/cmi/CmiLineaAnalisis";
-import { fmtPct, NivelBadge } from "@/components/cmi/nivelUtils";
+import { fmtPct, NivelBadge, SobreejecucionBadge } from "@/components/cmi/nivelUtils";
 import { fmtMeta, fmtEjecucion } from "@/lib/formatValor";
 
 interface CmiLineasTabProps {
@@ -176,6 +176,7 @@ function AllIndicadoresTable({ linea }: { linea: CMILineaDetalle }) {
                 </td>
                 <td className="px-2 py-2">
                   <NivelBadge nivel={(ind as Record<string, unknown>)["Nivel de cumplimiento"] as string | undefined} />
+<SobreejecucionBadge nivel={(ind as Record<string, unknown>)["Nivel sobreejecucion"] as string | undefined} />
                 </td>
               </tr>
             ))}
@@ -222,6 +223,7 @@ function LineaObjetivos({ linea }: { linea: CMILineaDetalle }) {
                           </td>
                           <td className="px-2 py-2">
                             <NivelBadge nivel={ind["Nivel de cumplimiento"] as string | undefined} />
+<SobreejecucionBadge nivel={ind["Nivel sobreejecucion"] as string | undefined} />
                           </td>
                         </tr>
                       ))}

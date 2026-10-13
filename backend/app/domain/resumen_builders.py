@@ -10,9 +10,11 @@ from typing import Any
 
 import pandas as pd
 
-from app.domain.categorization import categorizar_cumplimiento
+from app.domain.categorization import categorizar_cumplimiento, categorizar_sobreejecucion
 from app.domain.constants import (
     IDS_NEGATIVO_PCT,
+    IDS_PRESUPUESTO,
+    TOPE_PRESUPUESTO,
     UMBRAL_ALERTA_PA,
     UMBRAL_PELIGRO,
     UMBRAL_SOBRECUMPLIMIENTO_PA,
@@ -252,12 +254,31 @@ def ensure_nivel_cumplimiento(df: pd.DataFrame, regimen: str | None = None) -> p
         es_metrica = mask_metrica(out)
         # Una métrica sin porcentaje no está "pendiente de reporte": no lleva meta.
         sin_pct = "Pendiente de reporte"
+        # Régimen Presupuesto: la categoría sale del valor REAL (> 110% = alerta) y el % que se
+        # muestra se topa en 100%. El real se conserva para que una segunda llamada no lo pierda.
+        es_presupuesto = (
+            out["Id"].astype(str).str.strip().isin(IDS_PRESUPUESTO)
+            if "Id" in out.columns
+            else pd.Series(False, index=out.index)
+        )
+        if es_presupuesto.any() and regimen is None:
+            if "cumplimiento_pct_real" not in out.columns:
+                out["cumplimiento_pct_real"] = out["cumplimiento_pct"]
+        else:
+            es_presupuesto = pd.Series(False, index=out.index)
+
+        def _valor_real(row):
+            valor = row["cumplimiento_pct"]
+            if es_presupuesto.loc[row.name] and not pd.isna(row.get("cumplimiento_pct_real")):
+                valor = row["cumplimiento_pct_real"]
+            return valor
 
         def _map_level(row):
-            if pd.isna(row["cumplimiento_pct"]):
+            valor = _valor_real(row)
+            if pd.isna(valor):
                 return NIVEL_METRICA if es_metrica.loc[row.name] else sin_pct
             try:
-                pct = float(row["cumplimiento_pct"])
+                pct = float(valor)
             except (TypeError, ValueError):
                 return "Pendiente de reporte"
             if math.isnan(pct):
@@ -272,6 +293,24 @@ def ensure_nivel_cumplimiento(df: pd.DataFrame, regimen: str | None = None) -> p
             out["Nivel de cumplimiento"] = pd.Series(dtype="object")
             return out
         out["Nivel de cumplimiento"] = out.apply(_map_level, axis=1)
+        if es_presupuesto.any():
+            out["Nivel sobreejecucion"] = out.apply(
+                lambda r: categorizar_sobreejecucion(
+                    pd.to_numeric(_valor_real(r), errors="coerce") / 100.0, r.get("Id")
+                )
+                if es_presupuesto.loc[r.name]
+                else None,
+                axis=1,
+            )
+            tope = TOPE_PRESUPUESTO * 100
+            pct_num = pd.to_numeric(out["cumplimiento_pct"], errors="coerce")
+            capear = es_presupuesto & (pct_num > tope)
+            out.loc[capear, "cumplimiento_pct"] = tope
+            if "cumplimiento_dec" in out.columns:
+                dec = pd.to_numeric(out["cumplimiento_dec"], errors="coerce")
+                out.loc[es_presupuesto & (dec > TOPE_PRESUPUESTO), "cumplimiento_dec"] = (
+                    TOPE_PRESUPUESTO
+                )
         return out
     if "Nivel de cumplimiento" not in out.columns:
         out["Nivel de cumplimiento"] = "Pendiente de reporte"
@@ -1692,6 +1731,12 @@ def build_informe_ejecutivo_lineas(
                             "cumplimiento": cumpl_val,
                             "nivel": nivel,
                             "nivel_color": _NIVEL_COLORS_PDF.get(nivel, "#6B7280"),
+                            # Segundo semáforo de CAPEX/Opex/presupuestos (None si no aplica).
+                            "nivel_sobreejecucion": (
+                                row.get("Nivel sobreejecucion")
+                                if isinstance(row.get("Nivel sobreejecucion"), str)
+                                else None
+                            ),
                             # menor_mejor: régimen Negativo-Porcentual (ver constants.py) —
                             # un valor de ejecución MENOR a la meta es el buen resultado
                             # (GreenMetric, rotación, etc.). tope_aplicado: la cifra ya

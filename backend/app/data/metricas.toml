@@ -1,0 +1,5 @@
+# Indicadores que por diseño son MÉTRICAS: se reportan sin meta ni % de cumplimiento y no deben
+# mostrarse como "Pendiente de medición". La fuente no los marca con Tipo_Registro = "Metrica".
+ids = [
+  "331",  # Nivel de empleabilidad del graduado
+]

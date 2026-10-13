@@ -28,6 +28,7 @@ from app.domain.cmi_builders import (
     previous_corte,
 )
 from app.domain.cmi_filters import CMIFilterService
+from app.domain.periodicidad_especial import filtrar_por_anio
 from app.domain.linea_order import linea_sort_key, nombre_visible
 from app.domain.pdi_measurement import topar_proyectos_df
 from app.domain.marcos import Marco, get_marco, marco_por_defecto
@@ -167,6 +168,7 @@ class CMIService:
             df = self._strategic.preparar_pdi_con_cierre(int(anio), int(mes), solo_anio=True)
         if df.empty:
             return df
+        df = filtrar_por_anio(df, int(anio))
         df = ensure_nivel_cumplimiento(topar_proyectos_df(df))
         df = self._renombrar_indicadores(df)
         return self._enrich_ficha(df)

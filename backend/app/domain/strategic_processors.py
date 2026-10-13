@@ -2,17 +2,22 @@
 
 from __future__ import annotations
 
+import tomllib
 from collections.abc import Sequence
+from pathlib import Path
 
 import pandas as pd
 
 from app.domain.categorization import categorizar_cumplimiento
 from app.domain.cmi_filters import CMIFilterService
+from app.domain.metricas import marcar_metricas
 from app.domain.health_metrics import recalcular_cumplimiento_faltante
 from app.services.excel_reader import ExcelReaderService
 from app.services.strategic_loaders import PENDIENTE, StrategicLoaders
 
 PENDIENTE_STR = PENDIENTE
+
+CIERRE_VARIABLES_TOML = Path(__file__).resolve().parent.parent / "data" / "cierre_variables.toml"
 
 # Indicadores de ingresos (Sostenibilidad: Cumplimiento de Ingresos; Educación para toda la vida:
 # total y sus tres componentes). En el cierre del PDI se muestran como la SUMA de los años del
@@ -150,7 +155,10 @@ class StrategicProcessors:
         if "Nivel de cumplimiento" in result.columns:
             result["Nivel de cumplimiento"] = result["Nivel de cumplimiento"].fillna(PENDIENTE_STR)
 
-        return self._cmi.filter_estrategico(result.reset_index(drop=True))
+        if solo_anio:
+            result = self._acumular_variables_ciclo(result, [int(anio)])
+
+        return marcar_metricas(self._cmi.filter_estrategico(result.reset_index(drop=True)))
 
     def preparar_pdi_marco_con_cierre(self, anio: int, mes: int, version_id: str) -> pd.DataFrame:
         """Indicadores ESTRATÉGICOS (PDI = 1) de un PDI con hoja propia (p. ej. PDI 2026-2030),
@@ -186,7 +194,7 @@ class StrategicProcessors:
         if "Nivel de cumplimiento" not in result.columns:
             result["Nivel de cumplimiento"] = PENDIENTE_STR
         result["Nivel de cumplimiento"] = result["Nivel de cumplimiento"].fillna(PENDIENTE_STR)
-        return result.reset_index(drop=True)
+        return marcar_metricas(result.reset_index(drop=True))
 
     def _acumular_ingresos_ciclo(self, cierre_pdi: pd.DataFrame, anios: Sequence[int]) -> pd.DataFrame:
         """Reemplaza Meta/Ejecución de los indicadores de ingresos por la suma de los cierres de
@@ -225,6 +233,69 @@ class StrategicProcessors:
             )
         return out
 
+    def _acumular_variables_ciclo(
+        self, cierre_pdi: pd.DataFrame, anios: Sequence[int]
+    ) -> pd.DataFrame:
+        """Meta/Ejecución = suma por año de variables del desglose (cierre_variables.toml)."""
+        with CIERRE_VARIABLES_TOML.open("rb") as f:
+            reglas = tomllib.load(f).get("indicador", [])
+        path = self._loaders._resolve_consolidado()
+        if not reglas or not path:
+            return cierre_pdi
+        try:
+            desglose = self._loaders._excel.read_excel(path, sheet_name="Desglose Series")
+        except (ValueError, KeyError):
+            return cierre_pdi
+        desglose = desglose.copy()
+        desglose["Id"] = desglose["Id"].apply(_normalize_id_value)
+        desglose["_anio"] = pd.to_datetime(desglose["fecha"], errors="coerce").dt.year
+        cierres = self._loaders.load_cierres()
+        out = cierre_pdi.copy()
+        for regla in reglas:
+            id_, vm, ve = regla["id"], regla["var_meta"], regla["var_ejec"]
+            if vm not in desglose.columns or ve not in desglose.columns or not (out["Id"] == id_).any():
+                continue
+            meta_tot = ejec_tot = 0.0
+            for anio in anios:
+                propio = desglose[(desglose["Id"] == id_) & (desglose["_anio"] == int(anio))]
+                meta_y = pd.to_numeric(propio[vm], errors="coerce").sum()
+                if meta_y > 0:
+                    meta_tot += meta_y
+                    ejec_tot += pd.to_numeric(propio[ve], errors="coerce").sum()
+                    continue
+                resp = regla.get("id_meta_respaldo")
+                if not resp:
+                    continue
+                gen = desglose[(desglose["Id"] == resp) & (desglose["_anio"] == int(anio))]
+                meta_r = pd.to_numeric(gen[vm], errors="coerce").sum()
+                cierre = cierres[
+                    (cierres["Id"].apply(_normalize_id_value) == id_)
+                    & (pd.to_numeric(cierres["Anio"], errors="coerce") == int(anio))
+                    & (pd.to_numeric(cierres["Mes"], errors="coerce") == 12)
+                ]
+                ejec_r = pd.to_numeric(cierre["Ejecucion"], errors="coerce").dropna()
+                if meta_r > 0 and not ejec_r.empty:
+                    meta_tot += meta_r
+                    ejec_tot += float(ejec_r.iloc[-1])
+            if meta_tot > 0:
+                out = self._aplicar_totales(out, id_, meta_tot, ejec_tot)
+        return out
+
+    @staticmethod
+    def _aplicar_totales(df: pd.DataFrame, id_: str, meta: float, ejec: float) -> pd.DataFrame:
+        m = df["Id"] == id_
+        df.loc[m, "Meta"] = meta
+        df.loc[m, "Ejecucion"] = ejec
+        sentido = df.loc[m, "Sentido"].iloc[0] if "Sentido" in df.columns else "Positivo"
+        dec = recalcular_cumplimiento_faltante(meta, ejec, sentido, id_)
+        valido = dec is not None and not pd.isna(dec)
+        df.loc[m, "cumplimiento_dec"] = dec
+        df.loc[m, "cumplimiento_pct"] = dec * 100 if valido else pd.NA
+        df.loc[m, "Nivel de cumplimiento"] = (
+            categorizar_cumplimiento(dec, id_indicador=id_) if valido else PENDIENTE
+        )
+        return df
+
     def preparar_pdi_cierre_final(
         self, hoja: str = "Cierre PDI", anios: Sequence[int] | None = None
     ) -> pd.DataFrame:
@@ -259,6 +330,7 @@ class StrategicProcessors:
         cierre_pdi["Id"] = cierre_pdi["Id"].apply(_normalize_id_value)
         if anios is not None and len(anios) > 1:
             cierre_pdi = self._acumular_ingresos_ciclo(cierre_pdi, anios)
+            cierre_pdi = self._acumular_variables_ciclo(cierre_pdi, anios)
 
         # Solo indicadores con resultado final registrado en la hoja Cierre PDI
         # (inner join, no left) — evita mostrar indicadores sin cierre real.
@@ -280,7 +352,7 @@ class StrategicProcessors:
         if "Nivel de cumplimiento" in result.columns:
             result["Nivel de cumplimiento"] = result["Nivel de cumplimiento"].fillna(PENDIENTE_STR)
 
-        return self._cmi.filter_estrategico(result.reset_index(drop=True))
+        return marcar_metricas(self._cmi.filter_estrategico(result.reset_index(drop=True)))
 
     def preparar_cna_con_cierre(self, anio: int, mes: int = 12) -> pd.DataFrame:
         base = self._loaders.load_worksheet_flags()
@@ -323,7 +395,7 @@ class StrategicProcessors:
         if "Nivel de cumplimiento" in result.columns:
             result["Nivel de cumplimiento"] = result["Nivel de cumplimiento"].fillna(PENDIENTE_STR)
 
-        return self._cmi.filter_estrategico(result.reset_index(drop=True))
+        return marcar_metricas(self._cmi.filter_estrategico(result.reset_index(drop=True)))
 
     def load_proyectos(self) -> pd.DataFrame:
         return self._loaders.load_proyectos()

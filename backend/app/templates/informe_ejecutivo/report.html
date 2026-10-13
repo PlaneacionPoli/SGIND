@@ -347,7 +347,7 @@
             {% endif %}
           </td>
           <td class="num">{{ (ind.cumplimiento ~ "%") if ind.cumplimiento is not none else "—" }}{{ " †" if ind.tope_aplicado }}</td>
-          <td class="num"><span class="anexo-badge" style="background:{{ estado_i.color }}1F; color:{{ estado_i.color }}">{{ estado_i.label }}</span></td>
+          <td class="num"><span class="anexo-badge" style="background:{{ estado_i.color }}1F; color:{{ estado_i.color }}">{{ estado_i.label }}</span>{% if ind.nivel_sobreejecucion %}{% set c_so = "#B45309" if ind.nivel_sobreejecucion == "Alerta" else "#166534" %}<br><span class="anexo-badge" style="background:{{ c_so }}1F; color:{{ c_so }}">Sobreejecución: {{ ind.nivel_sobreejecucion }}</span>{% endif %}</td>
         </tr>
         {% endfor %}
       </tbody>

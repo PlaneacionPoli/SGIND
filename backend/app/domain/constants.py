@@ -20,7 +20,15 @@ IDS_PLAN_ANUAL_DEFAULT = frozenset(
 IDS_TOPE_100 = frozenset({"208", "218"})
 
 # Régimen Negativo-Porcentual (102%/110%): lista curada (jul-2026)
-IDS_NEGATIVO_PCT = frozenset({"121", "207", "377", "561"})
+IDS_NEGATIVO_PCT = frozenset({"561"})
+
+# Régimen Presupuesto (CAPEX, OPEX y ejecuciones presupuestales; oct-2026): el cumplimiento se
+# topa en 100% al mostrarlo y tienen DOS semáforos: el normal (sobre el valor topado:
+# < 80% Peligro | 80-100% Alerta | 100% Cumplimiento) y el de sobreejecución (sobre el valor
+# real: > 110% Alerta, si no Normal).
+IDS_PRESUPUESTO = frozenset({"121", "139", "207", "377", "999", "Med 12", "Med 13"})
+TOPE_PRESUPUESTO = 1.0
+UMBRAL_ALERTA_PRESUPUESTO = 1.10
 
 RANGO_CUMPLIMIENTO_MIN = 0.0
 RANGO_CUMPLIMIENTO_MAX = 1.3

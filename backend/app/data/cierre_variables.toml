@@ -1,0 +1,12 @@
+# Indicadores del Cierre PDI cuya Meta/Ejecución se calculan sumando, año por año, variables de la
+# hoja "Desglose Series" (en lugar del % que trae la hoja de cierres).
+#
+# var_meta / var_ejec: columnas `var_*` del desglose (suma de todas las series del año).
+# id_meta_respaldo: si un año no tiene desglose del indicador, la meta del año es la suma de
+#   `var_meta` del Id indicado y la ejecución es la del cierre de diciembre de ese año.
+
+[[indicador]]
+id = "228"                 # Compensación de Gases de Efecto Invernadero (tCO2e)
+var_meta = "var_tCO2eq"    # emisiones generadas
+var_ejec = "var_tCO2eqC"   # emisiones compensadas
+id_meta_respaldo = "226"   # Generación de Gases de Efecto Invernadero

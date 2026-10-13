@@ -766,6 +766,7 @@ export interface ResumenLineaIndicador {
   cumplimiento: number | null;
   nivel: string;
   nivel_color: string;
+  nivel_sobreejecucion?: string | null;
 }
 
 export interface ResumenLineaObjetivo {
@@ -1445,6 +1446,8 @@ export interface PolisigsIndicador {
   /** Cumplimiento sin techo (como en el CMI). */
   cumplimiento_real: number | null;
   "Nivel de cumplimiento": string;
+  /** Segundo semáforo de CAPEX/Opex/presupuestos: Alerta si supera 110 %. */
+  "Nivel sobreejecucion"?: string | null;
   /** Indicador anual sin ejecución aún en el corte pedido: corte real usado, p. ej. "Diciembre 2025". */
   corte_dato: string | null;
   /** true si meta/ejecución/cumplimiento vienen de un corte distinto al seleccionado (ver corte_dato). */

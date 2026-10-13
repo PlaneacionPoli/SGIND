@@ -444,6 +444,7 @@ def build_objetivos_estructura(
             "Decimales_Ejecucion",
             "cumplimiento_pct",
             "Nivel de cumplimiento",
+            "Nivel sobreejecucion",
             "Proceso",
             "Meta_Estrategica",
         ]
@@ -777,6 +778,7 @@ def build_alertas(df: pd.DataFrame) -> dict[str, Any]:
             "Decimales_Ejecucion",
             "cumplimiento_pct",
             "Nivel de cumplimiento",
+            "Nivel sobreejecucion",
             "Proceso",
         ]
         if c in df_alertas.columns
@@ -807,6 +809,7 @@ def build_indicadores_listado(df: pd.DataFrame) -> list[dict[str, Any]]:
             "Decimales_Ejecucion",
             "cumplimiento_pct",
             "Nivel de cumplimiento",
+            "Nivel sobreejecucion",
             "Proceso",
             "Periodicidad",
             "Anio",

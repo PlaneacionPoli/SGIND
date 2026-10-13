@@ -27,16 +27,49 @@ def test_categorizar_plan_anual():
 
 
 def test_categorizar_negativo_pct_cumplimiento():
-    assert categorizar_cumplimiento(1.0199, id_indicador="121") == "Cumplimiento"
+    assert categorizar_cumplimiento(1.0199, id_indicador="561") == "Cumplimiento"
 
 
 def test_categorizar_negativo_pct_alerta():
-    assert categorizar_cumplimiento(1.05, id_indicador="207") == "Alerta"
-    assert categorizar_cumplimiento(1.10, id_indicador="207") == "Alerta"
+    assert categorizar_cumplimiento(1.05, id_indicador="561") == "Alerta"
+    assert categorizar_cumplimiento(1.10, id_indicador="561") == "Alerta"
 
 
 def test_categorizar_negativo_pct_peligro():
-    assert categorizar_cumplimiento(1.1001, id_indicador="377") == "Peligro"
+    assert categorizar_cumplimiento(1.1001, id_indicador="561") == "Peligro"
+
+
+def test_categorizar_presupuesto_semaforo_normal_sobre_valor_topado():
+    for id_ in ("377", "207", "121", "Med 12"):
+        assert categorizar_cumplimiento(1.00, id_indicador=id_) == "Cumplimiento"
+        assert categorizar_cumplimiento(1.25, id_indicador=id_) == "Cumplimiento"
+        assert categorizar_cumplimiento(0.90, id_indicador=id_) == "Alerta"
+        assert categorizar_cumplimiento(0.79, id_indicador=id_) == "Peligro"
+
+
+def test_semaforo_sobreejecucion_presupuesto():
+    from app.domain.categorization import categorizar_sobreejecucion
+
+    assert categorizar_sobreejecucion(1.10, "377") == "Normal"
+    assert categorizar_sobreejecucion(1.1001, "207") == "Alerta"
+    assert categorizar_sobreejecucion(0.70, "121") == "Normal"
+    assert categorizar_sobreejecucion(1.50, "203") is None  # no es presupuesto
+    assert categorizar_sobreejecucion(None, "377") is None
+
+
+def test_ensure_nivel_presupuesto_dos_semaforos_y_tope_100():
+    from app.domain.resumen_builders import ensure_nivel_cumplimiento
+
+    df = pd.DataFrame({"Id": ["377", "377", "203"], "cumplimiento_pct": [125.0, 105.0, 125.0]})
+    out = ensure_nivel_cumplimiento(ensure_nivel_cumplimiento(df))  # idempotente
+    assert out["cumplimiento_pct"].tolist() == [100.0, 100.0, 125.0]
+    assert out["Nivel de cumplimiento"].tolist() == [
+        "Cumplimiento",
+        "Cumplimiento",
+        "Sobrecumplimiento",
+    ]
+    sobre = out["Nivel sobreejecucion"].tolist()
+    assert sobre[:2] == ["Alerta", "Normal"] and pd.isna(sobre[2])
 
 
 def test_categorizar_negativo_pct_no_aplica_fuera_de_lista():

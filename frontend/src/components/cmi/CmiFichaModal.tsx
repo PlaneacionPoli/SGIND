@@ -16,7 +16,7 @@ import {
   YAxis,
 } from "recharts";
 import type { CMIFichaIndicador } from "@/lib/types";
-import { fmtPct, NivelBadge } from "@/components/cmi/nivelUtils";
+import { fmtPct, NivelBadge, SobreejecucionBadge } from "@/components/cmi/nivelUtils";
 import { fmtMeta, fmtEjecucion } from "@/lib/formatValor";
 import { NIVEL_COLORS } from "@/components/cmi/cmiChartColors";
 
@@ -106,6 +106,7 @@ export function CmiFichaModal({ ficha, loading, onClose, onDownloadPdf, download
 
             <div className="flex flex-wrap items-center gap-3">
               <NivelBadge nivel={ficha["Nivel de cumplimiento"] as string | undefined} />
+<SobreejecucionBadge nivel={ficha["Nivel sobreejecucion"] as string | undefined} />
               {ficha.tendencia && (
                 <span
                   className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-bold"

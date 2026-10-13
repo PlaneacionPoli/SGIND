@@ -248,6 +248,9 @@ def get_polisigs(
                 "cumplimiento_pct": None if pct is None else round(pct, 1),
                 "cumplimiento_real": None if real is None else round(real, 1),
                 "Nivel de cumplimiento": d.get("Nivel de cumplimiento") or _PENDIENTE,
+                "Nivel sobreejecucion": d.get("Nivel sobreejecucion")
+                if isinstance(d.get("Nivel sobreejecucion"), str)
+                else None,
                 # Indicador anual sin ejecución aún en el corte pedido: se usa el
                 # último dato anual disponible (p. ej. "Diciembre 2025") y se
                 # etiqueta el corte real en lugar del solicitado.

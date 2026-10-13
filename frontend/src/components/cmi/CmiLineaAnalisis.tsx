@@ -11,7 +11,7 @@ import {
   YAxis,
 } from "recharts";
 import type { CMILineaAnalisis, CMILineaDetalle } from "@/lib/types";
-import { fmtPct, NivelBadge } from "@/components/cmi/nivelUtils";
+import { fmtPct, NivelBadge, SobreejecucionBadge } from "@/components/cmi/nivelUtils";
 
 interface CmiLineaAnalisisProps {
   linea: CMILineaDetalle;
@@ -153,6 +153,7 @@ export function CmiLineaAnalisisPanel({ linea }: CmiLineaAnalisisProps) {
                   {fmtPct(ind.cumplimiento_pct as number | undefined)}
                 </span>
                 <NivelBadge nivel={ind["Nivel de cumplimiento"] as string | undefined} />
+<SobreejecucionBadge nivel={ind["Nivel sobreejecucion"] as string | undefined} />
               </div>
             ))}
           </div>

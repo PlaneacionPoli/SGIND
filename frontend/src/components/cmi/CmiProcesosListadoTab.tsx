@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { BarChart3, Activity, Search, ExternalLink } from "lucide-react";
 import type { Indicator } from "@/lib/types";
-import { fmtPct, NivelBadge } from "@/components/cmi/nivelUtils";
+import { fmtPct, NivelBadge, SobreejecucionBadge } from "@/components/cmi/nivelUtils";
 import { fmtMeta, fmtEjecucion } from "@/lib/formatValor";
 
 interface CmiProcesosListadoTabProps {
@@ -273,6 +273,7 @@ export function CmiProcesosListadoTab({
                     </td>
                     <td className="px-4 py-3.5 text-center">
                       <NivelBadge nivel={ind["Nivel de cumplimiento"] as string} />
+<SobreejecucionBadge nivel={ind["Nivel sobreejecucion"] as string | undefined} />
                     </td>
                   </tr>
                 );

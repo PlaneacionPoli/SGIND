@@ -6,6 +6,9 @@ import pandas as pd
 
 from app.domain.constants import (
     IDS_NEGATIVO_PCT,
+    IDS_PRESUPUESTO,
+    TOPE_PRESUPUESTO,
+    UMBRAL_ALERTA_PRESUPUESTO,
     IDS_PLAN_ANUAL_DEFAULT,
     UMBRAL_ALERTA,
     UMBRAL_ALERTA_NEG_PCT,
@@ -69,6 +72,20 @@ def categorizar_cumplimiento(cumplimiento, id_indicador=None, regimen=None) -> s
     except (TypeError, ValueError):
         return CategoriaCumplimiento.SIN_DATO.value
 
+    if (
+        regimen is None
+        and id_indicador is not None
+        and str(id_indicador).strip() in IDS_PRESUPUESTO
+    ):
+        # Semáforo normal sobre el valor topado en 100%; la sobreejecución tiene su propio
+        # semáforo (ver categorizar_sobreejecucion).
+        c = min(c, TOPE_PRESUPUESTO)
+        if c < UMBRAL_PELIGRO:
+            return CategoriaCumplimiento.PELIGRO.value
+        if c < UMBRAL_ALERTA:
+            return CategoriaCumplimiento.ALERTA.value
+        return CategoriaCumplimiento.CUMPLIMIENTO.value
+
     if es_plan_anual:
         if c < UMBRAL_PELIGRO:
             return CategoriaCumplimiento.PELIGRO.value
@@ -92,3 +109,18 @@ def categorizar_cumplimiento(cumplimiento, id_indicador=None, regimen=None) -> s
     if c < UMBRAL_SOBRECUMPLIMIENTO:
         return CategoriaCumplimiento.CUMPLIMIENTO.value
     return CategoriaCumplimiento.SOBRECUMPLIMIENTO.value
+
+
+def categorizar_sobreejecucion(cumplimiento, id_indicador=None) -> str | None:
+    """Segundo semáforo de CAPEX, Opex y presupuestos (IDS_PRESUPUESTO): "Alerta" si el
+    cumplimiento real supera 110%, "Normal" en caso contrario. None si el indicador no aplica
+    o no hay dato."""
+    if id_indicador is None or str(id_indicador).strip() not in IDS_PRESUPUESTO:
+        return None
+    try:
+        c = float(cumplimiento)
+    except (TypeError, ValueError):
+        return None
+    if pd.isna(c):
+        return None
+    return "Alerta" if c > UMBRAL_ALERTA_PRESUPUESTO else "Normal"

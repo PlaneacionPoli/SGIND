@@ -3,7 +3,7 @@
 import dynamic from "next/dynamic";
 import type { Data, Layout } from "plotly.js";
 import type { CMIProcesosFichaIndicador } from "@/lib/types";
-import { fmtPct, NivelBadge } from "@/components/cmi/nivelUtils";
+import { fmtPct, NivelBadge, SobreejecucionBadge } from "@/components/cmi/nivelUtils";
 import { fmtMeta, fmtEjecucion } from "@/lib/formatValor";
 
 const Plot = dynamic(() => import("react-plotly.js"), { ssr: false });
@@ -90,6 +90,7 @@ export function CmiProcesosFichaModal({
 
             <div className="flex flex-wrap gap-2">
               <NivelBadge nivel={ficha["Nivel de cumplimiento"] as string | undefined} />
+<SobreejecucionBadge nivel={ficha["Nivel sobreejecucion"] as string | undefined} />
               {ficha.tendencia && (
                 <span className="inline-flex items-center rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
                   {ficha.tendencia === "Al alza" ? "↑" : ficha.tendencia === "A la baja" ? "↓" : "→"}{" "}

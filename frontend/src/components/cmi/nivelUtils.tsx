@@ -6,6 +6,7 @@ export const NIVEL_STYLES: Record<string, { text: string; bg: string }> = {
   Cumplimiento: { text: "#166534", bg: "#DCFCE7" },
   Sobrecumplimiento: { text: "#1D4ED8", bg: "#DBEAFE" },
   "Pendiente de reporte": { text: "#475569", bg: "#F1F5F9" },
+  Métrica: { text: "#4338CA", bg: "#E0E7FF" },
 };
 
 export function NivelBadge({ nivel }: { nivel?: string }) {
@@ -18,6 +19,22 @@ export function NivelBadge({ nivel }: { nivel?: string }) {
     >
       <span className="h-2 w-2 rounded-full" style={{ backgroundColor: style.text }} />
       {n === "Pendiente de reporte" ? "Pendiente de medición" : n}
+    </span>
+  );
+}
+
+/** Segundo semáforo de CAPEX, Opex y presupuestos: "Alerta" si la ejecución real supera 110%. */
+export function SobreejecucionBadge({ nivel }: { nivel?: string | null }) {
+  if (!nivel) return null;
+  const style = nivel === "Alerta" ? NIVEL_STYLES.Alerta : NIVEL_STYLES.Cumplimiento;
+  return (
+    <span
+      title="Semáforo de sobreejecución: alerta si supera 110% de lo presupuestado"
+      className="ml-1.5 inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-bold"
+      style={{ color: style.text, backgroundColor: style.bg }}
+    >
+      <span className="h-2 w-2 rounded-full" style={{ backgroundColor: style.text }} />
+      Sobreejecución: {nivel}
     </span>
   );
 }

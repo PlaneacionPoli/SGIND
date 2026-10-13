@@ -53,6 +53,15 @@ export function CmiEstrategicoTable({ objetivos, color }: CmiEstrategicoTablePro
                         style={{ color: ind.nivel_color }}
                       >
                         {ind.cumplimiento != null ? `${Math.round(ind.cumplimiento)}%` : "—"}
+                        {ind.nivel_sobreejecucion && (
+                          <div
+                            className="text-[10px] font-semibold"
+                            style={{ color: ind.nivel_sobreejecucion === "Alerta" ? "#B45309" : "#166534" }}
+                            title="Semáforo de sobreejecución: alerta si supera 110% de lo presupuestado"
+                          >
+                            Sobreejecución: {ind.nivel_sobreejecucion}
+                          </div>
+                        )}
                       </td>
                     </tr>
                   ))}
