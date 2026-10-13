@@ -29,6 +29,7 @@ from typing import Any
 
 import pandas as pd
 
+from app.domain.pdi_measurement import topar_cumplimiento_proyecto
 from app.domain.resumen_builders import _ESTADO_MAP_PMO, norm_key
 from app.services.etl_pipeline import ETLPipelineService
 from app.services.excel_reader import ExcelReaderService
@@ -219,6 +220,10 @@ class ProyectosOficialesService:
                 else None
             )
 
+            # Tope de 100% por proyecto (como Retos); el valor sin tope queda en cumplimiento_bruto.
+            cumplimiento_bruto = cumplimiento_val
+            cumplimiento_val = topar_cumplimiento_proyecto(cumplimiento_val)
+
             rows.append(
                 {
                     "Id": pid,
@@ -229,6 +234,7 @@ class ProyectosOficialesService:
                         ejecucion if ejecucion is not None and pd.notna(ejecucion) else None
                     ),
                     "cumplimiento_pct": cumplimiento_val,
+                    "cumplimiento_bruto": cumplimiento_bruto,
                     "estado": estado,
                     "anio_inicio": (
                         int(gantt_row.get("anio_inicio"))

@@ -8,16 +8,16 @@ Migra las siguientes fuentes Excel a PostgreSQL:
 
 Uso:
     # Solo validar (dry-run, sin BD requerida):
-    python sgind-v2/database/scripts/migrate_excel_to_postgres.py --dry-run
+    python database/scripts/migrate_excel_to_postgres.py --dry-run
 
     # Migración real:
-    python sgind-v2/database/scripts/migrate_excel_to_postgres.py \\
+    python database/scripts/migrate_excel_to_postgres.py \\
         --postgres "postgresql://sgind:sgind_dev_password@localhost:5433/sgind"
 
     # Solo acciones (omitir OM Kawak):
     python ... --only acciones
 
-Genera reporte JSON en sgind-v2/database/reports/
+Genera reporte JSON en database/reports/
 """
 
 from __future__ import annotations
@@ -40,7 +40,7 @@ try:
 except ImportError:
     psycopg2 = None  # type: ignore
 
-ROOT = Path(__file__).resolve().parents[3]
+ROOT = Path(__file__).resolve().parents[2]
 DATA_DIR = ROOT / "data"
 REPORTS_DIR = Path(__file__).resolve().parents[1] / "reports"
 

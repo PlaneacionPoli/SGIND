@@ -17,10 +17,10 @@ from pathlib import Path
 import pytest
 
 # Rutas
-# __file__ → tests/ → backend/ → sgind-v2/ → Sistema_Indicadores_Poli/
-ROOT = Path(__file__).resolve().parents[3]
+# __file__ → tests/ → backend/ → raíz del repo (SGING)
+ROOT = Path(__file__).resolve().parents[2]
 DATA_DIR = ROOT / "data"
-SCRIPTS_DIR = ROOT / "sgind-v2" / "database" / "scripts"
+SCRIPTS_DIR = ROOT / "database" / "scripts"
 
 ACCIONES_EXCEL = DATA_DIR / "raw" / "acciones_mejora.xlsx"
 RESULTADOS_EXCEL = DATA_DIR / "output" / "Resultados Consolidados.xlsx"
@@ -50,8 +50,8 @@ def test_sqlite_dryrun_no_requiere_bd(tmp_path, capsys):
     # SQLite puede tener 0 registros_om pero debe ser una lista
     assert isinstance(om_rows, list)
     assert isinstance(acc_rows, list)
-    # acciones tiene 118 filas
-    assert len(acc_rows) == 118
+    # la BD legada crece con el uso (118 filas al migrar la fase 8; 139 a oct-2026)
+    assert len(acc_rows) >= 118
 
 
 def test_sqlite_om_mapeo():

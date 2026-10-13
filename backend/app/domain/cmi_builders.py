@@ -11,7 +11,7 @@ import pandas as pd
 
 from app.domain.categorization import categorizar_cumplimiento
 from app.domain.constants import COLOR_CATEGORIA as _COLOR_CATEGORIA_BASE
-from app.domain.linea_order import linea_sort_key
+from app.domain.linea_order import indicador_sort_key, linea_sort_key
 from app.domain.resumen_builders import compute_trends, ensure_nivel_cumplimiento
 
 CORTE_SEMESTRAL: dict[str, int] = {"Junio": 6, "Diciembre": 12}
@@ -387,6 +387,18 @@ def build_top_indicadores(df_linea: pd.DataFrame, limit: int = 6) -> list[dict[s
     return df_to_records(work)
 
 
+def ordenar_indicadores(df: pd.DataFrame) -> pd.DataFrame:
+    """Orden estable de indicadores según el orden institucional de su línea."""
+    if df.empty or "Indicador" not in df.columns or "Linea" not in df.columns:
+        return df
+    rank = [
+        indicador_sort_key(str(ln), str(ind)) for ln, ind in zip(df["Linea"], df["Indicador"])
+    ]
+    return df.assign(_ind_order=rank).sort_values("_ind_order", kind="stable").drop(
+        columns="_ind_order"
+    )
+
+
 def build_objetivos_estructura(
     df_linea: pd.DataFrame,
     pdi_catalog: pd.DataFrame | None = None,
@@ -424,7 +436,9 @@ def build_objetivos_estructura(
             )
             metas = [m for m in metas if m]
             for meta in metas:
-                df_meta = df_obj[df_obj["Meta_Estrategica"].astype(str).str.strip() == meta]
+                df_meta = ordenar_indicadores(
+                    df_obj[df_obj["Meta_Estrategica"].astype(str).str.strip() == meta]
+                )
                 metas_block.append(
                     {
                         "meta": meta,
@@ -432,7 +446,9 @@ def build_objetivos_estructura(
                     }
                 )
         if not metas_block:
-            metas_block.append({"meta": None, "indicadores": df_to_records(df_obj[ind_cols])})
+            metas_block.append(
+                {"meta": None, "indicadores": df_to_records(ordenar_indicadores(df_obj)[ind_cols])}
+            )
         result.append({"objetivo": obj, "metas": metas_block})
     return result
 
@@ -777,4 +793,4 @@ def build_indicadores_listado(df: pd.DataFrame) -> list[dict[str, Any]]:
         ]
         if c in df.columns
     ]
-    return df_to_records(df, cols)
+    return df_to_records(ordenar_indicadores(df), cols)

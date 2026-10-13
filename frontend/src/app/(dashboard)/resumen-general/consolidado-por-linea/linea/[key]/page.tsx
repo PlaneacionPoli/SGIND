@@ -129,7 +129,7 @@ export default function HojaLineaPage({ params }: { params: { key: string } }) {
             <h3 className="mb-2 text-sm font-semibold text-slate-800">Análisis Integrado</h3>
             <p className="text-sm text-slate-600">
               La línea <strong style={{ color }}>{label}</strong> registra un cumplimiento de retos del{" "}
-              <strong>{data.retos.cumplimiento.toFixed(1)}%</strong> sobre {data.retos.n_areas} área(s),
+              <strong>{data.retos.cumplimiento.toFixed(1)}%</strong> sobre {data.retos.n_areas} área(s) (total institucional),
               con <strong>{data.proyectos.length}</strong> proyecto(s) PMO en el cronograma y{" "}
               <strong>
                 {data.objetivos.reduce((acc, o) => acc + o.indicadores.length, 0)}

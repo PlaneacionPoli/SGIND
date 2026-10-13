@@ -10,7 +10,7 @@ from app.services.seguimiento_service import SeguimientoService
 def _excel():
     settings = get_settings()
     settings.sgind_data_path = str(
-        __import__("pathlib").Path(__file__).resolve().parents[3] / "data"
+        __import__("pathlib").Path(__file__).resolve().parents[2] / "data"
     )
     return ExcelReaderService(settings)
 

@@ -48,6 +48,7 @@ async def test_om_list_requiere_auth(client):
 
 
 @pytest.mark.asyncio
+@pytest.mark.requiere_bd
 async def test_om_list_con_auth(client, auth_as_calidad):
     try:
         resp = await client.get("/api/v1/om")
@@ -67,6 +68,7 @@ async def test_om_create_procesos_forbidden(client, auth_as_procesos):
 
 
 @pytest.mark.asyncio
+@pytest.mark.requiere_bd
 async def test_om_create_calidad_ok(client, auth_as_calidad):
     payload = {
         "id_indicador": "FASE4-TEST-001",
@@ -91,6 +93,7 @@ async def test_om_create_calidad_ok(client, auth_as_calidad):
 
 
 @pytest.mark.asyncio
+@pytest.mark.requiere_bd
 async def test_om_update_not_found(client, auth_as_calidad):
     try:
         resp = await client.put("/api/v1/om/999999", json={"comentario": "actualizado"})
@@ -102,6 +105,7 @@ async def test_om_update_not_found(client, auth_as_calidad):
 
 
 @pytest.mark.asyncio
+@pytest.mark.requiere_bd
 async def test_om_cerrar_not_found(client, auth_as_calidad):
     try:
         resp = await client.patch("/api/v1/om/999999/cerrar", json={})
@@ -119,6 +123,7 @@ async def test_om_cerrar_procesos_forbidden(client, auth_as_procesos):
 
 
 @pytest.mark.asyncio
+@pytest.mark.requiere_bd
 async def test_om_delete_not_found(client, auth_as_administrador):
     try:
         resp = await client.delete("/api/v1/om/999999")
@@ -130,6 +135,7 @@ async def test_om_delete_not_found(client, auth_as_administrador):
 
 
 @pytest.mark.asyncio
+@pytest.mark.requiere_bd
 async def test_om_crud_flujo_completo(client, auth_as_administrador):
     """Crea, lee, cierra y elimina un OM en secuencia."""
     payload = {

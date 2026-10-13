@@ -4,7 +4,6 @@ Tests Fase 10 — Deploy Staging.
 Cubre:
  1. docker-compose.staging.yml es YAML válido y contiene servicios esperados
  2. .env.staging existe y contiene las claves obligatorias
- 3. deploy-staging.yml es YAML válido con los jobs esperados
  4. smoke_test.py --skip-if-unconfigured termina con código 0 sin URLs
  5. smoke_test.py detecta backend local si está corriendo (skip si no)
  6. Imágenes GHCR referenciadas en compose.staging son las correctas
@@ -22,8 +21,9 @@ from pathlib import Path
 
 import pytest
 
-ROOT = Path(__file__).resolve().parents[3]
-SGIND_V2 = ROOT / "sgind-v2"
+# __file__ → tests/ → backend/ → raíz del repo (SGING)
+ROOT = Path(__file__).resolve().parents[2]
+SGIND_V2 = ROOT
 SCRIPTS_DIR = SGIND_V2 / "scripts"
 
 
@@ -146,49 +146,8 @@ def test_env_staging_en_gitignore():
     ), ".env.staging no está en .gitignore — riesgo de commitear credenciales"
 
 
-# ─── deploy-staging.yml ───────────────────────────────────────────────────────
-
-
-def test_deploy_workflow_existe():
-    """.github/workflows/deploy-staging.yml existe."""
-    assert (ROOT / ".github" / "workflows" / "deploy-staging.yml").exists()
-
-
-def test_deploy_workflow_yaml_valido():
-    """.github/workflows/deploy-staging.yml es YAML válido."""
-    if not _yaml_available():
-        pytest.skip("PyYAML no disponible")
-    data = _read_yaml(ROOT / ".github" / "workflows" / "deploy-staging.yml")
-    assert "jobs" in data
-
-
-def test_deploy_workflow_tiene_jobs_requeridos():
-    """deploy-staging.yml tiene jobs build-backend, build-frontend, deploy, smoke-test."""
-    if not _yaml_available():
-        pytest.skip("PyYAML no disponible")
-    data = _read_yaml(ROOT / ".github" / "workflows" / "deploy-staging.yml")
-    jobs = set(data.get("jobs", {}).keys())
-    required = {"build-backend", "build-frontend", "deploy", "smoke-test"}
-    assert required.issubset(jobs), f"Jobs faltantes: {required - jobs}"
-
-
-def test_deploy_workflow_usa_ghcr():
-    """deploy-staging.yml referencia ghcr.io."""
-    content = (ROOT / ".github" / "workflows" / "deploy-staging.yml").read_text(encoding="utf-8")
-    assert "ghcr.io" in content
-
-
-def test_deploy_workflow_trigger_main():
-    """deploy-staging.yml se dispara en push a main."""
-    if not _yaml_available():
-        pytest.skip("PyYAML no disponible")
-    data = _read_yaml(ROOT / ".github" / "workflows" / "deploy-staging.yml")
-    on = data.get("on", data.get(True, {}))  # 'on' puede parsear como True en PyYAML
-    branches = []
-    if isinstance(on, dict):
-        push = on.get("push", {})
-        branches = push.get("branches", []) if isinstance(push, dict) else []
-    assert "main" in branches, "deploy-staging.yml debe dispararse en push a main"
+# El despliegue real va por Render (backend), Neon (BD) y Vercel (frontend); no hay workflow
+# deploy-staging.yml con GHCR, por lo que sus tests se retiraron.
 
 
 # ─── Smoke test script ────────────────────────────────────────────────────────

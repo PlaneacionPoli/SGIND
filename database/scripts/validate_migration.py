@@ -6,13 +6,13 @@ Compara datos en PostgreSQL vs fuentes Excel para detectar discrepancias.
 
 Uso:
     # Validar solo contra Excel (sin PG):
-    python sgind-v2/database/scripts/validate_migration.py --no-pg
+    python database/scripts/validate_migration.py --no-pg
 
     # Validar contra PG:
-    python sgind-v2/database/scripts/validate_migration.py \\
+    python database/scripts/validate_migration.py \\
         --postgres "postgresql://sgind:sgind_dev_password@localhost:5433/sgind"
 
-Genera reporte JSON en sgind-v2/database/reports/
+Genera reporte JSON en database/reports/
 """
 
 from __future__ import annotations
@@ -35,7 +35,7 @@ try:
 except ImportError:
     psycopg2 = None  # type: ignore
 
-ROOT = Path(__file__).resolve().parents[3]
+ROOT = Path(__file__).resolve().parents[2]
 DATA_DIR = ROOT / "data"
 REPORTS_DIR = Path(__file__).resolve().parents[1] / "reports"
 

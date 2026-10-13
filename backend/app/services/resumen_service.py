@@ -888,6 +888,12 @@ class ResumenService:
             linea["narrativa"] = (
                 narrativa_data.get("lineas", {}).get(target) if narrativa_data else None
             )
+        # La fuente de Retos no desglosa áreas por línea (confirmado con negocio,
+        # 2026-09-27): se expone el total institucional del último año del rango.
+        linea["retos"] = {
+            **linea["retos"],
+            "n_areas": self._retos.load_area_count(max(anios)),
+        }
         return linea
 
     def _build_signo_lookup(self) -> dict[str, dict[str, Any]]:

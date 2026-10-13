@@ -14,6 +14,8 @@ from app.models.user import User
 _DB_ERROR_MSGS = (
     "password authentication failed",
     "Connection refused",
+    "WinError 1225",  # Windows: conexión rechazada (mensaje localizado)
+    "rechaz",
     "could not connect to server",
     "connection refused",
     "InvalidPasswordError",
@@ -70,3 +72,33 @@ def pytest_exception_interact(node, call, report):
             report.wasxfail = "DB no disponible en este entorno"
             report.outcome = "skipped"
             report.longrepr = f"SKIP: Base de datos no disponible: {exc}"
+
+
+def _bd_disponible() -> bool:
+    """True si el servidor de BD configurado acepta conexiones TCP."""
+    import socket
+
+    from sqlalchemy.engine import make_url
+
+    from app.core.config import get_settings
+
+    url = make_url(get_settings().database_url)
+    try:
+        with socket.create_connection((url.host or "localhost", url.port or 5432), timeout=1):
+            return True
+    except OSError:
+        return False
+
+
+def pytest_collection_modifyitems(config, items):
+    """Los tests marcados `requiere_bd` se saltan si no hay PostgreSQL accesible."""
+    marcados = [i for i in items if i.get_closest_marker("requiere_bd")]
+    if not marcados or _bd_disponible():
+        return
+    skip = pytest.mark.skip(reason="Base de datos no disponible en este entorno")
+    for item in marcados:
+        item.add_marker(skip)
+
+
+def pytest_configure(config):
+    config.addinivalue_line("markers", "requiere_bd: necesita PostgreSQL accesible")

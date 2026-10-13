@@ -86,7 +86,11 @@ class StrategicProcessors:
         self._loaders = StrategicLoaders(excel)
         self._cmi = CMIFilterService(excel)
 
-    def preparar_pdi_con_cierre(self, anio: int, mes: int = 12) -> pd.DataFrame:
+    def preparar_pdi_con_cierre(
+        self, anio: int, mes: int = 12, *, solo_anio: bool = False
+    ) -> pd.DataFrame:
+        """solo_anio=True: un indicador solo cuenta si tiene cierre dentro del año elegido; no
+        se arrastra el último valor de años anteriores (RN-21)."""
         base = self._loaders.load_worksheet_flags()
         catalog = self._loaders.load_pdi_catalog()
         cierres = self._loaders.load_cierres()
@@ -110,7 +114,11 @@ class StrategicProcessors:
             merge_cols.append("Objetivo")
 
         indicators["Id"] = indicators["Id"].apply(_normalize_id_value)
+        if solo_anio and "Anio" in cierres.columns:
+            cierres = cierres[pd.to_numeric(cierres["Anio"], errors="coerce") == int(anio)]
         cierres_cut = cierre_por_corte(cierres, anio, mes)
+        if cierres_cut.empty:
+            return pd.DataFrame()
         cierres_cut["Id"] = cierres_cut["Id"].apply(_normalize_id_value)
 
         result = indicators[merge_cols].merge(

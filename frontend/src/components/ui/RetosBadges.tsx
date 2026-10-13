@@ -43,7 +43,7 @@ export function RetosBadges({ retos, color }: RetosBadgesProps) {
       <div className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-center shadow-sm">
         <div className="text-2xl font-black text-slate-800">{retos.n_areas}</div>
         <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
-          # Áreas con retos
+          # Áreas con retos (total institucional)
         </div>
       </div>
     </div>

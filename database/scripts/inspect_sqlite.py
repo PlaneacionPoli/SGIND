@@ -2,7 +2,7 @@
 import sqlite3
 from pathlib import Path
 
-DB = Path(__file__).resolve().parents[3] / "data" / "db" / "registros_om.db"
+DB = Path(__file__).resolve().parents[2] / "data" / "db" / "registros_om.db"
 
 if not DB.exists():
     print(f"NO_DB:{DB}")

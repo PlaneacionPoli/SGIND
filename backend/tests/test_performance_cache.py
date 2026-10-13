@@ -18,7 +18,7 @@ from app.services.tracking_cache import clear_tracking_cache
 
 def _setup():
     settings = get_settings()
-    settings.sgind_data_path = str(Path(__file__).resolve().parents[3] / "data")
+    settings.sgind_data_path = str(Path(__file__).resolve().parents[2] / "data")
     reset_excel_service_for_tests()
     clear_tracking_cache()
     _WORKSHEET_CACHE.clear()

@@ -14,8 +14,9 @@ señaladas explícitamente para no fijarlas en silencio.
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
-from typing import Literal
+from typing import Any, Literal
 
 Direccion = Literal["mayor_mejor", "menor_mejor"]
 
@@ -24,6 +25,37 @@ Direccion = Literal["mayor_mejor", "menor_mejor"]
 #: Tope de avance aplicado a CADA proyecto antes de promediar. Un proyecto no
 #: puede "compensar" a otros por encima de su propia meta.
 TOPE_PROYECTO = 100.0
+
+_RE_PROYECTO = re.compile(r"^PRY-\d+", re.IGNORECASE)
+
+
+def es_proyecto(indicador_id: Any) -> bool:
+    """Los proyectos del PDI se identifican por su Id (PRY-n)."""
+    return bool(_RE_PROYECTO.match(str(indicador_id).strip()))
+
+
+def topar_cumplimiento_proyecto(valor: float | None) -> float | None:
+    """Un proyecto no supera 100% de cumplimiento (mismo régimen Plan Anual y tope que Retos)
+    en NINGUNA vista, no solo al promediar."""
+    if valor is None or valor != valor:  # None o NaN
+        return valor
+    return min(float(valor), TOPE_PROYECTO)
+
+
+def topar_proyectos_df(df):
+    """Aplica el tope de 100% a `cumplimiento_pct` de las filas que son proyectos (Id PRY-n).
+    Conserva el valor sin tope en `cumplimiento_bruto`. No modifica el DataFrame recibido."""
+    if df.empty or "Id" not in df.columns or "cumplimiento_pct" not in df.columns:
+        return df
+    out = df.copy()
+    es_pry = out["Id"].map(es_proyecto)
+    if not es_pry.any():
+        return out
+    num = out["cumplimiento_pct"].astype("float64")
+    out.loc[es_pry, "cumplimiento_bruto"] = num[es_pry]
+    out["cumplimiento_pct"] = num.where(~es_pry, num.clip(upper=TOPE_PROYECTO))
+    return out
+
 
 #: Tope de cumplimiento aplicado a CADA indicador antes de promediar.
 #: 130% ya es el techo vigente en el resto de la app (RANGO_CUMPLIMIENTO_MAX

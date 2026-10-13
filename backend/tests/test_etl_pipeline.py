@@ -10,7 +10,7 @@ from app.services.indicator_service import IndicatorService
 def settings():
     from pathlib import Path
 
-    root = Path(__file__).resolve().parents[3]
+    root = Path(__file__).resolve().parents[2]
     data_path = root / "data"
     return Settings(
         sgind_data_path=str(data_path),

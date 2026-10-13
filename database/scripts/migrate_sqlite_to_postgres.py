@@ -3,14 +3,14 @@
 Migración SQLite → PostgreSQL — SGIND v2 (Fase 2)
 
 Uso:
-    python sgind-v2/database/scripts/migrate_sqlite_to_postgres.py \\
+    python database/scripts/migrate_sqlite_to_postgres.py \\
         --sqlite data/db/registros_om.db \\
         --postgres postgresql://sgind:pass@localhost:5432/sgind
 
     # Solo validar (dry-run):
     python ... --dry-run
 
-Genera reporte JSON en sgind-v2/database/reports/
+Genera reporte JSON en database/reports/
 """
 
 from __future__ import annotations
@@ -28,7 +28,7 @@ try:
 except ImportError:
     psycopg2 = None  # type: ignore
 
-ROOT = Path(__file__).resolve().parents[3]
+ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_SQLITE = ROOT / "data" / "db" / "registros_om.db"
 REPORTS_DIR = Path(__file__).resolve().parents[1] / "reports"
 

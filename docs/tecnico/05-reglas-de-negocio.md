@@ -136,6 +136,7 @@ aquí queda lo que el sistema **aplica**.
 | RN-35 | **Métricas.** Un registro que es métrica (sin meta por diseño) tiene nivel `Métrica`, **no** «Pendiente de reporte». | `domain/resumen_builders.py::mask_metrica`, `NIVEL_METRICA` | |
 | RN-36 | **Lectura con Excel abierto.** Si el catálogo está bloqueado por Excel/OneDrive, el backend lee una copia temporal en lugar de fallar; si tampoco puede copiarlo, propaga el error. | `services/excel_reader.py::_read_excel_via_copy` | Evita que el dashboard quede vacío mientras Planeación diligencia el catálogo. |
 | RN-37 | **CNA versionado (diseñado, sin implementar).** Los factores y características pasan a una nueva resolución desde 2027. El mismo modelo de marcos (`tipo = CNA`) los versiona; la resolución vigente queda como versión original. | `marcos.toml` (`CNA-ACTUAL`) | La nueva resolución aún no existe. |
+| RN-38 | **Tope de 100% por proyecto en todas las vistas.** Un proyecto (Id `PRY-n`) nunca muestra cumplimiento superior a 100%, igual que Retos (régimen Plan Anual). El tope se aplica al valor mostrado, no solo al promediar; el valor sin tope queda en `cumplimiento_bruto`. Los indicadores conservan su tope de 130%. | `domain/pdi_measurement.py::TOPE_PROYECTO`, `topar_proyectos_df`; `services/proyectos_oficiales_service.py`, `services/cmi_service.py::_prepare_df` | El nivel (semáforo) se calcula con el valor ya topado. |
 
 ## Regla que sí es única y bien centralizada
 

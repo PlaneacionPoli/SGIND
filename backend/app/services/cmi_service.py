@@ -29,6 +29,7 @@ from app.domain.cmi_builders import (
 )
 from app.domain.cmi_filters import CMIFilterService
 from app.domain.linea_order import linea_sort_key
+from app.domain.pdi_measurement import topar_proyectos_df
 from app.domain.marcos import Marco, get_marco, marco_por_defecto
 from app.domain.marcos import get_marcos as _get_marcos
 from app.domain.procesos_builders import (
@@ -163,10 +164,10 @@ class CMIService:
                 int(anio), int(mes), marco.version_id
             )
         else:
-            df = self._strategic.preparar_pdi_con_cierre(int(anio), int(mes))
+            df = self._strategic.preparar_pdi_con_cierre(int(anio), int(mes), solo_anio=True)
         if df.empty:
             return df
-        df = ensure_nivel_cumplimiento(df)
+        df = ensure_nivel_cumplimiento(topar_proyectos_df(df))
         return self._enrich_ficha(df)
 
     def _prepare_df_cierre_pdi(self, marco: Marco) -> pd.DataFrame:
@@ -175,7 +176,7 @@ class CMIService:
         df = self._strategic.preparar_pdi_cierre_final(marco.hoja_cierre or "Cierre PDI")
         if df.empty:
             return df
-        df = ensure_nivel_cumplimiento(df)
+        df = ensure_nivel_cumplimiento(topar_proyectos_df(df))
         return self._enrich_ficha(df)
 
     def get_filtros(self, pdi: str | None = None) -> dict[str, Any]:

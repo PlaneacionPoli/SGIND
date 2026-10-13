@@ -35,3 +35,61 @@ _ORDER_MAP.update({_normalize(ln): len(LINEA_ORDER) + i for i, ln in enumerate(L
 def linea_sort_key(linea: str) -> int:
     """Índice canónico de la línea; desconocidas van al final."""
     return _ORDER_MAP.get(_normalize(linea), len(LINEA_ORDER) + len(LINEA_ORDER_2026))
+
+
+# Orden institucional de los indicadores dentro de cada línea (aplica a ambos PDI).
+# Clave: prefijo normalizado de la línea; valor: indicadores en el orden deseado.
+INDICADORES_ORDER: dict[tuple[str, ...], list[str]] = {
+    ("expansion",): [
+        "Total Población",
+        "Total estudiantes nuevos",
+        "Total estudiantes antiguos",
+        "Estudiantes Presencial",
+        "Estudiantes Virtual",
+        "Estudiantes Pregrado",
+        "Estudiantes Posgrado",
+        "Lanzamiento de nuevos programas presencial",
+        "Lanzamiento de nuevos programas virtual",
+        "Brand equity",
+        "Conocimiento espontáneo",
+    ],
+    ("sostenibilidad", "desarrollo sostenible"): [
+        "Cumplimiento de Ingresos",
+        "Cumplimiento EBITDA",
+        "Utilidad Neta",
+        "Inversión en CAPEX de la utilidad anterior",
+        "Caja",
+        "Nivel de Cumplimiento Opex",
+        "CAPEX",
+        "Compensación de Gases de Efecto Invernadero",
+        "GreenMetric - Nacional",
+        "Índice de Inclusión",
+        "Estudiantes con Becas",
+        "Participación de POLI- voluntariados (Estudiantes- Colaboradores)",
+        "Impacto de actividades de Responsabilidad y proyección",
+        "Nivel de empleabilidad del graduado",
+    ],
+}
+# Variantes de escritura presentes en la fuente (ya normalizadas) -> nombre canónico normalizado.
+_ALIAS: dict[str, str] = {"cumplimiento ebidta": "cumplimiento ebitda"}
+
+
+def _indicador_key(nombre: str) -> str:
+    clean = _normalize(nombre).replace("*", "")
+    clean = " ".join(clean.split())
+    return _ALIAS.get(clean, clean)
+
+
+_INDICADOR_MAPS: list[tuple[tuple[str, ...], dict[str, int], int]] = [
+    (prefijos, {_indicador_key(n): i for i, n in enumerate(orden)}, len(orden))
+    for prefijos, orden in INDICADORES_ORDER.items()
+]
+
+
+def indicador_sort_key(linea: str, indicador: str) -> int:
+    """Posición del indicador dentro de su línea; sin orden definido va al final (orden estable)."""
+    linea_n = _normalize(linea)
+    for prefijos, mapa, n in _INDICADOR_MAPS:
+        if linea_n.startswith(prefijos):
+            return mapa.get(_indicador_key(indicador), n)
+    return 0
