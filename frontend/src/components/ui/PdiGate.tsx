@@ -1,11 +1,18 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { PdiChip } from "@/components/ui/PdiChip";
-import { fetchMarcos, marcoSirve, seleccionPdiHref, usePdiSeleccionado } from "@/lib/pdi";
+import {
+  fetchMarcos,
+  marcoSirve,
+  moduloHref,
+  pdiPorDefecto,
+  seleccionPdiHref,
+  usePdiSeleccionado,
+} from "@/lib/pdi";
 import { useAuthReady } from "@/stores/auth-store";
 
 /**
@@ -21,8 +28,11 @@ export function PdiGate({
   modulo: string;
   children: (pdi: string) => ReactNode;
 }) {
-  const pdi = usePdiSeleccionado();
+  // CMI por Procesos entra directo (sin pantalla de selección): usa el PDI vigente.
+  const sinSeleccion = modulo === "cmi-procesos";
+  const pdi = usePdiSeleccionado(!sinSeleccion);
   const pathname = usePathname();
+  const router = useRouter();
   const { isAuthenticated } = useAuthReady();
   const { data: marcos, isLoading } = useQuery({
     queryKey: ["marcos", "PDI"],
@@ -30,7 +40,20 @@ export function PdiGate({
     enabled: isAuthenticated,
   });
 
-  if (!pdi) return <p className="text-sm text-slate-500">Redirigiendo a la selección de PDI…</p>;
+  useEffect(() => {
+    if (sinSeleccion && !pdi && marcos) {
+      const defecto = pdiPorDefecto(marcos);
+      if (defecto) router.replace(moduloHref(pathname, defecto));
+    }
+  }, [sinSeleccion, pdi, marcos, pathname, router]);
+
+  if (!pdi) {
+    return (
+      <p className="text-sm text-slate-500">
+        {sinSeleccion ? "Cargando…" : "Redirigiendo a la selección de PDI…"}
+      </p>
+    );
+  }
   // Sin sesión, la página misma decide (p. ej. Resumen muestra login de desarrollo).
   if (!isAuthenticated) return <>{children(pdi)}</>;
   if (isLoading || !marcos) return <p className="text-sm text-slate-500">Cargando ciclo PDI…</p>;
@@ -49,9 +72,11 @@ export function PdiGate({
           ? "Este módulo aún no está disponible para este ciclo (la información de indicadores, líneas, objetivos y metas todavía se está cargando). Mientras tanto puedes consultar otro PDI o los módulos habilitados."
           : "El ciclo indicado no existe en el registro de PDI."}
       </p>
-      <Link href={seleccionPdiHref(pathname)} className="inline-block text-sm font-semibold text-blue-700 hover:underline">
-        ← Volver a la selección de PDI
-      </Link>
+      {!sinSeleccion && (
+        <Link href={seleccionPdiHref(pathname)} className="inline-block text-sm font-semibold text-blue-700 hover:underline">
+          ← Volver a la selección de PDI
+        </Link>
+      )}
     </div>
   );
 }

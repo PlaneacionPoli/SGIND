@@ -32,6 +32,15 @@ export async function fetchMarcos(tipo: "PDI" | "CNA" = "PDI"): Promise<Marco[]>
   return data;
 }
 
+/** Módulos que entran directo con el PDI vigente (sin pantalla de selección); el PDI se cambia con el desplegable. */
+export const MODULOS_SIN_SELECCION: ReadonlySet<string> = new Set(["/cmi-procesos"]);
+
+/** PDI por defecto: el ciclo vigente (o el más reciente si ninguno está activo). */
+export function pdiPorDefecto(marcos: Marco[]): string | null {
+  const activo = marcos.find((m) => m.estado === "activo");
+  return (activo ?? [...marcos].sort((a, b) => b.orden - a.orden)[0])?.version_id ?? null;
+}
+
 /** Módulos que exigen elegir PDI antes de mostrarse. */
 export const MODULOS_CON_PDI: ReadonlySet<string> = new Set([
   "/resumen-general",
@@ -59,23 +68,23 @@ export function moduloHref(destino: string, versionId: string): string {
 
 /**
  * PDI elegido para el módulo actual, tomado de `?pdi=`. Si falta, redirige a
- * la pantalla de selección y devuelve null (la página no debe renderizar
+ * la pantalla de selección (salvo `redirigir=false`, para módulos sin selección) y devuelve null (la página no debe renderizar
  * datos hasta tener PDI). Requiere estar dentro de <Suspense>.
  */
-export function usePdiSeleccionado(): string | null {
+export function usePdiSeleccionado(redirigir = true): string | null {
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const router = useRouter();
   const pdi = searchParams.get("pdi");
 
   useEffect(() => {
-    if (!pdi) {
+    if (!pdi && redirigir) {
       const base = Array.from(MODULOS_CON_PDI).find(
         (m) => pathname === m || pathname.startsWith(`${m}/`)
       );
       router.replace(seleccionPdiHref(base ?? pathname));
     }
-  }, [pdi, pathname, router]);
+  }, [pdi, redirigir, pathname, router]);
 
   return pdi;
 }

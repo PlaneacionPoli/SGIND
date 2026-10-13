@@ -175,6 +175,10 @@ function CMIProcesosContent({ pdi }: { pdi: string }) {
   }, [filtrosQuery.data]);
 
   const data = dashboardQuery.data;
+  // Resumen, Procesos y Unidades y Alertas usan el corte y los filtros elegidos (todos los
+  // indicadores del corte). vista_global (último mes con datos, a veces incompleto: 12 indicadores
+  // en 2026) solo es respaldo si el backend aún no envía vista_filtrada.
+  const vista = data?.vista_filtrada ?? data?.vista_global;
 
   return (
     <div className="mx-auto max-w-[1400px] space-y-5 px-1">
@@ -279,17 +283,14 @@ function CMIProcesosContent({ pdi }: { pdi: string }) {
             </p>
           )}
           {tab === "resumen" && (
-            data.vista_global?.kpis ? (
-              <CmiProcesosResumenTab vista={data.vista_global} baseAnio={data.meta.base_anio} />
+            vista?.kpis ? (
+              <CmiProcesosResumenTab vista={vista} baseAnio={data.meta.base_anio} />
             ) : (
               <p className="text-sm text-slate-500">Sin datos globales para el resumen.</p>
             )
           )}
           {tab === "procesos" && (
-            // Responde a los filtros del panel; vista_global (corte global sin filtros) solo es
-            // respaldo si el backend aún no envía vista_filtrada.
             (() => {
-              const vista = data.vista_filtrada ?? data.vista_global;
               return vista?.kpis ? (
                 <CmiProcesosUnidadesTab
                   unidades={vista.unidades_detalle}
@@ -320,7 +321,7 @@ function CMIProcesosContent({ pdi }: { pdi: string }) {
               peligro={data.alertas.peligro}
               alerta={data.alertas.alerta}
               items={data.alertas.items}
-              alertasCriticas={data.vista_global?.alertas_criticas ?? []}
+              alertasCriticas={vista?.alertas_criticas ?? []}
               onOpenFicha={setFichaId}
             />
           )}

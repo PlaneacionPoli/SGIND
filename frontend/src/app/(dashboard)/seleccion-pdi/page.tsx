@@ -1,11 +1,11 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useEffect } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { NAV_ITEMS } from "@/config/navigation";
-import { destinoValido, fetchMarcos, moduloHref, type Marco } from "@/lib/pdi";
+import { destinoValido, fetchMarcos, moduloHref, pdiPorDefecto, MODULOS_SIN_SELECCION, type Marco } from "@/lib/pdi";
 import { useAuthReady } from "@/stores/auth-store";
 
 const NOMBRES_MODULO: Record<string, string> = {
@@ -32,6 +32,15 @@ function SeleccionPdiContent() {
     queryFn: () => fetchMarcos("PDI"),
     enabled: isAuthenticated,
   });
+
+  // Módulos sin selección (CMI por Procesos) no muestran esta pantalla: van directo con el PDI vigente.
+  const router = useRouter();
+  useEffect(() => {
+    if (MODULOS_SIN_SELECCION.has(destino) && marcosQuery.data) {
+      const defecto = pdiPorDefecto(marcosQuery.data);
+      if (defecto) router.replace(moduloHref(destino, defecto));
+    }
+  }, [destino, marcosQuery.data, router]);
 
   // Más reciente primero: el ciclo activo encabeza la selección.
   const marcos = [...(marcosQuery.data ?? [])].sort((a, b) => b.orden - a.orden);
