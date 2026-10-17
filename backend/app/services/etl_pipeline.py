@@ -7,6 +7,7 @@ from app.domain.loader_utils import id_a_str, obtener_rename_map, renombrar_colu
 from app.services.excel_reader import ExcelReaderService
 
 _LEER_CIERRES_CACHE: dict[int, tuple[float, pd.DataFrame]] = {}
+_LEER_MENSUAL_CACHE: dict = {}
 
 _CONSOLIDADO_CANDIDATES = [
     "output/Resultados Consolidados.xlsx",
@@ -60,9 +61,12 @@ class ETLPipelineService:
         historico: bool = False,
         relative_path: str | None = None,
         sheet: str | None = None,
+        estricto: bool = False,
     ) -> pd.DataFrame:
         path = relative_path or self._resolve_consolidado()
-        df = self._fase1_leer_path(path, historico=historico, sheet=sheet)
+        df = self._fase1_leer_path(path, historico=historico, sheet=sheet, estricto=estricto)
+        if df.empty:
+            return df
         df = self.fase2_clasificacion(df, path)
         df = self.fase3_cmi(df)
         df = self.fase4_fechas(df)
@@ -87,14 +91,32 @@ class ETLPipelineService:
         )
         return df.copy()
 
+    def leer_mensual(self) -> pd.DataFrame:
+        """Cortes acumulados por indicador y mes de reporte del año en curso (hoja
+        'Consolidado Mensual'). Vacío si el libro aún no la tiene."""
+        df = cache_get(
+            _LEER_MENSUAL_CACHE,
+            id(self._excel),
+            lambda: self.ejecutar(sheet="Consolidado Mensual", estricto=True),
+            ttl=getattr(self._excel, "ttl", 300),
+        )
+        return df.copy()
+
     def _fase1_leer_path(
-        self, relative: str, *, historico: bool, sheet: str | None = None
+        self,
+        relative: str,
+        *,
+        historico: bool,
+        sheet: str | None = None,
+        estricto: bool = False,
     ) -> pd.DataFrame:
         if sheet is None:
             sheet = "Consolidado Historico" if historico else "Consolidado Semestral"
         try:
             df = self._excel.read_excel(relative, sheet_name=sheet)
         except (ValueError, KeyError):
+            if estricto:  # la hoja no existe: no leer otra en su lugar
+                return pd.DataFrame()
             df = self._excel.read_excel(relative)
         df = renombrar_columnas(df, obtener_rename_map())
         if "Id" in df.columns:

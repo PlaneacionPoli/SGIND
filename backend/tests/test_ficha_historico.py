@@ -47,10 +47,28 @@ def test_ficha_estrategica_historico_no_se_limita_al_ciclo_del_pdi(svc: CMIServi
     assert f and len({h["periodo"][:4] for h in f["historico"]}) >= 4
 
 
-def test_resumen_cmi_procesos_solo_junio_y_diciembre(svc: CMIService):
+def test_cmi_procesos_un_solo_corte_por_año_sin_filtro_de_mes(svc: CMIService):
+    """Cierre anual (o último reporte de cada indicador en el año en curso): sin filtro de mes."""
     for anio in (2025, 2026):
-        assert svc.get_procesos_filtros(anio=anio)["meses"] == [6, 12]
-    assert svc.get_procesos_dashboard(anio=2026, mes=6)["meses_disponibles"] == [6, 12]
+        f = svc.get_procesos_filtros(anio=anio)
+        assert f["meses"] == []
+        assert 1 <= f["mes_default"] <= 12
+    d6 = svc.get_procesos_dashboard(anio=2026, mes=6)
+    d12 = svc.get_procesos_dashboard(anio=2026, mes=12)
+    assert d6["meses_disponibles"] == []
+    # `mes` se ignora: el mismo corte, el último reporte de cada indicador
+    assert d6["total_indicadores"] == d12["total_indicadores"]
+    assert d6["banner"]["cumplimiento_global"] == d12["banner"]["cumplimiento_global"]
+
+
+def test_resumen_y_ultimo_mes_de_la_tendencia_cuentan_lo_mismo(svc: CMIService):
+    """La visual de 12 meses cierra en el mismo universo y valor que el Resumen."""
+    d = svc.get_procesos_dashboard(anio=2026)
+    t = svc.get_procesos_tendencia_mensual()
+    ultimo = t["serie"][t["ultimo_mes_cerrado"] - 1]
+    assert ultimo["n_indicadores"] == d["total_indicadores"]
+    assert ultimo["cumplimiento"] == d["banner"]["cumplimiento_global"]
+    assert all(not p["cerrado"] and p["cumplimiento"] is None for p in t["serie"][t["ultimo_mes_cerrado"]:])
 
 
 def test_vista_filtrada_responde_a_los_filtros_y_es_coherente(svc: CMIService):
@@ -63,8 +81,8 @@ def test_vista_filtrada_responde_a_los_filtros_y_es_coherente(svc: CMIService):
     # Jerarquía unidad → proceso → subproceso: todo proceso pertenece a una unidad listada.
     unidades = {u["unidad"] for u in todas["unidades_detalle"]}
     assert all(p["unidad"] in unidades for p in todas["procesos_detalle"])
-    # El corte es el elegido (no el global más reciente, que puede estar incompleto).
-    assert todas["mes_nombre"] == "Junio"
+    # Un solo corte por año: el mes rotula el último reporte más reciente, no un mes elegido.
+    assert todas["mes_nombre"] == svc.get_procesos_dashboard(anio=2026)["mes_nombre"]
 
 
 def test_indicador_69_se_lee_como_porcentaje_del_api(svc: CMIService):

@@ -431,6 +431,10 @@ export interface CMIProcesosFichaIndicador extends Indicator {
   unidad?: string;
   tipo_proceso?: string;
   tipo_proceso_color?: string;
+  /** Último mes de reporte del indicador ("Jul 2026"), su cierre (Final/Parcial) y tipo de cálculo. */
+  ultimo_reporte?: string | null;
+  estado_cierre?: string | null;
+  tipo_calculo?: string | null;
   tendencia?: string;
   narrativa_ia?: {
     diagnostico: string;
@@ -1529,5 +1533,33 @@ export interface CMIProcesosMapaResponse {
   anios: number[];
   anio_parcial: number | null;
   procesos: CMIMapaProceso[];
+  mix_niveles: Record<string, Record<string, number>>;
   sin_tipo_calculo: number;
+}
+
+export interface CMITendenciaMes {
+  mes: number;
+  nombre: string;
+  cerrado: boolean;
+  cumplimiento: number | null;
+  n_indicadores: number;
+  n_reportes_mes: number;
+  en_riesgo: number;
+}
+
+export interface CMITendenciaDetalle {
+  nombre: string;
+  cumplimiento: number | null;
+  n_indicadores: number;
+  en_riesgo: number;
+}
+
+export interface CMITendenciaMensualResponse {
+  anio: number;
+  ultimo_mes_cerrado: number;
+  mes_seleccionado: number;
+  mes_seleccionado_nombre: string;
+  agrupado_por: "proceso" | "subproceso";
+  serie: CMITendenciaMes[];
+  detalle: CMITendenciaDetalle[];
 }

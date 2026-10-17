@@ -351,6 +351,36 @@ def marcar_estado_cierre(ws, anio_curso: Optional[int] = None) -> int:
     return n
 
 
+HOJA_MENSUAL = "Consolidado Mensual"
+
+
+def asegurar_hoja_mensual(wb, ws_ref, nombre: str = HOJA_MENSUAL):
+    """Devuelve la hoja de cortes mensuales; si no existe la crea con el mismo encabezado que
+    Consolidado Cierres (sin la columna Estado_Cierre, que es solo de Cierres)."""
+    if nombre in wb.sheetnames:
+        return wb[nombre]
+    ws = wb.create_sheet(nombre, index=wb.sheetnames.index(ws_ref.title) + 1)
+    col = 0
+    for celda in next(ws_ref.iter_rows(min_row=1, max_row=1)):
+        if celda.value is None or str(celda.value).strip() == COL_ESTADO_CIERRE:
+            continue
+        col += 1
+        destino = ws.cell(1, col)
+        destino.value = celda.value
+        if celda.has_style:
+            destino.font, destino.fill = celda.font.copy(), celda.fill.copy()
+            destino.alignment, destino.border = celda.alignment.copy(), celda.border.copy()
+    return ws
+
+
+def vaciar_hoja(ws) -> int:
+    """Borra todas las filas de datos (conserva el encabezado). Retorna cuántas borró."""
+    n = max(ws.max_row - 1, 0)
+    if n:
+        ws.delete_rows(2, n)
+    return n
+
+
 COLOR_DUPLICADO_CIERRE = "F8CBAD"  # naranja claro: Id con más de un cierre en el mismo año
 
 
@@ -935,6 +965,7 @@ def reparar_semestral_agregados(
         return 0
 
     is_cierre = "Cierre" in ws.title or "Cierres" in ws.title
+    is_mensual = "Mensual" in ws.title  # corte acumulado: enero hasta el mes de la fila
     n_fix = 0
 
     for row in ws.iter_rows(min_row=2, values_only=False):
@@ -957,9 +988,12 @@ def reparar_semestral_agregados(
             continue
 
         patron = "AVG" if id_s in ids_avg else "SUM"
-        months = list(range(1, 13)) if is_cierre else (
-            list(range(1, 7)) if fecha.month <= 6 else list(range(7, 13))
-        )
+        if is_mensual:
+            months = list(range(1, fecha.month + 1))
+        elif is_cierre:
+            months = list(range(1, 13))
+        else:
+            months = list(range(1, 7)) if fecha.month <= 6 else list(range(7, 13))
 
         pares = [monthly.get((id_s, fecha.year, m), (None, None)) for m in months]
         if patron == "AVG":

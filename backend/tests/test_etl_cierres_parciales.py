@@ -16,8 +16,8 @@ from scripts.etl.purga import (  # noqa: E402
     estado_cierre,
     limpiar_cierres_existentes,
     marcar_estado_cierre,
-    resaltar_duplicados_id_anio,
     reemplazar_cierres_parciales,
+    resaltar_duplicados_id_anio,
 )
 
 CURSO = 2026

@@ -1,26 +1,17 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import dynamic from "next/dynamic";
+import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { Layout } from "plotly.js";
 import {
   Brain,
   AlertTriangle,
   ListChecks,
-  TrendingUp,
-  TrendingDown,
-  LineChart as LineChartIcon,
   ShieldCheck,
   Sparkles,
 } from "lucide-react";
 import type { CMIProcesosDashboardResponse, NarrativaIaProceso } from "@/lib/types";
 import { fetchNarrativaIaBorrador, publicarNarrativaIaProceso } from "@/lib/api";
 import { useAuthStore } from "@/stores/auth-store";
-import { paletteColor } from "@/components/cmi/cmiChartColors";
-import { fmtPct } from "@/components/cmi/nivelUtils";
-
-const Plot = dynamic(() => import("react-plotly.js"), { ssr: false });
 
 interface CmiProcesosAnalisisTabProps {
   data: CMIProcesosDashboardResponse;
@@ -52,16 +43,7 @@ export function CmiProcesosAnalisisTab({
   const { analisis_avanzado, anio, mes, mes_nombre, filtros_aplicados } = data;
   const av = analisis_avanzado ?? {};
   const narrativaHeuristica = av.narrativa_proceso;
-  const historico = useMemo(() => av.historico_indicadores ?? [], [av.historico_indicadores]);
-  const variacion = av.variacion_indicadores ?? { mejoraron: [], empeoraron: [] };
   const proceso = filtros_aplicados?.proceso || "Todos";
-
-  const [histId, setHistId] = useState(historico[0]?.id ?? "");
-
-  const histChart = useMemo(() => {
-    const item = historico.find((h) => h.id === histId);
-    return item?.puntos ?? [];
-  }, [historico, histId]);
 
   const narrativa: NarrativaDisplay | null = narrativaIaProceso
     ? {
@@ -94,10 +76,9 @@ export function CmiProcesosAnalisisTab({
       <div className="flex items-center gap-2.5 rounded-xl border border-blue-100 bg-blue-50/40 px-4 py-3">
         <Brain className="h-5 w-5 shrink-0 text-poli-navy" />
         <p className="text-sm text-slate-700">
-          Diagnóstico generado a partir del catálogo filtrado — corte{" "}
-          <span className="font-semibold text-poli-navy">
-            {mes_nombre} {anio}
-          </span>
+          Diagnóstico generado a partir del catálogo filtrado — {anio}, último reporte de cada indicador (más
+          reciente:{" "}
+          <span className="font-semibold text-poli-navy">{mes_nombre}</span>)
           .
         </p>
       </div>
@@ -176,81 +157,6 @@ export function CmiProcesosAnalisisTab({
         pendiente={!!narrativaIaPendiente}
       />
 
-      {(variacion.mejoraron.length > 0 || variacion.empeoraron.length > 0) && (
-        <section className="grid gap-4 lg:grid-cols-2">
-          <VariationList
-            title="Indicadores con mayor mejora"
-            icon={<TrendingUp className="h-4 w-4 text-emerald-600" />}
-            rows={variacion.mejoraron.slice(0, 3)}
-            positive
-          />
-          <VariationList
-            title="Indicadores con mayor riesgo"
-            icon={<TrendingDown className="h-4 w-4 text-red-600" />}
-            rows={variacion.empeoraron.slice(0, 3)}
-            positive={false}
-          />
-        </section>
-      )}
-
-      {historico.length > 0 && (
-        <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-          <div className="mb-3 flex items-center gap-2">
-            <LineChartIcon className="h-4 w-4 text-slate-500" />
-            <h3 className="text-sm font-bold text-slate-800">Evolución histórica del indicador</h3>
-          </div>
-          <label className="mb-3 flex flex-col gap-1 text-sm">
-            <span className="font-medium text-slate-600">Indicador</span>
-            <select
-              value={histId}
-              onChange={(e) => setHistId(e.target.value)}
-              className="max-w-xl rounded-lg border border-slate-200 px-3 py-2"
-            >
-              {historico.map((h) => (
-                <option key={h.id} value={h.id}>
-                  {h.indicador}
-                </option>
-              ))}
-            </select>
-          </label>
-          {histChart.length > 0 && (
-            <Plot
-              data={[
-                {
-                  type: "scatter",
-                  mode: "lines+markers",
-                  x: histChart.map((p) => p.periodo),
-                  y: histChart.map((p) => p.cumplimiento),
-                  line: { color: "#1A3A5C", width: 2 },
-                  marker: {
-                    size: 8,
-                    color: histChart.map((_, i) => paletteColor(i)),
-                  },
-                  hovertemplate: "<b>%{x}</b><br>Cumplimiento: %{y:.1f}%<extra></extra>",
-                },
-              ]}
-              layout={
-                {
-                  margin: { l: 48, r: 24, t: 16, b: 48 },
-                  height: 280,
-                  paper_bgcolor: "rgba(0,0,0,0)",
-                  plot_bgcolor: "rgba(0,0,0,0)",
-                  yaxis: { range: [0, 120], ticksuffix: "%", gridcolor: "#E2E8F0" },
-                  xaxis: { gridcolor: "#E2E8F0" },
-                  shapes: [
-                    { type: "line", x0: 0, x1: 1, xref: "paper", y0: 100, y1: 100, line: { color: "#2E7D32", dash: "dot" } },
-                    { type: "line", x0: 0, x1: 1, xref: "paper", y0: 80, y1: 80, line: { color: "#F9A825", dash: "dot" } },
-                  ],
-                  font: { family: "inherit", size: 11 },
-                } as Partial<Layout>
-              }
-              config={{ displayModeBar: false, responsive: true }}
-              style={{ width: "100%" }}
-              useResizeHandler
-            />
-          )}
-        </section>
-      )}
     </div>
   );
 }
@@ -362,49 +268,5 @@ function NarrativaIaAuditPanel({
         </div>
       )}
     </section>
-  );
-}
-
-function VariationList({
-  title,
-  icon,
-  rows,
-  positive,
-}: {
-  title: string;
-  icon: React.ReactNode;
-  rows: Array<{ indicador: string; linea: string; linea_color: string; variacion: number }>;
-  positive: boolean;
-}) {
-  return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-      <h4 className="mb-3 flex items-center gap-2 text-sm font-bold text-slate-800">
-        {icon}
-        {title}
-      </h4>
-      {rows.length === 0 ? (
-        <p className="text-sm text-slate-500">Sin datos comparativos.</p>
-      ) : (
-        <ul className="divide-y divide-slate-100">
-          {rows.map((r) => (
-            <li key={r.indicador} className="flex items-center justify-between gap-3 py-2.5">
-              <div className="min-w-0">
-                <p className="truncate text-sm font-medium text-slate-800">{r.indicador}</p>
-                <span
-                  className="inline-block rounded px-1.5 py-0.5 text-[10px] font-semibold"
-                  style={{ backgroundColor: `${r.linea_color}22`, color: r.linea_color }}
-                >
-                  {r.linea}
-                </span>
-              </div>
-              <span className={`shrink-0 text-sm font-bold ${positive ? "text-emerald-700" : "text-red-700"}`}>
-                {r.variacion > 0 ? "+" : ""}
-                {fmtPct(r.variacion)}
-              </span>
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
   );
 }

@@ -93,6 +93,9 @@ from etl.purga import (                            # noqa: E402
     marcar_estado_cierre,
     reemplazar_cierres_parciales,
     resaltar_duplicados_id_anio,
+    asegurar_hoja_mensual,
+    vaciar_hoja,
+    anio_en_curso,
     _dedup_cierres_por_año,
     reparar_meta_vacia,
     reparar_meta_capeada_agent5,
@@ -107,6 +110,7 @@ from etl.builders import (                         # noqa: E402
     construir_registros_historico,
     construir_registros_semestral,
     construir_registros_cierres,
+    construir_registros_mensuales,
     expandir_series_como_subindicadores,
     extraer_cronograma_proyectos,
     construir_registros_poblacion,
@@ -414,6 +418,7 @@ def main() -> None:
         ws_hist     = wb["Consolidado Historico"]
         ws_sem      = wb["Consolidado Semestral"]
         ws_cierres  = wb["Consolidado Cierres"]
+        ws_mensual  = asegurar_hoja_mensual(wb, ws_cierres)
 
         # ── 6. Leer históricos existentes para signos ─────────────────
         logger.info("6. Leyendo hojas existentes…")
@@ -611,6 +616,28 @@ def main() -> None:
         n_reemp, n_desc,
     )
 
+    # ── 10.56 Cortes mensuales del año en curso (hoja Consolidado Mensual) ──
+    # Un corte acumulado por indicador y mes de reporte, con la misma regla de Cierres
+    # (TipoCalculo). Se reconstruye completo en cada corrida: lo anterior se elimina y reemplaza.
+    n_borradas = vaciar_hoja(ws_mensual)
+    regs_mensual, skip_m, na_m = construir_registros_mensuales(
+        df_api, anio_en_curso(), hist_escalas,
+        config_patrones=config_patrones,
+        mapa_procesos=mapa_procesos,
+        kawak_validos=kawak_validos,
+        extraccion_map=extraccion_map,
+        api_kawak_lookup=api_kawak_lookup,
+        tipo_calculo_map=tipo_calculo_map,
+        variables_campo_map=variables_campo_map,
+        tipo_indicador_map=tipo_indicador_map,
+        metadatos_cmi=metadatos_cmi,
+        kawak_por_año=kawak_por_año,
+    )
+    logger.info(
+        "10.56 Mensual %d: %d cortes nuevos (%d filas previas reemplazadas), %d omitidos, %d NA",
+        anio_en_curso(), len(regs_mensual), n_borradas, skip_m, na_m,
+    )
+
     # ── 10.6 VALIDACIÓN INTERMEDIA (post-construcción) ──────────────
     logger.info("10.6 Validación intermedia post-construcción…")
     for nombre_hoja, regs in [("Historico", regs_hist), ("Semestral", regs_sem), ("Cierres", regs_cierres)]:
@@ -649,10 +676,12 @@ def main() -> None:
         escribir_filas(ws_sem, regs_sem, signos, ids_metrica=ids_metrica)
     if regs_cierres:
         escribir_filas(ws_cierres, regs_cierres, signos, ids_metrica=ids_metrica)
+    if regs_mensual:
+        escribir_filas(ws_mensual, regs_mensual, signos, ids_metrica=ids_metrica)
 
     # ── 12. Reparar valores vacíos y recalcular ───────────────────
     logger.info("12. Reparando valores y recalculando…")
-    for ws, nom in [(ws_hist, "Historico"), (ws_sem, "Semestral"), (ws_cierres, "Cierres")]:
+    for ws, nom in [(ws_hist, "Historico"), (ws_sem, "Semestral"), (ws_cierres, "Cierres"), (ws_mensual, "Mensual")]:
         reparar_meta_vacia(ws, api_kawak_lookup, nom)
         reparar_meta_capeada_agent5(ws, df_api, nom)
         reparar_ejecucion_capeada_agent5(ws, df_api, nom)
@@ -671,6 +700,10 @@ def main() -> None:
             ws_cierres, df_api, extraccion_map, tipo_calculo_map, "Cierres",
             variables_campo_map, tipo_indicador_map,
         )
+        reparar_semestral_agregados(
+            ws_mensual, df_api, extraccion_map, tipo_calculo_map, "Mensual",
+            variables_campo_map, tipo_indicador_map,
+        )
 
     # ── 12.5 Reparar Desglose Variables y metas fijas (última pasada) ──
     reparar_desglose_variables(
@@ -684,7 +717,11 @@ def main() -> None:
         ws_cierres, df_api, extraccion_map, variables_campo_map, tipo_indicador_map, "Cierres",
         tipo_calculo_map=tipo_calculo_map,
     )
-    for ws, nom in [(ws_hist, "Historico"), (ws_sem, "Semestral"), (ws_cierres, "Cierres")]:
+    reparar_desglose_variables(
+        ws_mensual, df_api, extraccion_map, variables_campo_map, tipo_indicador_map, "Mensual",
+        tipo_calculo_map=tipo_calculo_map,
+    )
+    for ws, nom in [(ws_hist, "Historico"), (ws_sem, "Semestral"), (ws_cierres, "Cierres"), (ws_mensual, "Mensual")]:
         reparar_metas_fijas(ws, nom)
 
     # ── 12.6 Repetir purga de Fecha Desde ────────────────────────────
@@ -692,7 +729,7 @@ def main() -> None:
     # Fecha Desde sin dato real, ya que su LLAVE quedó libre tras la purga
     # del paso 7 (no saben de Fecha Desde). Segunda pasada tras escribir y
     # reparar, antes de deduplicar/ordenar.
-    for ws, nom in [(ws_hist, "Historico"), (ws_sem, "Semestral"), (ws_cierres, "Cierres")]:
+    for ws, nom in [(ws_hist, "Historico"), (ws_sem, "Semestral"), (ws_cierres, "Cierres"), (ws_mensual, "Mensual")]:
         purgar_filas_antes_fecha_desde(ws, fecha_desde_map, nom)
 
     # ── 13. Deduplicar y reescribir fórmulas ─────────────────────
@@ -703,6 +740,7 @@ def main() -> None:
     limpiar_ordenar_hoja(ws_hist, "Historico", ordenar_por=["Id", "Fecha"])
     limpiar_ordenar_hoja(ws_sem, "Semestral", ordenar_por=["Id", "Fecha"])
     limpiar_ordenar_hoja(ws_cierres, "Cierres", ordenar_por=["Id", "Fecha"])
+    limpiar_ordenar_hoja(ws_mensual, "Mensual", ordenar_por=["Id", "Fecha"])
 
     # ── 13.4 Marcar cierre Final / Parcial en Consolidado Cierres ──────
     n_marcadas = marcar_estado_cierre(ws_cierres)
@@ -717,7 +755,7 @@ def main() -> None:
     from etl.validation_gate import normalizar_encabezados_consolidados
 
     resultado_encabezados = normalizar_encabezados_consolidados(
-        {"Historico": ws_hist, "Semestral": ws_sem, "Cierres": ws_cierres}
+        {"Historico": ws_hist, "Semestral": ws_sem, "Cierres": ws_cierres, "Mensual": ws_mensual}
     )
     if resultado_encabezados.warning_count:
         logger.info(

@@ -8,6 +8,7 @@ import type {
   CMIProcesosMapaResponse,
 } from "@/lib/types";
 import { colorCumplimiento } from "@/components/cmi/cmiChartColors";
+import { CmiProcesosTendenciaMensual } from "@/components/cmi/CmiProcesosTendenciaMensual";
 import { fmtPct, NivelBadge } from "@/components/cmi/nivelUtils";
 
 type Serie = Record<string, number | null>;
@@ -365,6 +366,11 @@ function FichaProceso({
             )}
           </div>
 
+          <CmiProcesosTendenciaMensual
+            proceso={proceso.proceso}
+            titulo={`Cumplimiento mensual ${mapa.anio_parcial ?? ""} · ${proceso.proceso}`}
+          />
+
           <div>
             <p className="mb-2 text-sm font-semibold text-slate-700">
               {esNivelUnico(proceso) ? "Indicadores asociados" : `Subprocesos (${proceso.subprocesos.length})`}
@@ -381,9 +387,53 @@ function FichaProceso({
   );
 }
 
+type Agrupar = "tipo" | "unidad" | "ninguno";
+
+interface Grupo {
+  clave: string;
+  procesos: CMIMapaProceso[];
+  anios: Serie;
+  variaciones: Record<string, number | null>;
+  n_indicadores: number;
+  en_riesgo: number;
+}
+
+/** Promedio de cada año ponderado por el número de indicadores de cada proceso. */
+function armarGrupo(clave: string, procesos: CMIMapaProceso[], anios: number[]): Grupo {
+  const serie: Serie = {};
+  for (const a of anios) {
+    let suma = 0;
+    let peso = 0;
+    for (const p of procesos) {
+      const v = p.anios[String(a)];
+      if (v != null) {
+        suma += v * p.n_indicadores;
+        peso += p.n_indicadores;
+      }
+    }
+    serie[String(a)] = peso > 0 ? Math.round((suma / peso) * 10) / 10 : null;
+  }
+  const variaciones: Record<string, number | null> = {};
+  const ult = anios.slice(-3);
+  for (let i = 0; i < ult.length - 1; i += 1) {
+    const va = serie[String(ult[i])];
+    const vb = serie[String(ult[i + 1])];
+    variaciones[`${ult[i]}-${ult[i + 1]}`] = va != null && vb != null ? Math.round((vb - va) * 10) / 10 : null;
+  }
+  return {
+    clave,
+    procesos,
+    anios: serie,
+    variaciones,
+    n_indicadores: procesos.reduce((acc, p) => acc + p.n_indicadores, 0),
+    en_riesgo: procesos.reduce((acc, p) => acc + p.en_riesgo, 0),
+  };
+}
+
 export function CmiProcesosMapaTab({ mapa, onOpenFicha }: MapaProps) {
   const [busqueda, setBusqueda] = useState("");
   const [tipo, setTipo] = useState("Todos");
+  const [agrupar, setAgrupar] = useState<Agrupar>("tipo");
   const [abiertos, setAbiertos] = useState<Set<string>>(new Set());
   const [seleccion, setSeleccion] = useState<string | null>(null);
 
@@ -401,6 +451,18 @@ export function CmiProcesosMapaTab({ mapa, onOpenFicha }: MapaProps) {
           p.subprocesos.some((s) => s.subproceso.toLowerCase().includes(q))),
     );
   }, [mapa.procesos, busqueda, tipo]);
+
+  const grupos = useMemo<Grupo[]>(() => {
+    if (agrupar === "ninguno") return [armarGrupo("", filtrados, mapa.anios)];
+    const porClave = new Map<string, CMIMapaProceso[]>();
+    for (const p of filtrados) {
+      const clave = (agrupar === "tipo" ? p.tipo_proceso : p.unidad) || (agrupar === "tipo" ? "Sin tipo" : "Sin unidad");
+      porClave.set(clave, [...(porClave.get(clave) ?? []), p]);
+    }
+    return Array.from(porClave.entries())
+      .sort(([x], [y]) => x.localeCompare(y))
+      .map(([clave, procs]) => armarGrupo(clave, procs, mapa.anios));
+  }, [filtrados, agrupar, mapa.anios]);
 
   const [a, b, c] = mapa.anios.slice(-3);
   const procesoSel = mapa.procesos.find((p) => p.proceso === seleccion) ?? null;
@@ -423,6 +485,18 @@ export function CmiProcesosMapaTab({ mapa, onOpenFicha }: MapaProps) {
             placeholder="Buscar proceso o subproceso…"
             className="w-64 rounded-lg border border-slate-300 px-3 py-2 text-sm"
           />
+          <label className="flex items-center gap-2 text-xs font-semibold text-slate-600">
+            Agrupar por
+            <select
+              value={agrupar}
+              onChange={(e) => setAgrupar(e.target.value as Agrupar)}
+              className="rounded-lg border border-slate-300 px-2 py-1.5 text-sm font-normal"
+            >
+              <option value="tipo">Tipo de proceso</option>
+              <option value="unidad">Unidad</option>
+              <option value="ninguno">Sin agrupar</option>
+            </select>
+          </label>
           <div className="inline-flex flex-wrap gap-1 rounded-xl bg-slate-100 p-1">
             {tipos.map((t) => (
               <button
@@ -472,7 +546,35 @@ export function CmiProcesosMapaTab({ mapa, onOpenFicha }: MapaProps) {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {filtrados.map((p) => {
+            {grupos.map((g) => (
+              <Fragment key={g.clave || "todos"}>
+                {agrupar !== "ninguno" && (
+                  <tr className="bg-slate-100/80">
+                    <td colSpan={2} className="px-4 py-2 text-xs font-bold uppercase tracking-wide text-slate-700">
+                      {g.clave}
+                      <span className="ml-2 font-normal normal-case text-slate-500">
+                        {g.procesos.length} procesos · promedio ponderado por indicadores
+                      </span>
+                    </td>
+                    {mapa.anios.map((anio) => (
+                      <td key={anio} className="px-3 py-2 text-right">
+                        <Celda valor={g.anios[String(anio)]} parcial={anio === mapa.anio_parcial} />
+                      </td>
+                    ))}
+                    <td className="px-3 py-2">
+                      <Sparkline serie={g.anios} anios={mapa.anios} parcial={mapa.anio_parcial} />
+                    </td>
+                    <td className="px-3 py-2 text-right text-xs">
+                      <Variacion valor={g.variaciones[`${a}-${b}`]} />
+                    </td>
+                    <td className="px-3 py-2 text-right text-xs">
+                      <Variacion valor={g.variaciones[`${b}-${c}`]} />
+                    </td>
+                    <td className="px-3 py-2 text-right font-semibold">{g.n_indicadores}</td>
+                    <td className="px-3 py-2 text-right font-semibold text-amber-700">{g.en_riesgo}</td>
+                  </tr>
+                )}
+                {g.procesos.map((p) => {
               const unico = esNivelUnico(p);
               const abierto = abiertos.has(p.proceso) || (!!busqueda && !unico);
               return (
@@ -547,6 +649,8 @@ export function CmiProcesosMapaTab({ mapa, onOpenFicha }: MapaProps) {
                 </Fragment>
               );
             })}
+              </Fragment>
+            ))}
             {filtrados.length === 0 && (
               <tr>
                 <td colSpan={mapa.anios.length + 7} className="px-4 py-8 text-center text-sm text-slate-500">

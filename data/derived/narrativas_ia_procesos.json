@@ -1,0 +1,51 @@
+{
+  "TODOS|2025|11": {
+    "publicado": null,
+    "borrador": {
+      "titulo": "Diagnóstico heurístico del proceso",
+      "estado_color": "#16A34A",
+      "foco_urgente": "Priorizar el indicador crítico 'Cartera - Metrica' (4.378424015272811e-09%).",
+      "directrices": [
+        "Enfocar seguimiento semanal en los indicadores en riesgo del proceso.",
+        "Replicar buenas prácticas de subprocesos con mejor desempeño."
+      ],
+      "texto_html": "El proceso <strong>Todos</strong> supera la meta institucional en el corte actual. Hay <strong>43</strong> indicadores en alerta/peligro sobre <strong>256</strong>.",
+      "modelo": "heuristica",
+      "proceso": "Todos",
+      "anio": 2025,
+      "mes": 11,
+      "datos_snapshot": {
+        "score": 100.0,
+        "avg": 104.1,
+        "total": 256,
+        "cumple": 197,
+        "alerta": 24,
+        "peligro": 19,
+        "criticos": [
+          {
+            "indicador": "Cartera - Metrica",
+            "cumplimiento": 4.378424015272811e-09
+          },
+          {
+            "indicador": "N de horas por solicitud - (Metrica)",
+            "cumplimiento": 0.06448377390235221
+          },
+          {
+            "indicador": "N de personas promedio por evento - (Metrica)",
+            "cumplimiento": 0.30275229357798167
+          }
+        ],
+        "mejora": {
+          "name": "AUDITORÍA INTERNA",
+          "change": 21.9
+        },
+        "riesgo": {
+          "name": "DATOS Y ANALÍTICA",
+          "change": -38.2
+        }
+      },
+      "generado_en": "2026-10-17T16:22:30.446863+00:00"
+    },
+    "historial": []
+  }
+}

@@ -84,15 +84,17 @@ export function CmiProcesosFilters(props: CmiProcesosFiltersProps) {
           options={anios.map((y) => ({ value: y, label: String(y) }))}
           onChange={(v) => onAnioChange(Number(v))}
         />
-        <SegmentedGroup
-          label="Mes"
-          value={mes}
-          options={meses.map((m) => ({
-            value: m,
-            label: mesesNombres[m - 1] ?? String(m),
-          }))}
-          onChange={(v) => onMesChange(Number(v))}
-        />
+        {meses.length > 0 && (
+          <SegmentedGroup
+            label="Mes"
+            value={mes}
+            options={meses.map((m) => ({
+              value: m,
+              label: mesesNombres[m - 1] ?? String(m),
+            }))}
+            onChange={(v) => onMesChange(Number(v))}
+          />
+        )}
       </div>
       <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         <SelectFilter label="Unidad" value={unidad} options={unidades} onChange={onUnidadChange} />

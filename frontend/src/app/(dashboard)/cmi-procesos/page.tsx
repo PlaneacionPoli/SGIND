@@ -10,7 +10,6 @@ import { CmiProcesosFilters } from "@/components/cmi/CmiProcesosFilters";
 import { CmiProcesosMapaTab } from "@/components/cmi/CmiProcesosMapaTab";
 import { CmiProcesosListadoTab } from "@/components/cmi/CmiProcesosListadoTab";
 import { CmiProcesosResumenTab } from "@/components/cmi/CmiProcesosResumenTab";
-import { CmiProcesosUnidadesTab } from "@/components/cmi/CmiProcesosUnidadesTab";
 import {
   downloadCMIProcesosExport,
   downloadFichaIndicadorPdf,
@@ -23,13 +22,16 @@ import { PdiChip } from "@/components/ui/PdiChip";
 import { usePdiSeleccionado } from "@/lib/pdi";
 import { useAuthReady } from "@/stores/auth-store";
 
+/**
+ * Orden del recorrido: ¿cómo vamos? (Resumen) → ¿dónde y cómo ha evolucionado? (Mapa) →
+ * ¿qué indicadores hay? (Indicadores) → ¿qué atender? (Alertas) → ¿qué hacer? (Análisis).
+ */
 const TABS = [
-  { id: "mapa", label: "Mapa de procesos", icon: "🗺️" },
-  { id: "resumen", label: "Resumen", icon: "📋" },
-  { id: "procesos", label: "Procesos y Unidades", icon: "🏢" },
-  { id: "listado", label: "Indicadores", icon: "📊" },
-  { id: "alertas", label: "Alertas", icon: "🚨" },
-  { id: "analisis", label: "Análisis Avanzado", icon: "📈" },
+  { id: "resumen", label: "Resumen", icon: "📋", usaFiltros: true },
+  { id: "mapa", label: "Mapa de procesos", icon: "🗺️", usaFiltros: false },
+  { id: "listado", label: "Indicadores", icon: "📊", usaFiltros: true },
+  { id: "alertas", label: "Alertas", icon: "🚨", usaFiltros: true },
+  { id: "analisis", label: "Análisis", icon: "📈", usaFiltros: true },
 ] as const;
 
 type TabId = (typeof TABS)[number]["id"];
@@ -43,19 +45,17 @@ export default function CMIProcesosPage() {
 }
 
 function CMIProcesosContent() {
-  // El PDI es solo informativo (alineación en la ficha del indicador): no se exige ni
-  // redirige. Sin ?pdi= el backend usa el vigente.
+  // El PDI es solo informativo (alineación en la ficha del indicador): no se exige, no filtra
+  // y no recorta los años. Sin ?pdi= el backend usa el vigente.
   const pdi = usePdiSeleccionado(false) ?? undefined;
   const { isAuthenticated } = useAuthReady();
   const [anio, setAnio] = useState<number | null>(null);
-  const [mes, setMes] = useState<number | null>(null);
   const [unidad, setUnidad] = useState("Todos");
   const [proceso, setProceso] = useState("Todos");
   const [subproceso, setSubproceso] = useState("Todos");
   const [clasificacion, setClasificacion] = useState("Todos");
   const [frecuencia, setFrecuencia] = useState("Todos");
-  const [linea, setLinea] = useState("Todos");
-  const [tab, setTab] = useState<TabId>("mapa");
+  const [tab, setTab] = useState<TabId>("resumen");
   const [fichaId, setFichaId] = useState<string | null>(null);
   const [exporting, setExporting] = useState(false);
   const [downloadingFichaPdf, setDownloadingFichaPdf] = useState(false);
@@ -67,90 +67,49 @@ function CMIProcesosContent() {
   });
 
   const filtrosQuery = useQuery({
-    queryKey: ["cmi-procesos-filtros", pdi, anio, mes],
-    queryFn: () => fetchCMIProcesosFiltros(anio ?? undefined, mes ?? undefined, pdi),
+    queryKey: ["cmi-procesos-filtros", pdi, anio],
+    queryFn: () => fetchCMIProcesosFiltros(anio ?? undefined, undefined, pdi),
     enabled: isAuthenticated,
   });
 
   useEffect(() => {
-    if (anio == null && filtrosQuery.data?.anio_default) {
-      setAnio(filtrosQuery.data.anio_default);
-      setMes(filtrosQuery.data.mes_default);
-    }
+    if (anio == null && filtrosQuery.data?.anio_default) setAnio(filtrosQuery.data.anio_default);
   }, [anio, filtrosQuery.data]);
 
-  useEffect(() => {
-    if (filtrosQuery.data?.mes_default != null && mes == null) {
-      setMes(filtrosQuery.data.mes_default);
-    }
-  }, [filtrosQuery.data, mes]);
-
   const anioEfectivo = anio ?? filtrosQuery.data?.anio_default ?? new Date().getFullYear();
-  const mesEfectivo = mes ?? filtrosQuery.data?.mes_default ?? 12;
 
   const subprocesosFiltrados: string[] =
     proceso !== "Todos" && filtrosQuery.data?.subprocesos_por_proceso
       ? (filtrosQuery.data.subprocesos_por_proceso[proceso] ?? [])
       : (filtrosQuery.data?.subprocesos ?? []);
 
-  const dashboardQuery = useQuery({
-    queryKey: [
-      "cmi-procesos-dashboard",
-      pdi,
-      anioEfectivo,
-      mesEfectivo,
-      unidad,
-      proceso,
-      subproceso,
-      clasificacion,
-      frecuencia,
-      linea,
-    ],
-    queryFn: () =>
-      fetchCMIProcesosDashboard({
-        anio: anioEfectivo,
-        mes: mesEfectivo,
-        unidad: unidad !== "Todos" ? unidad : undefined,
-        proceso: proceso !== "Todos" ? proceso : undefined,
-        subproceso: subproceso !== "Todos" ? subproceso : undefined,
-        clasificacion: clasificacion !== "Todos" ? clasificacion : undefined,
-        frecuencia: frecuencia !== "Todos" ? frecuencia : undefined,
-        linea: linea !== "Todos" ? linea : undefined,
-        pdi,
-      }),
-    enabled: isAuthenticated && anio != null && mes != null,
-  });
-
-  const fichaQuery = useQuery({
-    queryKey: ["cmi-procesos-ficha", pdi, fichaId, anioEfectivo, mesEfectivo, unidad, proceso, subproceso],
-    queryFn: () =>
-      fetchCMIProcesosFicha(fichaId!, {
-        anio: anioEfectivo,
-        mes: mesEfectivo,
-        unidad: unidad !== "Todos" ? unidad : undefined,
-        proceso: proceso !== "Todos" ? proceso : undefined,
-        subproceso: subproceso !== "Todos" ? subproceso : undefined,
-        pdi,
-      }),
-    enabled: isAuthenticated && !!fichaId,
-  });
-
-  const exportParams = {
+  // Un solo corte por año: el cierre anual o, en el año en curso, el último reporte de cada indicador.
+  const filtrosApi = {
     anio: anioEfectivo,
-    mes: mesEfectivo,
     unidad: unidad !== "Todos" ? unidad : undefined,
     proceso: proceso !== "Todos" ? proceso : undefined,
     subproceso: subproceso !== "Todos" ? subproceso : undefined,
     clasificacion: clasificacion !== "Todos" ? clasificacion : undefined,
     frecuencia: frecuencia !== "Todos" ? frecuencia : undefined,
-    linea: linea !== "Todos" ? linea : undefined,
     pdi,
   };
+
+  const dashboardQuery = useQuery({
+    queryKey: ["cmi-procesos-dashboard", filtrosApi],
+    queryFn: () => fetchCMIProcesosDashboard(filtrosApi),
+    enabled: isAuthenticated && anio != null,
+  });
+
+  const fichaQuery = useQuery({
+    queryKey: ["cmi-procesos-ficha", pdi, fichaId, anioEfectivo],
+    queryFn: () => fetchCMIProcesosFicha(fichaId!, { anio: anioEfectivo, pdi }),
+    enabled: isAuthenticated && !!fichaId,
+  });
 
   const handleExport = async (formato: "csv" | "xlsx") => {
     setExporting(true);
     try {
-      await downloadCMIProcesosExport({ ...exportParams, formato });
+      await downloadCMIProcesosExport({ ...filtrosApi, formato });
     } finally {
       setExporting(false);
     }
@@ -160,37 +119,26 @@ function CMIProcesosContent() {
     if (!fichaId) return;
     setDownloadingFichaPdf(true);
     try {
-      await downloadFichaIndicadorPdf(fichaId, {
-        anio: anioEfectivo,
-        mes: mesEfectivo,
-        origen: "procesos",
-        unidad: unidad !== "Todos" ? unidad : undefined,
-        proceso: proceso !== "Todos" ? proceso : undefined,
-        subproceso: subproceso !== "Todos" ? subproceso : undefined,
-      });
+      await downloadFichaIndicadorPdf(fichaId, { anio: anioEfectivo, origen: "procesos" });
     } finally {
       setDownloadingFichaPdf(false);
     }
   };
 
   const handleReset = useCallback(() => {
-    if (filtrosQuery.data) {
-      setAnio(filtrosQuery.data.anio_default);
-      setMes(filtrosQuery.data.mes_default);
-    }
+    if (filtrosQuery.data) setAnio(filtrosQuery.data.anio_default);
     setUnidad("Todos");
     setProceso("Todos");
     setSubproceso("Todos");
     setClasificacion("Todos");
     setFrecuencia("Todos");
-    setLinea("Todos");
   }, [filtrosQuery.data]);
 
   const data = dashboardQuery.data;
-  // Resumen, Procesos y Unidades y Alertas usan el corte y los filtros elegidos (todos los
-  // indicadores del corte). vista_global (último mes con datos, a veces incompleto: 12 indicadores
-  // en 2026) solo es respaldo si el backend aún no envía vista_filtrada.
   const vista = data?.vista_filtrada ?? data?.vista_global;
+  const tabActual = TABS.find((t) => t.id === tab);
+  const mostrarFiltros = !!tabActual?.usaFiltros;
+  const esParcial = mapaQuery.data?.anio_parcial === anioEfectivo;
 
   return (
     <div className="mx-auto max-w-[1400px] space-y-5 px-1">
@@ -200,56 +148,10 @@ function CMIProcesosContent() {
           {pdi && <PdiChip pdi={pdi} className="text-slate-700" />}
         </div>
         <p className="mt-1 text-slate-600">
-          Balanced Scorecard por procesos — Subprocesos=1, validados contra Kawak
+          Cumplimiento por proceso y subproceso. Años anteriores: cierre anual; año en curso: último reporte de cada
+          indicador.
         </p>
       </div>
-
-      {tab !== "mapa" && isAuthenticated && filtrosQuery.data && anio != null && mes != null && (
-        <CmiProcesosFilters
-          anio={anioEfectivo}
-          mes={mesEfectivo}
-          anios={filtrosQuery.data.anios}
-          meses={filtrosQuery.data.meses}
-          mesesNombres={filtrosQuery.data.meses_nombres}
-          unidades={filtrosQuery.data.unidades}
-          procesos={filtrosQuery.data.procesos}
-          subprocesos={subprocesosFiltrados}
-          clasificaciones={filtrosQuery.data.clasificaciones}
-          frecuencias={filtrosQuery.data.frecuencias}
-          lineas={filtrosQuery.data.lineas ?? []}
-          unidad={unidad}
-          proceso={proceso}
-          subproceso={subproceso}
-          clasificacion={clasificacion}
-          frecuencia={frecuencia}
-          linea={linea}
-          onAnioChange={(y) => {
-            setAnio(y);
-            setMes(null);
-          }}
-          onMesChange={setMes}
-          onUnidadChange={setUnidad}
-          onProcesoChange={(v) => { setProceso(v); setSubproceso("Todos"); }}
-          onSubprocesoChange={setSubproceso}
-          onClasificacionChange={setClasificacion}
-          onFrecuenciaChange={setFrecuencia}
-          onLineaChange={setLinea}
-          onReset={handleReset}
-        />
-      )}
-
-      {data && tab !== "resumen" && tab !== "mapa" && (
-        <p className="text-xs text-slate-500">
-          Corte filtrado: {data.mes_nombre} {data.anio}
-          {tab === "listado" || tab === "alertas"
-            ? ` · ${data.filtros_aplicados.unidad} · ${data.filtros_aplicados.proceso}`
-            : tab === "procesos"
-              ? ` · ${data.filtros_aplicados.unidad} · ${data.filtros_aplicados.proceso}`
-              : data.vista_global?.mes_nombre
-                ? ` · Global: ${data.vista_global.mes_nombre}`
-                : ""}
-        </p>
-      )}
 
       <div className="inline-flex max-w-full flex-wrap gap-1 rounded-xl bg-slate-100 p-1">
         {TABS.map((t) => (
@@ -268,6 +170,44 @@ function CMIProcesosContent() {
           </button>
         ))}
       </div>
+
+      {mostrarFiltros && isAuthenticated && filtrosQuery.data && anio != null && (
+        <CmiProcesosFilters
+          anio={anioEfectivo}
+          mes={0}
+          anios={filtrosQuery.data.anios}
+          meses={[]}
+          mesesNombres={filtrosQuery.data.meses_nombres}
+          unidades={filtrosQuery.data.unidades}
+          procesos={filtrosQuery.data.procesos}
+          subprocesos={subprocesosFiltrados}
+          clasificaciones={filtrosQuery.data.clasificaciones}
+          frecuencias={filtrosQuery.data.frecuencias}
+          unidad={unidad}
+          proceso={proceso}
+          subproceso={subproceso}
+          clasificacion={clasificacion}
+          frecuencia={frecuencia}
+          onAnioChange={setAnio}
+          onMesChange={() => undefined}
+          onUnidadChange={setUnidad}
+          onProcesoChange={(v) => {
+            setProceso(v);
+            setSubproceso("Todos");
+          }}
+          onSubprocesoChange={setSubproceso}
+          onClasificacionChange={setClasificacion}
+          onFrecuenciaChange={setFrecuencia}
+          onReset={handleReset}
+        />
+      )}
+
+      {mostrarFiltros && data && (
+        <p className="text-xs text-slate-500">
+          Base: {esParcial ? `${anioEfectivo} parcial · último reporte de cada indicador (más reciente: ${data.mes_nombre})` : `cierre ${anioEfectivo}`}
+          . Cada indicador muestra su propio mes de reporte.
+        </p>
+      )}
 
       {!isAuthenticated ? (
         <p className="text-sm text-amber-700">Inicie sesión para ver CMI por procesos.</p>
@@ -304,34 +244,22 @@ function CMIProcesosContent() {
               No hay datos para la combinación de filtros seleccionada.
             </p>
           )}
-          {tab === "resumen" && (
-            vista?.kpis ? (
-              <CmiProcesosResumenTab vista={vista} baseAnio={data.meta.base_anio} />
+          {tab === "resumen" &&
+            (vista?.kpis ? (
+              <CmiProcesosResumenTab
+                vista={vista}
+                mixNiveles={mapaQuery.data?.mix_niveles}
+                anioParcial={mapaQuery.data?.anio_parcial ?? null}
+              />
             ) : (
-              <p className="text-sm text-slate-500">Sin datos globales para el resumen.</p>
-            )
-          )}
-          {tab === "procesos" && (
-            (() => {
-              return vista?.kpis ? (
-                <CmiProcesosUnidadesTab
-                  unidades={vista.unidades_detalle}
-                  procesoBars={vista.proceso_bars}
-                  tipoCards={vista.tipo_proceso_cards}
-                  procesos={vista.procesos_detalle}
-                  comparativa={vista.comparativa_procesos ?? []}
-                  baseAnio={data.meta.base_anio}
-                />
-              ) : (
-                <p className="text-sm text-slate-500">Sin datos de procesos para los filtros elegidos.</p>
-              );
-            })()
-          )}
+              <p className="text-sm text-slate-500">Sin datos para el resumen.</p>
+            ))}
           {tab === "listado" && (
             <CmiProcesosListadoTab
               indicadores={data.indicadores}
               summary={data.indicadores_summary}
               ejecucionVariacion={data.ejecucion_variacion}
+              catalogCharts={data.catalog_charts}
               onOpenFicha={setFichaId}
               onExportCsv={() => handleExport("csv")}
               onExportExcel={() => handleExport("xlsx")}

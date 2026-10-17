@@ -227,6 +227,7 @@ def aplicar_jerarquia_por_id(
     claves = sub_cat.map(lambda s: _norm_text(s) if isinstance(s, str) else "")
     info = claves.map(attrs)
     out = out.copy()
+    out["TipoCalculo"] = _buscar("TipoCalculo").fillna("")
     en_mapa = hay & info.notna()
     out.loc[hay, "Proceso_padre"] = proc_cat[hay]
     out.loc[hay, "Subproceso_final"] = sub_cat[hay]
@@ -962,6 +963,7 @@ def build_filtros_options(
     anio: int,
     mes: int | None = None,
     jerarquia: pd.DataFrame | None = None,
+    por_cierre: bool = False,
 ) -> dict[str, Any]:
     # Debe reflejar el mismo tope que cmi_service.MAX_ANIO_FILTROS.
     anios = (
@@ -985,8 +987,17 @@ def build_filtros_options(
     # reportados) hace que el filtro de Proceso muestre solo esos 6, incluso
     # cuando el usuario tiene seleccionado un mes anterior ya cerrado (ej. Junio)
     # con los ~34 procesos completos. Ver bugfix "filtros 2026 Junio".
-    mes_eff = mes if mes is not None else default_mes(tracking, anio)
-    year_slice = filter_by_anio_mes(prepared, anio=anio, mes=mes_eff)
+    if por_cierre:
+        # Un solo corte por año: el último reporte de cada indicador (no hay filtro por mes).
+        year_slice = ultimo_registro_anual(
+            prepared[pd.to_numeric(prepared["Anio"], errors="coerce") == int(anio)]
+            if "Anio" in prepared.columns
+            else prepared,
+            mes_corte=12,
+        )
+    else:
+        mes_eff = mes if mes is not None else default_mes(tracking, anio)
+        year_slice = filter_by_anio_mes(prepared, anio=anio, mes=mes_eff)
 
     unidades = (
         sorted(year_slice["Unidad"].replace("", pd.NA).dropna().astype(str).unique().tolist())
@@ -1026,15 +1037,19 @@ def build_filtros_options(
         frecuencias = sorted(year_slice[freq_col].dropna().astype(str).unique().tolist())
 
     meses_disp: list[int] = []
-    if "Anio" in tracking.columns and "Mes" in tracking.columns:
+    if por_cierre:
+        pass
+    elif "Anio" in tracking.columns and "Mes" in tracking.columns:
         sub = tracking[pd.to_numeric(tracking["Anio"], errors="coerce") == int(anio)]
         nums = sub["Mes"].apply(mes_to_num).dropna().astype(int).unique().tolist()
         meses_disp = sorted(nums)
 
     return {
         "anios": anios,
-        "meses": meses_disp or list(range(1, 13)),
-        "mes_default": default_mes(tracking, anio),
+        "meses": [] if por_cierre else (meses_disp or list(range(1, 13))),
+        "mes_default": ultimo_mes_reportado(year_slice) or 12
+        if por_cierre
+        else default_mes(tracking, anio),
         "unidades": unidades,
         "procesos": procesos,
         "subprocesos": subprocesos,
@@ -1044,7 +1059,19 @@ def build_filtros_options(
     }
 
 
+def etiqueta_reporte(fecha: object) -> str | None:
+    f = pd.to_datetime(fecha, errors="coerce")
+    return None if pd.isna(f) else f"{mes_nombre(int(f.month))[:3]} {f.year}"
+
+
 def build_indicadores_procesos_listado(df: pd.DataFrame) -> list[dict[str, Any]]:
+    if not df.empty and "Fecha" in df.columns:
+        df = df.copy()
+        df["ultimo_reporte"] = df["Fecha"].map(etiqueta_reporte)
+        if "Estado_Cierre" in df.columns:
+            df["estado_cierre"] = df["Estado_Cierre"]
+        else:
+            df["estado_cierre"] = df["Fecha"].map(estado_cierre_fila)
     cols_extra = [
         c
         for c in ["Proceso_padre", "Subproceso_final", "Unidad", "Tipo de proceso"]
@@ -1072,6 +1099,9 @@ def build_indicadores_procesos_listado(df: pd.DataFrame) -> list[dict[str, Any]]
             "Periodicidad",
             "Anio",
             "Mes",
+            "ultimo_reporte",
+            "estado_cierre",
+            "TipoCalculo",
         ]
         if c in df.columns
     ]
@@ -1423,6 +1453,14 @@ def ultimo_registro_anual(year_df: pd.DataFrame, *, mes_corte: int) -> pd.DataFr
     return out.drop_duplicates(subset=["Id"], keep="last").drop(columns=["_mes_num"])
 
 
+def ultimo_mes_reportado(df: pd.DataFrame) -> int | None:
+    """Mes más reciente entre los últimos reportes de los indicadores del corte."""
+    if df.empty or "Mes" not in df.columns:
+        return None
+    meses = df["Mes"].apply(mes_to_num).dropna()
+    return int(meses.max()) if not meses.empty else None
+
+
 def estado_cierre_fila(fecha: object, anio_curso: int | None = None) -> str:
     """'Parcial' si el corte es del año en curso; 'Final' en cualquier año anterior.
     Misma regla que `scripts/etl/purga.py::estado_cierre` (columna Estado_Cierre del ETL)."""
@@ -1479,6 +1517,7 @@ def build_mapa_procesos(
             "anios": anios,
             "anio_parcial": anio_parcial,
             "procesos": [],
+            "mix_niveles": {},
             "sin_tipo_calculo": 0,
         }
     big = pd.concat(todo, ignore_index=True)
@@ -1545,9 +1584,88 @@ def build_mapa_procesos(
             }
         )
     procesos.sort(key=lambda p: (p["tipo_proceso"], p["proceso"]))
+    mix: dict[str, dict[str, int]] = {}
+    for a, f in frames.items():
+        if f.empty or "Nivel de cumplimiento" not in f.columns:
+            continue
+        mix[str(a)] = {
+            str(k): int(v) for k, v in f.drop_duplicates("Id")["Nivel de cumplimiento"].value_counts().items()
+        }
     return {
         "anios": anios,
         "anio_parcial": anio_parcial,
         "procesos": procesos,
+        "mix_niveles": mix,
         "sin_tipo_calculo": len(sin_tipo),
+    }
+
+
+# ── Tendencia mensual del año en curso (visual con filtro de mes) ─────────────────────
+
+
+def build_tendencia_mensual(
+    year_df: pd.DataFrame,
+    *,
+    anio: int,
+    ultimo_cerrado: int,
+    proceso: str | None = None,
+    subproceso: str | None = None,
+    mes_sel: int | None = None,
+) -> dict[str, Any]:
+    """Cumplimiento de los 12 meses del año en curso.
+
+    Cada mes M toma, por indicador, su último corte acumulado hasta M (Consolidado Mensual: ya
+    aplica Cierre / Promedio / Acumulado). Los meses posteriores al último mes cerrado se
+    devuelven vacíos. `mes_sel` (solo este filtro, ≤ último mes cerrado) elige el corte del que
+    se detalla el cumplimiento por proceso o subproceso.
+    """
+    base = apply_ui_filters(year_df, proceso=proceso, subproceso=subproceso)
+    serie: list[dict[str, Any]] = []
+    for m in range(1, 13):
+        item: dict[str, Any] = {
+            "mes": m,
+            "nombre": mes_nombre(m),
+            "cerrado": m <= ultimo_cerrado,
+            "cumplimiento": None,
+            "n_indicadores": 0,
+            "n_reportes_mes": 0,
+            "en_riesgo": 0,
+        }
+        if m <= ultimo_cerrado:
+            corte = ultimo_registro_anual(base, mes_corte=m)
+            if not corte.empty:
+                meses = corte["Mes"].apply(mes_to_num)
+                item.update(
+                    cumplimiento=avg_cumplimiento(corte),
+                    n_indicadores=int(corte["Id"].nunique()),
+                    n_reportes_mes=int((meses == m).sum()),
+                    en_riesgo=_conteo_riesgo(corte),
+                )
+        serie.append(item)
+
+    sel = min(max(int(mes_sel or ultimo_cerrado), 1), max(ultimo_cerrado, 1))
+    corte_sel = ultimo_registro_anual(base, mes_corte=sel) if ultimo_cerrado >= 1 else base.iloc[0:0]
+    col = "Subproceso_final" if (proceso and proceso != "Todos") else "Proceso_padre"
+    detalle: list[dict[str, Any]] = []
+    if not corte_sel.empty and col in corte_sel.columns:
+        for nombre, g in corte_sel.groupby(col, dropna=True):
+            if not str(nombre).strip():
+                continue
+            detalle.append(
+                {
+                    "nombre": str(nombre),
+                    "cumplimiento": avg_cumplimiento(g),
+                    "n_indicadores": int(g["Id"].nunique()),
+                    "en_riesgo": _conteo_riesgo(g),
+                }
+            )
+        detalle.sort(key=lambda d: (d["cumplimiento"] is None, d["cumplimiento"] or 0))
+    return {
+        "anio": anio,
+        "ultimo_mes_cerrado": ultimo_cerrado,
+        "mes_seleccionado": sel,
+        "mes_seleccionado_nombre": mes_nombre(sel),
+        "agrupado_por": "subproceso" if col == "Subproceso_final" else "proceso",
+        "serie": serie,
+        "detalle": detalle,
     }

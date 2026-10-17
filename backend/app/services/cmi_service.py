@@ -54,18 +54,20 @@ from app.domain.procesos_builders import (
     build_proceso_bars,
     build_procesos_detalle,
     build_procesos_kpis,
+    build_tendencia_mensual,
     build_tipo_proceso_cards,
     build_unidades_detalle,
     build_variacion_analisis,
     build_vista_global,
     default_anio_procesos,
     default_mes,
+    estado_cierre_fila,
+    etiqueta_reporte,
     filter_by_anio_mes,
-    get_prev_month_for_year,
     latest_per_indicator,
     mes_nombre,
-    mes_to_num,
     prepare_tracking,
+    ultimo_mes_reportado,
     ultimo_registro_anual,
 )
 from app.domain.procesos_loaders import load_jerarquia_catalogo, load_process_map
@@ -463,6 +465,11 @@ class CMIService:
             return year_prepared
         return filter_by_anio_mes(year_prepared, anio=anio, mes=mes)
 
+    def _cierres(self) -> pd.DataFrame:
+        """Consolidado Cierres: un cierre por indicador y año; en el año en curso, el último
+        reporte disponible de cada indicador (cierre parcial)."""
+        return ETLPipelineService(self._excel).leer_cierres()
+
     def _prepare_procesos_slice(
         self,
         tracking: pd.DataFrame,
@@ -472,10 +479,12 @@ class CMIService:
         mes: int,
         omit_kawak_cross: bool = False,
     ) -> pd.DataFrame:
+        """Un corte por año: cierre anual, o el último reporte de cada indicador en el año en
+        curso. `tracking` y `mes` se conservan por compatibilidad; ya no definen el corte."""
         year_prepared = self._get_year_prepared(
-            tracking, map_df, anio=anio, omit_kawak_cross=omit_kawak_cross
+            self._cierres(), map_df, anio=anio, omit_kawak_cross=omit_kawak_cross, fuente="cierres"
         )
-        return self._slice_by_mes(year_prepared, anio=anio, mes=mes)
+        return ultimo_registro_anual(year_prepared, mes_corte=12)
 
     def _pdi_version(self, pdi: str | None) -> str:
         return get_marco(pdi).version_id if pdi else marco_por_defecto("PDI").version_id
@@ -490,13 +499,10 @@ class CMIService:
     def get_procesos_filtros(
         self, *, anio: int | None = None, mes: int | None = None, pdi: str | None = None
     ) -> dict[str, Any]:
-        tracking = self._load_tracking()
+        tracking = self._cierres()
         map_df = load_process_map(self._excel)
         anios = self._available_anios()
-        marco = get_marco(pdi) if pdi else marco_por_defecto("PDI")
-        if marco.indicadores_desde != "catalogo":
-            # PDI con hoja propia: solo los años de su ciclo (2022-2025 se consultan en POLISIGS)
-            anios = [a for a in anios if marco.incluye_anio(a)] or anios
+        # El PDI no recorta los años: el CMI por procesos muestra todo el histórico.
         anio_eff = int(anio) if anio is not None else default_anio_procesos(anios)
         opts = build_filtros_options(
             tracking,
@@ -505,10 +511,9 @@ class CMIService:
             anio=anio_eff,
             mes=mes,
             jerarquia=load_jerarquia_catalogo(self._excel),
+            por_cierre=True,
         )
         anios_filtro = opts["anios"] or anios
-        if marco.indicadores_desde != "catalogo":
-            anios_filtro = [a for a in anios_filtro if marco.incluye_anio(a)] or anios
         return {
             "anios": anios_filtro,
             "anio_default": anio_eff,
@@ -552,8 +557,7 @@ class CMIService:
         map_df = load_process_map(self._excel)
         if tracking.empty:
             return []
-        year_prep = self._get_year_prepared(tracking, map_df, anio=anio)
-        df = self._slice_by_mes(year_prep, anio=anio, mes=mes)
+        df = self._prepare_procesos_slice(tracking, map_df, anio=anio, mes=mes)
         df = apply_ui_filters(
             df,
             unidad=unidad,
@@ -627,12 +631,14 @@ class CMIService:
         pdi: str | None = None,
     ) -> dict[str, Any]:
         ids_linea = self._ids_linea(pdi, linea)
-        tracking = self._load_tracking()
+        cierres = self._cierres()
         map_df = load_process_map(self._excel)
         cmi_catalog = self._cmi.load_cmi_worksheet()
         anios = self._available_anios()
         anio_eff = int(anio) if anio is not None else default_anio_procesos(anios)
-        mes_eff = int(mes) if mes is not None else default_mes(tracking, anio_eff)
+        # Un solo corte por año (Consolidado Cierres): `mes` ya no filtra; se informa abajo el
+        # mes del último reporte más reciente.
+        mes_eff = 12
 
         empty_payload = {
             "anio": anio_eff,
@@ -676,62 +682,42 @@ class CMIService:
             "meta": {"base_anio": anio_eff - 1, "base_mes": None, "latest_month_global": mes_eff},
         }
 
-        if tracking.empty:
+        if cierres.empty:
             return empty_payload
 
         base_year = anio_eff - 1
-        base_mes = get_prev_month_for_year(tracking, base_year) if base_year in anios else None
-
-        year_prep = self._get_year_prepared(tracking, map_df, anio=anio_eff)
+        year_prep = self._get_year_prepared(cierres, map_df, anio=anio_eff, fuente="cierres")
         year_prep_base = (
-            self._get_year_prepared(tracking, map_df, anio=base_year, omit_kawak_cross=True)
-            if base_mes is not None
+            self._get_year_prepared(
+                cierres, map_df, anio=base_year, omit_kawak_cross=True, fuente="cierres"
+            )
+            if base_year in anios
             else pd.DataFrame()
         )
+        base_mes = 12 if not year_prep_base.empty else None
 
-        df_current = self._slice_by_mes(year_prep, anio=anio_eff, mes=mes_eff)
-        df_prev_month = (
-            self._slice_by_mes(year_prep, anio=anio_eff, mes=max(1, mes_eff - 1))
-            if mes_eff > 1
-            else pd.DataFrame()
-        )
-        # Filtrados con los mismos criterios de UI que df_current: build_analisis_avanzado
-        # compara "filtrado vs filtrado" (Análisis Avanzado respeta los filtros del panel).
-        # Sin este filtro, se comparaba el proceso seleccionado contra TODOS los procesos
-        # del año/mes base, produciendo insights sin sentido (ver informe-procesos bugfix).
-        df_prev_month = apply_ui_filters(
-            df_prev_month,
-            unidad=unidad,
-            proceso=proceso,
-            subproceso=subproceso,
-            clasificacion=clasificacion,
-            frecuencia=frecuencia,
-            ids_linea=ids_linea,
-        )
+        # Corte único: cierre anual, o el último reporte de cada indicador en el año en curso.
+        df_current = ultimo_registro_anual(year_prep, mes_corte=12)
+        mes_eff = ultimo_mes_reportado(df_current) or 12
+        mes_global = mes_eff
+        # Sin comparación mes a mes: la referencia es el cierre del año anterior.
+        df_prev_month = pd.DataFrame()
 
-        df_base_year = (
-            self._slice_by_mes(year_prep_base, anio=base_year, mes=base_mes)
-            if base_mes is not None
-            else pd.DataFrame()
-        )
-        df_base_year = apply_ui_filters(
-            df_base_year,
-            unidad=unidad,
-            proceso=proceso,
-            subproceso=subproceso,
-            clasificacion=clasificacion,
-            frecuencia=frecuencia,
-            ids_linea=ids_linea,
-        )
-
-        mes_global = get_prev_month_for_year(tracking, anio_eff) or mes_eff
-        df_global = self._slice_by_mes(year_prep, anio=anio_eff, mes=mes_global)
-
+        ui_filtros = {
+            "unidad": unidad,
+            "proceso": proceso,
+            "subproceso": subproceso,
+            "clasificacion": clasificacion,
+            "frecuencia": frecuencia,
+            "ids_linea": ids_linea,
+        }
         df_global_base = (
-            self._slice_by_mes(year_prep_base, anio=base_year, mes=base_mes)
+            ultimo_registro_anual(year_prep_base, mes_corte=12)
             if base_mes is not None
             else pd.DataFrame()
         )
+        df_base_year = apply_ui_filters(df_global_base, **ui_filtros)
+        df_global = df_current
 
         vista_global = build_vista_global(
             df_global,
@@ -743,29 +729,19 @@ class CMIService:
             base_mes=base_mes,
         )
 
-        meses_hist = (
-            sorted(
-                tracking[pd.to_numeric(tracking["Anio"], errors="coerce") == anio_eff]["Mes"]
-                .apply(lambda m: int(mes_to_num(m) or 0))
-                .dropna()
-                .astype(int)
-                .unique()
-                .tolist()
+        # Histórico anual (un punto por año, el cierre) para el catálogo de evolución.
+        hist_anuales = [
+            ultimo_registro_anual(
+                self._get_year_prepared(cierres, map_df, anio=a, fuente="cierres"), mes_corte=12
             )
-            if "Anio" in tracking.columns
-            else list(range(1, 13))
-        )
-
-        hist_slices_global: list[pd.DataFrame] = []
-        for m in meses_hist:
-            sl = self._slice_by_mes(year_prep, anio=anio_eff, mes=int(m))
-            if not sl.empty:
-                hist_slices_global.append(sl)
+            for a in anios
+            if a <= anio_eff
+        ]
+        hist_anuales = [h for h in hist_anuales if not h.empty]
         tracking_hist_global = (
-            pd.concat(hist_slices_global, ignore_index=True)
-            if hist_slices_global
-            else pd.DataFrame()
+            pd.concat(hist_anuales, ignore_index=True) if hist_anuales else pd.DataFrame()
         )
+        tracking_hist = apply_ui_filters(tracking_hist_global, **ui_filtros)
 
         filtered = apply_ui_filters(
             df_current,
@@ -793,22 +769,6 @@ class CMIService:
             set(latest["Id"].astype(str).str.strip().tolist()) if "Id" in latest.columns else set()
         )
         catalog_charts = build_catalog_charts(cmi_catalog, active_ids)
-
-        hist_slices: list[pd.DataFrame] = []
-        for m in meses_hist:
-            sl = self._slice_by_mes(year_prep, anio=anio_eff, mes=int(m))
-            sl = apply_ui_filters(
-                sl,
-                unidad=unidad,
-                proceso=proceso,
-                subproceso=subproceso,
-                clasificacion=clasificacion,
-                frecuencia=frecuencia,
-                ids_linea=ids_linea,
-            )
-            if not sl.empty:
-                hist_slices.append(sl)
-        tracking_hist = pd.concat(hist_slices, ignore_index=True) if hist_slices else pd.DataFrame()
 
         calidad_raw, calidad_msg = load_calidad_data(self._excel)
         calidad_filt = filter_calidad(
@@ -844,15 +804,7 @@ class CMIService:
             "mes": mes_eff,
             "mes_nombre": mes_nombre(mes_eff),
             "anios_disponibles": anios,
-            "meses_disponibles": sorted(
-                tracking[tracking["Anio"] == anio_eff]["Mes"]
-                .apply(lambda m: int(mes_to_num(m) or 0))
-                .dropna()
-                .unique()
-                .tolist()
-            )
-            if "Anio" in tracking.columns and "Mes" in tracking.columns
-            else list(range(1, 13)),
+            "meses_disponibles": [],
             "filtros_aplicados": {
                 "unidad": unidad or "Todos",
                 "proceso": proceso or "Todos",
@@ -891,7 +843,7 @@ class CMIService:
             "meta": {
                 "base_anio": base_year,
                 "base_mes": base_mes,
-                "latest_month_global": get_prev_month_for_year(tracking, anio_eff) or mes_eff,
+                "latest_month_global": mes_global,
             },
         }
 
@@ -915,8 +867,7 @@ class CMIService:
         anios_rango = [a for a in anios if a <= anio_actual][-n_years:]
         historico = []
         for a in anios_rango:
-            year_prep = self._get_year_prepared(tracking, map_df, anio=a)
-            df_mes = self._slice_by_mes(year_prep, anio=a, mes=mes)
+            df_mes = self._prepare_procesos_slice(tracking, map_df, anio=a, mes=mes)
             df_mes = apply_ui_filters(df_mes, proceso=proceso, subproceso=subproceso)
             latest = latest_per_indicator(df_mes)
             cumpl = avg_cumplimiento(latest)
@@ -941,12 +892,11 @@ class CMIService:
         calculado en el ETL según su TipoCalculo. El año en curso trae el último corte
         disponible de cada indicador (cierre parcial), sea mensual, bimestral, trimestral o
         semestral; no se asume un mes de corte."""
-        tracking = self._load_tracking()
         map_df = load_process_map(self._excel)
         jerarquia = load_jerarquia_catalogo(self._excel)
-        cierres = ETLPipelineService(self._excel).leer_cierres()
+        cierres = self._cierres()
         anios = [a for a in self._available_anios() if a >= ANIO_INICIO_MAPA]
-        if tracking.empty or cierres.empty or not anios:
+        if cierres.empty or not anios:
             return build_mapa_procesos({}, jerarquia, anios=anios, anio_parcial=None)
         frames = {
             a: ultimo_registro_anual(
@@ -960,6 +910,51 @@ class CMIService:
             jerarquia,
             anios=anios,
             anio_parcial=ultimo if ultimo >= date.today().year else None,
+        )
+
+    def get_procesos_tendencia_mensual(
+        self,
+        *,
+        proceso: str | None = None,
+        subproceso: str | None = None,
+        mes: int | None = None,
+    ) -> dict[str, Any]:
+        """Cumplimiento de los 12 meses del año en curso (Consolidado Mensual). El filtro de mes
+        (`mes`, hasta el último mes cerrado) solo aplica a esta visual."""
+        hoy = date.today()
+        mensual = ETLPipelineService(self._excel).leer_mensual()
+        vacio = {
+            "anio": hoy.year,
+            "ultimo_mes_cerrado": 0,
+            "mes_seleccionado": 0,
+            "mes_seleccionado_nombre": "",
+            "agrupado_por": "proceso",
+            "serie": [],
+            "detalle": [],
+        }
+        if mensual.empty or "Anio" not in mensual.columns:
+            return vacio
+        anio = int(pd.to_numeric(mensual["Anio"], errors="coerce").max())
+        map_df = load_process_map(self._excel)
+        year_prep = self._get_year_prepared(mensual, map_df, anio=anio, fuente="mensual")
+        # Indicadores con cierre parcial vigente pero sin cortes mensuales: aportan su único
+        # corte (el de Cierres), así la tendencia cuenta el mismo universo que el Resumen.
+        cierre_anio = self._get_year_prepared(self._cierres(), map_df, anio=anio, fuente="cierres")
+        if not cierre_anio.empty and not year_prep.empty:
+            sin_corte = ~cierre_anio["Id"].astype(str).isin(set(year_prep["Id"].astype(str)))
+            year_prep = pd.concat([year_prep, cierre_anio[sin_corte]], ignore_index=True)
+        if year_prep.empty:
+            return {**vacio, "anio": anio}
+        # Último mes cerrado: el mes calendario anterior (año en curso) acotado a lo que hay en el libro.
+        con_dato = ultimo_mes_reportado(year_prep) or 0
+        cerrado = (hoy.month - 1) if anio == hoy.year else 12
+        return build_tendencia_mensual(
+            year_prep,
+            anio=anio,
+            ultimo_cerrado=max(min(cerrado, 12), 0) if con_dato else 0,
+            proceso=proceso,
+            subproceso=subproceso,
+            mes_sel=mes,
         )
 
     def _ultimo_filtrado_procesos(self, *, anio: int | None = None) -> pd.DataFrame:
@@ -1013,6 +1008,11 @@ class CMIService:
 
         record = df_to_records(match)[0]
         record["historico"] = historico
+        record["ultimo_reporte"] = etiqueta_reporte(row.get("Fecha"))
+        record["estado_cierre"] = str(row.get("Estado_Cierre") or "").strip() or estado_cierre_fila(
+            row.get("Fecha")
+        )
+        record["tipo_calculo"] = str(row.get("TipoCalculo") or "").strip() or None
         proc_name = str(row.get("Proceso_padre", row.get("Proceso", "")))
         tipo = str(row.get("Tipo de proceso", ""))
         record["proceso_padre"] = proc_name

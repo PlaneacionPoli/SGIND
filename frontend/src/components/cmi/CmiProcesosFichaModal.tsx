@@ -63,7 +63,7 @@ export function CmiProcesosFichaModal({
             {(ficha.linea_estrategica || ficha.objetivo_estrategico) && (
               <div className="rounded-lg border border-blue-200 bg-blue-50 px-3 py-2">
                 <p className="text-[10px] font-bold uppercase tracking-wider text-blue-700">
-                  Línea estratégica y objetivo (PDI seleccionado)
+                  Alineación estratégica (informativa)
                 </p>
                 <p className="text-sm font-semibold text-slate-800">{ficha.linea_estrategica ?? "—"}</p>
                 {ficha.objetivo_estrategico && (
@@ -114,6 +114,25 @@ export function CmiProcesosFichaModal({
                     Tendencia: {ficha.tendencia}
                   </span>
                 )}
+              </div>
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
+                  Último reporte: {ficha.ultimo_reporte ?? "—"}
+                </span>
+                {ficha.estado_cierre && (
+                  <span
+                    className={`rounded-full px-3 py-1 text-xs font-bold ${
+                      ficha.estado_cierre === "Parcial"
+                        ? "bg-amber-50 text-amber-700"
+                        : "bg-emerald-50 text-emerald-700"
+                    }`}
+                  >
+                    Cierre {ficha.estado_cierre.toLowerCase()}
+                  </span>
+                )}
+                <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
+                  Cálculo: {ficha.tipo_calculo ?? "sin tipo (se trata como Cierre)"}
+                </span>
               </div>
               <p className="mt-2 text-sm text-slate-600">
                 {ficha.proceso_padre}

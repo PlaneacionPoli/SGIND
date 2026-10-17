@@ -64,11 +64,17 @@ export function CmiProcesosAlertasTab({
   }, [items, severidad, proceso]);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-5">
+      <div>
+        <h3 className="text-lg font-semibold text-slate-800">Centro de alertas</h3>
+        <p className="text-xs text-slate-500">
+          Respeta los filtros del panel superior. Primero lo prioritario (en peligro), luego todas las alertas.
+        </p>
+      </div>
       {alertasCriticas.length > 0 && (
         <section>
           <div className="mb-4 flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-slate-800">Alertas críticas (vista global)</h3>
+            <h4 className="text-sm font-bold text-slate-800">Prioritarias: en peligro (&lt;80%)</h4>
             <span className="rounded-full bg-red-100 px-3 py-1 text-xs font-bold text-red-800">
               {alertasCriticas.length} en peligro &lt;80%
             </span>
@@ -115,10 +121,7 @@ export function CmiProcesosAlertasTab({
       )}
 
       <section>
-        <h3 className="mb-4 text-lg font-semibold text-slate-800">Centro de alertas (filtros aplicados)</h3>
-        <p className="mb-4 text-xs text-slate-500">
-          Respeta unidad, proceso, subproceso, clasificación y frecuencia del panel superior.
-        </p>
+        <h4 className="mb-3 text-sm font-bold text-slate-800">Todas las alertas</h4>
 
         {items.length === 0 ? (
           <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-8 text-center">
@@ -234,6 +237,7 @@ export function CmiProcesosAlertasTab({
                     <th className="px-4 py-3 text-right">Meta</th>
                     <th className="px-4 py-3 text-right">Ejecución</th>
                     <th className="px-4 py-3 text-right">Cumpl.</th>
+                    <th className="px-4 py-3">Último reporte</th>
                     <th className="px-4 py-3">Nivel</th>
                   </tr>
                 </thead>
@@ -261,6 +265,9 @@ export function CmiProcesosAlertasTab({
                         <td className="px-4 py-3 text-right">{fmtEjecucion(ind as Record<string, unknown>)}</td>
                         <td className="px-4 py-3 text-right font-semibold">
                           {fmtPct(ind.cumplimiento_pct as number)}
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-3 text-xs text-slate-600">
+                          {String((ind as Record<string, unknown>).ultimo_reporte ?? "—")}
                         </td>
                         <td className="px-4 py-3">
                           <NivelBadge nivel={ind["Nivel de cumplimiento"] as string} />

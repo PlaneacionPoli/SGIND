@@ -16,6 +16,7 @@ from app.schemas.common import (
     CMIProcesosFiltrosResponse,
     CMIProcesosMapaResponse,
     CMIProcesosResponse,
+    CMITendenciaMensualResponse,
     FichaIndicadorResponse,
 )
 from app.services.cmi_service import CMIService
@@ -124,6 +125,22 @@ async def cmi_procesos_mapa(
 ) -> CMIProcesosMapaResponse:
     """Mapa Proceso → Subproceso → Indicador con histórico anual. Independiente del PDI."""
     return CMIProcesosMapaResponse(**await run_sync(service.get_procesos_mapa))
+
+
+@router.get("/procesos/tendencia-mensual", response_model=CMITendenciaMensualResponse)
+async def cmi_procesos_tendencia_mensual(
+    proceso: str | None = Query(None),
+    subproceso: str | None = Query(None),
+    mes: int | None = Query(None, ge=1, le=12, description="Corte (≤ último mes cerrado)"),
+    _user: User = Depends(require_reader),
+    service: CMIService = Depends(_cmi_service),
+) -> CMITendenciaMensualResponse:
+    """Cumplimiento de los 12 meses del año en curso. El filtro de mes es solo de esta visual."""
+    return CMITendenciaMensualResponse(
+        **await run_sync(
+            service.get_procesos_tendencia_mensual, proceso=proceso, subproceso=subproceso, mes=mes
+        )
+    )
 
 
 @router.get("/procesos-dashboard", response_model=CMIProcesosDashboardResponse)

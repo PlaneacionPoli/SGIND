@@ -1,6 +1,7 @@
 import axios from "axios";
 import type {
   CMIProcesosMapaResponse,
+  CMITendenciaMensualResponse,
   AlertaConfig,
   AlertaEnvio,
   AlertaNotificaciones,
@@ -262,6 +263,18 @@ export async function fetchCMIProcesosFiltros(
 /** Mapa Proceso → Subproceso → Indicador con histórico anual. No depende del PDI. */
 export async function fetchCMIProcesosMapa(): Promise<CMIProcesosMapaResponse> {
   const { data } = await api.get<CMIProcesosMapaResponse>("/cmi/procesos/mapa");
+  return data;
+}
+
+/** Cumplimiento de los 12 meses del año en curso. El mes (≤ último mes cerrado) solo filtra esta visual. */
+export async function fetchCMIProcesosTendencia(params: {
+  proceso?: string;
+  subproceso?: string;
+  mes?: number;
+}): Promise<CMITendenciaMensualResponse> {
+  const { data } = await api.get<CMITendenciaMensualResponse>("/cmi/procesos/tendencia-mensual", {
+    params,
+  });
   return data;
 }
 

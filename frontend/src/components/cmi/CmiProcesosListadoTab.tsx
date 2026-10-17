@@ -2,7 +2,8 @@
 
 import { useMemo, useState } from "react";
 import { BarChart3, Activity, Search, ExternalLink } from "lucide-react";
-import type { CMIEjecucionVariacionItem, Indicator } from "@/lib/types";
+import type { CMIEjecucionVariacionItem, CMIProcesosDashboardResponse, Indicator } from "@/lib/types";
+import { CmiCatalogChartsPlotly } from "@/components/cmi/CmiCatalogChartsPlotly";
 import { fmtPct, NivelBadge, SobreejecucionBadge } from "@/components/cmi/nivelUtils";
 import { fmtMeta, fmtEjecucion, fmtValorSigno } from "@/lib/formatValor";
 
@@ -13,6 +14,8 @@ interface CmiProcesosListadoTabProps {
     positiva: Array<{ indicador: string; ejecucion: number | null; delta: number; periodo: string }>;
     negativa: Array<{ indicador: string; ejecucion: number | null; delta: number; periodo: string }>;
   };
+  /** Periodicidad y clasificación del universo filtrado (antes en el Resumen). */
+  catalogCharts?: CMIProcesosDashboardResponse["catalog_charts"];
   onOpenFicha?: (id: string) => void;
   onExportCsv?: () => void;
   onExportExcel?: () => void;
@@ -25,6 +28,7 @@ export function CmiProcesosListadoTab({
   indicadores,
   summary,
   ejecucionVariacion,
+  catalogCharts,
   onOpenFicha,
   onExportCsv,
   onExportExcel,
@@ -68,8 +72,8 @@ export function CmiProcesosListadoTab({
     <div className="space-y-5">
       <p className="flex items-start gap-1.5 text-xs text-slate-500">
         <span className="mt-0.5 shrink-0 text-slate-400">ℹ️</span>
-        Listado filtrado — respeta todos los filtros del panel (año, mes, unidad, proceso, clasificación,
-        frecuencia). Columnas de proceso/subproceso, sin líneas estratégicas PDI.
+        Listado filtrado — respeta los filtros del panel (año, unidad, proceso, clasificación, frecuencia). Cada
+        indicador muestra su último mes de reporte y si su cierre es final o parcial.
       </p>
 
       <div className="grid grid-cols-2 gap-3.5 sm:grid-cols-3 lg:grid-cols-6">
@@ -133,6 +137,10 @@ export function CmiProcesosListadoTab({
           pulse={(summary.peligro ?? 0) > 0}
         />
       </div>
+
+      {catalogCharts && (
+        <CmiCatalogChartsPlotly periodicidad={catalogCharts.periodicidad} clasificacion={catalogCharts.clasificacion} />
+      )}
 
       {ejecucionVariacion &&
         (ejecucionVariacion.positiva.length > 0 || ejecucionVariacion.negativa.length > 0) && (
@@ -231,6 +239,8 @@ export function CmiProcesosListadoTab({
                 <th className="px-2 py-3 text-right">Meta</th>
                 <th className="px-2 py-3 text-right">Ejecución</th>
                 <th className="px-2 py-3 text-right">Cumpl.</th>
+                <th className="px-3 py-3">Último reporte</th>
+                <th className="px-3 py-3">Cálculo</th>
                 <th className="px-4 py-3 text-center">Nivel</th>
               </tr>
             </thead>
@@ -270,6 +280,24 @@ export function CmiProcesosListadoTab({
                     </td>
                     <td className={`px-2 py-3.5 text-right font-bold ${esCritico ? "text-red-600" : "text-poli-navy"}`}>
                       {fmtPct(ind.cumplimiento_pct as number)}
+                    </td>
+                    <td className="whitespace-nowrap px-3 py-3.5 text-xs text-slate-600">
+                      {String(rec.ultimo_reporte ?? "—")}
+                      {rec.estado_cierre ? (
+                        <span
+                          className={`ml-1.5 rounded-full px-1.5 py-0.5 text-[10px] font-bold ${
+                            rec.estado_cierre === "Parcial"
+                              ? "bg-amber-50 text-amber-700"
+                              : "bg-emerald-50 text-emerald-700"
+                          }`}
+                          title={rec.estado_cierre === "Parcial" ? "Cierre parcial (año en curso)" : "Cierre final del año"}
+                        >
+                          {String(rec.estado_cierre)}
+                        </span>
+                      ) : null}
+                    </td>
+                    <td className="px-3 py-3.5 text-xs text-slate-600">
+                      {rec.TipoCalculo ? String(rec.TipoCalculo) : <span className="text-amber-600">Sin tipo</span>}
                     </td>
                     <td className="px-4 py-3.5 text-center">
                       <NivelBadge nivel={ind["Nivel de cumplimiento"] as string} />

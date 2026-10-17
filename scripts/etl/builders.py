@@ -1002,3 +1002,35 @@ def construir_registros_cierres(
             })
 
     return registros, skipped, conteo_na
+
+
+# ── Cortes mensuales ──────────────────────────────────────────────
+
+def construir_registros_mensuales(
+    df_fuente: pd.DataFrame,
+    anio: int,
+    hist_escalas: Dict,
+    **kwargs,
+) -> Tuple[List[Dict], int, int]:
+    """
+    Genera registros para Consolidado Mensual: un corte ACUMULADO por indicador y mes de reporte
+    del año `anio`. Cada corte aplica la misma regla de `construir_registros_cierres` (según
+    TipoCalculo: Cierre = último reporte, Promedio = promedio de enero al corte, Acumulado = suma
+    de enero al corte), usando solo los registros hasta el fin de ese mes. El registro lleva la
+    fecha del último reporte del indicador dentro del corte; los cortes repetidos se descartan.
+    Permite filtrar por mes y graficar la tendencia de los 12 meses.
+    """
+    df = df_fuente[df_fuente["fecha"].dt.year == int(anio)]
+    registros: List[Dict] = []
+    vistos: Set[Tuple[str, pd.Timestamp]] = set()
+    skipped = conteo_na = 0
+    for mes in sorted(df["fecha"].dt.month.unique()):
+        corte = pd.Timestamp(year=int(anio), month=int(mes), day=1) + pd.offsets.MonthEnd(0)
+        regs, sk, na = construir_registros_cierres(df[df["fecha"] <= corte], hist_escalas, **kwargs)
+        skipped, conteo_na = skipped + sk, conteo_na + na
+        for r in regs:
+            clave = (_id_str(r["Id"]), pd.Timestamp(r["fecha"]))
+            if clave not in vistos:
+                vistos.add(clave)
+                registros.append(r)
+    return registros, skipped, conteo_na

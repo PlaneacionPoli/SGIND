@@ -494,4 +494,32 @@ class CMIProcesosMapaResponse(BaseModel):
     anios: list[int] = Field(default_factory=list)
     anio_parcial: int | None = None
     procesos: list[CMIMapaProceso] = Field(default_factory=list)
+    mix_niveles: dict[str, dict[str, int]] = Field(default_factory=dict)
     sin_tipo_calculo: int = 0
+
+
+class CMITendenciaMes(BaseModel):
+    mes: int
+    nombre: str
+    cerrado: bool
+    cumplimiento: float | None = None
+    n_indicadores: int = 0
+    n_reportes_mes: int = 0
+    en_riesgo: int = 0
+
+
+class CMITendenciaDetalle(BaseModel):
+    nombre: str
+    cumplimiento: float | None = None
+    n_indicadores: int = 0
+    en_riesgo: int = 0
+
+
+class CMITendenciaMensualResponse(BaseModel):
+    anio: int
+    ultimo_mes_cerrado: int = 0
+    mes_seleccionado: int = 0
+    mes_seleccionado_nombre: str = ""
+    agrupado_por: str = "proceso"
+    serie: list[CMITendenciaMes] = Field(default_factory=list)
+    detalle: list[CMITendenciaDetalle] = Field(default_factory=list)
