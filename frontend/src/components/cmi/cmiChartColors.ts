@@ -15,3 +15,11 @@ export const NIVEL_COLORS: Record<string, string> = {
 export function paletteColor(index: number): string {
   return STRATEGIC_PALETTE[index % STRATEGIC_PALETTE.length];
 }
+
+/** Color de semáforo por cumplimiento (< 80 peligro, < 100 alerta, < 105 cumplimiento). */
+export function colorCumplimiento(v: number | null | undefined): string {
+  if (v == null) return NIVEL_COLORS["Pendiente de reporte"];
+  if (v < 80) return NIVEL_COLORS.Peligro;
+  if (v < 100) return NIVEL_COLORS.Alerta;
+  return v < 105 ? NIVEL_COLORS.Cumplimiento : NIVEL_COLORS.Sobrecumplimiento;
+}

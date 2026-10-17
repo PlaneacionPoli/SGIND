@@ -52,7 +52,7 @@ PREFIJO_HOJAS_OBSOLETAS = "Codigos_PDI_"
 PREFIJOS_COLUMNAS_OBSOLETAS = ("Tipo_PDI_", "Estrategico_PDI_")
 COLS_CODIGO_OBSOLETAS = ("Linea_Cod", "Objetivo_Cod", "Meta_Cod")
 
-COLS_CONTEXTO = ["Id", "Indicador", "Proceso", "Clasificacion", "Estado", "Origen"]
+COLS_CONTEXTO = ["Id", "Indicador", "Subproceso", "Clasificacion", "Estado", "Origen"]
 COL_ANTERIOR = "Linea_PDI_anterior"  # solo en el PDI vigente: referencia de la línea del PDI cerrado
 COLS_ENTRADA = ["PDI", "Linea", "Objetivo", "Meta", "Observaciones"]
 
@@ -298,7 +298,8 @@ def migrar_pdi_cerrado(df_cat: pd.DataFrame, marco: Marco) -> pd.DataFrame:
                     m = next((m for m in ob.metas if norm_texto(m.nombre) == norm_texto(meta_t)), None)
                     meta = m.nombre if m else meta_t
         filas.append({
-            "Id": r["Id"], "Indicador": r.get("Indicador"), "Proceso": r.get("Proceso"),
+            "Id": r["Id"], "Indicador": r.get("Indicador"),
+            "Subproceso": r.get("Subproceso") if _limpio(r.get("Subproceso")) else r.get("Proceso"),
             "Clasificacion": r.get("Clasificacion"), "Estado": r.get("Estado"), "Origen": ORIGEN_MIGRADO,
             "PDI": 1 if _marca_plan(r) else 0,
             "Linea": linea, "Objetivo": objetivo, "Meta": meta, "Observaciones": None,
@@ -400,7 +401,7 @@ def escribir_hoja_pdi(wb, marco: Marco, filas: pd.DataFrame, listas: dict) -> tu
         nuevas += 1
 
     _estilo_encabezado(ws, len(cols))
-    anchos = {"Id": 12, "Indicador": 50, "Proceso": 36, "Clasificacion": 14, "Estado": 11, "Origen": 38,
+    anchos = {"Id": 12, "Indicador": 50, "Subproceso": 36, "Clasificacion": 14, "Estado": 11, "Origen": 38,
               COL_ANTERIOR: 26, "PDI": 7, "Linea": 34, "Objetivo": 70, "Meta": 80, "Observaciones": 40}
     for i, c in enumerate(cols, 1):
         ws.column_dimensions[get_column_letter(i)].width = anchos[c]

@@ -457,3 +457,41 @@ class ExcelFileInfo(BaseModel):
     path: str
     size_bytes: int
     modified_at: datetime
+
+
+class CMIMapaIndicador(BaseModel):
+    id: str
+    indicador: str
+    tipo_calculo: str | None = None
+    periodicidad: str | None = None
+    ultimo_reporte: str | None = None
+    estado_cierre: str | None = None
+    anios: dict[str, float | None] = Field(default_factory=dict)
+    nivel: str | None = None
+
+
+class CMIMapaSubproceso(BaseModel):
+    subproceso: str
+    anios: dict[str, float | None] = Field(default_factory=dict)
+    variaciones: dict[str, float | None] = Field(default_factory=dict)
+    n_indicadores: int = 0
+    en_riesgo: int = 0
+    indicadores: list[CMIMapaIndicador] = Field(default_factory=list)
+
+
+class CMIMapaProceso(BaseModel):
+    proceso: str
+    unidad: str = ""
+    tipo_proceso: str = ""
+    anios: dict[str, float | None] = Field(default_factory=dict)
+    variaciones: dict[str, float | None] = Field(default_factory=dict)
+    n_indicadores: int = 0
+    en_riesgo: int = 0
+    subprocesos: list[CMIMapaSubproceso] = Field(default_factory=list)
+
+
+class CMIProcesosMapaResponse(BaseModel):
+    anios: list[int] = Field(default_factory=list)
+    anio_parcial: int | None = None
+    procesos: list[CMIMapaProceso] = Field(default_factory=list)
+    sin_tipo_calculo: int = 0

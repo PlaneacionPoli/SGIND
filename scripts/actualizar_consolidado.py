@@ -90,6 +90,9 @@ from etl.purga import (                            # noqa: E402
     purgar_filas_invalidas,
     purgar_filas_antes_fecha_desde,
     limpiar_cierres_existentes,
+    marcar_estado_cierre,
+    reemplazar_cierres_parciales,
+    resaltar_duplicados_id_anio,
     _dedup_cierres_por_año,
     reparar_meta_vacia,
     reparar_meta_capeada_agent5,
@@ -598,6 +601,16 @@ def main() -> None:
         len(regs_pob_hist), len(regs_pob_sem), len(regs_pob_cierres),
     )
 
+    # ── 10.55 Cierres parciales: reemplazar el corte anterior por el nuevo ──
+    # Un año en curso conserva un único cierre parcial por Id (el último corte con su
+    # cálculo según TipoCalculo). Si llega un registro nuevo se elimina y reemplaza el
+    # existente; si no llega, el existente se mantiene.
+    regs_cierres, n_reemp, n_desc = reemplazar_cierres_parciales(ws_cierres, regs_cierres)
+    logger.info(
+        "10.55 Cierres parciales: %d filas reemplazadas, %d registros nuevos descartados",
+        n_reemp, n_desc,
+    )
+
     # ── 10.6 VALIDACIÓN INTERMEDIA (post-construcción) ──────────────
     logger.info("10.6 Validación intermedia post-construcción…")
     for nombre_hoja, regs in [("Historico", regs_hist), ("Semestral", regs_sem), ("Cierres", regs_cierres)]:
@@ -690,6 +703,12 @@ def main() -> None:
     limpiar_ordenar_hoja(ws_hist, "Historico", ordenar_por=["Id", "Fecha"])
     limpiar_ordenar_hoja(ws_sem, "Semestral", ordenar_por=["Id", "Fecha"])
     limpiar_ordenar_hoja(ws_cierres, "Cierres", ordenar_por=["Id", "Fecha"])
+
+    # ── 13.4 Marcar cierre Final / Parcial en Consolidado Cierres ──────
+    n_marcadas = marcar_estado_cierre(ws_cierres)
+    logger.info("13.4 Estado_Cierre (Final/Parcial) marcado en %d filas de Cierres", n_marcadas)
+    n_dup = resaltar_duplicados_id_anio(ws_cierres)
+    logger.info("13.4 Cierres con Id repetido en el mismo año (se conservan, resaltados): %d filas", n_dup)
 
     # ── 13.5 Normalizar encabezados entre hojas ───────────────────
     # Corrige variantes de etiqueta (ej. "Semestre"→"Periodo", "Llave"→"LLAVE")

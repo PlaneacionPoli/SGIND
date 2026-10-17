@@ -1492,3 +1492,42 @@ export interface PolisigsResponse {
   objetivos: PolisigsObjetivo[];
   indicadores: PolisigsIndicador[];
 }
+
+
+export interface CMIMapaIndicador {
+  id: string;
+  indicador: string;
+  tipo_calculo: string | null;
+  periodicidad: string | null;
+  ultimo_reporte: string | null;
+  estado_cierre: string | null;
+  anios: Record<string, number | null>;
+  nivel: string | null;
+}
+
+export interface CMIMapaSubproceso {
+  subproceso: string;
+  anios: Record<string, number | null>;
+  variaciones: Record<string, number | null>;
+  n_indicadores: number;
+  en_riesgo: number;
+  indicadores: CMIMapaIndicador[];
+}
+
+export interface CMIMapaProceso {
+  proceso: string;
+  unidad: string;
+  tipo_proceso: string;
+  anios: Record<string, number | null>;
+  variaciones: Record<string, number | null>;
+  n_indicadores: number;
+  en_riesgo: number;
+  subprocesos: CMIMapaSubproceso[];
+}
+
+export interface CMIProcesosMapaResponse {
+  anios: number[];
+  anio_parcial: number | null;
+  procesos: CMIMapaProceso[];
+  sin_tipo_calculo: number;
+}

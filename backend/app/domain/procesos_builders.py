@@ -177,8 +177,79 @@ def _ensure_cumplimiento_pct(df: pd.DataFrame) -> pd.DataFrame:
     return out
 
 
-def prepare_tracking(df: pd.DataFrame, map_df: pd.DataFrame) -> pd.DataFrame:
-    """Enriquece tracking con Proceso_padre, Subproceso_final, Unidad y Tipo de proceso."""
+def _id_base(valor: object) -> str:
+    s = str(valor).strip()
+    return s[:-2] if s.endswith(".0") else s
+
+
+def aplicar_jerarquia_por_id(
+    out: pd.DataFrame, jerarquia: pd.DataFrame, map_df: pd.DataFrame
+) -> pd.DataFrame:
+    """Asigna Proceso_padre / Subproceso_final por Id según el catálogo maestro.
+
+    El indicador se vincula por Id (un subindicador '386.1' hereda el de '386'); el nombre
+    del subproceso solo sirve para traer sus atributos (Unidad, Tipo de proceso) del mapa.
+    Las filas cuyo Id no está en el catálogo conservan la asignación previa.
+    """
+    if out.empty or "Id" not in out.columns or jerarquia is None or jerarquia.empty:
+        return out
+    jer = jerarquia.drop_duplicates(subset=["Id"]).set_index("Id")
+    ids = out["Id"].map(_id_base)
+    bases = ids.str.split(".").str[0]
+
+    def _buscar(col: str) -> pd.Series:
+        directo = ids.map(jer[col]).replace("", pd.NA)
+        return directo.where(directo.notna(), bases.map(jer[col]).replace("", pd.NA))
+
+    def _espacios(v: object) -> object:
+        return " ".join(v.replace(" ", " ").split()) if isinstance(v, str) else v
+
+    sub_cat = _buscar("Subproceso_cat").map(_espacios).replace("", pd.NA)
+    proc_cat = _buscar("Proceso_cat").map(_espacios).replace("", pd.NA)
+    sub_cat = sub_cat.fillna(proc_cat)
+    proc_cat = proc_cat.fillna(sub_cat)
+    hay = sub_cat.notna()
+    if not hay.any():
+        return out
+
+    attrs: dict[str, dict[str, str]] = {}
+    if not map_df.empty and {"Subproceso", "Proceso"}.issubset(map_df.columns):
+        for _, r in map_df.dropna(subset=["Subproceso"]).iterrows():
+            attrs.setdefault(
+                _norm_text(r["Subproceso"]),
+                {
+                    "sub": str(r["Subproceso"]).strip(),
+                    "proceso": str(r["Proceso"]).strip(),
+                    "unidad": str(r.get("Unidad", "") or ""),
+                    "tipo": str(r.get("Tipo de proceso", "") or ""),
+                },
+            )
+    claves = sub_cat.map(lambda s: _norm_text(s) if isinstance(s, str) else "")
+    info = claves.map(attrs)
+    out = out.copy()
+    en_mapa = hay & info.notna()
+    out.loc[hay, "Proceso_padre"] = proc_cat[hay]
+    out.loc[hay, "Subproceso_final"] = sub_cat[hay]
+    for destino, clave in (
+        ("Proceso_padre", "proceso"),
+        ("Subproceso_final", "sub"),
+        ("Unidad", "unidad"),
+        ("Tipo de proceso", "tipo"),
+    ):
+        if en_mapa.any():
+            if destino not in out.columns:
+                out[destino] = ""
+            out.loc[en_mapa, destino] = info[en_mapa].map(lambda d, k=clave: d[k])
+    return out
+
+
+def prepare_tracking(
+    df: pd.DataFrame, map_df: pd.DataFrame, jerarquia: pd.DataFrame | None = None
+) -> pd.DataFrame:
+    """Enriquece tracking con Proceso_padre, Subproceso_final, Unidad y Tipo de proceso.
+
+    Con `jerarquia` (catálogo maestro) el vínculo indicador→proceso/subproceso se hace por Id.
+    """
     if df.empty:
         return df
 
@@ -238,6 +309,8 @@ def prepare_tracking(df: pd.DataFrame, map_df: pd.DataFrame) -> pd.DataFrame:
                 columns=[c for c in ["sub_merge_key", "Tipo de proceso_y"] if c in out.columns]
             )
 
+    if jerarquia is not None:
+        out = aplicar_jerarquia_por_id(out, jerarquia, map_df)
     return _ensure_cumplimiento_pct(out)
 
 
@@ -888,6 +961,7 @@ def build_filtros_options(
     *,
     anio: int,
     mes: int | None = None,
+    jerarquia: pd.DataFrame | None = None,
 ) -> dict[str, Any]:
     # Debe reflejar el mismo tope que cmi_service.MAX_ANIO_FILTROS.
     anios = (
@@ -904,7 +978,7 @@ def build_filtros_options(
         else [anio]
     )
 
-    prepared = prepare_tracking(tracking, map_df)
+    prepared = prepare_tracking(tracking, map_df, jerarquia)
     # Usa el mes seleccionado por el usuario cuando se conoce — si las opciones
     # siempre se calculan sobre default_mes() (el mes más reciente con datos),
     # un corte reciente aún incompleto (ej. Diciembre con solo 6 de ~34 procesos
@@ -1329,4 +1403,151 @@ def build_analisis_avanzado(
         "narrativa_proceso": narrativa,
         "variacion_indicadores": variacion,
         "historico_indicadores": historico,
+    }
+
+
+# ── Mapa de procesos: Proceso → Subproceso → Indicador, histórico anual ──────────────
+
+
+def ultimo_registro_anual(year_df: pd.DataFrame, *, mes_corte: int) -> pd.DataFrame:
+    """Último registro por Id del año hasta `mes_corte` (inclusive).
+
+    El valor anual de cada indicador ya viene agregado por el ETL según su TipoCalculo
+    (Cierre / Promedio / Acumulado); aquí solo se elige el último periodo reportado.
+    """
+    if year_df.empty or "Id" not in year_df.columns:
+        return year_df.iloc[0:0]
+    out = year_df.copy()
+    out["_mes_num"] = out["Mes"].apply(mes_to_num) if "Mes" in out.columns else 12.0
+    out = out[out["_mes_num"].fillna(12) <= mes_corte].sort_values("_mes_num", kind="stable")
+    return out.drop_duplicates(subset=["Id"], keep="last").drop(columns=["_mes_num"])
+
+
+def estado_cierre_fila(fecha: object, anio_curso: int | None = None) -> str:
+    """'Parcial' si el corte es del año en curso; 'Final' en cualquier año anterior.
+    Misma regla que `scripts/etl/purga.py::estado_cierre` (columna Estado_Cierre del ETL)."""
+    curso = date.today().year if anio_curso is None else anio_curso
+    f = pd.to_datetime(fecha, errors="coerce")
+    if pd.isna(f):
+        return ""
+    return "Parcial" if f.year >= curso else "Final"
+
+
+def _serie_anual(frames: dict[int, pd.DataFrame], anios: list[int]) -> dict[str, float | None]:
+    return {str(a): avg_cumplimiento(frames[a]) if a in frames else None for a in anios}
+
+
+def _variaciones(serie: dict[str, float | None], anios: list[int]) -> dict[str, float | None]:
+    """Variación en puntos porcentuales entre años consecutivos de los últimos tres."""
+    out: dict[str, float | None] = {}
+    for a, b in zip(anios[-3:-1], anios[-2:], strict=False):
+        va, vb = serie.get(str(a)), serie.get(str(b))
+        out[f"{a}-{b}"] = round(vb - va, 1) if va is not None and vb is not None else None
+    return out
+
+
+def _conteo_riesgo(df: pd.DataFrame) -> int:
+    if df.empty or "Nivel de cumplimiento" not in df.columns:
+        return 0
+    return int(df["Nivel de cumplimiento"].isin(["Peligro", "Alerta"]).sum())
+
+
+def build_mapa_procesos(
+    frames: dict[int, pd.DataFrame],
+    jerarquia: pd.DataFrame,
+    *,
+    anios: list[int],
+    anio_parcial: int | None,
+) -> dict[str, Any]:
+    """Árbol Proceso → Subproceso → Indicador con cumplimiento de cada año.
+
+    `frames[año]` = último registro por indicador de ese año (ver `ultimo_registro_anual`),
+    ya con Proceso_padre/Subproceso_final asignados por Id. El promedio de subproceso y
+    proceso se calcula sobre los cumplimientos de sus indicadores.
+    """
+    tipo_por_id: dict[str, str] = {}
+    if jerarquia is not None and not jerarquia.empty:
+        tipo_por_id = dict(zip(jerarquia["Id"], jerarquia["TipoCalculo"], strict=False))
+
+    def _tipo_calculo(id_val: object) -> str:
+        s = _id_base(id_val)
+        return tipo_por_id.get(s) or tipo_por_id.get(s.split(".")[0], "") or ""
+
+    todo = [f.assign(_anio=a) for a, f in frames.items() if not f.empty]
+    if not todo:
+        return {
+            "anios": anios,
+            "anio_parcial": anio_parcial,
+            "procesos": [],
+            "sin_tipo_calculo": 0,
+        }
+    big = pd.concat(todo, ignore_index=True)
+    sin_tipo: set[str] = set()
+    procesos: list[dict[str, Any]] = []
+
+    for proceso, gp in big.groupby("Proceso_padre", dropna=True, sort=True):
+        if not str(proceso).strip():
+            continue
+        gp_frames = {a: g for a, g in gp.groupby("_anio")}
+        serie_p = _serie_anual(gp_frames, anios)
+        subprocesos: list[dict[str, Any]] = []
+        for sub, gs in gp.groupby("Subproceso_final", dropna=True, sort=True):
+            gs_frames = {a: g for a, g in gs.groupby("_anio")}
+            serie_s = _serie_anual(gs_frames, anios)
+            inds: list[dict[str, Any]] = []
+            for id_val, gi in gs.groupby("Id", sort=False):
+                gi_frames = {a: g for a, g in gi.groupby("_anio")}
+                actual = gi.sort_values("_anio").iloc[-1]
+                tc = _tipo_calculo(id_val)
+                if not tc:
+                    sin_tipo.add(_id_base(id_val))
+                fecha = pd.to_datetime(actual.get("Fecha"), errors="coerce")
+                estado = str(actual.get("Estado_Cierre", "") or "").strip() or estado_cierre_fila(fecha)
+                inds.append(
+                    {
+                        "id": _id_base(id_val),
+                        "indicador": str(actual.get("Indicador", "")),
+                        "tipo_calculo": tc or None,
+                        "periodicidad": str(actual.get("Periodicidad", "") or "") or None,
+                        "ultimo_reporte": None
+                        if pd.isna(fecha)
+                        else f"{mes_nombre(int(fecha.month))[:3]} {fecha.year}",
+                        "estado_cierre": estado or None,
+                        "anios": _serie_anual(gi_frames, anios),
+                        "nivel": str(actual.get("Nivel de cumplimiento", "") or "") or None,
+                    }
+                )
+            inds.sort(key=lambda x: (x["indicador"], x["id"]))
+            ultimo = max(gs_frames) if gs_frames else None
+            subprocesos.append(
+                {
+                    "subproceso": str(sub),
+                    "anios": serie_s,
+                    "variaciones": _variaciones(serie_s, anios),
+                    "n_indicadores": len(inds),
+                    "en_riesgo": _conteo_riesgo(gs_frames[ultimo]) if ultimo else 0,
+                    "indicadores": inds,
+                }
+            )
+        ultimo_p = max(gp_frames) if gp_frames else None
+        procesos.append(
+            {
+                "proceso": str(proceso),
+                "unidad": str(gp["Unidad"].iloc[0]) if "Unidad" in gp.columns else "",
+                "tipo_proceso": str(gp["Tipo de proceso"].iloc[0])
+                if "Tipo de proceso" in gp.columns
+                else "",
+                "anios": serie_p,
+                "variaciones": _variaciones(serie_p, anios),
+                "n_indicadores": int(gp["Id"].nunique()),
+                "en_riesgo": _conteo_riesgo(gp_frames[ultimo_p]) if ultimo_p else 0,
+                "subprocesos": subprocesos,
+            }
+        )
+    procesos.sort(key=lambda p: (p["tipo_proceso"], p["proceso"]))
+    return {
+        "anios": anios,
+        "anio_parcial": anio_parcial,
+        "procesos": procesos,
+        "sin_tipo_calculo": len(sin_tipo),
     }

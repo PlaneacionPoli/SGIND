@@ -6,10 +6,12 @@ from __future__ import annotations
 
 import logging
 from collections import defaultdict
-from typing import Dict, Optional, Set, Tuple
+from datetime import date
+from typing import Dict, List, Optional, Set, Tuple
 
 import numpy as np
 import pandas as pd
+from openpyxl.styles import PatternFill
 
 from .config import AÑO_CIERRE_ACTUAL
 from .escritura import _ejec_score, get_last_data_row
@@ -172,9 +174,11 @@ def purgar_filas_antes_fecha_desde(
 
 def limpiar_cierres_existentes(ws) -> int:
     """
-    Para años <= AÑO_CIERRE_ACTUAL: conserva solo el registro de diciembre.
-    Para años > AÑO_CIERRE_ACTUAL: conserva todos.
+    Años cerrados (anteriores al año en curso): conserva solo el registro de diciembre
+    (o el último corte si no hay diciembre). Año en curso: conserva todos los cortes;
+    luego `reemplazar_cierres_parciales` deja uno solo por Id.
     """
+    curso = anio_en_curso()
     filas = []
     for row in ws.iter_rows(min_row=2, values_only=False):
         if row[0].value is None:
@@ -201,7 +205,7 @@ def limpiar_cierres_existentes(ws) -> int:
 
     filas_a_conservar: Set[int] = set()
     for (id_val, año), grupo in grupos.items():
-        if año > AÑO_CIERRE_ACTUAL:
+        if año >= curso:
             for f in grupo:
                 filas_a_conservar.add(f["row_idx"])
         else:
@@ -222,6 +226,165 @@ def limpiar_cierres_existentes(ws) -> int:
 
     logger.info(f"  limpiar_cierres: {len(filas_a_borrar)} filas eliminadas.")
     return len(filas_a_borrar)
+
+
+# ── Cierre final vs. parcial ──────────────────────────────────────
+
+COL_ESTADO_CIERRE = "Estado_Cierre"
+CIERRE_FINAL = "Final"
+CIERRE_PARCIAL = "Parcial"
+
+
+def anio_en_curso() -> int:
+    """Año calendario en curso: el único cuyo cierre es parcial. Todos los anteriores son finales."""
+    return date.today().year
+
+
+def estado_cierre(fecha: object, anio_curso: Optional[int] = None) -> str:
+    """'Parcial' si el corte es del año en curso; 'Final' en cualquier año anterior;
+    '' si no hay fecha."""
+    curso = anio_en_curso() if anio_curso is None else anio_curso
+    f = pd.to_datetime(fecha, errors="coerce")
+    if pd.isna(f):
+        return ""
+    return CIERRE_PARCIAL if f.year >= curso else CIERRE_FINAL
+
+
+def reemplazar_cierres_parciales(
+    ws,
+    registros: List[Dict],
+    anio_curso: Optional[int] = None,
+    hoy: Optional[pd.Timestamp] = None,
+) -> Tuple[List[Dict], int, int]:
+    """Deja UN cierre parcial por Id en el año en curso: el último corte con fecha real.
+
+    1. Entre los registros nuevos del año en curso se elige, por Id, el corte más reciente
+       con fecha <= hoy. Un corte con fecha futura (p. ej. un 'diciembre' que repite el
+       último valor de un indicador semestral) solo se usa si no hay ninguno real.
+    2. Contra la hoja: si el corte elegido es igual o posterior al último corte real
+       existente, se borran las filas existentes de ese Id+año (incluidas las de fecha
+       futura) y se escribe el nuevo; si es anterior se descarta y se mantiene lo existente.
+    Si no llega registro nuevo para el Id+año, la fila existente no se toca.
+    Los registros de años cerrados pasan sin cambios.
+
+    Retorna (registros_a_escribir, filas_reemplazadas, nuevos_descartados).
+    """
+    curso = anio_en_curso() if anio_curso is None else anio_curso
+    hoy = pd.Timestamp(date.today()) if hoy is None else pd.Timestamp(hoy)
+    cm = _build_col_map(ws)
+    idx_fecha = cm.get("Fecha", 6) - 1
+
+    existentes: Dict = defaultdict(list)  # (id, año) -> [(row_idx, fecha)]
+    for row in ws.iter_rows(min_row=2, values_only=False):
+        if row[0].value is None:
+            continue
+        f = pd.to_datetime(row[idx_fecha].value, errors="coerce")
+        if pd.isna(f) or f.year < curso:
+            continue
+        existentes[(_id_str(row[0].value), f.year)].append((row[0].row, f))
+
+    def _clave(reg: Dict) -> Tuple[bool, pd.Timestamp]:
+        f = pd.to_datetime(reg.get("fecha"), errors="coerce")
+        return (f <= hoy, f)  # primero los reales (<= hoy), luego el más reciente
+
+    # 1. Un único registro nuevo por Id+año en curso.
+    elegidos: Dict = {}
+    cerrados: List[Dict] = []
+    for reg in registros:
+        f = pd.to_datetime(reg.get("fecha"), errors="coerce")
+        if pd.isna(f) or f.year < curso:
+            cerrados.append(reg)
+            continue
+        k = (_id_str(reg.get("Id")), f.year)
+        if k not in elegidos or _clave(reg) >= _clave(elegidos[k]):
+            elegidos[k] = reg
+    descartados = sum(
+        1
+        for reg in registros
+        if not pd.isna(pd.to_datetime(reg.get("fecha"), errors="coerce"))
+        and pd.to_datetime(reg.get("fecha")).year >= curso
+    ) - len(elegidos)
+
+    # 2. Contra lo existente en la hoja.
+    a_conservar: List[Dict] = list(cerrados)
+    filas_borrar: Set[int] = set()
+    for k, reg in elegidos.items():
+        f = pd.to_datetime(reg.get("fecha"))
+        previas = existentes.get(k, [])
+        reales = [fp for _, fp in previas if fp <= hoy]
+        if not previas:
+            escribir = True
+        elif f <= hoy:
+            escribir = not reales or f >= max(reales)
+        else:  # solo hay un corte futuro (placeholder): nunca pisa un corte real existente
+            escribir = not reales
+        if escribir:
+            filas_borrar.update(r for r, _ in previas)
+            a_conservar.append(reg)
+        else:
+            descartados += 1
+
+    for r_idx in sorted(filas_borrar, reverse=True):
+        ws.delete_rows(r_idx)
+    logger.info(
+        f"  reemplazar_cierres_parciales: {len(filas_borrar)} filas reemplazadas, "
+        f"{descartados} registros nuevos descartados."
+    )
+    return a_conservar, len(filas_borrar), descartados
+
+
+def marcar_estado_cierre(ws, anio_curso: Optional[int] = None) -> int:
+    """Escribe 'Estado_Cierre' (Final/Parcial) en cada fila de Consolidado Cierres.
+    Crea la columna al final del encabezado si no existe. Retorna filas marcadas."""
+    header = [c for c in next(ws.iter_rows(min_row=1, max_row=1)) if c.value is not None]
+    col = next((c.column for c in header if str(c.value).strip() == COL_ESTADO_CIERRE), None)
+    if col is None:
+        col = max((c.column for c in header), default=0) + 1
+        ws.cell(1, col).value = COL_ESTADO_CIERRE
+    idx_fecha = _build_col_map(ws).get("Fecha", 6)
+    n = 0
+    for r in range(2, ws.max_row + 1):
+        if ws.cell(r, 1).value is None:
+            continue
+        ws.cell(r, col).value = estado_cierre(ws.cell(r, idx_fecha).value, anio_curso)
+        n += 1
+    return n
+
+
+COLOR_DUPLICADO_CIERRE = "F8CBAD"  # naranja claro: Id con más de un cierre en el mismo año
+
+
+def resaltar_duplicados_id_anio(ws) -> int:
+    """Marca con color (sin borrar) las filas de Consolidado Cierres que comparten Id y año.
+
+    Un Id debería tener un único cierre por año; si hay más (p. ej. el mismo Id con dos nombres de
+    indicador) se conservan ambos y se resaltan para revisión. Quita primero el resalte anterior,
+    así que es idempotente. Retorna cuántas filas quedaron marcadas.
+    """
+    relleno = PatternFill("solid", fgColor=COLOR_DUPLICADO_CIERRE)
+    sin_relleno = PatternFill(fill_type=None)
+    idx_fecha = _build_col_map(ws).get("Fecha", 6) - 1
+    ultima_col = max((c.column for c in next(ws.iter_rows(min_row=1, max_row=1)) if c.value is not None), default=1)
+
+    filas: Dict = defaultdict(list)  # (id, año) -> [row_idx]
+    for row in ws.iter_rows(min_row=2, values_only=False):
+        if row[0].value is None:
+            continue
+        for c in row[:ultima_col]:  # limpia el resalte previo (solo el de este color)
+            if c.fill is not None and c.fill.fgColor is not None and str(c.fill.fgColor.rgb or "").endswith(COLOR_DUPLICADO_CIERRE):
+                c.fill = sin_relleno
+        f = pd.to_datetime(row[idx_fecha].value, errors="coerce")
+        if not pd.isna(f):
+            filas[(_id_str(row[0].value), f.year)].append(row[0].row)
+
+    n = 0
+    for rows in filas.values():
+        if len(rows) > 1:
+            for r in rows:
+                for col in range(1, ultima_col + 1):
+                    ws.cell(r, col).fill = relleno
+                n += 1
+    return n
 
 
 def _dedup_cierres_por_año(ws) -> int:

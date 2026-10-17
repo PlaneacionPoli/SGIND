@@ -210,3 +210,94 @@ def test_build_export_dataframe():
     out = build_export_dataframe(df)
     assert "Código" in out.columns
     assert "Cumplimiento (%)" in out.columns
+
+
+def test_jerarquia_por_id_prevalece_sobre_el_nombre():
+    """El proceso/subproceso sale del catálogo por Id, no del nombre que trae el seguimiento."""
+    df = pd.DataFrame(
+        {
+            "Id": ["10", "386.1", "99"],
+            "Proceso": ["Nombre equivocado", "Otro nombre", "Sin catalogo"],
+            "Subproceso": ["Nombre equivocado", "Otro nombre", "Sin catalogo"],
+            "Cumplimiento_norm": [0.9, 1.0, 0.8],
+            "Anio": [2025, 2025, 2025],
+            "Mes": ["Junio"] * 3,
+        }
+    )
+    map_df = pd.DataFrame(
+        {
+            "Subproceso": ["SUB A", "SUB B"],
+            "Proceso": ["PROC A", "PROC B"],
+            "Unidad": ["U1", "U2"],
+            "Tipo de proceso": ["MISIONAL", "APOYO"],
+        }
+    )
+    jer = pd.DataFrame(
+        {
+            "Id": ["10", "386"],
+            "Proceso_cat": ["PROC A ", "PROC B"],
+            "Subproceso_cat": ["SUB  A", "SUB B"],
+            "TipoCalculo": ["Cierre", "Acumulado"],
+            "Estado_cat": ["Activo", "Activo"],
+        }
+    )
+    out = prepare_tracking(df, map_df, jer).set_index("Id")
+    assert out.loc["10", "Proceso_padre"] == "PROC A"
+    assert out.loc["10", "Subproceso_final"] == "SUB A"
+    assert out.loc["10", "Unidad"] == "U1"
+    # un subindicador hereda la jerarquía de su indicador padre
+    assert out.loc["386.1", "Proceso_padre"] == "PROC B"
+    assert out.loc["386.1", "Tipo de proceso"] == "APOYO"
+    # un Id fuera del catálogo conserva la asignación previa
+    assert out.loc["99", "Proceso_padre"] == "Sin catalogo"
+
+
+def test_estado_cierre_fila_parcial_solo_en_el_año_en_curso():
+    from app.domain.procesos_builders import estado_cierre_fila
+
+    assert estado_cierre_fila("2025-12-31", 2026) == "Final"
+    assert estado_cierre_fila("2022-06-30", 2026) == "Final"
+    assert estado_cierre_fila("2026-07-31", 2026) == "Parcial"
+    assert estado_cierre_fila(None, 2026) == ""
+
+
+def test_build_mapa_procesos_agrega_por_id_y_calcula_variaciones():
+    from app.domain.procesos_builders import build_mapa_procesos, ultimo_registro_anual
+
+    def frame(valores):
+        return pd.DataFrame(
+            {
+                "Id": ["1", "2"],
+                "Indicador": ["Ind 1", "Ind 2"],
+                "Proceso_padre": ["P"] * 2,
+                "Subproceso_final": ["S"] * 2,
+                "Unidad": ["U"] * 2,
+                "Tipo de proceso": ["MISIONAL"] * 2,
+                "cumplimiento_pct": valores,
+                "Nivel de cumplimiento": ["Cumplimiento", "Peligro"],
+                "Mes": ["Diciembre"] * 2,
+                "Fecha": ["2024-12-31"] * 2,
+                "Periodicidad": ["Mensual", "Semestral"],
+            }
+        )
+
+    frames = {
+        2024: ultimo_registro_anual(frame([100.0, 80.0]), mes_corte=12),
+        2025: ultimo_registro_anual(frame([100.0, 90.0]), mes_corte=12),
+        2026: ultimo_registro_anual(frame([100.0, 100.0]), mes_corte=12),
+    }
+    jer = pd.DataFrame({"Id": ["1"], "TipoCalculo": ["Promedio"]})
+    m = build_mapa_procesos(
+        frames, jer, anios=[2024, 2025, 2026], anio_parcial=2026
+    )
+    p = m["procesos"][0]
+    assert p["anios"] == {"2024": 90.0, "2025": 95.0, "2026": 100.0}
+    assert p["variaciones"] == {"2024-2025": 5.0, "2025-2026": 5.0}
+    assert m["anio_parcial"] == 2026
+    inds = {i["id"]: i for i in p["subprocesos"][0]["indicadores"]}
+    assert inds["1"]["tipo_calculo"] == "Promedio"
+    assert inds["1"]["periodicidad"] == "Mensual"
+    assert inds["1"]["ultimo_reporte"] == "Dic 2024"
+    assert inds["1"]["estado_cierre"] == "Final"
+    assert inds["2"]["tipo_calculo"] is None
+    assert m["sin_tipo_calculo"] == 1

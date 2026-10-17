@@ -4,18 +4,10 @@ import { useEffect, useMemo, useState } from "react";
 import type { CMIProcesoBar, CMIProcesoComparativa, CMIProcesoDetalle, CMIProcesoTipoCard, CMIUnidadDetalle } from "@/lib/types";
 import { CmiCumplimientoHorizBarPlotly } from "@/components/cmi/CmiCumplimientoHorizBarPlotly";
 import { CmiProcesosBarPlotly } from "@/components/cmi/CmiProcesosBarPlotly";
-import { NIVEL_COLORS } from "@/components/cmi/cmiChartColors";
+import { colorCumplimiento } from "@/components/cmi/cmiChartColors";
 import { fmtPct } from "@/components/cmi/nivelUtils";
 
 const PAGE_SIZE = 10;
-
-/** Color de semáforo por cumplimiento (< 80 peligro, < 100 alerta, < 105 cumplimiento). */
-function colorCumplimiento(v: number | null): string {
-  if (v == null) return NIVEL_COLORS["Pendiente de reporte"];
-  if (v < 80) return NIVEL_COLORS.Peligro;
-  if (v < 100) return NIVEL_COLORS.Alerta;
-  return v < 105 ? NIVEL_COLORS.Cumplimiento : NIVEL_COLORS.Sobrecumplimiento;
-}
 
 interface CmiProcesosUnidadesTabProps {
   unidades: CMIUnidadDetalle[];

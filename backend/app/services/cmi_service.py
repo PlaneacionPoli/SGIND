@@ -50,6 +50,7 @@ from app.domain.procesos_builders import (
     build_historico_catalog,
     build_indicadores_procesos_listado,
     build_indicadores_summary,
+    build_mapa_procesos,
     build_proceso_bars,
     build_procesos_detalle,
     build_procesos_kpis,
@@ -65,11 +66,13 @@ from app.domain.procesos_builders import (
     mes_nombre,
     mes_to_num,
     prepare_tracking,
+    ultimo_registro_anual,
 )
-from app.domain.procesos_loaders import load_process_map
+from app.domain.procesos_loaders import load_jerarquia_catalogo, load_process_map
 from app.domain.resumen_builders import ensure_nivel_cumplimiento
 from app.domain.strategic_processors import StrategicProcessors
 from app.domain.taxonomia import load_taxonomia
+from app.services.etl_pipeline import ETLPipelineService
 from app.services.excel_reader import ExcelReaderService
 from app.services.indicator_service import IndicatorService
 from app.services.narrativa_ia_service import generar_narrativa_ficha
@@ -93,8 +96,10 @@ def _num_or_none(v: Any) -> float | None:
 _FICHA_PATH = "raw/Catalogo de Indicadores.xlsx"
 _FICHA_SHEET = "Ficha Tecnica Detalle"
 
-_YEAR_PREPARED_CACHE: dict[tuple[str, int, bool], tuple[float, pd.DataFrame]] = {}
+_YEAR_PREPARED_CACHE: dict[tuple[str, int, bool, str], tuple[float, pd.DataFrame]] = {}
 _PROCESOS_DASHBOARD_CACHE: dict[tuple, tuple[float, dict]] = {}
+_PROCESOS_MAPA_CACHE: dict[tuple, tuple[float, dict]] = {}
+ANIO_INICIO_MAPA = 2022
 
 # Tope superior de año visible en Informe/CMI por Procesos. 2026 ya tiene
 # datos de corte Junio cargados — habilitado (ver también
@@ -430,9 +435,10 @@ class CMIService:
         *,
         anio: int,
         omit_kawak_cross: bool = False,
+        fuente: str = "semestral",
     ) -> pd.DataFrame:
         root = str(self._excel.data_root.resolve())
-        key = (root, int(anio), omit_kawak_cross)
+        key = (root, int(anio), omit_kawak_cross, fuente)
 
         def _load() -> pd.DataFrame:
             if tracking.empty or "Anio" not in tracking.columns:
@@ -440,7 +446,7 @@ class CMIService:
             year_df = tracking[pd.to_numeric(tracking["Anio"], errors="coerce") == int(anio)].copy()
             if year_df.empty:
                 return pd.DataFrame()
-            prepared = prepare_tracking(year_df, map_df)
+            prepared = prepare_tracking(year_df, map_df, load_jerarquia_catalogo(self._excel))
             prepared = self._cmi.filter_procesos(
                 prepared,
                 anio=anio,
@@ -493,7 +499,12 @@ class CMIService:
             anios = [a for a in anios if marco.incluye_anio(a)] or anios
         anio_eff = int(anio) if anio is not None else default_anio_procesos(anios)
         opts = build_filtros_options(
-            tracking, map_df, self._cmi.load_cmi_worksheet(), anio=anio_eff, mes=mes
+            tracking,
+            map_df,
+            self._cmi.load_cmi_worksheet(),
+            anio=anio_eff,
+            mes=mes,
+            jerarquia=load_jerarquia_catalogo(self._excel),
         )
         anios_filtro = opts["anios"] or anios
         if marco.indicadores_desde != "catalogo":
@@ -912,6 +923,44 @@ class CMIService:
             if cumpl is not None:
                 historico.append({"anio": a, "cumplimiento": cumpl})
         return historico
+
+    def get_procesos_mapa(self) -> dict[str, Any]:
+        """Proceso → Subproceso → Indicador con el cumplimiento de cada año (2022 en adelante).
+
+        No depende del PDI. El último año con datos incompletos se marca como parcial.
+        """
+        return cache_get(
+            _PROCESOS_MAPA_CACHE,
+            (id(self._excel),),
+            self._get_procesos_mapa_uncached,
+            ttl=self._excel.ttl,
+        )
+
+    def _get_procesos_mapa_uncached(self) -> dict[str, Any]:
+        """El valor anual de cada indicador sale de Consolidado Cierres: un cierre por Id y año,
+        calculado en el ETL según su TipoCalculo. El año en curso trae el último corte
+        disponible de cada indicador (cierre parcial), sea mensual, bimestral, trimestral o
+        semestral; no se asume un mes de corte."""
+        tracking = self._load_tracking()
+        map_df = load_process_map(self._excel)
+        jerarquia = load_jerarquia_catalogo(self._excel)
+        cierres = ETLPipelineService(self._excel).leer_cierres()
+        anios = [a for a in self._available_anios() if a >= ANIO_INICIO_MAPA]
+        if tracking.empty or cierres.empty or not anios:
+            return build_mapa_procesos({}, jerarquia, anios=anios, anio_parcial=None)
+        frames = {
+            a: ultimo_registro_anual(
+                self._get_year_prepared(cierres, map_df, anio=a, fuente="cierres"), mes_corte=12
+            )
+            for a in anios
+        }
+        ultimo = max(anios)
+        return build_mapa_procesos(
+            frames,
+            jerarquia,
+            anios=anios,
+            anio_parcial=ultimo if ultimo >= date.today().year else None,
+        )
 
     def _ultimo_filtrado_procesos(self, *, anio: int | None = None) -> pd.DataFrame:
         tracking = self._load_tracking()

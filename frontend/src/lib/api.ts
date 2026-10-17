@@ -1,5 +1,6 @@
 import axios from "axios";
 import type {
+  CMIProcesosMapaResponse,
   AlertaConfig,
   AlertaEnvio,
   AlertaNotificaciones,
@@ -255,6 +256,12 @@ export async function fetchCMIProcesosFiltros(
   const { data } = await api.get<CMIProcesosFiltrosResponse>("/cmi/procesos/filtros", {
     params: Object.keys(params).length ? params : undefined,
   });
+  return data;
+}
+
+/** Mapa Proceso → Subproceso → Indicador con histórico anual. No depende del PDI. */
+export async function fetchCMIProcesosMapa(): Promise<CMIProcesosMapaResponse> {
+  const { data } = await api.get<CMIProcesosMapaResponse>("/cmi/procesos/mapa");
   return data;
 }
 

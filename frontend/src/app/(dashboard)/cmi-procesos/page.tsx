@@ -7,6 +7,7 @@ import { DataFreshnessFooter } from "@/components/layout/DataFreshnessFooter";
 import { CmiProcesosAlertasTab } from "@/components/cmi/CmiProcesosAlertasTab";
 import { CmiProcesosAnalisisTab } from "@/components/cmi/CmiProcesosAnalisisTab";
 import { CmiProcesosFilters } from "@/components/cmi/CmiProcesosFilters";
+import { CmiProcesosMapaTab } from "@/components/cmi/CmiProcesosMapaTab";
 import { CmiProcesosListadoTab } from "@/components/cmi/CmiProcesosListadoTab";
 import { CmiProcesosResumenTab } from "@/components/cmi/CmiProcesosResumenTab";
 import { CmiProcesosUnidadesTab } from "@/components/cmi/CmiProcesosUnidadesTab";
@@ -16,12 +17,14 @@ import {
   fetchCMIProcesosDashboard,
   fetchCMIProcesosFicha,
   fetchCMIProcesosFiltros,
+  fetchCMIProcesosMapa,
 } from "@/lib/api";
 import { PdiChip } from "@/components/ui/PdiChip";
-import { PdiGate } from "@/components/ui/PdiGate";
+import { usePdiSeleccionado } from "@/lib/pdi";
 import { useAuthReady } from "@/stores/auth-store";
 
 const TABS = [
+  { id: "mapa", label: "Mapa de procesos", icon: "🗺️" },
   { id: "resumen", label: "Resumen", icon: "📋" },
   { id: "procesos", label: "Procesos y Unidades", icon: "🏢" },
   { id: "listado", label: "Indicadores", icon: "📊" },
@@ -34,12 +37,15 @@ type TabId = (typeof TABS)[number]["id"];
 export default function CMIProcesosPage() {
   return (
     <Suspense fallback={<p className="text-sm text-slate-500">Cargando CMI por procesos...</p>}>
-      <PdiGate modulo="cmi-procesos">{(pdi) => <CMIProcesosContent pdi={pdi} />}</PdiGate>
+      <CMIProcesosContent />
     </Suspense>
   );
 }
 
-function CMIProcesosContent({ pdi }: { pdi: string }) {
+function CMIProcesosContent() {
+  // El PDI es solo informativo (alineación en la ficha del indicador): no se exige ni
+  // redirige. Sin ?pdi= el backend usa el vigente.
+  const pdi = usePdiSeleccionado(false) ?? undefined;
   const { isAuthenticated } = useAuthReady();
   const [anio, setAnio] = useState<number | null>(null);
   const [mes, setMes] = useState<number | null>(null);
@@ -49,10 +55,16 @@ function CMIProcesosContent({ pdi }: { pdi: string }) {
   const [clasificacion, setClasificacion] = useState("Todos");
   const [frecuencia, setFrecuencia] = useState("Todos");
   const [linea, setLinea] = useState("Todos");
-  const [tab, setTab] = useState<TabId>("resumen");
+  const [tab, setTab] = useState<TabId>("mapa");
   const [fichaId, setFichaId] = useState<string | null>(null);
   const [exporting, setExporting] = useState(false);
   const [downloadingFichaPdf, setDownloadingFichaPdf] = useState(false);
+
+  const mapaQuery = useQuery({
+    queryKey: ["cmi-procesos-mapa"],
+    queryFn: fetchCMIProcesosMapa,
+    enabled: isAuthenticated,
+  });
 
   const filtrosQuery = useQuery({
     queryKey: ["cmi-procesos-filtros", pdi, anio, mes],
@@ -185,14 +197,14 @@ function CMIProcesosContent({ pdi }: { pdi: string }) {
       <div>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="text-2xl font-bold text-slate-900">CMI por Procesos</h2>
-          <PdiChip pdi={pdi} className="text-slate-700" />
+          {pdi && <PdiChip pdi={pdi} className="text-slate-700" />}
         </div>
         <p className="mt-1 text-slate-600">
           Balanced Scorecard por procesos — Subprocesos=1, validados contra Kawak
         </p>
       </div>
 
-      {isAuthenticated && filtrosQuery.data && anio != null && mes != null && (
+      {tab !== "mapa" && isAuthenticated && filtrosQuery.data && anio != null && mes != null && (
         <CmiProcesosFilters
           anio={anioEfectivo}
           mes={mesEfectivo}
@@ -226,7 +238,7 @@ function CMIProcesosContent({ pdi }: { pdi: string }) {
         />
       )}
 
-      {data && tab !== "resumen" && (
+      {data && tab !== "resumen" && tab !== "mapa" && (
         <p className="text-xs text-slate-500">
           Corte filtrado: {data.mes_nombre} {data.anio}
           {tab === "listado" || tab === "alertas"
@@ -259,6 +271,16 @@ function CMIProcesosContent({ pdi }: { pdi: string }) {
 
       {!isAuthenticated ? (
         <p className="text-sm text-amber-700">Inicie sesión para ver CMI por procesos.</p>
+      ) : tab === "mapa" ? (
+        mapaQuery.isLoading ? (
+          <div className="h-64 animate-pulse rounded-2xl bg-slate-200" />
+        ) : mapaQuery.isError || !mapaQuery.data ? (
+          <p className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+            No se pudo cargar el mapa de procesos.
+          </p>
+        ) : (
+          <CmiProcesosMapaTab mapa={mapaQuery.data} onOpenFicha={setFichaId} />
+        )
       ) : dashboardQuery.isLoading ? (
         <div className="space-y-4">
           <div className="h-32 animate-pulse rounded-2xl bg-slate-200" />

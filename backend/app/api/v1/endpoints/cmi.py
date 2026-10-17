@@ -14,6 +14,7 @@ from app.schemas.common import (
     CMIFiltrosResponse,
     CMIProcesosDashboardResponse,
     CMIProcesosFiltrosResponse,
+    CMIProcesosMapaResponse,
     CMIProcesosResponse,
     FichaIndicadorResponse,
 )
@@ -114,6 +115,15 @@ async def cmi_procesos_filtros(
     return CMIProcesosFiltrosResponse(
         **await run_sync(service.get_procesos_filtros, anio=anio, mes=mes, pdi=marco.version_id)
     )
+
+
+@router.get("/procesos/mapa", response_model=CMIProcesosMapaResponse)
+async def cmi_procesos_mapa(
+    _user: User = Depends(require_reader),
+    service: CMIService = Depends(_cmi_service),
+) -> CMIProcesosMapaResponse:
+    """Mapa Proceso → Subproceso → Indicador con histórico anual. Independiente del PDI."""
+    return CMIProcesosMapaResponse(**await run_sync(service.get_procesos_mapa))
 
 
 @router.get("/procesos-dashboard", response_model=CMIProcesosDashboardResponse)

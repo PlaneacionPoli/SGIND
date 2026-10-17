@@ -102,6 +102,47 @@ def _leer_variables_campo(dfv: pd.DataFrame, destino: Dict) -> None:
             destino[id_s]["meta"].append(simb)
 
 
+TIPOS_CALCULO_VALIDOS = {"cierre", "promedio", "acumulado"}
+
+
+def _tipo_calculo_valido(valor: object) -> str:
+    """Devuelve el TipoCalculo normalizado (Cierre/Promedio/Acumulado) o ''.
+    Descarta textos de otros conceptos (p. ej. 'Tipo de calculo Series' de Kawak)."""
+    s = "" if valor is None or pd.isna(valor) else str(valor).strip()
+    return s if s.lower() in TIPOS_CALCULO_VALIDOS else ""
+
+
+def _leer_hoja_catalogo(df: pd.DataFrame, result: Dict) -> None:
+    """Vuelca una hoja 'Catalogo Indicadores' en `result`. Lo que ya está en
+    `result` solo se sobrescribe con valores no vacíos (la última hoja leída
+    gana, pero un vacío nunca borra un valor previo)."""
+    df.columns = [str(c).strip() for c in df.columns]
+    col_tipo_ind = next((c for c in df.columns if c.strip() == "Tipo de indicador"), None)
+    for _, row in df.iterrows():
+        id_s = _id_str(row.get("Id", ""))
+        if not id_s:
+            continue
+        val = row.get("Extraccion")
+        ext = None if pd.isna(val) else str(val).strip()
+        if ext or id_s not in result["extraccion_map"]:
+            result["extraccion_map"][id_s] = ext
+        tc = _tipo_calculo_valido(row.get("TipoCalculo"))
+        if tc:
+            result["tipo_calculo_map"][id_s] = tc
+        if col_tipo_ind:
+            ti = row.get(col_tipo_ind)
+            if not pd.isna(ti) and str(ti).strip():
+                result["tipo_indicador_map"][id_s] = str(ti).strip()
+        previo = result["user_data"].get(id_s, {})
+        result["user_data"][id_s] = {
+            "TipoCalculo":     tc or previo.get("TipoCalculo", ""),
+            "Asociacion":      str(row.get("Asociacion", "") or "").strip()
+                               or previo.get("Asociacion", ""),
+            "Formato_Valores": _fmt_val_raw(row.get("Formato_Valores"))
+                               or previo.get("Formato_Valores", ""),
+        }
+
+
 def cargar_catalogo_completo(src: Optional[Path] = None) -> Dict:
     """
     Lee 'Catalogo Indicadores' del archivo fuente UNA sola vez y retorna:
@@ -128,40 +169,25 @@ def cargar_catalogo_completo(src: Optional[Path] = None) -> Dict:
             with pd.ExcelFile(local_source) as xl:
                 # ── Hoja Catalogo Indicadores ──────────────────────────
                 if "Catalogo Indicadores" in xl.sheet_names:
-                    df = xl.parse("Catalogo Indicadores")
-                    df.columns = [str(c).strip() for c in df.columns]
-                    col_tipo_ind = next(
-                        (c for c in df.columns if c.strip() == "Tipo de indicador"), None
-                    )
-                    for _, row in df.iterrows():
-                        id_s = _id_str(row.get("Id", ""))
-                        if not id_s:
-                            continue
-                        # extraccion_map
-                        val = row.get("Extraccion")
-                        result["extraccion_map"][id_s] = (
-                            None if pd.isna(val) else str(val).strip()
-                        )
-                        # tipo_calculo_map
-                        tc = row.get("TipoCalculo")
-                        if not pd.isna(tc) and str(tc).strip():
-                            result["tipo_calculo_map"][id_s] = str(tc).strip()
-                        # tipo_indicador_map
-                        if col_tipo_ind:
-                            ti = row.get(col_tipo_ind)
-                            if not pd.isna(ti) and str(ti).strip():
-                                result["tipo_indicador_map"][id_s] = str(ti).strip()
-                        # user_data
-                        result["user_data"][id_s] = {
-                            "TipoCalculo":     str(row.get("TipoCalculo", "") or "").strip(),
-                            "Asociacion":      str(row.get("Asociacion", "") or "").strip(),
-                            "Formato_Valores": _fmt_val_raw(row.get("Formato_Valores")),
-                        }
+                    _leer_hoja_catalogo(xl.parse("Catalogo Indicadores"), result)
                 # ── Hoja Variables ─────────────────────────────────────
                 if "Variables" in xl.sheet_names:
                     _leer_variables_campo(xl.parse("Variables"), result["variables_campo_map"])
     except Exception as e:
         logger.warning(f"  Error leyendo Catálogo de {source.name}: {e}")
+
+    # El catálogo maestro (Catalogo de Indicadores.xlsx) es la fuente vigente de los
+    # campos manuales (Extraccion/TipoCalculo/Asociacion/Formato_Valores): se lee al
+    # final para que prevalezca sobre la hoja antigua de INPUT_FILE, que no trae los
+    # indicadores nuevos. Solo aplica a la carga por defecto (src=None).
+    if src is None and CATALOGO_MAESTRO_FILE.exists() and CATALOGO_MAESTRO_FILE != source:
+        try:
+            with workbook_local_copy(CATALOGO_MAESTRO_FILE) as (local_maestro, _):
+                with pd.ExcelFile(local_maestro) as xl_m:
+                    if "Catalogo Indicadores" in xl_m.sheet_names:
+                        _leer_hoja_catalogo(xl_m.parse("Catalogo Indicadores"), result)
+        except Exception as e:
+            logger.warning(f"  Error leyendo catálogo maestro {CATALOGO_MAESTRO_FILE.name}: {e}")
 
     # La hoja Variables (símbolo → Campo Meta/Ejecución) es configuración curada que
     # el pipeline conserva en el libro de salida. Si la fuente no la trae (p. ej. se
@@ -228,7 +254,7 @@ def construir_catalogo(
 
     # Leer user_data desde INPUT_FILE y OUTPUT_FILE (INPUT_FILE gana).
     user_data: Dict = {}
-    for _src in (INPUT_FILE, OUTPUT_FILE):
+    for _src in (CATALOGO_MAESTRO_FILE, INPUT_FILE, OUTPUT_FILE):
         if not _src.exists():
             continue
         try:
@@ -315,7 +341,8 @@ def construir_catalogo(
         periodicidad  = _clean(kw.get("periodicidad"))  or _clean(cmi.get("periodicidad"))  or base["Periodicidad"]
         sentido       = _clean(kw.get("sentido"))       or _clean(cmi.get("sentido"))       or base["Sentido"]
         ud = user_data.get(ids, {})
-        tipo_calculo    = _clean(ud.get("TipoCalculo"))     or _clean(kw.get("tipo_calculo", ""))
+        # Solo Cierre/Promedio/Acumulado: el 'Tipo de calculo Series' de Kawak es otro concepto.
+        tipo_calculo    = _tipo_calculo_valido(ud.get("TipoCalculo")) or _tipo_calculo_valido(kw.get("tipo_calculo"))
         asociacion      = _clean(ud.get("Asociacion",    ""))
         formato_valores = _clean(ud.get("Formato_Valores", "")) or "%"
         dvals = directorio_map.get(ids, {})

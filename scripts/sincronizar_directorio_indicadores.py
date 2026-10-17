@@ -165,7 +165,7 @@ def activos_del_catalogo(wb, vigentes: set[str] = frozenset()) -> dict[str, dict
     fuera del PDI. A esos se les completa el Estado con «Activo»."""
     ws = wb[HOJA_CATALOGO]
     enc = [c.value for c in ws[1]]
-    ix = {c: enc.index(c) for c in ("Id", "Indicador", "Proceso", "Clasificacion", "Estado", "Linea_Estrategica") if c in enc}
+    ix = {c: enc.index(c) for c in ("Id", "Indicador", "Proceso", "Subproceso", "Clasificacion", "Estado", "Linea_Estrategica") if c in enc}
     out: dict[str, dict] = {}
     for row in ws.iter_rows(min_row=2, values_only=True):
         if row[ix["Id"]] is None:
@@ -202,11 +202,11 @@ def completar_datos(wb, fuente: dict[str, dict]) -> int:
 
 
 def completar_contexto_hoja(wb, marco: Marco) -> int:
-    """Llena las celdas vacías de contexto (Indicador, Proceso, Clasificación, Estado) de la hoja
+    """Llena las celdas vacías de contexto (Indicador, Subproceso, Clasificación, Estado) de la hoja
     del PDI con lo que dice el catálogo. No toca PDI/Línea/Objetivo/Meta."""
     cat = wb[HOJA_CATALOGO]
     enc = [c.value for c in cat[1]]
-    ix = {c: enc.index(c) for c in ("Id", "Indicador", "Proceso", "Clasificacion", "Estado")}
+    ix = {c: enc.index(c) for c in ("Id", "Indicador", "Subproceso", "Clasificacion", "Estado")}
     por_id = {id_str(r[ix["Id"]]): r for r in cat.iter_rows(min_row=2, values_only=True) if r[ix["Id"]] is not None}
     ws = wb[hojas.hoja_pdi(marco)]
     cols = [c.value for c in ws[1]]
@@ -215,7 +215,7 @@ def completar_contexto_hoja(wb, marco: Marco) -> int:
         fuente = por_id.get(id_str(row[0].value)) if row[0].value is not None else None
         if fuente is None:
             continue
-        for campo in ("Indicador", "Proceso", "Clasificacion", "Estado"):
+        for campo in ("Indicador", "Subproceso", "Clasificacion", "Estado"):
             celda = row[cols.index(campo)]
             if not _texto(celda.value) and _texto(fuente[ix[campo]]):
                 celda.value = fuente[ix[campo]]
@@ -270,7 +270,8 @@ def escribir_filas_nuevas(wb, marco: Marco, faltantes: dict[str, dict], nuevos: 
     regenera las listas desplegables. Devuelve cuántas filas agregó."""
     filas = pd.DataFrame([
         {
-            "Id": ids, "Indicador": d.get("Indicador"), "Proceso": d.get("Proceso"),
+            "Id": ids, "Indicador": d.get("Indicador"),
+            "Subproceso": d.get("Subproceso") or d.get("Proceso"),
             "Clasificacion": d.get("Clasificacion"), "Estado": d.get("Estado") or ESTADO_ACTIVO,
             "Origen": ORIGEN_NUEVO if ids in nuevos else hojas.ORIGEN_ACTIVO, hojas.COL_ANTERIOR: d.get("Linea_Estrategica"),
             "PDI": 0, "Linea": None, "Objetivo": None, "Meta": None, "Observaciones": None,
@@ -422,7 +423,7 @@ def main(argv: list[str] | None = None) -> int:
             pendientes_total.append({
                 "PDI": marco.version_id, "Id": id_str(ws.cell(row=fila, column=1).value),
                 "Indicador": _texto(ws.cell(row=fila, column=2).value),
-                "Proceso": _texto(ws.cell(row=fila, column=3).value),
+                "Subproceso": _texto(ws.cell(row=fila, column=3).value),
             })
         for r in range(2, ws.max_row + 1):
             if ws.cell(row=r, column=1).value is None or ws.cell(row=r, column=cols.index("Origen") + 1).value != ORIGEN_NUEVO:
